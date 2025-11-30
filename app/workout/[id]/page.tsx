@@ -35,18 +35,36 @@ export default function WorkoutPage() {
     setRoutine(foundRoutine);
     
     // Inicializar valores
-    if (foundRoutine.exercises[0]) {
+    if (foundRoutine.exercises && foundRoutine.exercises.length > 0 && foundRoutine.exercises[0]) {
       setCurrentReps(foundRoutine.exercises[0].reps);
       setCurrentWeight(foundRoutine.exercises[0].weight || 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  if (!routine) {
-    return null;
+  if (!routine || !routine.exercises || routine.exercises.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-8">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Esta rutina no tiene ejercicios configurados.
+            </p>
+            <Button onClick={() => router.push('/routines')}>
+              Volver a rutinas
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const currentExercise = routine.exercises[currentExerciseIndex];
+  
+  if (!currentExercise) {
+    return null;
+  }
+
   const isLastSet = currentSet >= currentExercise.sets;
   const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
 
@@ -93,10 +111,12 @@ export default function WorkoutPage() {
     if (isLastSet && !isLastExercise) {
       // Siguiente ejercicio
       const nextIndex = currentExerciseIndex + 1;
-      setCurrentExerciseIndex(nextIndex);
-      setCurrentSet(1);
-      setCurrentReps(routine.exercises[nextIndex].reps);
-      setCurrentWeight(routine.exercises[nextIndex].weight || 0);
+      if (routine.exercises[nextIndex]) {
+        setCurrentExerciseIndex(nextIndex);
+        setCurrentSet(1);
+        setCurrentReps(routine.exercises[nextIndex].reps);
+        setCurrentWeight(routine.exercises[nextIndex].weight || 0);
+      }
     } else {
       // Siguiente serie
       setCurrentSet(currentSet + 1);

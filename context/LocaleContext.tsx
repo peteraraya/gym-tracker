@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import esMessages from '@/messages/es.json';
 import enMessages from '@/messages/en.json';
 
@@ -16,24 +16,25 @@ interface LocaleContextType {
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  // Inicializar con el valor de localStorage si está disponible
-  const [locale, setLocaleState] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('locale') || 'es';
+  // Inicializar siempre con 'es' para evitar problemas de hidratación
+  const [locale, setLocaleState] = useState('es');
+  const [messages, setMessages] = useState<Messages>(esMessages);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Cargar el locale guardado solo en el cliente después del montaje
+  useEffect(() => {
+    const savedLocale = localStorage.getItem('locale') || 'es';
+    if (savedLocale !== locale) {
+      setLocaleState(savedLocale);
+      setMessages(savedLocale === 'en' ? enMessages : esMessages);
     }
-    return 'es';
-  });
-  
-  const [messages, setMessages] = useState<Messages>(() => {
-    if (typeof window !== 'undefined') {
-      const savedLocale = localStorage.getItem('locale') || 'es';
-      return savedLocale === 'en' ? enMessages : esMessages;
-    }
-    return esMessages;
-  });
+    setIsInitialized(true);
+  }, []);
 
   const setLocale = (newLocale: string) => {
-    localStorage.setItem('locale', newLocale);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locale', newLocale);
+    }
     setLocaleState(newLocale);
     setMessages(newLocale === 'en' ? enMessages : esMessages);
   };
@@ -54,7 +55,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <LocaleContext.Provider value={{ locale, messages, setLocale, t }}>
-      {children}
+      {isInitialized ? children : children}
     </LocaleContext.Provider>
   );
 }
