@@ -364,7 +364,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => router.push('/achievements')}
                 className="text-sm"
               >

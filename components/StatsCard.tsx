@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 interface StatsCardProps {
   title: string;
   value: string | number;
-  icon: string;
+  icon: string | React.ReactNode;
   subtitle?: string;
   trend?: {
     value: number;

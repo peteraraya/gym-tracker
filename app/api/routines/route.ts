@@ -37,8 +37,15 @@ export async function GET() {
       createdAt: new Date(routine.created_at),
       updatedAt: new Date(routine.updated_at),
       exercises: routine.exercises
-        .sort((a, b) => a.order_index - b.order_index)
-        .map(ex => ({
+        .sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index)
+        .map((ex: {
+          id: string;
+          name: string;
+          sets: number;
+          reps: number;
+          weight?: number;
+          notes?: string;
+        }) => ({
           id: ex.id,
           name: ex.name,
           sets: ex.sets,
