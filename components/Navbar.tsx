@@ -150,6 +150,18 @@ export const Navbar: React.FC = () => {
                   🧮
                 </span>
               </Link>
+              <Link
+                href="/data"
+                className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                  isActive('/data')
+                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  💾
+                </span>
+              </Link>
               {user && (
                 <Link
                   href="/profile"

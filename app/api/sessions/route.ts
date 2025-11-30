@@ -36,7 +36,13 @@ export async function GET() {
       routineId: session.routine_id,
       routineName: session.routines?.name,
       date: new Date(session.date),
-      exercises: session.session_exercises.map(se => ({
+      exercises: session.session_exercises.map((se: {
+        exercise_id: string;
+        exercises?: { name: string };
+        completed_sets: number;
+        actual_reps: number[];
+        actual_weight: number[];
+      }) => ({
         exerciseId: se.exercise_id,
         exerciseName: se.exercises?.name,
         completedSets: se.completed_sets,
@@ -82,7 +88,12 @@ export async function POST(request: Request) {
 
     // Create session exercises
     if (exercises && exercises.length > 0) {
-      const sessionExercisesData = exercises.map((ex: any) => ({
+      const sessionExercisesData = exercises.map((ex: {
+        exerciseId: string;
+        completedSets: number;
+        actualReps: number[];
+        actualWeight: number[];
+      }) => ({
         session_id: session.id,
         exercise_id: ex.exerciseId,
         completed_sets: ex.completedSets,
