@@ -165,6 +165,7 @@ export default function WorkoutPage() {
     // Guardar sesión
     const sessionExercises = routine.exercises.map(ex => ({
       exerciseId: ex.id,
+      exerciseName: ex.name, // Guardar el nombre para facilitar búsquedas
       completedSets: completedSets[ex.id] || 0,
       actualReps: actualReps[ex.id] || [],
       actualWeight: actualWeights[ex.id] || []

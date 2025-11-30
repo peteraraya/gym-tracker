@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { StatsCard } from '@/components/StatsCard';
 import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 import { VolumeChart } from '@/components/VolumeChart';
-import type { WorkoutSession, UserProfile } from '@/types';
+import type { WorkoutSession, UserProfile, Routine } from '@/types';
+import { EXERCISE_DATABASE } from '@/data/exercises';
 import { 
   Dumbbell, 
   TrendingUp, 
@@ -22,6 +23,7 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
+  const [routines, setRoutines] = useState<Routine[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
@@ -45,6 +47,12 @@ export default function DashboardPage() {
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setProfile(profileData);
+      }
+
+      // Cargar rutinas desde localStorage
+      const savedRoutines = localStorage.getItem('gym-routines');
+      if (savedRoutines) {
+        setRoutines(JSON.parse(savedRoutines));
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -138,7 +146,35 @@ export default function DashboardPage() {
       
       sessions.forEach(session => {
         session.exercises.forEach(ex => {
-          exerciseCounts[ex.name] = (exerciseCounts[ex.name] || 0) + 1;
+          // Intentar usar el nombre guardado primero
+          let exerciseName = ex.exerciseName;
+          
+          // Si no hay nombre guardado, buscar usando el exerciseId
+          if (!exerciseName) {
+            // Buscar en las rutinas
+            for (const routine of routines) {
+              const exercise = routine.exercises.find(e => e.id === ex.exerciseId);
+              if (exercise) {
+                exerciseName = exercise.name;
+                break;
+              }
+            }
+            
+            // Si no se encontró en rutinas, buscar en EXERCISE_DATABASE
+            if (!exerciseName) {
+              const exerciseTemplate = EXERCISE_DATABASE.find(e => e.id === ex.exerciseId);
+              if (exerciseTemplate) {
+                exerciseName = exerciseTemplate.name;
+              }
+            }
+          }
+          
+          // Si aún no tenemos nombre, usar un fallback descriptivo
+          if (!exerciseName) {
+            exerciseName = 'Ejercicio sin nombre';
+          }
+          
+          exerciseCounts[exerciseName] = (exerciseCounts[exerciseName] || 0) + 1;
         });
       });
 
