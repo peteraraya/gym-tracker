@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
+import { useWorkout } from '@/context/WorkoutContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -12,6 +13,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 export default function RoutinesPage() {
   const router = useRouter();
   const { routines, deleteRoutine } = useGym();
+  const { startWorkout, isWorkoutActive, activeWorkout } = useWorkout();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
 
@@ -33,6 +35,21 @@ export default function RoutinesPage() {
         console.error('Error deleting routine:', error);
         alert('Error al eliminar la rutina');
       }
+    }
+  };
+
+  const handleStartWorkout = (routineId: string) => {
+    // Si hay un workout activo, preguntar si quiere cancelarlo
+    if (isWorkoutActive && activeWorkout?.routineId !== routineId) {
+      if (!confirm('Ya tienes un entrenamiento activo. ¿Deseas cancelarlo e iniciar uno nuevo?')) {
+        return;
+      }
+    }
+    
+    const routine = routines.find(r => r.id === routineId);
+    if (routine) {
+      startWorkout(routine);
+      router.push(`/workout/${routineId}`);
     }
   };
 
@@ -124,9 +141,9 @@ export default function RoutinesPage() {
                         variant="primary"
                         size="sm"
                         className="w-full mb-2"
-                        onClick={() => router.push(`/workout/${routine.id}`)}
+                        onClick={() => handleStartWorkout(routine.id)}
                       >
-                        ▶️ Iniciar
+                        {activeWorkout?.routineId === routine.id ? '🔥 Continuar' : '▶️ Iniciar'}
                       </Button>
                     </div>
                     
