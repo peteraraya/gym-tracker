@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/Button';
 import { StatsCard } from '@/components/StatsCard';
 import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 import { VolumeChart } from '@/components/VolumeChart';
+import { MuscleGroupStats } from '@/components/MuscleGroupStats';
+import { PersonalRecords } from '@/components/PersonalRecords';
+import { TrainingFrequency } from '@/components/TrainingFrequency';
+import { StrengthProgression } from '@/components/StrengthProgression';
 import type { WorkoutSession, UserProfile, Routine } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { 
@@ -339,6 +343,23 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Advanced Statistics */}
+      {sessions.length > 0 && (
+        <>
+          {/* Row 1: Muscle Group Stats & Training Frequency */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <MuscleGroupStats sessions={sessions} />
+            <TrainingFrequency sessions={sessions} />
+          </div>
+
+          {/* Row 2: Personal Records & Strength Progression */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PersonalRecords sessions={sessions} />
+            <StrengthProgression sessions={sessions} />
+          </div>
+        </>
+      )}
 
       {/* Quick Actions */}
       {sessions.length === 0 && (
