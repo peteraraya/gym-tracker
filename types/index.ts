@@ -30,6 +30,7 @@ export interface WorkoutSession {
   date: Date;
   exercises: {
     exerciseId: string;
+    exerciseName?: string; // Nombre del ejercicio para facilitar búsqueda
     completedSets: number;
     actualReps: number[];
     actualWeight: number[];
