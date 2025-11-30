@@ -112,6 +112,18 @@ export const Navbar: React.FC = () => {
                 </span>
               </Link>
               <Link
+                href="/achievements"
+                className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                  isActive('/achievements')
+                    ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-lg shadow-amber-500/30'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  🏆
+                </span>
+              </Link>
+              <Link
                 href="/exercises"
                 className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
                   isActive('/exercises')

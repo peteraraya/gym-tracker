@@ -11,8 +11,10 @@ import { MuscleGroupStats } from '@/components/MuscleGroupStats';
 import { PersonalRecords } from '@/components/PersonalRecords';
 import { TrainingFrequency } from '@/components/TrainingFrequency';
 import { StrengthProgression } from '@/components/StrengthProgression';
+import AchievementBadge from '@/components/AchievementBadge';
 import type { WorkoutSession, UserProfile, Routine } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
+import { calculateAchievements, getRecentAchievements, calculateStreak } from '@/lib/achievements';
 import { 
   Dumbbell, 
   TrendingUp, 
@@ -347,6 +349,89 @@ export default function DashboardPage() {
       {/* Advanced Statistics */}
       {sessions.length > 0 && (
         <>
+          {/* Logros Destacados */}
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-amber-200 dark:border-zinc-700">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                    Logros Recientes
+                  </h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Tus últimos desbloqueos
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/achievements')}
+                className="text-sm"
+              >
+                Ver Todos
+              </Button>
+            </div>
+
+            {/* Recent Achievements */}
+            <div className="flex gap-6 overflow-x-auto pb-2">
+              {(() => {
+                const allAchievements = calculateAchievements(sessions);
+                const recentAchievements = getRecentAchievements(allAchievements);
+                const streak = calculateStreak(sessions);
+
+                if (recentAchievements.length === 0) {
+                  return (
+                    <div className="text-center w-full py-8 text-zinc-600 dark:text-zinc-400">
+                      <p className="text-sm">¡Sigue entrenando para desbloquear logros!</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <>
+                    {recentAchievements.map(achievement => (
+                      <AchievementBadge
+                        key={achievement.id}
+                        achievement={achievement}
+                        size="lg"
+                        showProgress={true}
+                      />
+                    ))}
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Streak Info */}
+            {(() => {
+              const streak = calculateStreak(sessions);
+              return (
+                <div className="mt-6 pt-6 border-t border-amber-200 dark:border-zinc-700">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Racha Actual</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Flame className="w-5 h-5 text-orange-500" />
+                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                          {streak.current} días
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Racha Máxima</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Award className="w-5 h-5 text-amber-600" />
+                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                          {streak.longest} días
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
           {/* Row 1: Muscle Group Stats & Training Frequency */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <MuscleGroupStats sessions={sessions} />

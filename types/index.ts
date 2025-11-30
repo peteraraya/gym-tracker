@@ -69,3 +69,28 @@ export interface UserProfile {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Sistema de Logros/Badges
+export type AchievementCategory = 'consistency' | 'volume' | 'streak' | 'milestone';
+
+export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  category: AchievementCategory;
+  tier: AchievementTier;
+  icon: string; // Nombre del ícono de lucide-react
+  target: number; // Valor objetivo para desbloquear
+  unit: string; // Ej: "entrenamientos", "kg", "días"
+  unlocked: boolean;
+  unlockedAt?: Date;
+  progress: number; // Valor actual del usuario
+}
+
+export interface Streak {
+  current: number; // Racha actual en días
+  longest: number; // Racha más larga alcanzada
+  lastWorkoutDate?: Date;
+}
