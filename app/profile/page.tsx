@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { RestSettings } from '@/components/RestSettings';
 import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
 
 export default function ProfilePage() {
@@ -390,6 +391,9 @@ export default function ProfilePage() {
                 </form>
               </CardContent>
             </Card>
+
+            {/* Configuración de descansos */}
+            <RestSettings />
 
             {/* Información adicional */}
             <Card>
