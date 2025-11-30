@@ -6,6 +6,7 @@ import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
 import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -35,6 +36,8 @@ export default function WorkoutPage() {
   const [actualWeights, setActualWeights] = useState<{[key: string]: number[]}>({});
   const [currentReps, setCurrentReps] = useState(0);
   const [currentWeight, setCurrentWeight] = useState(0);
+  const [sessionNotes, setSessionNotes] = useState('');
+  const [showNotesModal, setShowNotesModal] = useState(false);
 
   useEffect(() => {
     const foundRoutine = getRoutineById(id);
@@ -130,8 +133,8 @@ export default function WorkoutPage() {
 
     if (isLastSet) {
       if (isLastExercise) {
-        // Finalizar entrenamiento
-        finishCompleteWorkout();
+        // Mostrar modal para notas antes de finalizar
+        setShowNotesModal(true);
       } else {
         // Pasar al siguiente ejercicio - usar descanso inteligente
         const nextExercise = routine.exercises[currentExerciseIndex + 1];
@@ -229,7 +232,7 @@ export default function WorkoutPage() {
         routineId: routine.id,
         date: new Date(),
         exercises: sessionExercises,
-        notes: ''
+        notes: sessionNotes.trim() || ''
       });
       
       // Limpiar el contexto de workout activo
@@ -238,7 +241,7 @@ export default function WorkoutPage() {
       router.push('/sessions');
     } catch (error) {
       console.error('Error saving session:', error);
-      alert('Error al guardar la sesión');
+      alert('Error al guardar la sesión. Por favor, intenta nuevamente.');
     }
   };
 
@@ -433,6 +436,56 @@ export default function WorkoutPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de notas al finalizar */}
+      <Modal
+        isOpen={showNotesModal}
+        onClose={() => setShowNotesModal(false)}
+        title="¡Entrenamiento completado! 🎉"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 dark:text-gray-400">
+            ¿Quieres agregar alguna nota sobre este entrenamiento?
+          </p>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Notas (opcional)
+            </label>
+            <textarea
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={4}
+              placeholder="Ej: Me sentí muy fuerte hoy, aumentar peso la próxima vez..."
+              value={sessionNotes}
+              onChange={(e) => setSessionNotes(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSessionNotes('');
+                setShowNotesModal(false);
+                finishCompleteWorkout();
+              }}
+              className="flex-1"
+            >
+              Omitir
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowNotesModal(false);
+                finishCompleteWorkout();
+              }}
+              className="flex-1"
+            >
+              Guardar y finalizar
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
     </ProtectedRoute>
   );

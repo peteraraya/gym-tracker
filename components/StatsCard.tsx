@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Card } from '@/components/ui/Card';
 
 interface StatsCardProps {
@@ -15,7 +15,7 @@ interface StatsCardProps {
   gradient?: string;
 }
 
-export function StatsCard({ title, value, icon, subtitle, trend, gradient = 'from-blue-600 to-blue-500' }: StatsCardProps) {
+const StatsCard = memo(function StatsCard({ title, value, icon, subtitle, trend, gradient = 'from-blue-600 to-blue-500' }: StatsCardProps) {
   return (
     <Card className="relative overflow-hidden group">
       {/* Background gradient */}
@@ -55,4 +55,8 @@ export function StatsCard({ title, value, icon, subtitle, trend, gradient = 'fro
       </div>
     </Card>
   );
-}
+});
+
+StatsCard.displayName = 'StatsCard';
+
+export { StatsCard };
