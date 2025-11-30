@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
+import { useWorkout } from '@/context/WorkoutContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Timer } from '@/components/Timer';
@@ -20,6 +21,8 @@ export default function WorkoutPage() {
   const params = useParams();
   const id = params.id as string;
   const { getRoutineById, addSession } = useGym();
+  const { activeWorkout, startWorkout, updateWorkoutProgress, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
+  
   const [routine, setRoutine] = useState(getRoutineById(id));
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
@@ -41,10 +44,28 @@ export default function WorkoutPage() {
     }
     setRoutine(foundRoutine);
     
-    // Inicializar valores
-    if (foundRoutine.exercises && foundRoutine.exercises.length > 0 && foundRoutine.exercises[0]) {
-      setCurrentReps(foundRoutine.exercises[0].reps);
-      setCurrentWeight(foundRoutine.exercises[0].weight || 0);
+    // Si hay un workout activo y coincide con esta rutina, restaurar el estado
+    if (activeWorkout && activeWorkout.routineId === id) {
+      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
+      setCurrentSet(activeWorkout.currentSet);
+      setCompletedSets(activeWorkout.completedSets);
+      setActualReps(activeWorkout.actualReps);
+      setActualWeights(activeWorkout.actualWeights);
+      
+      const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
+      if (currentExercise) {
+        setCurrentReps(currentExercise.reps);
+        setCurrentWeight(currentExercise.weight || 0);
+      }
+    } else if (!activeWorkout) {
+      // Si no hay workout activo, iniciar uno nuevo
+      startWorkout(foundRoutine);
+      
+      // Inicializar valores del primer ejercicio
+      if (foundRoutine.exercises && foundRoutine.exercises.length > 0 && foundRoutine.exercises[0]) {
+        setCurrentReps(foundRoutine.exercises[0].reps);
+        setCurrentWeight(foundRoutine.exercises[0].weight || 0);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -79,25 +100,38 @@ export default function WorkoutPage() {
     const exerciseId = currentExercise.id;
     
     // Guardar repeticiones y peso de esta serie
-    setActualReps(prev => ({
-      ...prev,
-      [exerciseId]: [...(prev[exerciseId] || []), currentReps]
-    }));
+    const newActualReps = {
+      ...actualReps,
+      [exerciseId]: [...(actualReps[exerciseId] || []), currentReps]
+    };
     
-    setActualWeights(prev => ({
-      ...prev,
-      [exerciseId]: [...(prev[exerciseId] || []), currentWeight]
-    }));
+    const newActualWeights = {
+      ...actualWeights,
+      [exerciseId]: [...(actualWeights[exerciseId] || []), currentWeight]
+    };
 
-    setCompletedSets(prev => ({
-      ...prev,
-      [exerciseId]: (prev[exerciseId] || 0) + 1
-    }));
+    const newCompletedSets = {
+      ...completedSets,
+      [exerciseId]: (completedSets[exerciseId] || 0) + 1
+    };
+
+    setActualReps(newActualReps);
+    setActualWeights(newActualWeights);
+    setCompletedSets(newCompletedSets);
+
+    // Actualizar el contexto global
+    updateWorkoutProgress(
+      currentExerciseIndex,
+      currentSet,
+      newCompletedSets,
+      newActualReps,
+      newActualWeights
+    );
 
     if (isLastSet) {
       if (isLastExercise) {
         // Finalizar entrenamiento
-        finishWorkout();
+        finishCompleteWorkout();
       } else {
         // Pasar al siguiente ejercicio - usar descanso inteligente
         const nextExercise = routine.exercises[currentExerciseIndex + 1];
@@ -154,14 +188,33 @@ export default function WorkoutPage() {
         setCurrentSet(1);
         setCurrentReps(routine.exercises[nextIndex].reps);
         setCurrentWeight(routine.exercises[nextIndex].weight || 0);
+        
+        // Actualizar contexto
+        updateWorkoutProgress(
+          nextIndex,
+          1,
+          completedSets,
+          actualReps,
+          actualWeights
+        );
       }
     } else {
       // Siguiente serie
-      setCurrentSet(currentSet + 1);
+      const newSet = currentSet + 1;
+      setCurrentSet(newSet);
+      
+      // Actualizar contexto
+      updateWorkoutProgress(
+        currentExerciseIndex,
+        newSet,
+        completedSets,
+        actualReps,
+        actualWeights
+      );
     }
   };
 
-  const finishWorkout = async () => {
+  const finishCompleteWorkout = async () => {
     // Guardar sesión
     const sessionExercises = routine.exercises.map(ex => ({
       exerciseId: ex.id,
@@ -178,10 +231,21 @@ export default function WorkoutPage() {
         exercises: sessionExercises,
         notes: ''
       });
+      
+      // Limpiar el contexto de workout activo
+      finishWorkoutContext();
+      
       router.push('/sessions');
     } catch (error) {
       console.error('Error saving session:', error);
       alert('Error al guardar la sesión');
+    }
+  };
+
+  const handleCancelWorkout = () => {
+    if (confirm('¿Estás seguro de que quieres cancelar el entrenamiento? Se perderá todo el progreso.')) {
+      cancelWorkout();
+      router.push('/routines');
     }
   };
 
@@ -328,7 +392,7 @@ export default function WorkoutPage() {
         <div className="flex gap-3">
           <Button
             variant="ghost"
-            onClick={() => router.push('/routines')}
+            onClick={handleCancelWorkout}
             className="flex-1"
           >
             Cancelar

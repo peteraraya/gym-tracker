@@ -6,6 +6,7 @@ import { useTranslations } from '@/context/LocaleContext';
 import { useAuth } from '@/context/AuthContext';
 import React from 'react';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { Button } from '@/components/ui/Button';
 
 export const Navbar: React.FC = () => {
@@ -27,7 +28,9 @@ export const Navbar: React.FC = () => {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+    <>
+      <ActiveWorkoutBanner />
+      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-3 group">
@@ -165,5 +168,6 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
     </nav>
+    </>
   );
 };
