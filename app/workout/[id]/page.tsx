@@ -8,6 +8,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Timer } from '@/components/Timer';
 import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { 
+  calculateRestBetweenSets, 
+  calculateRestBetweenExercises,
+  formatRestTime 
+} from '@/lib/restCalculator';
+import { EXERCISE_DATABASE } from '@/data/exercises';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -20,6 +26,7 @@ export default function WorkoutPage() {
   const [showTimer, setShowTimer] = useState(false);
   const [timerDuration, setTimerDuration] = useState(0);
   const [timerTitle, setTimerTitle] = useState('');
+  const [nextExerciseName, setNextExerciseName] = useState<string | undefined>(undefined);
   const [completedSets, setCompletedSets] = useState<{[key: string]: number}>({});
   const [actualReps, setActualReps] = useState<{[key: string]: number[]}>({});
   const [actualWeights, setActualWeights] = useState<{[key: string]: number[]}>({});
@@ -92,16 +99,47 @@ export default function WorkoutPage() {
         // Finalizar entrenamiento
         finishWorkout();
       } else {
-        // Pasar al siguiente ejercicio
+        // Pasar al siguiente ejercicio - usar descanso inteligente
+        const nextExercise = routine.exercises[currentExerciseIndex + 1];
+        const nextExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
+        const currentExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+        
+        let restTime = routine.restBetweenExercises || 120;
+        
+        if (currentExerciseTemplate && nextExerciseTemplate) {
+          const restRecommendation = calculateRestBetweenExercises(
+            currentExerciseTemplate,
+            nextExerciseTemplate,
+            'intermediate' // Podrías obtener esto del perfil del usuario
+          );
+          restTime = restRecommendation.recommended;
+        }
+        
         setShowTimer(true);
-        setTimerDuration(routine.restBetweenExercises || 120);
+        setTimerDuration(restTime);
         setTimerTitle('Descanso entre ejercicios');
+        setNextExerciseName(nextExercise.name);
       }
     } else {
-      // Descanso entre series
+      // Descanso entre series - usar descanso inteligente
+      const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+      
+      let restTime = routine.restBetweenSets || 60;
+      
+      if (exerciseTemplate) {
+        const restRecommendation = calculateRestBetweenSets(
+          exerciseTemplate,
+          currentExercise.sets,
+          currentExercise.reps,
+          'intermediate' // Podrías obtener esto del perfil del usuario
+        );
+        restTime = restRecommendation.recommended;
+      }
+      
       setShowTimer(true);
-      setTimerDuration(routine.restBetweenSets || 60);
+      setTimerDuration(restTime);
       setTimerTitle(`Descanso - Serie ${currentSet + 1}/${currentExercise.sets}`);
+      setNextExerciseName(undefined);
     }
   };
 
@@ -159,11 +197,16 @@ export default function WorkoutPage() {
             onComplete={handleTimerComplete}
             autoStart={true}
             title={timerTitle}
+            nextExerciseName={nextExerciseName}
+            showMotivation={true}
           />
-          <div className="mt-4 text-center">
-            <Button variant="ghost" onClick={skipTimer}>
-              Saltar descanso
+          <div className="mt-6 text-center space-y-3">
+            <Button variant="ghost" onClick={skipTimer} className="w-full">
+              ⏭️ Saltar descanso
             </Button>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              💡 Tip: Aprovecha este tiempo para hidratarte y respirar profundo
+            </div>
           </div>
         </div>
       </div>
@@ -243,6 +286,39 @@ export default function WorkoutPage() {
                   step="0.5"
                 />
               </div>
+              
+              {/* Información de descanso inteligente */}
+              {(() => {
+                const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+                if (exerciseTemplate) {
+                  const restRecommendation = calculateRestBetweenSets(
+                    exerciseTemplate,
+                    currentExercise.sets,
+                    currentExercise.reps,
+                    'intermediate'
+                  );
+                  return (
+                    <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg">⏱️</span>
+                        <span className="text-sm font-semibold text-purple-900 dark:text-purple-100">
+                          Descanso recomendado
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+                        {formatRestTime(restRecommendation.recommended)}
+                      </div>
+                      <p className="text-xs text-purple-700 dark:text-purple-300">
+                        {restRecommendation.description}
+                      </p>
+                      <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                        Rango: {formatRestTime(restRecommendation.min)} - {formatRestTime(restRecommendation.max)}
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
           </CardContent>
         </Card>
