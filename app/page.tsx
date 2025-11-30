@@ -1,65 +1,177 @@
-import Image from "next/image";
+'use client';
+
+import Link from "next/link";
+import { useTranslations } from "@/context/LocaleContext";
+import { useGym } from "@/context/GymContext";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function Home() {
+  const { routines, sessions } = useGym();
+  const t = useTranslations('home');
+  const tCommon = useTranslations('common');
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <ProtectedRoute>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            💪 {t('welcome')}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            {t('subtitle')}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <Card className="text-center">
+            <CardHeader>
+              <div className="text-4xl mb-2">📋</div>
+              <CardTitle>{t('routinesCard')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-blue-600 mb-2">{routines.length}</p>
+              <p className="text-gray-600 dark:text-gray-400">{t('routinesCreated')}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <div className="text-4xl mb-2">🏋️</div>
+              <CardTitle>{t('sessionsCard')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-green-600 mb-2">{sessions.length}</p>
+              <p className="text-gray-600 dark:text-gray-400">{t('workoutsCompleted')}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <div className="text-4xl mb-2">💯</div>
+              <CardTitle>{t('exercisesCard')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-purple-600 mb-2">
+                {routines.reduce((acc, r) => acc + r.exercises.length, 0)}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">{t('totalExercises')}</p>
+            </CardContent>
+          </Card>
         </div>
-      </main>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>🚀 {t('getStarted')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-gray-600 dark:text-gray-400">
+                {t('getStartedDesc')}
+              </p>
+              <Link href="/routines">
+                <Button variant="primary" className="w-full">
+                  {t('viewRoutines')}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>🎯 Rutinas Recomendadas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-gray-600 dark:text-gray-400">
+                Explora rutinas profesionales como Push Pull Legs, Torso/Pierna y más
+              </p>
+              <Link href="/recommended">
+                <Button variant="primary" className="w-full">
+                  Ver rutinas recomendadas
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>📊 {t('history')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-gray-600 dark:text-gray-400">
+                {t('historyDesc')}
+              </p>
+              <Link href="/sessions">
+                <Button variant="secondary" className="w-full">
+                  {t('viewHistory')}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>📈 Progreso</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-gray-600 dark:text-gray-400">
+                Analiza tu volumen de entrenamiento por grupo muscular
+              </p>
+              <Link href="/progress">
+                <Button variant="secondary" className="w-full">
+                  Ver progreso
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>💡 Guía de Ejercicios</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-gray-600 dark:text-gray-400">
+                Aprende la técnica correcta con consejos profesionales
+              </p>
+              <Link href="/exercises">
+                <Button variant="secondary" className="w-full">
+                  Explorar ejercicios
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {routines.length === 0 && (
+          <div className="mt-12">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-8">
+              <div className="text-center mb-6">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  👋 {t('welcomeMessage')}
+                </p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Comienza tu viaje fitness con una rutina profesional
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                <Link href="/recommended">
+                  <Button variant="primary" className="w-full">
+                    🎯 Explorar rutinas recomendadas
+                  </Button>
+                </Link>
+                <Link href="/routines">
+                  <Button variant="secondary" className="w-full">
+                    ➕ {t('createFirstRoutine')}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
+    </ProtectedRoute>
   );
 }

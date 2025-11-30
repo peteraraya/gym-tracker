@@ -1,0 +1,70 @@
+export interface Exercise {
+  id: string;
+  name: string;
+  sets: number;
+  reps: number;
+  weight?: number;
+  notes?: string;
+  equipment?: string; // Equipamiento necesario
+  technique?: string[]; // Recomendaciones de técnica
+  recommendedSets?: string; // Ej: "3-4 series"
+  recommendedReps?: string; // Ej: "8-12 repeticiones"
+  restTime?: string; // Ej: "60-90 segundos"
+}
+
+export interface Routine {
+  id: string;
+  name: string;
+  description?: string;
+  image?: string; // URL o base64 de la imagen
+  exercises: Exercise[];
+  restBetweenSets?: number; // segundos de descanso entre series
+  restBetweenExercises?: number; // segundos de descanso entre ejercicios
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkoutSession {
+  id: string;
+  routineId: string;
+  date: Date;
+  exercises: {
+    exerciseId: string;
+    completedSets: number;
+    actualReps: number[];
+    actualWeight: number[];
+  }[];
+  notes?: string;
+}
+
+export type FitnessGoal = 
+  | 'muscle_gain'      // Ganar músculo/hipertrofia
+  | 'strength'         // Ganar fuerza
+  | 'weight_loss'      // Perder peso
+  | 'endurance'        // Resistencia
+  | 'general_fitness'; // Fitness general
+
+export type FitnessLevel = 
+  | 'beginner'         // Principiante (0-6 meses)
+  | 'intermediate'     // Intermedio (6-24 meses)
+  | 'advanced';        // Avanzado (2+ años)
+
+export type Gender = 'male' | 'female' | 'other';
+
+export interface UserProfile {
+  id: string;
+  userId: string;
+  // Datos personales
+  age?: number;
+  gender?: Gender;
+  height?: number;        // en cm
+  weight?: number;        // en kg
+  // Objetivos y nivel
+  fitnessGoal?: FitnessGoal;
+  fitnessLevel?: FitnessLevel;
+  // Datos adicionales
+  weeklyWorkouts?: number; // Días que puede entrenar por semana
+  // Metadatos
+  createdAt: Date;
+  updatedAt: Date;
+}
