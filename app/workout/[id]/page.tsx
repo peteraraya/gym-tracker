@@ -57,17 +57,24 @@ export default function WorkoutPage() {
       
       const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
       if (currentExercise) {
-        setCurrentReps(currentExercise.reps);
-        setCurrentWeight(currentExercise.weight || 0);
+        const currentSetData = currentExercise.sets[activeWorkout.currentSet - 1];
+        if (currentSetData) {
+          setCurrentReps(currentSetData.reps);
+          setCurrentWeight(currentSetData.weight || 0);
+        }
       }
     } else if (!activeWorkout) {
       // Si no hay workout activo, iniciar uno nuevo
       startWorkout(foundRoutine);
       
-      // Inicializar valores del primer ejercicio
+      // Inicializar valores del primer ejercicio (primera serie)
       if (foundRoutine.exercises && foundRoutine.exercises.length > 0 && foundRoutine.exercises[0]) {
-        setCurrentReps(foundRoutine.exercises[0].reps);
-        setCurrentWeight(foundRoutine.exercises[0].weight || 0);
+        const firstExercise = foundRoutine.exercises[0];
+        const firstSet = firstExercise.sets[0];
+        if (firstSet) {
+          setCurrentReps(firstSet.reps);
+          setCurrentWeight(firstSet.weight || 0);
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,7 +103,7 @@ export default function WorkoutPage() {
     return null;
   }
 
-  const isLastSet = currentSet >= currentExercise.sets;
+  const isLastSet = currentSet >= currentExercise.sets.length;
   const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
 
   const handleCompleteSet = () => {
@@ -164,10 +171,11 @@ export default function WorkoutPage() {
       let restTime = routine.restBetweenSets || 60;
       
       if (exerciseTemplate) {
+        const currentSetData = currentExercise.sets[currentSet - 1];
         const restRecommendation = calculateRestBetweenSets(
           exerciseTemplate,
-          currentExercise.sets,
-          currentExercise.reps,
+          currentExercise.sets.length,
+          currentSetData?.reps || 10,
           'intermediate' // Podrías obtener esto del perfil del usuario
         );
         restTime = restRecommendation.recommended;
@@ -175,7 +183,7 @@ export default function WorkoutPage() {
       
       setShowTimer(true);
       setTimerDuration(restTime);
-      setTimerTitle(`Descanso - Serie ${currentSet + 1}/${currentExercise.sets}`);
+      setTimerTitle(`Descanso - Serie ${currentSet + 1}/${currentExercise.sets.length}`);
       setNextExerciseName(undefined);
     }
   };
@@ -189,8 +197,12 @@ export default function WorkoutPage() {
       if (routine.exercises[nextIndex]) {
         setCurrentExerciseIndex(nextIndex);
         setCurrentSet(1);
-        setCurrentReps(routine.exercises[nextIndex].reps);
-        setCurrentWeight(routine.exercises[nextIndex].weight || 0);
+        const nextExercise = routine.exercises[nextIndex];
+        const firstSet = nextExercise.sets[0];
+        if (firstSet) {
+          setCurrentReps(firstSet.reps);
+          setCurrentWeight(firstSet.weight || 0);
+        }
         
         // Actualizar contexto
         updateWorkoutProgress(
@@ -205,6 +217,13 @@ export default function WorkoutPage() {
       // Siguiente serie
       const newSet = currentSet + 1;
       setCurrentSet(newSet);
+      
+      // Actualizar valores con los de la siguiente serie
+      const nextSetData = currentExercise.sets[newSet - 1];
+      if (nextSetData) {
+        setCurrentReps(nextSetData.reps);
+        setCurrentWeight(nextSetData.weight || 0);
+      }
       
       // Actualizar contexto
       updateWorkoutProgress(
@@ -303,8 +322,8 @@ export default function WorkoutPage() {
             <div
               className="bg-blue-600 h-3 rounded-full transition-all duration-300"
               style={{
-                width: `${((currentExerciseIndex * currentExercise.sets + currentSet - 1) / 
-                  (routine.exercises.reduce((acc, ex) => acc + ex.sets, 0))) * 100}%`
+                width: `${((currentExerciseIndex * currentExercise.sets.length + currentSet - 1) / 
+                  (routine.exercises.reduce((acc, ex) => acc + ex.sets.length, 0))) * 100}%`
               }}
             />
           </div>
@@ -325,15 +344,15 @@ export default function WorkoutPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    {currentExercise.sets}
+                    {currentExercise.sets.length}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Series</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Series totales</div>
                 </div>
                 <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {currentExercise.reps}
+                    {currentExercise.sets[currentSet - 1]?.reps || 10}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Repeticiones</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Reps (Serie {currentSet})</div>
                 </div>
               </div>
 
@@ -359,10 +378,11 @@ export default function WorkoutPage() {
               {(() => {
                 const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
                 if (exerciseTemplate) {
+                  const currentSetData = currentExercise.sets[currentSet - 1];
                   const restRecommendation = calculateRestBetweenSets(
                     exerciseTemplate,
-                    currentExercise.sets,
-                    currentExercise.reps,
+                    currentExercise.sets.length,
+                    currentSetData?.reps || 10,
                     'intermediate'
                   );
                   return (
@@ -428,7 +448,7 @@ export default function WorkoutPage() {
                 >
                   <span className="text-gray-900 dark:text-gray-100">{exercise.name}</span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {exercise.sets}×{exercise.reps}
+                    {exercise.sets.length} series
                   </span>
                 </div>
               ))}

@@ -116,7 +116,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (response.ok) {
         await refreshRoutines();
       } else {
-        throw new Error('Failed to update routine');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('API Error Response:', errorData);
+        throw new Error(errorData.error || 'Failed to update routine');
       }
     } catch (error) {
       console.error('Error updating routine:', error);

@@ -2,12 +2,16 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 // Tipos para mejor validación
+interface SetData {
+  reps: number;
+  weight?: number;
+}
+
 interface RoutineExercise {
   id?: string;
   name: string;
-  sets: number;
-  reps: number;
-  weight?: number;
+  sets: SetData[];
+  equipment?: string;
   notes?: string;
 }
 
@@ -76,21 +80,26 @@ export async function GET() {
       updatedAt: new Date(routine.updated_at),
       exercises: routine.exercises
         .sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index)
-        .map((ex: {
-          id: string;
-          name: string;
-          sets: number;
-          reps: number;
-          weight?: number;
-          notes?: string;
-        }) => ({
-          id: ex.id,
-          name: ex.name,
-          sets: ex.sets,
-          reps: ex.reps,
-          weight: ex.weight,
-          notes: ex.notes
-        }))
+        .map((ex: any) => {
+          // Soportar tanto formato nuevo (sets_data) como antiguo (sets/reps/weight)
+          let sets: SetData[];
+          if (ex.sets_data) {
+            sets = ex.sets_data;
+          } else {
+            // Formato antiguo: convertir a array
+            sets = Array(ex.sets || 1).fill(null).map(() => ({
+              reps: ex.reps || 10,
+              weight: ex.weight || 0
+            }));
+          }
+          return {
+            id: ex.id,
+            name: ex.name,
+            sets,
+            equipment: ex.equipment,
+            notes: ex.notes
+          };
+        })
     }))
 
     return NextResponse.json(formattedRoutines)
@@ -146,11 +155,21 @@ export async function POST(request: Request) {
     // Validar que cada ejercicio tenga los datos necesarios
     for (let i = 0; i < exercises.length; i++) {
       const ex = exercises[i];
-      if (!ex.name || ex.sets <= 0 || ex.reps <= 0) {
+      if (!ex.name || !ex.sets || !Array.isArray(ex.sets) || ex.sets.length === 0) {
         return NextResponse.json(
-          { error: 'Datos inválidos', details: `Ejercicio ${i + 1}: nombre, series y repeticiones son requeridos` }, 
+          { error: 'Datos inválidos', details: `Ejercicio ${i + 1}: nombre y series son requeridos` }, 
           { status: 400 }
         )
+      }
+      // Validar cada serie
+      for (let j = 0; j < ex.sets.length; j++) {
+        const set = ex.sets[j];
+        if (!set.reps || set.reps <= 0) {
+          return NextResponse.json(
+            { error: 'Datos inválidos', details: `Ejercicio ${i + 1}, Serie ${j + 1}: repeticiones son requeridas` }, 
+            { status: 400 }
+          )
+        }
       }
     }
 
@@ -184,11 +203,14 @@ export async function POST(request: Request) {
     const exercisesData = exercises.map((ex: RoutineExercise, index: number) => ({
       routine_id: routine.id,
       name: ex.name.trim(),
-      sets: ex.sets,
-      reps: ex.reps,
-      weight: ex.weight || null,
+      sets_data: ex.sets,
+      equipment: ex.equipment?.trim() || null,
       notes: ex.notes?.trim() || null,
-      order_index: index
+      order_index: index,
+      // Valores por defecto para compatibilidad con columnas antiguas
+      sets: ex.sets?.length || 0,
+      reps: ex.sets?.[0]?.reps || 0,
+      weight: ex.sets?.[0]?.weight || 0
     }))
 
     const { error: exercisesError } = await supabase
