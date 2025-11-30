@@ -70,9 +70,9 @@ export function exportRoutinesToCSV(routines: Routine[]): string {
       description: routine.description || '',
       exerciseId: exercise.id,
       exerciseName: exercise.name,
-      sets: exercise.sets,
-      reps: exercise.reps,
-      weight: exercise.weight || 0,
+      sets: exercise.sets.length,
+      reps: exercise.sets.map(s => s.reps).join(';'),
+      weight: exercise.sets.map(s => s.weight || 0).join(';'),
       notes: exercise.notes || '',
       restBetweenSets: routine.restBetweenSets || 60,
       restBetweenExercises: routine.restBetweenExercises || 120

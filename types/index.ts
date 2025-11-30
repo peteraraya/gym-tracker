@@ -1,9 +1,12 @@
+export interface Set {
+  reps: number;
+  weight?: number;
+}
+
 export interface Exercise {
   id: string;
   name: string;
-  sets: number;
-  reps: number;
-  weight?: number;
+  sets: Set[];
   notes?: string;
   equipment?: string; // Equipamiento necesario
   technique?: string[]; // Recomendaciones de técnica

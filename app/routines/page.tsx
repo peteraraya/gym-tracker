@@ -120,14 +120,18 @@ export default function RoutinesPage() {
                         Ejercicios:
                       </p>
                       <div className="space-y-1">
-                        {routine.exercises.slice(0, 3).map((exercise) => (
-                          <div
-                            key={exercise.id}
-                            className="text-sm text-gray-700 dark:text-gray-300"
-                          >
-                            • {exercise.name} ({exercise.sets}x{exercise.reps})
-                          </div>
-                        ))}
+                        {routine.exercises.slice(0, 3).map((exercise) => {
+                          const setsCount = exercise.sets.length;
+                          const repsText = exercise.sets.map(s => s.reps).join('/');
+                          return (
+                            <div
+                              key={exercise.id}
+                              className="text-sm text-gray-700 dark:text-gray-300"
+                            >
+                              • {exercise.name} ({setsCount} series: {repsText} reps)
+                            </div>
+                          );
+                        })}
                         {routine.exercises.length > 3 && (
                           <div className="text-sm text-gray-500 dark:text-gray-500">
                             +{routine.exercises.length - 3} más
