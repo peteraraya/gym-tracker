@@ -11,6 +11,7 @@ import { MuscleGroupStats } from '@/components/MuscleGroupStats';
 import { PersonalRecords } from '@/components/PersonalRecords';
 import { TrainingFrequency } from '@/components/TrainingFrequency';
 import { StrengthProgression } from '@/components/StrengthProgression';
+import { ProgressDashboard } from '@/components/ProgressDashboard';
 import AchievementBadge from '@/components/AchievementBadge';
 import type { WorkoutSession, UserProfile, Routine } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
@@ -443,6 +444,9 @@ export default function DashboardPage() {
             <PersonalRecords sessions={sessions} />
             <StrengthProgression sessions={sessions} />
           </div>
+
+          {/* Row 3: Progress Dashboard */}
+          <ProgressDashboard sessions={sessions} />
         </>
       )}
 
