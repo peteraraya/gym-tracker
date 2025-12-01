@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
+import { useToast } from '@/context/ToastContext';
+import { useConfirm } from '@/context/ConfirmContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
@@ -24,6 +26,8 @@ export default function WorkoutPage() {
   const id = params.id as string;
   const { getRoutineById, addSession } = useGym();
   const { activeWorkout, startWorkout, updateWorkoutProgress, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
+  const { success, error } = useToast();
+  const { confirm } = useConfirm();
   
   const [routine, setRoutine] = useState(getRoutineById(id));
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -291,15 +295,24 @@ export default function WorkoutPage() {
       // Limpiar el contexto de workout activo
       finishWorkoutContext();
       
+      success('Sesión guardada exitosamente');
       router.push('/sessions');
-    } catch (error) {
-      console.error('Error saving session:', error);
-      alert('Error al guardar la sesión. Por favor, intenta nuevamente.');
+    } catch (err) {
+      console.error('Error saving session:', err);
+      error('Error al guardar la sesión. Por favor, intenta nuevamente.');
     }
   };
 
-  const handleCancelWorkout = () => {
-    if (confirm('¿Estás seguro de que quieres cancelar el entrenamiento? Se perderá todo el progreso.')) {
+  const handleCancelWorkout = async () => {
+    const confirmed = await confirm({
+      title: 'Cancelar entrenamiento',
+      message: '¿Estás seguro de que quieres cancelar el entrenamiento? Se perderá todo el progreso.',
+      confirmText: 'Sí, cancelar',
+      cancelText: 'Continuar entrenamiento',
+      variant: 'danger'
+    });
+    
+    if (confirmed) {
       cancelWorkout();
       router.push('/routines');
     }

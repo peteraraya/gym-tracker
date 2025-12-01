@@ -5,6 +5,7 @@ import { RECOMMENDED_ROUTINES, RecommendedRoutine } from '@/data/recommendedRout
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useGym } from '@/context/GymContext';
+import { useToast } from '@/context/ToastContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Exercise, UserProfile } from '@/types';
 import { getRecommendedRoutines, getRecommendationReason, type RoutineRecommendation } from '@/lib/recommendations';
@@ -12,6 +13,7 @@ import Link from 'next/link';
 
 export default function RecommendedRoutinesPage() {
   const { addRoutine } = useGym();
+  const { success, error, info } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
   const [selectedRoutine, setSelectedRoutine] = useState<RecommendedRoutine | null>(null);
   const [saving, setSaving] = useState(false);
@@ -81,11 +83,11 @@ export default function RecommendedRoutinesPage() {
         restBetweenExercises: routine.restBetweenExercises,
       });
 
-      alert('✅ Rutina guardada exitosamente en "Mis Rutinas"');
+      success('Rutina guardada exitosamente en "Mis Rutinas"');
       setSelectedRoutine(null);
-    } catch (error) {
-      console.error('Error saving routine:', error);
-      alert('❌ Error al guardar la rutina');
+    } catch (err) {
+      console.error('Error saving routine:', err);
+      error('Error al guardar la rutina');
     } finally {
       setSaving(false);
     }
@@ -255,7 +257,7 @@ export default function RecommendedRoutinesPage() {
                               }
                             }
                             
-                            alert(`Por favor, selecciona las rutinas individuales que quieres guardar de la sección "Todas las rutinas disponibles" abajo. 👇`);
+                            info('Por favor, selecciona las rutinas individuales que quieres guardar de la sección "Todas las rutinas disponibles" abajo. 👇');
                           }}
                         >
                           📥 Ver rutinas disponibles

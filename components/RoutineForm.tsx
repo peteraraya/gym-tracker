@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useGym } from '@/context/GymContext';
+import { useToast } from '@/context/ToastContext';
 import { Exercise } from '@/types';
 import { Input, TextArea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +18,7 @@ interface RoutineFormProps {
 
 export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) => {
   const { addRoutine, updateRoutine, getRoutineById } = useGym();
+  const { success, error } = useToast();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<string>('');
@@ -161,10 +163,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           restBetweenExercises,
         });
       }
+      success(routineId ? 'Rutina actualizada exitosamente' : 'Rutina creada exitosamente');
       onClose();
-    } catch (error) {
-      console.error('Error saving routine:', error);
-      alert('Error al guardar la rutina. Por favor intenta de nuevo.');
+    } catch (err) {
+      console.error('Error saving routine:', err);
+      error('Error al guardar la rutina. Por favor intenta de nuevo.');
     }
   };
 

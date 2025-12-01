@@ -1,12 +1,14 @@
 'use client';
 
 import { useWorkout } from '@/context/WorkoutContext';
+import { useConfirm } from '@/context/ConfirmContext';
 import { useRouter } from 'next/navigation';
 import { Activity, X } from 'lucide-react';
 import { Button } from './ui/Button';
 
 export function ActiveWorkoutBanner() {
   const { activeWorkout, cancelWorkout } = useWorkout();
+  const { confirm } = useConfirm();
   const router = useRouter();
 
   if (!activeWorkout) return null;
@@ -15,8 +17,16 @@ export function ActiveWorkoutBanner() {
     router.push(`/workout/${activeWorkout.routineId}`);
   };
 
-  const handleCancel = () => {
-    if (confirm('¿Cancelar entrenamiento activo? Se perderá todo el progreso.')) {
+  const handleCancel = async () => {
+    const confirmed = await confirm({
+      title: 'Cancelar entrenamiento',
+      message: '¿Cancelar entrenamiento activo? Se perderá todo el progreso.',
+      confirmText: 'Sí, cancelar',
+      cancelText: 'Continuar',
+      variant: 'danger'
+    });
+    
+    if (confirmed) {
       cancelWorkout();
     }
   };
