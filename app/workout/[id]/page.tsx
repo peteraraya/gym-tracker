@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
+import { SetTimer } from '@/components/SetTimer';
 import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
@@ -34,10 +35,14 @@ export default function WorkoutPage() {
   const [completedSets, setCompletedSets] = useState<{[key: string]: number}>({});
   const [actualReps, setActualReps] = useState<{[key: string]: number[]}>({});
   const [actualWeights, setActualWeights] = useState<{[key: string]: number[]}>({});
+  const [actualSetDurations, setActualSetDurations] = useState<{[key: string]: number[]}>({});
+  const [actualPauseDurations, setActualPauseDurations] = useState<{[key: string]: number[]}>({});
   const [currentReps, setCurrentReps] = useState(0);
   const [currentWeight, setCurrentWeight] = useState(0);
   const [sessionNotes, setSessionNotes] = useState('');
   const [showNotesModal, setShowNotesModal] = useState(false);
+  const [workoutStartTime] = useState(Date.now());
+  const [totalPausedTime, setTotalPausedTime] = useState(0);
 
   useEffect(() => {
     const foundRoutine = getRoutineById(id);
@@ -188,6 +193,28 @@ export default function WorkoutPage() {
     }
   };
 
+  const handleSetTimerComplete = (duration: number, pausedTime: number) => {
+    const exerciseId = currentExercise.id;
+    
+    // Guardar duración y tiempo pausado de esta serie
+    const newActualSetDurations = {
+      ...actualSetDurations,
+      [exerciseId]: [...(actualSetDurations[exerciseId] || []), duration]
+    };
+    
+    const newActualPauseDurations = {
+      ...actualPauseDurations,
+      [exerciseId]: [...(actualPauseDurations[exerciseId] || []), pausedTime]
+    };
+
+    setActualSetDurations(newActualSetDurations);
+    setActualPauseDurations(newActualPauseDurations);
+    setTotalPausedTime(prev => prev + pausedTime);
+
+    // Completar la serie después de registrar los tiempos
+    handleCompleteSet();
+  };
+
   const handleTimerComplete = () => {
     setShowTimer(false);
     
@@ -237,13 +264,18 @@ export default function WorkoutPage() {
   };
 
   const finishCompleteWorkout = async () => {
+    // Calcular duración total del entrenamiento
+    const totalDuration = Math.floor((Date.now() - workoutStartTime) / 1000);
+
     // Guardar sesión
     const sessionExercises = routine.exercises.map(ex => ({
       exerciseId: ex.id,
       exerciseName: ex.name, // Guardar el nombre para facilitar búsquedas
       completedSets: completedSets[ex.id] || 0,
       actualReps: actualReps[ex.id] || [],
-      actualWeight: actualWeights[ex.id] || []
+      actualWeight: actualWeights[ex.id] || [],
+      setDurations: actualSetDurations[ex.id] || [],
+      pauseDurations: actualPauseDurations[ex.id] || []
     }));
 
     try {
@@ -251,7 +283,9 @@ export default function WorkoutPage() {
         routineId: routine.id,
         date: new Date(),
         exercises: sessionExercises,
-        notes: sessionNotes.trim() || ''
+        notes: sessionNotes.trim() || '',
+        totalDuration,
+        totalPausedTime
       });
       
       // Limpiar el contexto de workout activo
@@ -312,7 +346,7 @@ export default function WorkoutPage() {
           <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
             <span>Ejercicio {currentExerciseIndex + 1}/{routine.exercises.length}</span>
             <span>•</span>
-            <span>Serie {currentSet}/{currentExercise.sets}</span>
+            <span>Serie {currentSet}/{currentExercise.sets.length}</span>
           </div>
         </div>
 
@@ -341,6 +375,14 @@ export default function WorkoutPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Cronómetro de serie */}
+              <div className="mb-6">
+                <SetTimer 
+                  onComplete={handleSetTimerComplete}
+                  autoStart={true}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
@@ -419,18 +461,6 @@ export default function WorkoutPage() {
             className="flex-1"
           >
             Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleCompleteSet}
-            className="flex-1"
-            size="lg"
-          >
-            {isLastSet && isLastExercise 
-              ? '✓ Finalizar entrenamiento' 
-              : isLastSet 
-                ? '→ Siguiente ejercicio' 
-                : '✓ Completar serie'}
           </Button>
         </div>
 
