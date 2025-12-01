@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Routine, WorkoutSession } from '@/types';
 import { useAuth } from './AuthContext';
+import * as supabaseService from '@/lib/supabase/service';
 
 interface GymContextType {
   routines: Routine[];
@@ -25,7 +26,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Fetch routines from API
+  // Fetch routines from Supabase directly
   const refreshRoutines = async () => {
     if (!user) {
       setRoutines([]);
@@ -33,21 +34,14 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     try {
-      const response = await fetch('/api/routines');
-      if (response.ok) {
-        const data = await response.json();
-        setRoutines(data.map((r: any) => ({
-          ...r,
-          createdAt: new Date(r.createdAt),
-          updatedAt: new Date(r.updatedAt)
-        })));
-      }
+      const data = await supabaseService.getRoutines();
+      setRoutines(data);
     } catch (error) {
       console.error('Error fetching routines:', error);
     }
   };
 
-  // Fetch sessions from API
+  // Fetch sessions from Supabase directly
   const refreshSessions = async () => {
     if (!user) {
       setSessions([]);
@@ -55,14 +49,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     try {
-      const response = await fetch('/api/sessions');
-      if (response.ok) {
-        const data = await response.json();
-        setSessions(data.map((s: any) => ({
-          ...s,
-          date: new Date(s.date)
-        })));
-      }
+      const data = await supabaseService.getSessions();
+      setSessions(data);
     } catch (error) {
       console.error('Error fetching sessions:', error);
     }
@@ -82,17 +70,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addRoutine = async (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const response = await fetch('/api/routines', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(routine),
-      });
-
-      if (response.ok) {
-        await refreshRoutines();
-      } else {
-        throw new Error('Failed to create routine');
-      }
+      await supabaseService.createRoutine(routine as supabaseService.CreateRoutineData);
+      await refreshRoutines();
     } catch (error) {
       console.error('Error adding routine:', error);
       throw error;
@@ -102,24 +81,14 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateRoutine = async (id: string, updatedData: Partial<Routine>) => {
     try {
       const routine = routines.find(r => r.id === id);
-      if (!routine) return;
+      if (!routine) throw new Error('Rutina no encontrada');
 
-      const response = await fetch(`/api/routines/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...routine,
-          ...updatedData,
-        }),
-      });
-
-      if (response.ok) {
-        await refreshRoutines();
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('API Error Response:', errorData);
-        throw new Error(errorData.error || 'Failed to update routine');
-      }
+      await supabaseService.updateRoutine(id, {
+        ...routine,
+        ...updatedData,
+      } as supabaseService.CreateRoutineData);
+      
+      await refreshRoutines();
     } catch (error) {
       console.error('Error updating routine:', error);
       throw error;
@@ -128,15 +97,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteRoutine = async (id: string) => {
     try {
-      const response = await fetch(`/api/routines/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        await refreshRoutines();
-      } else {
-        throw new Error('Failed to delete routine');
-      }
+      await supabaseService.deleteRoutine(id);
+      await refreshRoutines();
     } catch (error) {
       console.error('Error deleting routine:', error);
       throw error;
@@ -145,17 +107,8 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addSession = async (session: Omit<WorkoutSession, 'id'>) => {
     try {
-      const response = await fetch('/api/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(session),
-      });
-
-      if (response.ok) {
-        await refreshSessions();
-      } else {
-        throw new Error('Failed to create session');
-      }
+      await supabaseService.saveSession(session as WorkoutSession);
+      await refreshSessions();
     } catch (error) {
       console.error('Error adding session:', error);
       throw error;

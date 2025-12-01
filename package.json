@@ -12,7 +12,14 @@
     "test:unit": "jest --testPathPattern=__tests__/unit",
     "test:integration": "jest --testPathPattern=__tests__/integration",
     "test:e2e": "jest --testPathPattern=__tests__/e2e",
-    "test:coverage": "jest --coverage --watchAll=false"
+    "test:coverage": "jest --coverage --watchAll=false",
+    "build:mobile": "cp next.config.mobile.ts next.config.ts && next build && git checkout next.config.ts",
+    "cap:init": "cap init gym-tracker com.gymtracker.app",
+    "cap:add:android": "cap add android",
+    "cap:sync": "cap sync",
+    "cap:open:android": "cap open android",
+    "mobile:build": "npm run build:mobile && cap sync",
+    "mobile:open": "cap open android"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
