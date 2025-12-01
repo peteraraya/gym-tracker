@@ -16,7 +16,7 @@ export default function RecommendedRoutinesPage() {
   const { success, error, info } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
   const [selectedRoutine, setSelectedRoutine] = useState<RecommendedRoutine | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [savingRoutines, setSavingRoutines] = useState<Record<string, boolean>>({});
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [personalizedRecommendations, setPersonalizedRecommendations] = useState<RoutineRecommendation[]>([]);
@@ -48,7 +48,7 @@ export default function RecommendedRoutinesPage() {
     : RECOMMENDED_ROUTINES.filter(r => r.category === selectedCategory);
 
   const handleSaveRoutine = async (routine: RecommendedRoutine) => {
-    setSaving(true);
+    setSavingRoutines(prev => ({ ...prev, [routine.id]: true }));
     try {
       // Normalizar ejercicios: soportar formato antiguo (sets: number, reps: number)
       const normalizedExercises = routine.exercises.map((exercise, index) => {
@@ -89,7 +89,7 @@ export default function RecommendedRoutinesPage() {
       console.error('Error saving routine:', err);
       error('Error al guardar la rutina');
     } finally {
-      setSaving(false);
+      setSavingRoutines(prev => ({ ...prev, [routine.id]: false }));
     }
   };
 
@@ -356,14 +356,25 @@ export default function RecommendedRoutinesPage() {
                         Ejercicios ({routine.exercises.length}):
                       </div>
                       <div className="space-y-1">
-                        {routine.exercises.slice(0, 4).map((exercise, idx) => (
-                          <div
-                            key={idx}
-                            className="text-sm text-gray-700 dark:text-gray-300"
-                          >
-                            • {exercise.name} ({exercise.sets}×{exercise.reps})
-                          </div>
-                        ))}
+                        {routine.exercises.slice(0, 4).map((exercise, idx) => {
+                          const exerciseData = exercise as any;
+                          const setsCount = typeof exerciseData.sets === 'number' 
+                            ? exerciseData.sets 
+                            : Array.isArray(exerciseData.sets) 
+                              ? exerciseData.sets.length 
+                              : 1;
+                          const repsValue = exerciseData.reps || 
+                            (Array.isArray(exerciseData.sets) && exerciseData.sets[0]?.reps) || 
+                            10;
+                          return (
+                            <div
+                              key={idx}
+                              className="text-sm text-gray-700 dark:text-gray-300"
+                            >
+                              • {exercise.name} ({setsCount}×{repsValue})
+                            </div>
+                          );
+                        })}
                         {routine.exercises.length > 4 && (
                           <div className="text-sm text-gray-500 dark:text-gray-500">
                             +{routine.exercises.length - 4} más
@@ -387,9 +398,9 @@ export default function RecommendedRoutinesPage() {
                         size="sm"
                         className="flex-1"
                         onClick={() => handleSaveRoutine(routine)}
-                        disabled={saving}
+                        disabled={savingRoutines[routine.id]}
                       >
-                        💾 Guardar
+                        {savingRoutines[routine.id] ? 'Guardando...' : '💾 Guardar'}
                       </Button>
                     </div>
                   </div>
@@ -518,10 +529,10 @@ export default function RecommendedRoutinesPage() {
                 <Button
                   variant="primary"
                   onClick={() => handleSaveRoutine(selectedRoutine)}
-                  disabled={saving}
+                  disabled={savingRoutines[selectedRoutine.id]}
                   className="flex-1"
                 >
-                  {saving ? 'Guardando...' : '💾 Guardar en mis rutinas'}
+                  {savingRoutines[selectedRoutine.id] ? 'Guardando...' : '💾 Guardar en mis rutinas'}
                 </Button>
               </div>
             </div>
