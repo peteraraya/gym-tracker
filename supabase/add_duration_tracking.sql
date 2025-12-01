@@ -11,6 +11,11 @@ ALTER TABLE session_exercises
   ADD COLUMN IF NOT EXISTS set_durations INTEGER[],
   ADD COLUMN IF NOT EXISTS pause_durations INTEGER[];
 
+-- 2b. Asegurar compatibilidad en tabla exercises: agregar sets_data (jsonb) y equipment (text)
+ALTER TABLE exercises
+  ADD COLUMN IF NOT EXISTS sets_data JSONB,
+  ADD COLUMN IF NOT EXISTS equipment TEXT;
+
 -- 3. Agregar columnas a la tabla workout_sessions para rastrear duraciones totales
 ALTER TABLE workout_sessions 
   ADD COLUMN IF NOT EXISTS total_duration INTEGER,

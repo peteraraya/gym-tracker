@@ -48,16 +48,35 @@ export default function RecommendedRoutinesPage() {
   const handleSaveRoutine = async (routine: RecommendedRoutine) => {
     setSaving(true);
     try {
-      const exercisesWithIds: Exercise[] = routine.exercises.map((exercise, index) => ({
-        ...exercise,
-        id: `${crypto.randomUUID()}-${index}`,
-      }));
+      // Normalizar ejercicios: soportar formato antiguo (sets: number, reps: number)
+      const normalizedExercises = routine.exercises.map((exercise, index) => {
+        const base: any = {
+          id: `${crypto.randomUUID()}-${index}`,
+          name: exercise.name,
+          notes: (exercise as any).notes || undefined,
+          equipment: (exercise as any).equipment || undefined,
+        };
+
+        // Si 'sets' es un número (formato antiguo), convertir a array de objetos { reps, weight }
+        if (typeof (exercise as any).sets === 'number') {
+          const setsCount = (exercise as any).sets;
+          const reps = (exercise as any).reps || 10;
+          const weight = (exercise as any).weight || 0;
+          base.sets = Array.from({ length: setsCount }, () => ({ reps, weight }));
+        } else if (Array.isArray((exercise as any).sets)) {
+          base.sets = (exercise as any).sets;
+        } else {
+          base.sets = [{ reps: (exercise as any).reps || 10, weight: (exercise as any).weight || 0 }];
+        }
+
+        return base as Exercise;
+      });
 
       await addRoutine({
         name: routine.name,
         description: routine.description,
         image: routine.image,
-        exercises: exercisesWithIds,
+        exercises: normalizedExercises,
         restBetweenSets: routine.restBetweenSets,
         restBetweenExercises: routine.restBetweenExercises,
       });
@@ -102,6 +121,7 @@ export default function RecommendedRoutinesPage() {
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Rutinas profesionales listas para guardar y comenzar a entrenar
             </p>
+            {/* Botón de import masivo omitido por ahora (solicitado). */}
           </div>
 
           {/* Recomendaciones personalizadas */}
@@ -217,11 +237,28 @@ export default function RecommendedRoutinesPage() {
                           variant="primary"
                           className="w-full"
                           onClick={() => {
-                            // Por ahora solo mostramos alerta, más adelante se puede crear la rutina
-                            alert(`La funcionalidad de guardar "${rec.name}" estará disponible pronto. Por ahora puedes crear tu propia rutina personalizada.`);
+                            // Scroll hasta la sección de rutinas disponibles
+                            const routinesSection = document.querySelector('[data-routines-section]');
+                            if (routinesSection) {
+                              routinesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              
+                              // Buscar rutinas relacionadas y aplicar filtro
+                              const searchTerms = rec.name.toLowerCase();
+                              if (searchTerms.includes('push pull legs') || searchTerms.includes('ppl')) {
+                                // No cambiar filtro, dejar que el usuario vea todas las PPL disponibles
+                              } else if (searchTerms.includes('principiante') || rec.difficulty === 'beginner') {
+                                setSelectedCategory('beginner');
+                              } else if (searchTerms.includes('intermedio') || rec.difficulty === 'intermediate') {
+                                setSelectedCategory('intermediate');
+                              } else if (searchTerms.includes('avanzado') || rec.difficulty === 'advanced') {
+                                setSelectedCategory('advanced');
+                              }
+                            }
+                            
+                            alert(`Por favor, selecciona las rutinas individuales que quieres guardar de la sección "Todas las rutinas disponibles" abajo. 👇`);
                           }}
                         >
-                          📥 Crear esta rutina
+                          📥 Ver rutinas disponibles
                         </Button>
                       </div>
                     </CardContent>
@@ -229,7 +266,7 @@ export default function RecommendedRoutinesPage() {
                 ))}
               </div>
 
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-8" data-routines-section>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Todas las rutinas disponibles
                 </h2>
