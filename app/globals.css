@@ -191,3 +191,20 @@ body {
     font-size: 16px;
   }
 }
+
+/* BodyMap SVG transitions and responsive hitboxes */
+.body-map-svg .muscle {
+  transition: fill 160ms ease, stroke 160ms ease;
+}
+.body-map-svg .hitbox-desktop {
+  display: inline;
+  pointer-events: all;
+}
+.body-map-svg .hitbox-mobile {
+  display: none;
+  pointer-events: all;
+}
+@media (max-width: 640px) {
+  .body-map-svg .hitbox-desktop { display: none; }
+  .body-map-svg .hitbox-mobile { display: inline; }
+}
