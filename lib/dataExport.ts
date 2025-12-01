@@ -175,8 +175,7 @@ export function importFromStrongCSV(csvContent: string): WorkoutSession[] {
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
-
-    const parts = line.split(',').map(s => s.replace(/^"|"$/g, ''));
+    const parts = parseCSVRow(line);
     if (parts.length < 6) continue;
 
     const [dateStr, workoutName, exerciseName, , weightStr, repsStr] = parts;
@@ -227,10 +226,35 @@ export function importFromHevyCSV(csvContent: string): WorkoutSession[] {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const parts = line.split(',').map(s => s.replace(/^"|"$/g, ''));
-    if (parts.length < 5) continue;
+    const parts = parseCSVRow(line);
+    if (parts.length < 3) continue;
 
-    const [dateStr, exerciseName, , weightStr, repsStr] = parts;
+    // Hevy CSV puede tener distintas columnas según export: intentar localizar columnas importantes
+    // Buscamos campos que parezcan fecha, ejercicio, peso, repeticiones
+    // Tomamos como heurística los primeros 6 campos y buscamos números en ellos
+    // Normalizar: fecha suele estar en la primera columna
+    const dateStr = parts[0];
+    // Buscar nombre de ejercicio en próximos campos (preferiblemente 2º)
+    const exerciseName = parts[1] || parts[2] || 'unknown_exercise';
+    // Intentar encontrar peso y repeticiones en el resto
+    let weightStr = '';
+    let repsStr = '';
+    for (let j = 2; j < Math.min(parts.length, 8); j++) {
+      const p = parts[j];
+      // si contiene solo dígitos o puede parsearse como float, considerar como peso o repeticiones
+      if (!weightStr && /^\d+(?:[\.,]\d+)?$/.test(p)) {
+        // si ya tenemos reps vacío, asumir que es reps si <=20, sino peso
+        const num = parseFloat(p.replace(',', '.'));
+        if (num <= 30) {
+          repsStr = String(num);
+        } else {
+          weightStr = String(num);
+        }
+      }
+    }
+    // fallback: si no encontramos peso/reps en heurística, intentar los índices típicos
+    if (!weightStr) weightStr = parts[3] || '';
+    if (!repsStr) repsStr = parts[4] || '';
     
     const sessionKey = dateStr;
     
@@ -276,7 +300,8 @@ export function detectCSVFormat(csvContent: string): 'strong' | 'hevy' | 'gym-tr
     return 'strong';
   }
   
-  if (firstLine.includes('hevy')) {
+  // Hevy exports may include headers like 'Exercise' 'Reps' 'Weight' or mention Hevy
+  if (firstLine.includes('exercise') && (firstLine.includes('reps') || firstLine.includes('weight') || firstLine.includes('hevy'))) {
     return 'hevy';
   }
   
@@ -305,3 +330,33 @@ export function importCSVAuto(csvContent: string): WorkoutSession[] | null {
       return null;
   }
 }
+
+  /**
+   * Parse a CSV row respecting quoted fields and commas inside quotes.
+   * Returns an array of field strings with surrounding quotes removed.
+   */
+  function parseCSVRow(line: string): string[] {
+    const result: string[] = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+          // escaped quote
+          cur += '"';
+          i++; // skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === ',' && !inQuotes) {
+        result.push(cur.trim());
+        cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    result.push(cur.trim());
+    // Remove surrounding quotes if any
+    return result.map(s => s.replace(/^"|"$/g, ''));
+  }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useGym } from '@/context/GymContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -10,8 +10,27 @@ import { SessionComparison } from '@/components/SessionComparison';
 import type { WorkoutSession } from '@/types';
 
 export default function SessionsPage() {
-  const { sessions, routines } = useGym();
+  const { sessions: serverSessions, routines } = useGym();
+
+  const [localSessions, setLocalSessions] = useState<WorkoutSession[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('workoutSessions');
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
+
+  // Combina sesiones del servidor y sesiones importadas en localStorage
+  const sessions = useMemo(() => {
+    return [...serverSessions, ...localSessions];
+  }, [serverSessions, localSessions]);
+
   const [filteredSessions, setFilteredSessions] = useState<WorkoutSession[]>(sessions);
+
+  // Keep filteredSessions in sync when sessions change
+  React.useEffect(() => {
+    setFilteredSessions(sessions);
+  }, [sessions]);
 
   const getRoutineName = (routineId: string) => {
     const routine = routines.find((r) => r.id === routineId);

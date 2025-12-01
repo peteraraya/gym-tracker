@@ -37,8 +37,12 @@ export interface WorkoutSession {
     completedSets: number;
     actualReps: number[];
     actualWeight: number[];
+    setDurations?: number[]; // Duración de cada serie en segundos
+    pauseDurations?: number[]; // Tiempo total pausado en cada serie en segundos
   }[];
   notes?: string;
+  totalDuration?: number; // Duración total del entrenamiento en segundos
+  totalPausedTime?: number; // Tiempo total pausado en el entrenamiento
 }
 
 export type FitnessGoal = 

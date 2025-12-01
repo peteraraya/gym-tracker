@@ -7,12 +7,16 @@ interface SessionExercise {
   completedSets: number;
   actualReps: number[];
   actualWeight: number[];
+  setDurations?: number[];
+  pauseDurations?: number[];
 }
 
 interface CreateSessionBody {
   routineId: string;
   exercises: SessionExercise[];
   notes?: string;
+  totalDuration?: number;
+  totalPausedTime?: number;
 }
 
 export async function GET() {
@@ -70,18 +74,24 @@ export async function GET() {
       routineName: session.routines?.name,
       date: new Date(session.date),
       notes: session.notes,
+      totalDuration: session.total_duration,
+      totalPausedTime: session.total_paused_time,
       exercises: session.session_exercises.map((se: {
         exercise_id: string;
         exercises?: { name: string };
         completed_sets: number;
         actual_reps: number[];
         actual_weight: number[];
+        set_durations?: number[];
+        pause_durations?: number[];
       }) => ({
         exerciseId: se.exercise_id,
         exerciseName: se.exercises?.name,
         completedSets: se.completed_sets,
         actualReps: se.actual_reps,
-        actualWeight: se.actual_weight
+        actualWeight: se.actual_weight,
+        setDurations: se.set_durations,
+        pauseDurations: se.pause_durations
       }))
     }))
 
@@ -118,7 +128,7 @@ export async function POST(request: Request) {
     }
 
     const body: CreateSessionBody = await request.json()
-    const { routineId, exercises, notes } = body
+    const { routineId, exercises, notes, totalDuration, totalPausedTime } = body
 
     // Validación de datos
     if (!routineId) {
@@ -143,7 +153,9 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         routine_id: routineId,
-        notes: notes || null
+        notes: notes || null,
+        total_duration: totalDuration || null,
+        total_paused_time: totalPausedTime || null
       })
       .select()
       .single()
@@ -164,7 +176,9 @@ export async function POST(request: Request) {
       exercise_id: ex.exerciseId,
       completed_sets: ex.completedSets,
       actual_reps: ex.actualReps,
-      actual_weight: ex.actualWeight
+      actual_weight: ex.actualWeight,
+      set_durations: ex.setDurations || null,
+      pause_durations: ex.pauseDurations || null
     }))
 
     const { error: exercisesError } = await supabase
