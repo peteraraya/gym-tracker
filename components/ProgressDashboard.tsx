@@ -105,6 +105,7 @@ export function ProgressDashboard({ sessions }: ProgressDashboardProps) {
   const uniqueExercises = useMemo(() => {
     const exerciseSet = new Set<string>();
     sessions.forEach(session => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(ex => {
         if (ex.exerciseName) {
           exerciseSet.add(ex.exerciseName);

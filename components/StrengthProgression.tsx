@@ -29,6 +29,7 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
   const exercises = React.useMemo(() => {
     const exerciseSet = new Set<string>();
     sessions.forEach(session => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(ex => {
         if (ex.exerciseName) {
           exerciseSet.add(ex.exerciseName);
@@ -48,6 +49,7 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
       .filter(s => s.exercises.some(e => e.exerciseName === selectedExercise))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .forEach(session => {
+        if (!session.exercises || !Array.isArray(session.exercises)) return null;
         const exercise = session.exercises.find(e => e.exerciseName === selectedExercise);
         if (!exercise) return;
 

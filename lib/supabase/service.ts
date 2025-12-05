@@ -242,13 +242,17 @@ export async function getSessions(): Promise<WorkoutSession[]> {
     id: session.id,
     routineId: session.routine_id,
     routineName: session.routine_name,
+    date: new Date(session.created_at), // Usar created_at como fecha principal
     startedAt: new Date(session.created_at),
     completedAt: session.completed_at ? new Date(session.completed_at) : undefined,
     totalDuration: session.total_duration,
     totalPausedTime: session.total_paused_time,
-    exercises: session.session_exercises.map((ex: any) => ({
-      name: ex.exercise_name,
-      sets: ex.sets_completed || [],
+    exercises: (session.session_exercises || []).map((ex: any) => ({
+      exerciseId: ex.exercise_name || ex.id,
+      exerciseName: ex.exercise_name,
+      completedSets: ex.sets_completed ? (Array.isArray(ex.sets_completed) ? ex.sets_completed.length : 0) : 0,
+      actualReps: ex.sets_completed ? ex.sets_completed.map((s: any) => s.reps) : [],
+      actualWeight: ex.sets_completed ? ex.sets_completed.map((s: any) => s.weight || 0) : [],
       setDurations: ex.set_durations || [],
       pauseDurations: ex.pause_durations || [],
       notes: ex.notes
@@ -272,7 +276,7 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
       user_id: user.id,
       routine_id: session.routineId,
       routine_name: session.routineName,
-      completed_at: session.completedAt,
+      completed_at: session.completedAt || session.date,
       total_duration: session.totalDuration,
       total_paused_time: session.totalPausedTime
     })
@@ -281,13 +285,21 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
 
   if (sessionError) throw new Error(`Error al guardar sesión: ${sessionError.message}`);
 
-  // Insert exercises
+  // Insert exercises - transformar el formato
+  if (!session.exercises || !Array.isArray(session.exercises) || session.exercises.length === 0) {
+    throw new Error('La sesión debe contener al menos un ejercicio');
+  }
+
   const exercisesData = session.exercises.map(ex => ({
     session_id: dbSession.id,
-    exercise_name: ex.name,
-    sets_completed: ex.sets,
-    set_durations: ex.setDurations,
-    pause_durations: ex.pauseDurations,
+    exercise_name: ex.exerciseName || ex.exerciseId,
+    sets_completed: {
+      reps: ex.actualReps || [],
+      weight: ex.actualWeight || [],
+      count: ex.completedSets || 0
+    },
+    set_durations: ex.setDurations || [],
+    pause_durations: ex.pauseDurations || [],
     notes: ex.notes
   }));
 

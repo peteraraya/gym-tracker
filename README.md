@@ -165,6 +165,16 @@ npm install
 2. Copia y pega el contenido de `supabase/schema.sql`
 3. Ejecuta el SQL para crear las tablas y políticas
 
+#### ⚠️ IMPORTANTE: Ejecutar migraciones pendientes
+**Antes de usar la app**, debes ejecutar las migraciones SQL para que todas las funcionalidades trabajen:
+
+1. En **SQL Editor**, ejecuta `supabase/add_duration_tracking.sql`
+2. Luego ejecuta `supabase/add_session_fields.sql`
+
+📖 **Ver guía completa**: [SUPABASE_MIGRATIONS.md](./SUPABASE_MIGRATIONS.md)
+
+Sin estas migraciones, **no podrás guardar sesiones de entrenamiento**.
+
 #### Configurar variables de entorno
 1. Crea un archivo `.env.local` en la raíz del proyecto:
 ```env

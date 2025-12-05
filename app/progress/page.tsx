@@ -67,6 +67,7 @@ export default function ProgressPage() {
     };
 
     sessions.forEach(session => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(sessionExercise => {
         // Encontrar el ejercicio en la base de datos
         const exercise = EXERCISE_DATABASE.find(ex => ex.id === sessionExercise.exerciseId);

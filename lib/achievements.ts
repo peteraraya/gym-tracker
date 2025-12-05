@@ -216,7 +216,12 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'unlocked' | 'unlockedAt' | 'pr
  */
 export function calculateTotalVolume(sessions: WorkoutSession[]): number {
   return sessions.reduce((total, session) => {
+    if (!session.exercises || !Array.isArray(session.exercises)) return total;
+    
     const sessionVolume = session.exercises.reduce((exerciseTotal, exercise) => {
+      if (!exercise.actualWeight || !Array.isArray(exercise.actualWeight)) return exerciseTotal;
+      if (!exercise.actualReps || !Array.isArray(exercise.actualReps)) return exerciseTotal;
+      
       const exerciseVolume = exercise.actualWeight.reduce((setTotal, weight, index) => {
         const reps = exercise.actualReps[index] || 0;
         return setTotal + (weight * reps);
