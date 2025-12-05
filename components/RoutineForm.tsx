@@ -26,6 +26,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [isExerciseSelectorOpen, setIsExerciseSelectorOpen] = useState(false);
   const [restBetweenSets, setRestBetweenSets] = useState(60);
   const [restBetweenExercises, setRestBetweenExercises] = useState(120);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (routineId) {
@@ -136,6 +137,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmitting) return; // Prevenir múltiples envíos
+    setIsSubmitting(true);
+
     const exercisesWithIds: Exercise[] = exercises.map((exercise, index) => ({
       ...exercise,
       id: routineId 
@@ -168,6 +172,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     } catch (err) {
       console.error('Error saving routine:', err);
       error('Error al guardar la rutina. Por favor intenta de nuevo.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -410,11 +416,16 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
       </div>
 
       <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
+        <Button type="button" variant="ghost" onClick={onClose} className="flex-1" disabled={isSubmitting}>
           Cancelar
         </Button>
-        <Button type="submit" variant="primary" className="flex-1" disabled={exercises.length === 0}>
-          {routineId ? 'Actualizar' : 'Crear'} Rutina
+        <Button 
+          type="submit" 
+          variant="primary" 
+          className="flex-1" 
+          disabled={exercises.length === 0 || isSubmitting}
+        >
+          {isSubmitting ? '⏳ Guardando...' : routineId ? 'Actualizar Rutina' : 'Crear Rutina'}
         </Button>
       </div>
 

@@ -32,8 +32,12 @@ export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) =>
     const recordsMap = new Map<string, PersonalRecord>();
 
     sessions.forEach(session => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(ex => {
         const exerciseName = ex.exerciseName || ex.exerciseId;
+
+        if (!ex.actualReps || !Array.isArray(ex.actualReps)) return;
+        if (!ex.actualWeight || !Array.isArray(ex.actualWeight)) return;
 
         ex.actualReps.forEach((reps, idx) => {
           const weight = ex.actualWeight[idx] || 0;

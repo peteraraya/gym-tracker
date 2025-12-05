@@ -30,7 +30,10 @@ export interface Routine {
 export interface WorkoutSession {
   id: string;
   routineId: string;
+  routineName?: string;
   date: Date;
+  startedAt?: Date;
+  completedAt?: Date;
   exercises: {
     exerciseId: string;
     exerciseName?: string; // Nombre del ejercicio para facilitar búsqueda
@@ -39,6 +42,7 @@ export interface WorkoutSession {
     actualWeight: number[];
     setDurations?: number[]; // Duración de cada serie en segundos
     pauseDurations?: number[]; // Tiempo total pausado en cada serie en segundos
+    notes?: string;
   }[];
   notes?: string;
   totalDuration?: number; // Duración total del entrenamiento en segundos

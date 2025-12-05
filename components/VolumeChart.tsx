@@ -27,9 +27,11 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
       });
 
       const volume = daySessions.reduce((total, session) => {
+        if (!session.exercises || !Array.isArray(session.exercises)) return total;
         return total + session.exercises.reduce((exTotal, ex) => {
+          if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
           return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-            return repTotal + (reps * (ex.actualWeight[idx] || 0));
+            return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
           }, 0);
         }, 0);
       }, 0);

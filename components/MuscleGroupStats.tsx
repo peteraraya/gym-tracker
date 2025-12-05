@@ -44,6 +44,7 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
     const stats = new Map<MuscleGroup, MuscleGroupData>();
 
     sessions.forEach(session => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(ex => {
         // Buscar el ejercicio en la base de datos
         const exerciseTemplate = EXERCISE_DATABASE.find(

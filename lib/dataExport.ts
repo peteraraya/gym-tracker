@@ -15,18 +15,19 @@ export function exportSessionsToCSV(sessions: WorkoutSession[]): string {
     'Notes'
   ];
 
-  const rows = sessions.flatMap(session => 
-    session.exercises.map(exercise => ({
+  const rows = sessions.flatMap(session => {
+    if (!session.exercises || !Array.isArray(session.exercises)) return [];
+    return session.exercises.map(exercise => ({
       date: new Date(session.date).toISOString().split('T')[0],
       routineId: session.routineId,
       exerciseId: exercise.exerciseId,
       exerciseName: exercise.exerciseName || exercise.exerciseId,
       setsCompleted: exercise.completedSets,
-      reps: exercise.actualReps.join(';'),
-      weights: exercise.actualWeight.join(';'),
+      reps: exercise.actualReps?.join(';') || '',
+      weights: exercise.actualWeight?.join(';') || '',
       notes: session.notes || ''
-    }))
-  );
+    }));
+  });
 
   const csvRows = [
     headers.join(','),
