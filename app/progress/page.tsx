@@ -75,6 +75,10 @@ export default function ProgressPage() {
 
         const muscleGroup = exercise.muscleGroup;
         
+        // Validar que los arrays existan antes de iterar
+        if (!sessionExercise.actualReps || !Array.isArray(sessionExercise.actualReps)) return;
+        if (!sessionExercise.actualWeight || !Array.isArray(sessionExercise.actualWeight)) return;
+        
         // Calcular volumen: suma de (reps × peso) para cada serie
         sessionExercise.actualReps.forEach((reps, index) => {
           const weight = sessionExercise.actualWeight[index] || 0;

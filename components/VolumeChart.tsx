@@ -44,7 +44,7 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
 
   const maxVolume = Math.max(...chartData.map(d => d.volume), 1);
   const totalVolume = chartData.reduce((sum, d) => sum + d.volume, 0);
-  const avgVolume = Math.round(totalVolume / chartData.length);
+  const avgVolume = chartData.length > 0 ? Math.round(totalVolume / chartData.length) : 0;
 
   return (
     <Card>

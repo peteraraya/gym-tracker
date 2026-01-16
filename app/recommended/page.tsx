@@ -488,7 +488,7 @@ export default function RecommendedRoutinesPage() {
                       </div>
                       <div className="text-right ml-4">
                         <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {exercise.sets} × {exercise.reps}
+                          {exercise.sets.length} series × {exercise.sets[0]?.reps || 0} reps
                         </div>
                       </div>
                     </div>
