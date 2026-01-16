@@ -4,7 +4,9 @@ const config: CapacitorConfig = {
   appId: 'com.gymtracker.app',
   appName: 'Gym Tracker',
   webDir: 'out',
-  bundledWebRuntime: false,
+  // `bundledWebRuntime` is not part of the current `CapacitorConfig` type
+  // Remove or keep as runtime option if needed. Commenting out to satisfy types.
+  // bundledWebRuntime: false,
   server: {
     // Allow clear text traffic for local development
     androidScheme: 'https',
