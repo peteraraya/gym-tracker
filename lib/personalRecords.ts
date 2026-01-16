@@ -32,6 +32,8 @@ export function calculatePersonalRecords(sessions: WorkoutSession[]): PersonalRe
       const weights = exercise.actualWeight || [];
       const reps = exercise.actualReps || [];
       
+      if (!Array.isArray(weights) || !Array.isArray(reps)) return;
+      
       weights.forEach((weight, index) => {
         const currentRecord = recordsMap.get(exerciseName);
         
@@ -88,6 +90,8 @@ export function calculateExerciseProgress(
         const weights = exercise.actualWeight || [];
         const reps = exercise.actualReps || [];
 
+        if (!Array.isArray(weights) || !Array.isArray(reps)) return;
+
         weights.forEach((weight, index) => {
           const rep = reps[index] || 1;
           const volume = weight * rep;
@@ -123,8 +127,12 @@ export function calculateExerciseProgress(
     }
   });
 
-  const firstAvg = firstSessionWeights.reduce((a, b) => a + b, 0) / firstSessionWeights.length;
-  const lastAvg = lastSessionWeights.reduce((a, b) => a + b, 0) / lastSessionWeights.length;
+  const firstAvg = firstSessionWeights.length > 0 
+    ? firstSessionWeights.reduce((a, b) => a + b, 0) / firstSessionWeights.length 
+    : 0;
+  const lastAvg = lastSessionWeights.length > 0 
+    ? lastSessionWeights.reduce((a, b) => a + b, 0) / lastSessionWeights.length 
+    : 0;
   
   const improvement = ((lastAvg - firstAvg) / firstAvg) * 100;
   const trend = improvement > 5 ? 'up' : improvement < -5 ? 'down' : 'stable';

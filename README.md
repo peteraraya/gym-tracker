@@ -292,6 +292,43 @@ Perfiles de usuario con datos personales
 - Los usuarios solo pueden acceder a sus propios datos
 - Políticas de lectura/escritura específicas por tabla
 
+## 🛠️ Utilidades y Hooks Personalizados
+
+### Manejo de Errores
+```typescript
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+
+// En tu componente
+const { handleAsyncError } = useErrorHandler();
+
+const loadData = async () => {
+  const data = await handleAsyncError(
+    fetchSessions(), 
+    'Error cargando sesiones'
+  );
+};
+```
+
+### Estadísticas del Dashboard
+```typescript
+import { useDashboardStats } from '@/hooks/useDashboardStats';
+
+// Cálculos optimizados y memoizados
+const stats = useDashboardStats(sessions);
+// Retorna: totalSessions, totalVolume, currentStreak, etc.
+```
+
+### Sistema de Logging
+```typescript
+import { logger } from '@/lib/logger';
+
+// Solo se muestra en desarrollo
+logger.log('Mensaje de debug');
+logger.error('Error crítico'); // Siempre visible
+```
+
+**Ver `MEJORAS_IMPLEMENTADAS.md` para más detalles sobre nuevas utilidades.**
+
 ## 🤝 Contribuir
 
 Las contribuciones son bienvenidas. Por favor:
@@ -301,6 +338,13 @@ Las contribuciones son bienvenidas. Por favor:
 3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
+
+## 📚 Documentación Adicional
+
+- 📊 **[ANALISIS_Y_MEJORAS.md](./ANALISIS_Y_MEJORAS.md)** - Análisis completo de la aplicación con recomendaciones
+- ✅ **[MEJORAS_IMPLEMENTADAS.md](./MEJORAS_IMPLEMENTADAS.md)** - Resumen de mejoras y correcciones aplicadas
+- 🗄️ **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** - Guía de configuración de Supabase
+- 🔄 **[SUPABASE_MIGRATIONS.md](./SUPABASE_MIGRATIONS.md)** - Guía de ejecución de migraciones
 
 ## 📝 Licencia
 
