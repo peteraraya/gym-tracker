@@ -11,20 +11,20 @@ Total: 70 archivos GIF
 
 ## BARBELL (Barra) - 16 archivos
 
-1. male-barbell-bench-press-front.gif
-2. male-barbell-bent-over-row-back.gif
-3. male-barbell-bicep-curl-front.gif
-4. male-barbell-close-grip-bench-press-front.gif
-5. male-barbell-deadlift-side.gif
-6. male-barbell-decline-bench-press-front.gif
-7. male-barbell-front-squat-front.gif
-8. male-barbell-hip-thrust-side.gif
-9. male-barbell-incline-bench-press-front.gif
-10. male-barbell-preacher-curl-front.gif
-11. male-barbell-romanian-deadlift-side.gif
-12. male-barbell-skull-crusher-side.gif
-13. male-barbell-squat-front.gif
-14. male-barbell-standing-calf-raise-side.gif
+1. male-barbell-bench-press-front.gif - listo
+2. male-barbell-bent-over-row-back.gif - listo
+3. male-barbell-bicep-curl-front.gif - listo
+4. male-barbell-close-grip-bench-press-front.gif - listo
+5. male-barbell-deadlift-side.gif  - listo
+6. male-barbell-decline-bench-press-front.gif - listo
+7. male-barbell-front-squat-front.gif - listo
+8. male-barbell-hip-thrust-side.gif - listo
+9. male-barbell-incline-bench-press-front.gif - listo
+10. male-barbell-preacher-curl-front.gif - listo
+11. male-barbell-romanian-deadlift-side.gif - listo
+12. male-barbell-skull-crusher-side.gif - listo
+13. male-barbell-squat-front.gif - es sentadilla normal - listo
+14. male-barbell-standing-calf-raise-side.gif - listo
 15. male-barbell-standing-overhead-press-front.gif
 16. male-barbell-sumo-deadlift-front.gif
 17. male-barbell-t-bar-row-back.gif

@@ -7,7 +7,15 @@ import { Button } from '@/components/ui/Button';
 import { StatsCard } from '@/components/StatsCard';
 import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 import { VolumeChart } from '@/components/VolumeChart';
-import type { WorkoutSession, UserProfile } from '@/types';
+import { MuscleGroupStats } from '@/components/MuscleGroupStats';
+import { PersonalRecords } from '@/components/PersonalRecords';
+import { TrainingFrequency } from '@/components/TrainingFrequency';
+import { StrengthProgression } from '@/components/StrengthProgression';
+import { ProgressDashboard } from '@/components/ProgressDashboard';
+import AchievementBadge from '@/components/AchievementBadge';
+import type { WorkoutSession, UserProfile, Routine } from '@/types';
+import { EXERCISE_DATABASE } from '@/data/exercises';
+import { calculateAchievements, getRecentAchievements, calculateStreak } from '@/lib/achievements';
 import { 
   Dumbbell, 
   TrendingUp, 
@@ -22,6 +30,7 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
+  const [routines, setRoutines] = useState<Routine[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
@@ -46,6 +55,12 @@ export default function DashboardPage() {
         const profileData = await profileRes.json();
         setProfile(profileData);
       }
+
+      // Cargar rutinas desde localStorage
+      const savedRoutines = localStorage.getItem('gym-routines');
+      if (savedRoutines) {
+        setRoutines(JSON.parse(savedRoutines));
+      }
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
@@ -58,16 +73,19 @@ export default function DashboardPage() {
     totalSessions: sessions.length,
     
     totalVolume: sessions.reduce((total, session) => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return total;
       return total + session.exercises.reduce((exTotal, ex) => {
+        if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
         return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-          return repTotal + (reps * (ex.actualWeight[idx] || 0));
+          return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
         }, 0);
       }, 0);
     }, 0),
 
     totalSets: sessions.reduce((total, session) => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return total;
       return total + session.exercises.reduce((exTotal, ex) => {
-        return exTotal + ex.actualReps.length;
+        return exTotal + (ex.actualReps?.length || 0);
       }, 0);
     }, 0),
 
@@ -108,9 +126,11 @@ export default function DashboardPage() {
       });
 
       return thisMonth.reduce((total, session) => {
+        if (!session.exercises || !Array.isArray(session.exercises)) return total;
         return total + session.exercises.reduce((exTotal, ex) => {
+          if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
           return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-            return repTotal + (reps * (ex.actualWeight[idx] || 0));
+            return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
           }, 0);
         }, 0);
       }, 0);
@@ -125,9 +145,11 @@ export default function DashboardPage() {
       });
 
       return lastMonthSessions.reduce((total, session) => {
+        if (!session.exercises || !Array.isArray(session.exercises)) return total;
         return total + session.exercises.reduce((exTotal, ex) => {
+          if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
           return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-            return repTotal + (reps * (ex.actualWeight[idx] || 0));
+            return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
           }, 0);
         }, 0);
       }, 0);
@@ -137,8 +159,37 @@ export default function DashboardPage() {
       const exerciseCounts: Record<string, number> = {};
       
       sessions.forEach(session => {
+        if (!session.exercises || !Array.isArray(session.exercises)) return;
         session.exercises.forEach(ex => {
-          exerciseCounts[ex.name] = (exerciseCounts[ex.name] || 0) + 1;
+          // Intentar usar el nombre guardado primero
+          let exerciseName = ex.exerciseName;
+          
+          // Si no hay nombre guardado, buscar usando el exerciseId
+          if (!exerciseName) {
+            // Buscar en las rutinas
+            for (const routine of routines) {
+              const exercise = routine.exercises.find(e => e.id === ex.exerciseId);
+              if (exercise) {
+                exerciseName = exercise.name;
+                break;
+              }
+            }
+            
+            // Si no se encontró en rutinas, buscar en EXERCISE_DATABASE
+            if (!exerciseName) {
+              const exerciseTemplate = EXERCISE_DATABASE.find(e => e.id === ex.exerciseId);
+              if (exerciseTemplate) {
+                exerciseName = exerciseTemplate.name;
+              }
+            }
+          }
+          
+          // Si aún no tenemos nombre, usar un fallback descriptivo
+          if (!exerciseName) {
+            exerciseName = 'Ejercicio sin nombre';
+          }
+          
+          exerciseCounts[exerciseName] = (exerciseCounts[exerciseName] || 0) + 1;
         });
       });
 
@@ -176,7 +227,7 @@ export default function DashboardPage() {
           </p>
         </div>
         {profile && (
-          <div className="hidden md:flex items-center gap-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 px-4 py-2 rounded-xl border border-blue-100 dark:border-zinc-700">
+          <div className="hidden md:flex items-center gap-3 bg-linear-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 px-4 py-2 rounded-xl border border-blue-100 dark:border-zinc-700">
             <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <div className="text-sm">
               <p className="font-semibold text-zinc-900 dark:text-zinc-100">
@@ -304,9 +355,112 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      {/* Advanced Statistics */}
+      {sessions.length > 0 && (
+        <>
+          {/* Logros Destacados */}
+          <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-amber-200 dark:border-zinc-700">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                    Logros Recientes
+                  </h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Tus últimos desbloqueos
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/achievements')}
+                className="text-sm"
+              >
+                Ver Todos
+              </Button>
+            </div>
+
+            {/* Recent Achievements */}
+            <div className="flex gap-6 overflow-x-auto pb-2">
+              {(() => {
+                const allAchievements = calculateAchievements(sessions);
+                const recentAchievements = getRecentAchievements(allAchievements);
+                const streak = calculateStreak(sessions);
+
+                if (recentAchievements.length === 0) {
+                  return (
+                    <div className="text-center w-full py-8 text-zinc-600 dark:text-zinc-400">
+                      <p className="text-sm">¡Sigue entrenando para desbloquear logros!</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <>
+                    {recentAchievements.map(achievement => (
+                      <AchievementBadge
+                        key={achievement.id}
+                        achievement={achievement}
+                        size="lg"
+                        showProgress={true}
+                      />
+                    ))}
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Streak Info */}
+            {(() => {
+              const streak = calculateStreak(sessions);
+              return (
+                <div className="mt-6 pt-6 border-t border-amber-200 dark:border-zinc-700">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Racha Actual</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Flame className="w-5 h-5 text-orange-500" />
+                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                          {streak.current} días
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Racha Máxima</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Award className="w-5 h-5 text-amber-600" />
+                        <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                          {streak.longest} días
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Row 1: Muscle Group Stats & Training Frequency */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <MuscleGroupStats sessions={sessions} />
+            <TrainingFrequency sessions={sessions} />
+          </div>
+
+          {/* Row 2: Personal Records & Strength Progression */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PersonalRecords sessions={sessions} />
+            <StrengthProgression sessions={sessions} />
+          </div>
+
+          {/* Row 3: Progress Dashboard */}
+          <ProgressDashboard sessions={sessions} />
+        </>
+      )}
+
       {/* Quick Actions */}
       {sessions.length === 0 && (
-        <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 border-blue-200 dark:border-zinc-700">
+        <Card className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 border-blue-200 dark:border-zinc-700">
           <CardContent className="py-8 text-center">
             <Dumbbell className="w-16 h-16 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
             <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">

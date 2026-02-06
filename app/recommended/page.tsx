@@ -5,6 +5,7 @@ import { RECOMMENDED_ROUTINES, RecommendedRoutine } from '@/data/recommendedRout
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useGym } from '@/context/GymContext';
+import { useToast } from '@/context/ToastContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Exercise, UserProfile } from '@/types';
 import { getRecommendedRoutines, getRecommendationReason, type RoutineRecommendation } from '@/lib/recommendations';
@@ -12,9 +13,10 @@ import Link from 'next/link';
 
 export default function RecommendedRoutinesPage() {
   const { addRoutine } = useGym();
+  const { success, error, info } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
   const [selectedRoutine, setSelectedRoutine] = useState<RecommendedRoutine | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [savingRoutines, setSavingRoutines] = useState<Record<string, boolean>>({});
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [personalizedRecommendations, setPersonalizedRecommendations] = useState<RoutineRecommendation[]>([]);
@@ -46,29 +48,48 @@ export default function RecommendedRoutinesPage() {
     : RECOMMENDED_ROUTINES.filter(r => r.category === selectedCategory);
 
   const handleSaveRoutine = async (routine: RecommendedRoutine) => {
-    setSaving(true);
+    setSavingRoutines(prev => ({ ...prev, [routine.id]: true }));
     try {
-      const exercisesWithIds: Exercise[] = routine.exercises.map((exercise, index) => ({
-        ...exercise,
-        id: `${crypto.randomUUID()}-${index}`,
-      }));
+      // Normalizar ejercicios: soportar formato antiguo (sets: number, reps: number)
+      const normalizedExercises = routine.exercises.map((exercise, index) => {
+        const base: any = {
+          id: `${crypto.randomUUID()}-${index}`,
+          name: exercise.name,
+          notes: (exercise as any).notes || undefined,
+          equipment: (exercise as any).equipment || undefined,
+        };
+
+        // Si 'sets' es un número (formato antiguo), convertir a array de objetos { reps, weight }
+        if (typeof (exercise as any).sets === 'number') {
+          const setsCount = (exercise as any).sets;
+          const reps = (exercise as any).reps || 10;
+          const weight = (exercise as any).weight || 0;
+          base.sets = Array.from({ length: setsCount }, () => ({ reps, weight }));
+        } else if (Array.isArray((exercise as any).sets)) {
+          base.sets = (exercise as any).sets;
+        } else {
+          base.sets = [{ reps: (exercise as any).reps || 10, weight: (exercise as any).weight || 0 }];
+        }
+
+        return base as Exercise;
+      });
 
       await addRoutine({
         name: routine.name,
         description: routine.description,
         image: routine.image,
-        exercises: exercisesWithIds,
+        exercises: normalizedExercises,
         restBetweenSets: routine.restBetweenSets,
         restBetweenExercises: routine.restBetweenExercises,
       });
 
-      alert('✅ Rutina guardada exitosamente en "Mis Rutinas"');
+      success('Rutina guardada exitosamente en "Mis Rutinas"');
       setSelectedRoutine(null);
-    } catch (error) {
-      console.error('Error saving routine:', error);
-      alert('❌ Error al guardar la rutina');
+    } catch (err) {
+      console.error('Error saving routine:', err);
+      error('Error al guardar la rutina');
     } finally {
-      setSaving(false);
+      setSavingRoutines(prev => ({ ...prev, [routine.id]: false }));
     }
   };
 
@@ -102,6 +123,7 @@ export default function RecommendedRoutinesPage() {
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Rutinas profesionales listas para guardar y comenzar a entrenar
             </p>
+            {/* Botón de import masivo omitido por ahora (solicitado). */}
           </div>
 
           {/* Recomendaciones personalizadas */}
@@ -121,7 +143,7 @@ export default function RecommendedRoutinesPage() {
               </div>
 
               {userProfile && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg mb-6">
+                <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg mb-6">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🎯</span>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">
@@ -217,11 +239,28 @@ export default function RecommendedRoutinesPage() {
                           variant="primary"
                           className="w-full"
                           onClick={() => {
-                            // Por ahora solo mostramos alerta, más adelante se puede crear la rutina
-                            alert(`La funcionalidad de guardar "${rec.name}" estará disponible pronto. Por ahora puedes crear tu propia rutina personalizada.`);
+                            // Scroll hasta la sección de rutinas disponibles
+                            const routinesSection = document.querySelector('[data-routines-section]');
+                            if (routinesSection) {
+                              routinesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              
+                              // Buscar rutinas relacionadas y aplicar filtro
+                              const searchTerms = rec.name.toLowerCase();
+                              if (searchTerms.includes('push pull legs') || searchTerms.includes('ppl')) {
+                                // No cambiar filtro, dejar que el usuario vea todas las PPL disponibles
+                              } else if (searchTerms.includes('principiante') || rec.difficulty === 'beginner') {
+                                setSelectedCategory('beginner');
+                              } else if (searchTerms.includes('intermedio') || rec.difficulty === 'intermediate') {
+                                setSelectedCategory('intermediate');
+                              } else if (searchTerms.includes('avanzado') || rec.difficulty === 'advanced') {
+                                setSelectedCategory('advanced');
+                              }
+                            }
+                            
+                            info('Por favor, selecciona las rutinas individuales que quieres guardar de la sección "Todas las rutinas disponibles" abajo. 👇');
                           }}
                         >
-                          📥 Crear esta rutina
+                          📥 Ver rutinas disponibles
                         </Button>
                       </div>
                     </CardContent>
@@ -229,7 +268,7 @@ export default function RecommendedRoutinesPage() {
                 ))}
               </div>
 
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-8" data-routines-section>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Todas las rutinas disponibles
                 </h2>
@@ -317,14 +356,25 @@ export default function RecommendedRoutinesPage() {
                         Ejercicios ({routine.exercises.length}):
                       </div>
                       <div className="space-y-1">
-                        {routine.exercises.slice(0, 4).map((exercise, idx) => (
-                          <div
-                            key={idx}
-                            className="text-sm text-gray-700 dark:text-gray-300"
-                          >
-                            • {exercise.name} ({exercise.sets}×{exercise.reps})
-                          </div>
-                        ))}
+                        {routine.exercises.slice(0, 4).map((exercise, idx) => {
+                          const exerciseData = exercise as any;
+                          const setsCount = typeof exerciseData.sets === 'number' 
+                            ? exerciseData.sets 
+                            : Array.isArray(exerciseData.sets) 
+                              ? exerciseData.sets.length 
+                              : 1;
+                          const repsValue = exerciseData.reps || 
+                            (Array.isArray(exerciseData.sets) && exerciseData.sets[0]?.reps) || 
+                            10;
+                          return (
+                            <div
+                              key={idx}
+                              className="text-sm text-gray-700 dark:text-gray-300"
+                            >
+                              • {exercise.name} ({setsCount}×{repsValue})
+                            </div>
+                          );
+                        })}
                         {routine.exercises.length > 4 && (
                           <div className="text-sm text-gray-500 dark:text-gray-500">
                             +{routine.exercises.length - 4} más
@@ -348,9 +398,9 @@ export default function RecommendedRoutinesPage() {
                         size="sm"
                         className="flex-1"
                         onClick={() => handleSaveRoutine(routine)}
-                        disabled={saving}
+                        disabled={savingRoutines[routine.id]}
                       >
-                        💾 Guardar
+                        {savingRoutines[routine.id] ? 'Guardando...' : '💾 Guardar'}
                       </Button>
                     </div>
                   </div>
@@ -438,7 +488,7 @@ export default function RecommendedRoutinesPage() {
                       </div>
                       <div className="text-right ml-4">
                         <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {exercise.sets} × {exercise.reps}
+                          {Array.isArray(exercise.sets) ? exercise.sets.length : exercise.sets} series × {(Array.isArray(exercise.sets) ? exercise.sets[0]?.reps : exercise.reps) || 0} reps
                         </div>
                       </div>
                     </div>
@@ -479,10 +529,10 @@ export default function RecommendedRoutinesPage() {
                 <Button
                   variant="primary"
                   onClick={() => handleSaveRoutine(selectedRoutine)}
-                  disabled={saving}
+                  disabled={savingRoutines[selectedRoutine.id]}
                   className="flex-1"
                 >
-                  {saving ? 'Guardando...' : '💾 Guardar en mis rutinas'}
+                  {savingRoutines[selectedRoutine.id] ? 'Guardando...' : '💾 Guardar en mis rutinas'}
                 </Button>
               </div>
             </div>

@@ -9,7 +9,13 @@ export interface RecommendedRoutine {
   duration: string; // Ej: "45-60 min"
   goal: string; // Ej: "Fuerza", "Hipertrofia", "Resistencia"
   image?: string;
-  exercises: Omit<Exercise, 'id'>[];
+  exercises: {
+    name: string;
+    sets: number;
+    reps: number;
+    weight?: number;
+    notes?: string;
+  }[];
   restBetweenSets: number;
   restBetweenExercises: number;
 }

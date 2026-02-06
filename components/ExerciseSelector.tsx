@@ -150,20 +150,20 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
               filteredExercises.map((exercise) => {
                 const isSelected = selectedExercises.has(exercise.id);
                 return (
-                  <button
+                  <div
                     key={exercise.id}
-                    className={`text-left p-4 border-2 rounded-lg transition-all ${
+                    className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
                         : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
                     }`}
+                    onClick={() => handleExerciseToggle(exercise)}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div 
-                        className="flex items-start gap-3 flex-1 cursor-pointer"
-                        onClick={() => handleExerciseToggle(exercise)}
+                        className="flex items-start gap-3 flex-1"
                       >
-                        <div className={`mt-1 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                        <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                           isSelected
                             ? 'bg-blue-600 border-blue-600'
                             : 'border-gray-300 dark:border-gray-500'
@@ -175,7 +175,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                           )}
                         </div>
                         {exercise.image ? (
-                          <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
+                          <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={exercise.image}
@@ -189,7 +189,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                                 const parent = target.parentElement;
                                 if (parent) {
                                   parent.innerHTML = '';
-                                  parent.className = 'flex-shrink-0 w-16 h-16';
+                                  parent.className = 'shrink-0 w-16 h-16';
                                 }
                               }}
                             />
@@ -197,7 +197,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                         ) : (
                           <ExerciseIcon 
                             muscleGroup={exercise.muscleGroup}
-                            className="flex-shrink-0 w-16 h-16"
+                            className="shrink-0 w-16 h-16"
                           />
                         )}
                         <div className="flex-1">
@@ -227,7 +227,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                             e.stopPropagation();
                             setDetailsExercise(exercise);
                           }}
-                          className="flex-shrink-0 p-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                          className="shrink-0 p-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
                           title="Ver detalles"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,7 +236,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                         </button>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })
             ) : (

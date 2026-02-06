@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useGym } from '@/context/GymContext';
+import { useToast } from '@/context/ToastContext';
 import { Exercise } from '@/types';
 import { Input, TextArea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +18,7 @@ interface RoutineFormProps {
 
 export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) => {
   const { addRoutine, updateRoutine, getRoutineById } = useGym();
+  const { success, error } = useToast();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<string>('');
@@ -24,6 +26,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [isExerciseSelectorOpen, setIsExerciseSelectorOpen] = useState(false);
   const [restBetweenSets, setRestBetweenSets] = useState(60);
   const [restBetweenExercises, setRestBetweenExercises] = useState(120);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (routineId) {
@@ -32,8 +35,27 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         setName(routine.name);
         setDescription(routine.description || '');
         setImage(routine.image || '');
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        setExercises(routine.exercises.map(({ id, ...rest }) => rest));
+        // Migrar formato antiguo a nuevo si es necesario
+        const migratedExercises = routine.exercises.map(({ id, ...rest }) => {
+          // Si el ejercicio usa formato antiguo (sets: number), convertir a nuevo formato
+          if (typeof (rest as any).sets === 'number') {
+            const oldSets = (rest as any).sets;
+            const oldReps = (rest as any).reps || 10;
+            const oldWeight = (rest as any).weight || 0;
+            const newExercise = {
+              name: rest.name,
+              equipment: rest.equipment,
+              notes: rest.notes,
+              sets: Array(oldSets).fill(null).map(() => ({ 
+                reps: oldReps, 
+                weight: oldWeight 
+              }))
+            };
+            return newExercise;
+          }
+          return rest;
+        });
+        setExercises(migratedExercises);
         setRestBetweenSets(routine.restBetweenSets || 60);
         setRestBetweenExercises(routine.restBetweenExercises || 120);
       }
@@ -48,9 +70,10 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const handleSelectExercises = (exerciseTemplates: ExerciseTemplate[]) => {
     const newExercises: Omit<Exercise, 'id'>[] = exerciseTemplates.map(template => ({
       name: template.name,
-      sets: template.defaultSets || 3,
-      reps: template.defaultReps || 10,
-      weight: 0,
+      sets: Array(template.defaultSets || 3).fill(null).map(() => ({ 
+        reps: template.defaultReps || 10, 
+        weight: 0 
+      })),
       equipment: template.equipment,
       notes: ''
     }));
@@ -59,21 +82,63 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   };
 
   const handleAddCustomExercise = () => {
-    setExercises([...exercises, { name: '', sets: 3, reps: 10, weight: 0, equipment: '', notes: '' }]);
+    setExercises([...exercises, { 
+      name: '', 
+      sets: [{ reps: 10, weight: 0 }], 
+      equipment: '', 
+      notes: '' 
+    }]);
   };
 
   const handleRemoveExercise = (index: number) => {
     setExercises(exercises.filter((_, i) => i !== index));
   };
 
-  const handleExerciseChange = (index: number, field: keyof Exercise, value: string | number) => {
+  const handleExerciseChange = (index: number, field: keyof Exercise, value: string) => {
     const newExercises = [...exercises];
-    newExercises[index] = { ...newExercises[index], [field]: value };
+    (newExercises[index] as any)[field] = value;
+    setExercises(newExercises);
+  };
+
+  const handleAddSet = (exerciseIndex: number) => {
+    const newExercises = [...exercises];
+    const exercise = newExercises[exerciseIndex];
+    const lastSet = exercise.sets[exercise.sets.length - 1];
+    // Pre-llenar con valores de la última serie
+    exercise.sets.push({ 
+      reps: lastSet?.reps || 10, 
+      weight: lastSet?.weight || 0 
+    });
+    setExercises(newExercises);
+  };
+
+  const handleRemoveSet = (exerciseIndex: number, setIndex: number) => {
+    const newExercises = [...exercises];
+    if (newExercises[exerciseIndex].sets.length > 1) {
+      newExercises[exerciseIndex].sets.splice(setIndex, 1);
+      setExercises(newExercises);
+    }
+  };
+
+  const handleCopySet = (exerciseIndex: number, setIndex: number) => {
+    const newExercises = [...exercises];
+    const exercise = newExercises[exerciseIndex];
+    const setToCopy = exercise.sets[setIndex];
+    exercise.sets.splice(setIndex + 1, 0, { ...setToCopy });
+    setExercises(newExercises);
+  };
+
+  const handleSetChange = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight', value: number) => {
+    const newExercises = [...exercises];
+    newExercises[exerciseIndex].sets[setIndex][field] = value;
     setExercises(newExercises);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) return; // Prevenir múltiples envíos
+    setIsSubmitting(true);
 
     const exercisesWithIds: Exercise[] = exercises.map((exercise, index) => ({
       ...exercise,
@@ -102,10 +167,13 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           restBetweenExercises,
         });
       }
+      success(routineId ? 'Rutina actualizada exitosamente' : 'Rutina creada exitosamente');
       onClose();
-    } catch (error) {
-      console.error('Error saving routine:', error);
-      alert('Error al guardar la rutina. Por favor intenta de nuevo.');
+    } catch (err) {
+      console.error('Error saving routine:', err);
+      error('Error al guardar la rutina. Por favor intenta de nuevo.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -239,19 +307,19 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         )}
 
         <div className="space-y-4">
-          {exercises.map((exercise, index) => (
+          {exercises.map((exercise, exerciseIndex) => (
             <div
-              key={index}
+              key={exerciseIndex}
               className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-3 relative"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Ejercicio {index + 1}
+                  Ejercicio {exerciseIndex + 1}
                 </span>
                 {exercises.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => handleRemoveExercise(index)}
+                    onClick={() => handleRemoveExercise(exerciseIndex)}
                     className="text-red-600 hover:text-red-700 text-sm"
                   >
                     ❌ Eliminar
@@ -262,7 +330,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               <Input
                 placeholder="Nombre del ejercicio"
                 value={exercise.name}
-                onChange={(e) => handleExerciseChange(index, 'name', e.target.value)}
+                onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
                 required
               />
 
@@ -272,42 +340,75 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 </label>
                 <EquipmentDropdown
                   value={exercise.equipment || ''}
-                  onChange={(value) => handleExerciseChange(index, 'equipment', value)}
+                  onChange={(value) => handleExerciseChange(exerciseIndex, 'equipment', value)}
                   placeholder="Seleccionar equipamiento (opcional)"
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <Input
-                  type="number"
-                  label="Series"
-                  value={exercise.sets}
-                  onChange={(e) => handleExerciseChange(index, 'sets', parseInt(e.target.value))}
-                  min="1"
-                  required
-                />
-                <Input
-                  type="number"
-                  label="Repeticiones"
-                  value={exercise.reps}
-                  onChange={(e) => handleExerciseChange(index, 'reps', parseInt(e.target.value))}
-                  min="1"
-                  required
-                />
-                <Input
-                  type="number"
-                  label="Peso (kg)"
-                  value={exercise.weight || ''}
-                  onChange={(e) => handleExerciseChange(index, 'weight', parseFloat(e.target.value) || 0)}
-                  min="0"
-                  step="0.5"
-                />
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Series
+                </label>
+                {exercise.sets.map((set, setIndex) => (
+                  <div key={setIndex} className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400 w-16">
+                      {setIndex + 1}
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="Reps"
+                      value={set.reps}
+                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value) || 0)}
+                      min="1"
+                      required
+                      className="flex-1"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Peso (kg)"
+                      value={set.weight || ''}
+                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
+                      min="0"
+                      step="0.5"
+                      className="flex-1"
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleCopySet(exerciseIndex, setIndex)}
+                        className="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        title="Copiar serie"
+                      >
+                        📋
+                      </button>
+                      {exercise.sets.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
+                          className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                          title="Eliminar serie"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => handleAddSet(exerciseIndex)}
+                  className="w-full"
+                >
+                  ➕ Añadir serie
+                </Button>
               </div>
 
               <Input
                 placeholder="Notas (opcional)"
                 value={exercise.notes || ''}
-                onChange={(e) => handleExerciseChange(index, 'notes', e.target.value)}
+                onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
               />
             </div>
           ))}
@@ -315,11 +416,16 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
       </div>
 
       <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
+        <Button type="button" variant="ghost" onClick={onClose} className="flex-1" disabled={isSubmitting}>
           Cancelar
         </Button>
-        <Button type="submit" variant="primary" className="flex-1" disabled={exercises.length === 0}>
-          {routineId ? 'Actualizar' : 'Crear'} Rutina
+        <Button 
+          type="submit" 
+          variant="primary" 
+          className="flex-1" 
+          disabled={exercises.length === 0 || isSubmitting}
+        >
+          {isSubmitting ? '⏳ Guardando...' : routineId ? 'Actualizar Rutina' : 'Crear Rutina'}
         </Button>
       </div>
 

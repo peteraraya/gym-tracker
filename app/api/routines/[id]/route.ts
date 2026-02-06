@@ -13,11 +13,16 @@ export async function PUT(
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {
+      console.error('[Routines API] PUT - Auth error:', userError?.message)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { name, description, image, exercises, restBetweenSets, restBetweenExercises } = body
+
+    console.log('[Routines API] PUT - Updating routine:', id)
+    console.log('[Routines API] PUT - Exercises count:', exercises?.length)
+    console.log('[Routines API] PUT - First exercise:', JSON.stringify(exercises?.[0], null, 2))
 
     // Update routine
     const { error: routineError } = await supabase
@@ -33,36 +38,49 @@ export async function PUT(
       .eq('user_id', user.id)
 
     if (routineError) {
+      console.error('[Routines API] PUT - Routine update error:', routineError)
       return NextResponse.json({ error: routineError.message }, { status: 500 })
     }
 
     // Delete existing exercises
-    await supabase.from('exercises').delete().eq('routine_id', id)
+    const { error: deleteError } = await supabase.from('exercises').delete().eq('routine_id', id)
+    
+    if (deleteError) {
+      console.error('[Routines API] PUT - Delete exercises error:', deleteError)
+      return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    }
 
     // Create new exercises
     if (exercises && exercises.length > 0) {
       const exercisesData = exercises.map((ex: any, index: number) => ({
         routine_id: id,
         name: ex.name,
-        sets: ex.sets,
-        reps: ex.reps,
-        weight: ex.weight,
+        sets_data: ex.sets, // Array de objetos {reps, weight}
+        equipment: ex.equipment,
         notes: ex.notes,
-        order_index: index
+        order_index: index,
+        // Valores por defecto para compatibilidad con columnas antiguas
+        sets: ex.sets?.length || 0,
+        reps: ex.sets?.[0]?.reps || 0,
+        weight: ex.sets?.[0]?.weight || 0
       }))
+
+      console.log('[Routines API] PUT - Inserting exercises:', JSON.stringify(exercisesData[0], null, 2))
 
       const { error: exercisesError } = await supabase
         .from('exercises')
         .insert(exercisesData)
 
       if (exercisesError) {
+        console.error('[Routines API] PUT - Exercises insert error:', exercisesError)
         return NextResponse.json({ error: exercisesError.message }, { status: 500 })
       }
     }
 
+    console.log('[Routines API] PUT - Update successful')
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error updating routine:', error)
+    console.error('[Routines API] PUT - Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

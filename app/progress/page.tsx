@@ -67,12 +67,17 @@ export default function ProgressPage() {
     };
 
     sessions.forEach(session => {
+      if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(sessionExercise => {
         // Encontrar el ejercicio en la base de datos
         const exercise = EXERCISE_DATABASE.find(ex => ex.id === sessionExercise.exerciseId);
         if (!exercise) return;
 
         const muscleGroup = exercise.muscleGroup;
+        
+        // Validar que los arrays existan antes de iterar
+        if (!sessionExercise.actualReps || !Array.isArray(sessionExercise.actualReps)) return;
+        if (!sessionExercise.actualWeight || !Array.isArray(sessionExercise.actualWeight)) return;
         
         // Calcular volumen: suma de (reps × peso) para cada serie
         sessionExercise.actualReps.forEach((reps, index) => {

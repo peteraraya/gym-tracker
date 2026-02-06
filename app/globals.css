@@ -8,22 +8,32 @@
   /* Acentos - Gradiente profesional azul-púrpura */
   --primary: #3b82f6;
   --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
   --secondary: #8b5cf6;
   --accent: #06b6d4;
+  
+  /* Estados */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
   
   /* Superficies */
   --surface: #ffffff;
   --surface-alt: #f4f4f5;
+  --surface-hover: #e4e4e7;
   
   /* Bordes */
   --border: #e4e4e7;
   --border-light: #f4f4f5;
   
-  /* Sombras */
+  /* Sombras - Mejoradas */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
 @theme inline {
@@ -39,12 +49,19 @@
     --foreground: #fafafa;
     
     --primary: #3b82f6;
-    --primary-dark: #60a5fa;
+    --primary-dark: #2563eb;
+    --primary-light: #60a5fa;
     --secondary: #a78bfa;
     --accent: #22d3ee;
     
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --info: #3b82f6;
+    
     --surface: #18181b;
     --surface-alt: #27272a;
+    --surface-hover: #3f3f46;
     
     --border: #3f3f46;
     --border-light: #27272a;
@@ -68,11 +85,13 @@ body {
 
 ::-webkit-scrollbar-track {
   background: var(--surface-alt);
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 5px;
+  border: 2px solid var(--surface-alt);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -82,4 +101,110 @@ body {
 /* Animaciones suaves */
 * {
   @apply transition-colors duration-200;
+}
+
+/* Utilidades de gradiente */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.glass-dark {
+  background: rgba(24, 24, 27, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(63, 63, 70, 0.18);
+}
+
+/* Efectos hover mejorados */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Focus visible mejorado */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Animación de carga */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, #f4f4f5 0%, #e4e4e7 20%, #f4f4f5 40%, #f4f4f5 100%);
+  background-size: 1000px 100%;
+}
+
+/* Animación toast slide-in */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* BodyMap SVG transitions and responsive hitboxes */
+.body-map-svg .muscle {
+  transition: fill 160ms ease, stroke 160ms ease;
+}
+.body-map-svg .hitbox-desktop {
+  display: inline;
+  pointer-events: all;
+}
+.body-map-svg .hitbox-mobile {
+  display: none;
+  pointer-events: all;
+}
+@media (max-width: 640px) {
+  .body-map-svg .hitbox-desktop { display: none; }
+  .body-map-svg .hitbox-mobile { display: inline; }
 }

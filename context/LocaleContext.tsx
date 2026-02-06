@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import esMessages from '@/messages/es.json';
 import enMessages from '@/messages/en.json';
 
@@ -16,14 +16,12 @@ interface LocaleContextType {
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  // Inicializar con el valor de localStorage si está disponible
   const [locale, setLocaleState] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('locale') || 'es';
     }
     return 'es';
   });
-  
   const [messages, setMessages] = useState<Messages>(() => {
     if (typeof window !== 'undefined') {
       const savedLocale = localStorage.getItem('locale') || 'es';
@@ -32,14 +30,16 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     return esMessages;
   });
 
-  const setLocale = (newLocale: string) => {
-    localStorage.setItem('locale', newLocale);
+  const setLocale = useCallback((newLocale: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locale', newLocale);
+    }
     setLocaleState(newLocale);
     setMessages(newLocale === 'en' ? enMessages : esMessages);
-  };
+  }, []);
 
   // Función helper para obtener traducciones anidadas
-  const t = (key: string): string => {
+  const t = useCallback((key: string): string => {
     const keys = key.split('.');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let value: any = messages;
@@ -50,10 +50,14 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     }
     
     return typeof value === 'string' ? value : key;
-  };
+  }, [messages]);
+
+  const value = useMemo(() => ({
+    locale, messages, setLocale, t
+  }), [locale, messages, setLocale, t]);
 
   return (
-    <LocaleContext.Provider value={{ locale, messages, setLocale, t }}>
+    <LocaleContext.Provider value={value}>
       {children}
     </LocaleContext.Provider>
   );

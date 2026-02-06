@@ -138,7 +138,7 @@ export default function ExercisesPage() {
                         />
                       </div>
                     ) : (
-                      <div className="flex justify-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
+                      <div className="flex justify-center p-6 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
                         <ExerciseIcon 
                           muscleGroup={exercise.muscleGroup}
                           className="w-32 h-32"

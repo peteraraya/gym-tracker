@@ -1,9 +1,12 @@
+export interface Set {
+  reps: number;
+  weight?: number;
+}
+
 export interface Exercise {
   id: string;
   name: string;
-  sets: number;
-  reps: number;
-  weight?: number;
+  sets: Set[];
   notes?: string;
   equipment?: string; // Equipamiento necesario
   technique?: string[]; // Recomendaciones de técnica
@@ -27,14 +30,23 @@ export interface Routine {
 export interface WorkoutSession {
   id: string;
   routineId: string;
+  routineName?: string;
   date: Date;
+  startedAt?: Date;
+  completedAt?: Date;
   exercises: {
     exerciseId: string;
+    exerciseName?: string; // Nombre del ejercicio para facilitar búsqueda
     completedSets: number;
     actualReps: number[];
     actualWeight: number[];
+    setDurations?: number[]; // Duración de cada serie en segundos
+    pauseDurations?: number[]; // Tiempo total pausado en cada serie en segundos
+    notes?: string;
   }[];
   notes?: string;
+  totalDuration?: number; // Duración total del entrenamiento en segundos
+  totalPausedTime?: number; // Tiempo total pausado en el entrenamiento
 }
 
 export type FitnessGoal = 
@@ -67,4 +79,29 @@ export interface UserProfile {
   // Metadatos
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Sistema de Logros/Badges
+export type AchievementCategory = 'consistency' | 'volume' | 'streak' | 'milestone';
+
+export type AchievementTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  category: AchievementCategory;
+  tier: AchievementTier;
+  icon: string; // Nombre del ícono de lucide-react
+  target: number; // Valor objetivo para desbloquear
+  unit: string; // Ej: "entrenamientos", "kg", "días"
+  unlocked: boolean;
+  unlockedAt?: Date;
+  progress: number; // Valor actual del usuario
+}
+
+export interface Streak {
+  current: number; // Racha actual en días
+  longest: number; // Racha más larga alcanzada
+  lastWorkoutDate?: Date;
 }

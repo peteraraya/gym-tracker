@@ -27,9 +27,11 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
       });
 
       const volume = daySessions.reduce((total, session) => {
+        if (!session.exercises || !Array.isArray(session.exercises)) return total;
         return total + session.exercises.reduce((exTotal, ex) => {
+          if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
           return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-            return repTotal + (reps * (ex.actualWeight[idx] || 0));
+            return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
           }, 0);
         }, 0);
       }, 0);
@@ -42,7 +44,7 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
 
   const maxVolume = Math.max(...chartData.map(d => d.volume), 1);
   const totalVolume = chartData.reduce((sum, d) => sum + d.volume, 0);
-  const avgVolume = Math.round(totalVolume / chartData.length);
+  const avgVolume = chartData.length > 0 ? Math.round(totalVolume / chartData.length) : 0;
 
   return (
     <Card>
@@ -69,8 +71,8 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
                       className={`w-full rounded-t-lg transition-all cursor-pointer ${
                         day.volume > 0
                           ? isToday
-                            ? 'bg-gradient-to-t from-purple-600 to-purple-400 shadow-lg shadow-purple-500/30'
-                            : 'bg-gradient-to-t from-blue-600 to-blue-400 group-hover:from-blue-700 group-hover:to-blue-500'
+                            ? 'bg-linear-to-t from-purple-600 to-purple-400 shadow-lg shadow-purple-500/30'
+                            : 'bg-linear-to-t from-blue-600 to-blue-400 group-hover:from-blue-700 group-hover:to-blue-500'
                           : 'bg-zinc-200 dark:bg-zinc-800'
                       }`}
                       style={{ height: `${height}%` }}

@@ -1,24 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 
 interface ClientOnlyProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }
 
+const emptySubscribe = () => () => {};
+
 /**
  * Componente que solo renderiza en el cliente para evitar errores de hidratación
  * con contenido dinámico como fechas, random, etc.
  */
 export function ClientOnly({ children, fallback = null }: ClientOnlyProps) {
-  const [hasMounted, setHasMounted] = useState(false);
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) {
+  if (!isClient) {
     return <>{fallback}</>;
   }
 

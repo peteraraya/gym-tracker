@@ -53,8 +53,8 @@ export function ExerciseListWithDetails({ exercises, showDetailsButton = true }:
                   )}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {exercise.sets} series × {exercise.reps} reps
-                  {exercise.weight ? ` • ${exercise.weight}kg` : ''}
+                  {exercise.sets.length} series
+                  {exercise.sets.length > 0 && ` (${exercise.sets.map(s => `${s.reps} reps`).join(', ')})`}
                 </div>
                 {exercise.notes && (
                   <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">

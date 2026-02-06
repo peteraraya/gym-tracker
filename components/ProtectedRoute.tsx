@@ -8,7 +8,15 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const { user, loading, isConfigured } = useAuth();
   const router = useRouter();
 
+  // Check if database/auth is enabled
+  const isDatabaseEnabled = process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true';
+
   useEffect(() => {
+    // Skip authentication checks if database is disabled
+    if (!isDatabaseEnabled) {
+      return;
+    }
+
     if (!loading) {
       if (!isConfigured) {
         router.push('/setup');
@@ -16,7 +24,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         router.push('/auth');
       }
     }
-  }, [user, loading, isConfigured, router]);
+  }, [user, loading, isConfigured, router, isDatabaseEnabled]);
 
   if (loading) {
     return (
@@ -27,6 +35,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         </div>
       </div>
     );
+  }
+
+  // Allow access immediately if database is disabled
+  if (!isDatabaseEnabled) {
+    return <>{children}</>;
   }
 
   if (!isConfigured) {
