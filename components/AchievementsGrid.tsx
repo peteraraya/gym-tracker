@@ -45,7 +45,7 @@ export default function AchievementsGrid({ achievements, compact = false }: Achi
   return (
     <div className="space-y-6">
       {/* Progreso General */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-blue-200 dark:border-zinc-700">
+      <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-blue-200 dark:border-zinc-700">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -63,7 +63,7 @@ export default function AchievementsGrid({ achievements, compact = false }: Achi
         </div>
         <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-3">
           <div
-            className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-700"
+            className="bg-linear-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-700"
             style={{ width: `${overallProgress}%` }}
           />
         </div>

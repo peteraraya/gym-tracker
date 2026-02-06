@@ -119,7 +119,7 @@ export default function OneRMCalculator() {
           {/* Resultado Principal */}
           {reps > 0 && reps <= 12 && (
             <>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+              <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                   Tu 1RM estimado (promedio de 7 fórmulas)
                 </p>

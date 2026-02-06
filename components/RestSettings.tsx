@@ -11,18 +11,20 @@ import { requestNotificationPermission } from '@/lib/restCalculator';
  */
 export const RestSettings: React.FC = () => {
   const getInitialNotificationStatus = (): NotificationPermission => {
-    if ('Notification' in window) {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
       return Notification.permission;
     }
     return 'default';
   };
 
   const getInitialSoundEnabled = (): boolean => {
+    if (typeof window === 'undefined') return true;
     const saved = localStorage.getItem('restSoundEnabled');
     return saved === null ? true : saved === 'true';
   };
 
   const getInitialMotivationEnabled = (): boolean => {
+    if (typeof window === 'undefined') return true;
     const saved = localStorage.getItem('restMotivationEnabled');
     return saved === null ? true : saved === 'true';
   };

@@ -29,11 +29,11 @@ export default function Home() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 sm:mb-12">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl">
+            <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl">
               <Dumbbell className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             {t('welcome')}
           </h1>
           <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
@@ -182,7 +182,7 @@ export default function Home() {
 
         {routines.length === 0 && (
           <div className="mt-8 sm:mt-12">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 sm:p-8">
+            <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 sm:p-8">
               <div className="text-center mb-6">
                 <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   👋 {t('welcomeMessage')}

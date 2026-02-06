@@ -128,7 +128,7 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                     key={index}
                     className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
                   >
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold mt-0.5">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold mt-0.5">
                       {index + 1}
                     </span>
                     <span className="flex-1">{tip}</span>

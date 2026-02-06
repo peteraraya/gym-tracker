@@ -155,7 +155,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
         </div>
 
         {/* Día más activo */}
-        <div className="mt-4 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+        <div className="mt-4 p-4 bg-linear-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-orange-800 dark:text-orange-200 mb-1">

@@ -73,7 +73,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getIcon = (type: ToastType) => {
-    const iconClass = 'w-5 h-5 flex-shrink-0 mt-0.5';
+    const iconClass = 'w-5 h-5 shrink-0 mt-0.5';
     
     switch (type) {
       case 'success':
@@ -105,7 +105,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             </p>
             <button
               onClick={() => removeToast(toast.id)}
-              className="flex-shrink-0 hover:opacity-70 transition-opacity"
+              className="shrink-0 hover:opacity-70 transition-opacity"
               aria-label="Cerrar notificación"
             >
               <X className="w-4 h-4" />

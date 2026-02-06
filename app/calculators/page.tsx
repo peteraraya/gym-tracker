@@ -81,10 +81,10 @@ export default function CalculatorsPage() {
                 <button
                   key={calc.id}
                   onClick={() => setSelectedCalculator(calc.id)}
-                  className={`group relative overflow-hidden bg-gradient-to-br ${calc.bgColor} border ${calc.borderColor} rounded-xl p-6 text-left hover:shadow-lg transition-all duration-300 hover:scale-105`}
+                  className={`group relative overflow-hidden bg-linear-to-br ${calc.bgColor} border ${calc.borderColor} rounded-xl p-6 text-left hover:shadow-lg transition-all duration-300 hover:scale-105`}
                 >
                   <div className="relative z-10">
-                    <div className={`inline-flex p-3 rounded-lg bg-gradient-to-br ${calc.color} mb-4`}>
+                    <div className={`inline-flex p-3 rounded-lg bg-linear-to-br ${calc.color} mb-4`}>
                       <Icon className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
@@ -98,7 +98,7 @@ export default function CalculatorsPage() {
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                     </div>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-linear-to-br from-white/50 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               );
             })}
@@ -114,7 +114,7 @@ export default function CalculatorsPage() {
         {!selectedCalculator && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             {/* Tips de uso */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
+            <div className="bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
                 💡 Tips de Uso
               </h3>
@@ -139,7 +139,7 @@ export default function CalculatorsPage() {
             </div>
 
             {/* Información de seguridad */}
-            <div className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-red-200 dark:border-red-800">
+            <div className="bg-linear-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-red-200 dark:border-red-800">
               <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
                 ⚠️ Seguridad Primero
               </h3>

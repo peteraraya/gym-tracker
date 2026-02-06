@@ -55,21 +55,12 @@ export const Timer: React.FC<TimerProps> = ({
   }, [duration]);
 
   useEffect(() => {
-    if (isRunning && timeLeft > 0) {
+    if (isRunning) {
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
-            
-            // Notificación y sonido al completar
-            if (notificationPermission) {
-              showRestCompleteNotification(nextExerciseName);
-            }
-            if (soundEnabled) {
-              playRestCompleteSound();
-            }
-            
             return 0;
           }
           return prev - 1;
@@ -82,7 +73,19 @@ export const Timer: React.FC<TimerProps> = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, timeLeft, notificationPermission, nextExerciseName, soundEnabled]);
+  }, [isRunning]);
+
+  // Efecto separado para notificaciones al completar
+  useEffect(() => {
+    if (isCompleted) {
+      if (notificationPermission) {
+        showRestCompleteNotification(nextExerciseName);
+      }
+      if (soundEnabled) {
+        playRestCompleteSound();
+      }
+    }
+  }, [isCompleted, notificationPermission, nextExerciseName, soundEnabled]);
 
   // Efecto separado para llamar a onComplete cuando se completa el timer
   useEffect(() => {

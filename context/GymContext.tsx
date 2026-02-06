@@ -1,9 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Routine, WorkoutSession } from '@/types';
 import { useAuth } from './AuthContext';
-import * as supabaseService from '@/lib/supabase/service';
+import * as storageService from '@/lib/storage/storage';
 
 interface GymContextType {
   routines: Routine[];
@@ -26,35 +26,27 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Fetch routines from Supabase directly
-  const refreshRoutines = async () => {
-    if (!user) {
-      setRoutines([]);
-      return;
-    }
-
+  // Fetch routines from storage (localStorage or Supabase)
+  const refreshRoutines = useCallback(async () => {
     try {
-      const data = await supabaseService.getRoutines();
+      const data = await storageService.getRoutines();
       setRoutines(data);
     } catch (error) {
       console.error('Error fetching routines:', error);
+      setRoutines([]);
     }
-  };
+  }, []);
 
-  // Fetch sessions from Supabase directly
-  const refreshSessions = async () => {
-    if (!user) {
-      setSessions([]);
-      return;
-    }
-
+  // Fetch sessions from storage (localStorage or Supabase)
+  const refreshSessions = useCallback(async () => {
     try {
-      const data = await supabaseService.getSessions();
+      const data = await storageService.getSessions();
       setSessions(data);
     } catch (error) {
       console.error('Error fetching sessions:', error);
+      setSessions([]);
     }
-  };
+  }, []);
 
   // Load data when user changes
   useEffect(() => {
@@ -65,75 +57,74 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, refreshRoutines, refreshSessions]);
 
-  const addRoutine = async (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addRoutine = useCallback(async (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      await supabaseService.createRoutine(routine as supabaseService.CreateRoutineData);
+      await storageService.createRoutine(routine as storageService.CreateRoutineData);
       await refreshRoutines();
     } catch (error) {
       console.error('Error adding routine:', error);
       throw error;
     }
-  };
+  }, [refreshRoutines]);
 
-  const updateRoutine = async (id: string, updatedData: Partial<Routine>) => {
+  const updateRoutine = useCallback(async (id: string, updatedData: Partial<Routine>) => {
     try {
       const routine = routines.find(r => r.id === id);
       if (!routine) throw new Error('Rutina no encontrada');
 
-      await supabaseService.updateRoutine(id, {
+      await storageService.updateRoutine(id, {
         ...routine,
         ...updatedData,
-      } as supabaseService.CreateRoutineData);
-      
+      } as storageService.CreateRoutineData);
+
       await refreshRoutines();
     } catch (error) {
       console.error('Error updating routine:', error);
       throw error;
     }
-  };
+  }, [routines, refreshRoutines]);
 
-  const deleteRoutine = async (id: string) => {
+  const deleteRoutine = useCallback(async (id: string) => {
     try {
-      await supabaseService.deleteRoutine(id);
+      await storageService.deleteRoutine(id);
       await refreshRoutines();
     } catch (error) {
       console.error('Error deleting routine:', error);
       throw error;
     }
-  };
+  }, [refreshRoutines]);
 
-  const addSession = async (session: Omit<WorkoutSession, 'id'>) => {
+  const addSession = useCallback(async (session: Omit<WorkoutSession, 'id'>) => {
     try {
-      await supabaseService.saveSession(session as WorkoutSession);
+      await storageService.saveSession(session as WorkoutSession);
       await refreshSessions();
     } catch (error) {
       console.error('Error adding session:', error);
       throw error;
     }
-  };
+  }, [refreshSessions]);
 
-  const getRoutineById = (id: string) => {
+  const getRoutineById = useCallback((id: string) => {
     return routines.find(routine => routine.id === id);
-  };
+  }, [routines]);
+
+  const value = useMemo(() => ({
+    routines,
+    sessions,
+    loading,
+    addRoutine,
+    updateRoutine,
+    deleteRoutine,
+    addSession,
+    getRoutineById,
+    refreshRoutines,
+    refreshSessions,
+  }), [routines, sessions, loading, addRoutine, updateRoutine, deleteRoutine, addSession, getRoutineById, refreshRoutines, refreshSessions]);
 
   return (
-    <GymContext.Provider
-      value={{
-        routines,
-        sessions,
-        loading,
-        addRoutine,
-        updateRoutine,
-        deleteRoutine,
-        addSession,
-        getRoutineById,
-        refreshRoutines,
-        refreshSessions,
-      }}
-    >
+    <GymContext.Provider value={value}>
       {children}
     </GymContext.Provider>
   );

@@ -208,10 +208,10 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
                     <div
                       className={`w-full rounded-t transition-all ${
                         isMax 
-                          ? 'bg-gradient-to-t from-yellow-500 to-yellow-400' 
+                          ? 'bg-linear-to-t from-yellow-500 to-yellow-400' 
                           : isLast
-                            ? 'bg-gradient-to-t from-green-500 to-green-400'
-                            : 'bg-gradient-to-t from-blue-500 to-blue-400'
+                            ? 'bg-linear-to-t from-green-500 to-green-400'
+                            : 'bg-linear-to-t from-blue-500 to-blue-400'
                       } hover:opacity-80`}
                       style={{ height: `${height}%` }}
                     />

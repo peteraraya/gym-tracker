@@ -100,11 +100,11 @@ export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) =>
               key={record.exerciseName}
               className={`p-4 rounded-lg border-2 ${
                 index === 0
-                  ? 'bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-400'
+                  ? 'bg-linear-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-400'
                   : index === 1
-                    ? 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/20 dark:to-gray-700/20 border-gray-400'
+                    ? 'bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800/20 dark:to-gray-700/20 border-gray-400'
                     : index === 2
-                      ? 'bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-400'
+                      ? 'bg-linear-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-400'
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
               }`}
             >

@@ -69,7 +69,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
         >
           <div className="p-6">
             <div className="flex items-start gap-4 mb-4">
-              <div className={`flex-shrink-0 ${getVariantColor()}`}>
+              <div className={`shrink-0 ${getVariantColor()}`}>
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="flex-1">

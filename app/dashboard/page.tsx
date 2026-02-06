@@ -227,7 +227,7 @@ export default function DashboardPage() {
           </p>
         </div>
         {profile && (
-          <div className="hidden md:flex items-center gap-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 px-4 py-2 rounded-xl border border-blue-100 dark:border-zinc-700">
+          <div className="hidden md:flex items-center gap-3 bg-linear-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 px-4 py-2 rounded-xl border border-blue-100 dark:border-zinc-700">
             <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <div className="text-sm">
               <p className="font-semibold text-zinc-900 dark:text-zinc-100">
@@ -359,7 +359,7 @@ export default function DashboardPage() {
       {sessions.length > 0 && (
         <>
           {/* Logros Destacados */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-amber-200 dark:border-zinc-700">
+          <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-amber-200 dark:border-zinc-700">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
@@ -460,7 +460,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       {sessions.length === 0 && (
-        <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 border-blue-200 dark:border-zinc-700">
+        <Card className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 border-blue-200 dark:border-zinc-700">
           <CardContent className="py-8 text-center">
             <Dumbbell className="w-16 h-16 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
             <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">

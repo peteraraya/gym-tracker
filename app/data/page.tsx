@@ -64,7 +64,7 @@ export default function DataManagementPage() {
         </div>
 
         {/* Info Banner */}
-        <Card className="mb-8 border-blue-200 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+        <Card className="mb-8 border-blue-200 dark:border-blue-800 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
           <div className="p-6">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -80,7 +80,7 @@ export default function DataManagementPage() {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                     <div className="text-sm">
                       <p className="font-semibold text-zinc-900 dark:text-zinc-100">
                         Backups regulares
@@ -91,7 +91,7 @@ export default function DataManagementPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                     <div className="text-sm">
                       <p className="font-semibold text-zinc-900 dark:text-zinc-100">
                         Portabilidad
@@ -102,7 +102,7 @@ export default function DataManagementPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                     <div className="text-sm">
                       <p className="font-semibold text-zinc-900 dark:text-zinc-100">
                         Análisis
@@ -120,7 +120,7 @@ export default function DataManagementPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <Card className="p-6 bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
@@ -134,7 +134,7 @@ export default function DataManagementPage() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+          <Card className="p-6 bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">
@@ -148,7 +148,7 @@ export default function DataManagementPage() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+          <Card className="p-6 bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">

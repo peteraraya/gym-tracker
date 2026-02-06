@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface RestNotificationProps {
   show: boolean;
@@ -20,6 +20,8 @@ export const RestNotification: React.FC<RestNotificationProps> = ({
   duration = 5000
 }) => {
   const [isVisible, setIsVisible] = useState(show);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (show) {
@@ -27,18 +29,16 @@ export const RestNotification: React.FC<RestNotificationProps> = ({
       
       const timer = setTimeout(() => {
         setIsVisible(false);
-        if (onClose) {
-          setTimeout(onClose, 300); // Esperar a que termine la animación
-        }
+        setTimeout(() => {
+          onCloseRef.current?.();
+        }, 300); // Esperar a que termine la animación
       }, duration);
 
       return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
     }
-  }, [show, duration, onClose]);
-
-  useEffect(() => {
-    setIsVisible(show);
-  }, [show]);
+  }, [show, duration]);
 
   if (!show && !isVisible) return null;
 
@@ -48,9 +48,9 @@ export const RestNotification: React.FC<RestNotificationProps> = ({
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
-      <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg shadow-2xl p-6 border-2 border-green-300">
+      <div className="bg-linear-to-r from-green-500 to-emerald-500 rounded-lg shadow-2xl p-6 border-2 border-green-300">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 text-4xl animate-bounce">
+          <div className="shrink-0 text-4xl animate-bounce">
             ⏰
           </div>
           <div className="flex-1">
@@ -65,9 +65,9 @@ export const RestNotification: React.FC<RestNotificationProps> = ({
             <button
               onClick={() => {
                 setIsVisible(false);
-                setTimeout(onClose, 300);
+                setTimeout(() => onCloseRef.current?.(), 300);
               }}
-              className="flex-shrink-0 text-white hover:text-green-100 transition-colors"
+              className="shrink-0 text-white hover:text-green-100 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
