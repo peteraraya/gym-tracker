@@ -91,7 +91,7 @@ export default function AchievementsPage() {
           </div>
 
           {/* Overall Stats */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-4 border border-amber-200 dark:border-zinc-700">
+          <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-4 border border-amber-200 dark:border-zinc-700">
             <div className="text-center">
               <div className="text-4xl font-bold text-amber-600 dark:text-amber-400">
                 {completionPercentage}%
@@ -105,7 +105,7 @@ export default function AchievementsPage() {
 
         {/* Key Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-600 rounded-lg">
                 <Calendar className="w-5 h-5 text-white" />
@@ -121,7 +121,7 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+          <div className="bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-600 rounded-lg">
                 <Zap className="w-5 h-5 text-white" />
@@ -137,7 +137,7 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
+          <div className="bg-linear-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-orange-600 rounded-lg">
                 <Flame className="w-5 h-5 text-white" />
@@ -153,7 +153,7 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+          <div className="bg-linear-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-600 rounded-lg">
                 <TrendingUp className="w-5 h-5 text-white" />
@@ -175,7 +175,7 @@ export default function AchievementsPage() {
 
         {/* Motivational Footer */}
         {sessions.length > 0 && completionPercentage < 100 && (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-8 text-center border border-blue-200 dark:border-zinc-700">
+          <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-8 text-center border border-blue-200 dark:border-zinc-700">
             <Target className="w-12 h-12 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
             <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               ¡Sigue Así! 💪
@@ -189,7 +189,7 @@ export default function AchievementsPage() {
 
         {/* Perfect Score */}
         {completionPercentage === 100 && (
-          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-8 text-center border border-amber-200 dark:border-zinc-700">
+          <div className="bg-linear-to-r from-amber-50 to-yellow-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-8 text-center border border-amber-200 dark:border-zinc-700">
             <Trophy className="w-16 h-16 mx-auto mb-4 text-amber-600 animate-bounce" />
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               🎉 ¡LEYENDA DEL FITNESS! 🎉

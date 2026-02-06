@@ -144,7 +144,7 @@ export default function UnitConverter() {
           </div>
 
           {/* Conversiones rápidas */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+          <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
             <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
               💡 Conversiones Rápidas (aproximadas)
             </h4>

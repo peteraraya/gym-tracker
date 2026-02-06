@@ -3,7 +3,7 @@
  */
 
 import { useToast } from '@/context/ToastContext';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 interface UseErrorHandlerOptions {
   showToast?: boolean;
@@ -71,23 +71,25 @@ export function useAsyncAction<T extends (...args: any[]) => Promise<any>>(
 ) {
   const { handleError } = useErrorHandler();
   const toast = useToast();
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   const execute = useCallback(async (...args: Parameters<T>) => {
     try {
       const result = await asyncFn(...args);
       
-      if (options.successMessage && toast) {
-        toast.success(options.successMessage);
+      if (optionsRef.current.successMessage && toast) {
+        toast.success(optionsRef.current.successMessage);
       }
       
-      options.onSuccess?.(result);
+      optionsRef.current.onSuccess?.(result);
       return result;
     } catch (error) {
-      handleError(error, options.errorContext);
-      options.onError?.(error as Error);
+      handleError(error, optionsRef.current.errorContext);
+      optionsRef.current.onError?.(error as Error);
       throw error;
     }
-  }, [asyncFn, options, handleError, toast]);
+  }, [asyncFn, handleError, toast]);
 
   return execute;
 }

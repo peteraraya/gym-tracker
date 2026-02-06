@@ -53,10 +53,10 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg">
                 <Dumbbell className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:block">
+              <span className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:block">
                 {t('appName')}
               </span>
             </Link>
@@ -166,7 +166,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, co
       href={href}
       className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
         isActive
-          ? `bg-gradient-to-r ${colorClasses[color as keyof typeof colorClasses]} text-white shadow-lg`
+          ? `bg-linear-to-r ${colorClasses[color as keyof typeof colorClasses]} text-white shadow-lg`
           : 'text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50'
       }`}
     >
@@ -194,7 +194,7 @@ const MobileNavLink: React.FC<MobileNavLinkProps> = ({ href, icon: Icon, label, 
       onClick={onClick}
       className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
         isActive
-          ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg'
+          ? 'bg-linear-to-br from-blue-600 to-purple-600 text-white shadow-lg'
           : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
       }`}
     >

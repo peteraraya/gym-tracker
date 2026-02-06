@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import type { Routine } from '@/types';
 
 interface WorkoutState {
@@ -62,7 +62,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     }
   }, [activeWorkout]);
 
-  const startWorkout = (routine: Routine) => {
+  const startWorkout = useCallback((routine: Routine) => {
     const newWorkout: WorkoutState = {
       routineId: routine.id,
       routineName: routine.name,
@@ -74,46 +74,47 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       startedAt: new Date()
     };
     setActiveWorkout(newWorkout);
-  };
+  }, []);
 
-  const updateWorkoutProgress = (
+  const updateWorkoutProgress = useCallback((
     exerciseIndex: number,
     set: number,
     completedSets: { [key: string]: number },
     actualReps: { [key: string]: number[] },
     actualWeights: { [key: string]: number[] }
   ) => {
-    if (!activeWorkout) return;
-
-    setActiveWorkout({
-      ...activeWorkout,
-      currentExerciseIndex: exerciseIndex,
-      currentSet: set,
-      completedSets,
-      actualReps,
-      actualWeights
+    setActiveWorkout(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        currentExerciseIndex: exerciseIndex,
+        currentSet: set,
+        completedSets,
+        actualReps,
+        actualWeights
+      };
     });
-  };
+  }, []);
 
-  const finishWorkout = () => {
+  const finishWorkout = useCallback(() => {
     setActiveWorkout(null);
-  };
+  }, []);
 
-  const cancelWorkout = () => {
+  const cancelWorkout = useCallback(() => {
     setActiveWorkout(null);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    activeWorkout,
+    startWorkout,
+    updateWorkoutProgress,
+    finishWorkout,
+    cancelWorkout,
+    isWorkoutActive: activeWorkout !== null
+  }), [activeWorkout, startWorkout, updateWorkoutProgress, finishWorkout, cancelWorkout]);
 
   return (
-    <WorkoutContext.Provider
-      value={{
-        activeWorkout,
-        startWorkout,
-        updateWorkoutProgress,
-        finishWorkout,
-        cancelWorkout,
-        isWorkoutActive: activeWorkout !== null
-      }}
-    >
+    <WorkoutContext.Provider value={value}>
       {children}
     </WorkoutContext.Provider>
   );

@@ -71,8 +71,8 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
                       className={`w-full rounded-t-lg transition-all cursor-pointer ${
                         day.volume > 0
                           ? isToday
-                            ? 'bg-gradient-to-t from-purple-600 to-purple-400 shadow-lg shadow-purple-500/30'
-                            : 'bg-gradient-to-t from-blue-600 to-blue-400 group-hover:from-blue-700 group-hover:to-blue-500'
+                            ? 'bg-linear-to-t from-purple-600 to-purple-400 shadow-lg shadow-purple-500/30'
+                            : 'bg-linear-to-t from-blue-600 to-blue-400 group-hover:from-blue-700 group-hover:to-blue-500'
                           : 'bg-zinc-200 dark:bg-zinc-800'
                       }`}
                       style={{ height: `${height}%` }}

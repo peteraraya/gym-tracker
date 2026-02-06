@@ -29,7 +29,7 @@ export default function SetupPage() {
               
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                     1
                   </div>
                   <div>
@@ -41,7 +41,7 @@ export default function SetupPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                     2
                   </div>
                   <div>
@@ -53,7 +53,7 @@ export default function SetupPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                     3
                   </div>
                   <div>
@@ -65,7 +65,7 @@ export default function SetupPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                     4
                   </div>
                   <div>
@@ -77,7 +77,7 @@ export default function SetupPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                     5
                   </div>
                   <div>
@@ -93,7 +93,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui`}
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                     6
                   </div>
                   <div>

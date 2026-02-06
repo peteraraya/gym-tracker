@@ -143,7 +143,7 @@ export default function RecommendedRoutinesPage() {
               </div>
 
               {userProfile && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg mb-6">
+                <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg mb-6">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🎯</span>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">

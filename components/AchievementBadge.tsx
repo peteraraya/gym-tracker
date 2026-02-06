@@ -76,7 +76,7 @@ export default function AchievementBadge({
           {/* Brillo animado cuando está desbloqueado */}
           {achievement.unlocked && (
             <div
-              className="absolute inset-0 bg-gradient-to-tr from-transparent via-white to-transparent opacity-20 animate-pulse"
+              className="absolute inset-0 bg-linear-to-tr from-transparent via-white to-transparent opacity-20 animate-pulse"
             />
           )}
 

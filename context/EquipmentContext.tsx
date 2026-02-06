@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { EquipmentType } from '@/data/equipment';
 
 interface EquipmentContextType {
@@ -40,7 +40,7 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
     }
   }, [selectedEquipment]);
 
-  const toggleEquipment = (equipment: EquipmentType) => {
+  const toggleEquipment = useCallback((equipment: EquipmentType) => {
     setSelectedEquipment(prev => {
       const newSet = new Set(prev);
       if (newSet.has(equipment)) {
@@ -50,17 +50,17 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const setEquipment = (equipment: Set<EquipmentType>) => {
+  const setEquipment = useCallback((equipment: Set<EquipmentType>) => {
     setSelectedEquipment(equipment);
-  };
+  }, []);
 
-  const clearEquipment = () => {
+  const clearEquipment = useCallback(() => {
     setSelectedEquipment(new Set());
-  };
+  }, []);
 
-  const hasEquipment = (equipment: string | undefined): boolean => {
+  const hasEquipment = useCallback((equipment: string | undefined): boolean => {
     if (!equipment || selectedEquipment.size === 0) return true;
     
     // Normalizar el string del equipamiento para comparación
@@ -97,18 +97,18 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
 
     // Si no hay coincidencia específica, permitir el ejercicio
     return true;
-  };
+  }, [selectedEquipment]);
+
+  const value = useMemo(() => ({
+    selectedEquipment,
+    toggleEquipment,
+    setEquipment,
+    clearEquipment,
+    hasEquipment,
+  }), [selectedEquipment, toggleEquipment, setEquipment, clearEquipment, hasEquipment]);
 
   return (
-    <EquipmentContext.Provider
-      value={{
-        selectedEquipment,
-        toggleEquipment,
-        setEquipment,
-        clearEquipment,
-        hasEquipment,
-      }}
-    >
+    <EquipmentContext.Provider value={value}>
       {children}
     </EquipmentContext.Provider>
   );

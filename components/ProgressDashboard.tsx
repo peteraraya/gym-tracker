@@ -43,7 +43,7 @@ export function ExerciseProgress({ sessions, exerciseName }: ExerciseProgressPro
   };
 
   return (
-    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+    <div className="p-4 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-semibold text-gray-900 dark:text-gray-100">{exerciseName}</h4>
         <div className="flex items-center gap-2">

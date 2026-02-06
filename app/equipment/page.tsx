@@ -153,7 +153,7 @@ export default function EquipmentPage() {
           </div>
 
           {/* Info Card */}
-          <Card className="mt-8 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+          <Card className="mt-8 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
             <CardHeader>
               <CardTitle>💡 ¿Cómo funciona?</CardTitle>
             </CardHeader>
