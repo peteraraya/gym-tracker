@@ -78,6 +78,17 @@
     "viewHistory": "View History",
     "welcomeMessage": "Welcome! It looks like you don't have any routines yet",
     "createFirstRoutine": "Create my first routine"
+    ,
+    "haveRoutines": {
+      "title": "Ready to train",
+      "subtitle": "You have saved routines. Start your next workout now",
+      "cta": "Go to my routines"
+    }
+    ,
+    "cta": {
+      "train": "Go to train",
+      "create": "Create routine"
+    }
   },
   "routines": {
     "title": "My Routines",

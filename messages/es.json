@@ -88,6 +88,17 @@
     "startJourney": "Comienza tu viaje fitness con una rutina profesional",
     "exploreRecommended": "Explorar rutinas recomendadas",
     "createFirstRoutine": "Crear mi primera rutina"
+    ,
+    "haveRoutines": {
+      "title": "Listo para entrenar",
+      "subtitle": "Tienes rutinas guardadas. Comienza tu siguiente entrenamiento ahora",
+      "cta": "Ir a mis rutinas"
+    }
+    ,
+    "cta": {
+      "train": "Ia a Entrenar",
+      "create": "Crear rutina"
+    }
   },
   "routineForm": {
     "newRoutine": "Nueva Rutina",
