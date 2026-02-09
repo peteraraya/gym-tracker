@@ -22,7 +22,7 @@ export interface ExerciseTemplate {
   recommendedReps?: string; // Ej: "8-12 repeticiones"
   restTime?: string; // Ej: "60-90 segundos"
 }
-
+const URL_STORAGE = 'https://hplrrjqgzefkdevbporx.supabase.co/storage/v1/object/public/routine-images/'
 export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   // PECHO
   {
@@ -33,7 +33,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ejercicio básico para pecho',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-bench-press-front.gif',
+    image: URL_STORAGE + 'male-barbell-bench-press-front.gif',
     technique: [
       'Mantén los pies firmes en el suelo',
       'Baja la barra hasta el pecho con control',
@@ -51,7 +51,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra/Mancuernas',
     defaultSets: 3,
     defaultReps: 10,
-    image: '/exercises/male-barbell-incline-bench-press-front.gif',
+    image: URL_STORAGE + 'male-barbell-incline-bench-press-front.gif',
     technique: [
       'Ajusta el banco a 30-45 grados',
       'Mantén la espalda pegada al respaldo',
@@ -68,7 +68,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-chest-fly-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-chest-fly-front.gif',
     technique: [
       'Mantén una ligera flexión en los codos',
       'Baja las mancuernas en arco amplio',
@@ -86,7 +86,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-bodyweight-push-up-front.gif',
+    image: URL_STORAGE + 'male-bodyweight-push-up-front.gif',
     technique: [
       'Mantén el cuerpo recto como una tabla',
       'Manos a la altura de los hombros',
@@ -104,7 +104,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-cable-chest-fly-front.gif',
+    image: URL_STORAGE + 'male-cable-chest-fly-front.gif',
     technique: [
       'Inclínate ligeramente hacia adelante',
       'Mantén los codos semiflexionados',
@@ -122,7 +122,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 10,
-    image: '/exercises/male-barbell-decline-bench-press-front.gif',
+    image: URL_STORAGE + 'male-barbell-decline-bench-press-front.gif',
     technique: [
       'Ajusta el banco a 15-30 grados de decline',
       'Enfoca el trabajo en el pecho inferior',
@@ -140,7 +140,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-pullover-side.gif',
+    image: URL_STORAGE + 'male-dumbbell-pullover-side.gif',
     technique: [
       'Acuéstate perpendicular en un banco',
       'Sostén una mancuerna con ambas manos sobre el pecho',
@@ -158,7 +158,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-machine-pec-deck-front.gif',
+    image: URL_STORAGE + 'male-machine-pec-deck-front.gif',
     technique: [
       'Ajusta el asiento para alinear las manijas con el pecho',
       'Mantén la espalda pegada al respaldo',
@@ -176,7 +176,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-bodyweight-diamond-push-up-front.gif',
+    image: URL_STORAGE + 'male-bodyweight-diamond-push-up-front.gif',
     technique: [
       'Forma un diamante con tus manos bajo el pecho',
       'Mantén los codos cerca del cuerpo',
@@ -196,7 +196,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 8,
-    image: '/exercises/male-barbell-deadlift-side.gif',
+    image: URL_STORAGE + 'male-barbell-deadlift-side.gif',
     technique: [
       'Mantén la espalda recta durante todo el movimiento',
       'Empuja con las piernas primero',
@@ -214,7 +214,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-bodyweight-pullup-back.gif',
+    image: URL_STORAGE + 'male-bodyweight-pullup-back.gif',
     technique: [
       'Agarre ligeramente más ancho que los hombros',
       'Tira con los codos hacia abajo',
@@ -232,7 +232,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-bent-over-row-back.gif',
+    image: URL_STORAGE + 'male-barbell-bent-over-row-back.gif',
     technique: [
       'Inclínate a 45 grados manteniendo espalda recta',
       'Tira de la barra hacia el abdomen bajo',
@@ -250,7 +250,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-cable-wide-grip-lat-pulldown-back.gif',
+    image: URL_STORAGE + 'male-cable-wide-grip-lat-pulldown-back.gif',
     technique: [
       'Agarre amplio, palmas hacia adelante',
       'Inclínate ligeramente hacia atrás',
@@ -268,7 +268,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-bent-over-row-back.gif',
+    image: URL_STORAGE + 'male-dumbbell-bent-over-row-back.gif',
     technique: [
       'Apoya rodilla y mano en un banco',
       'Mantén la espalda paralela al suelo',
@@ -286,7 +286,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-cable-face-pull-front.gif',
+    image: URL_STORAGE + 'male-cable-face-pull-front.gif',
     technique: [
       'Usa una cuerda en polea alta',
       'Tira hacia la cara separando las manos',
@@ -304,7 +304,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-t-bar-row-back.gif',
+    image: URL_STORAGE + 'male-barbell-t-bar-row-back.gif',
     technique: [
       'Coloca la barra en una esquina o usa máquina de T-bar',
       'Mantén la espalda recta, rodillas ligeramente flexionadas',
@@ -322,7 +322,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-cable-seated-row-back.gif',
+    image: URL_STORAGE + 'male-cable-seated-row-back.gif',
     technique: [
       'Siéntate con los pies en la plataforma',
       'Mantén la espalda recta y el pecho hacia afuera',
@@ -340,7 +340,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 10,
-    image: '/exercises/male-bodyweight-chin-up-back.gif',
+    image: URL_STORAGE + 'male-bodyweight-chin-up-back.gif',
     technique: [
       'Agarre con palmas hacia ti',
       'Tira hasta que la barbilla supere la barra',
@@ -358,7 +358,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'TRX/Barra baja',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-bodyweight-inverted-row-back.gif',
+    image: URL_STORAGE + 'male-bodyweight-inverted-row-back.gif',
     technique: [
       'Cuerpo en línea recta, agarrando barra baja',
       'Tira del pecho hacia la barra',
@@ -376,7 +376,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-cable-straight-arm-pulldown-back.gif',
+    image: URL_STORAGE + 'male-cable-straight-arm-pulldown-back.gif',
     technique: [
       'Mantén los brazos casi rectos durante todo el movimiento',
       'Tira de la barra hacia las caderas',
@@ -396,7 +396,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-squat-front.gif',
+    image: URL_STORAGE + 'male-barbell-squat-front.gif',
     technique: [
       'Pies al ancho de hombros',
       'Baja como si te sentaras en una silla',
@@ -415,7 +415,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 4,
     defaultReps: 12,
-    image: '/exercises/male-machine-leg-press-front.gif',
+    image: URL_STORAGE + 'male-machine-leg-press-front.gif',
     technique: [
       'Pies al ancho de hombros en la plataforma',
       'Baja hasta que rodillas formen 90 grados',
@@ -433,7 +433,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-machine-leg-extension-front.gif',
+    image: URL_STORAGE + 'male-machine-leg-extension-front.gif',
     technique: [
       'Ajusta el respaldo para 90 grados en rodillas',
       'Extiende completamente las piernas',
@@ -451,7 +451,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-machine-leg-curl-front.gif',
+    image: URL_STORAGE + 'male-machine-leg-curl-front.gif',
     technique: [
       'Mantén las caderas pegadas al banco',
       'Lleva los talones hacia los glúteos',
@@ -469,7 +469,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-lunge-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-lunge-front.gif',
     technique: [
       'Da un paso amplio hacia adelante',
       'Baja hasta que la rodilla trasera casi toque el suelo',
@@ -487,7 +487,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 8,
-    image: '/exercises/male-barbell-front-squat-front.gif',
+    image: URL_STORAGE + 'male-barbell-front-squat-front.gif',
     technique: [
       'Barra en la parte frontal de los hombros',
       'Codos altos, paralelos al suelo',
@@ -505,7 +505,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-romanian-deadlift-side.gif',
+    image: URL_STORAGE + 'male-barbell-romanian-deadlift-side.gif',
     technique: [
       'Rodillas ligeramente flexionadas',
       'Baja la barra deslizándola por las piernas',
@@ -523,7 +523,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-goblet-squat-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-goblet-squat-front.gif',
     technique: [
       'Sostén una mancuerna verticalmente contra el pecho',
       'Baja profundo manteniendo el pecho arriba',
@@ -541,7 +541,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-machine-single-leg-press-front.gif',
+    image: URL_STORAGE + 'male-machine-single-leg-press-front.gif',
     technique: [
       'Trabaja una pierna a la vez',
       'Corrige desbalances musculares',
@@ -559,7 +559,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-machine-hack-squat-front.gif',
+    image: URL_STORAGE + 'male-machine-hack-squat-front.gif',
     technique: [
       'Espalda apoyada en el pad de la máquina',
       'Pies adelante en la plataforma',
@@ -577,7 +577,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Cajón pliométrico',
     defaultSets: 3,
     defaultReps: 10,
-    image: '/exercises/male-bodyweight-box-jump-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-box-jump-side.gif',
     technique: [
       'Salta explosivamente sobre el cajón',
       'Aterriza suavemente con rodillas flexionadas',
@@ -597,7 +597,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 12,
-    image: '/exercises/male-barbell-hip-thrust-side.gif',
+    image: URL_STORAGE + 'male-barbell-hip-thrust-side.gif',
     technique: [
       'Apoya la espalda alta en un banco',
       'Pies firmes en el suelo, rodillas a 90 grados arriba',
@@ -616,7 +616,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-bulgarian-split-squat-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-bulgarian-split-squat-front.gif',
     technique: [
       'Apoya el pie trasero en un banco',
       'Baja en vertical manteniendo el torso erguido',
@@ -634,7 +634,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-bodyweight-glute-bridge-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-glute-bridge-side.gif',
     technique: [
       'Acuéstate boca arriba, rodillas dobladas',
       'Pies cerca de los glúteos',
@@ -652,7 +652,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-cable-kickback-side.gif',
+    image: URL_STORAGE + 'male-cable-kickback-side.gif',
     technique: [
       'Coloca una correa en el tobillo',
       'Mantén el torso ligeramente inclinado',
@@ -670,7 +670,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-sumo-deadlift-front.gif',
+    image: URL_STORAGE + 'male-barbell-sumo-deadlift-front.gif',
     technique: [
       'Stance amplio, pies apuntando hacia afuera',
       'Mayor activación de glúteos e internos de pierna',
@@ -688,7 +688,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-bodyweight-donkey-kicks-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-donkey-kicks-side.gif',
     technique: [
       'En cuatro puntos de apoyo',
       'Eleva una pierna manteniendo rodilla a 90 grados',
@@ -706,7 +706,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Banco/Cajón',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-step-up-side.gif',
+    image: URL_STORAGE + 'male-dumbbell-step-up-side.gif',
     technique: [
       'Sube al banco con una pierna',
       'Empuja con el talón de la pierna que sube',
@@ -726,7 +726,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-standing-overhead-press-front.gif',
+    image: URL_STORAGE + 'male-barbell-standing-overhead-press-front.gif',
     technique: [
       'Pies al ancho de hombros',
       'Empuja la barra desde los hombros hacia arriba',
@@ -745,7 +745,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-dumbbell-lateral-raise-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-lateral-raise-front.gif',
     technique: [
       'Codos ligeramente flexionados',
       'Eleva los brazos hasta la altura de los hombros',
@@ -763,7 +763,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-front-raise-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-front-raise-front.gif',
     technique: [
       'Brazos ligeramente flexionados',
       'Eleva hasta la altura de los ojos',
@@ -781,7 +781,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 10,
-    image: '/exercises/male-dumbbell-arnold-press-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-arnold-press-front.gif',
     technique: [
       'Inicia con palmas hacia ti a la altura del pecho',
       'Rota las muñecas mientras empujas hacia arriba',
@@ -799,7 +799,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-dumbbell-rear-delt-fly-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-rear-delt-fly-front.gif',
     technique: [
       'Inclínate hacia adelante o siéntate en el borde de un banco',
       'Brazos ligeramente flexionados',
@@ -817,7 +817,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-barbell-upright-row-front.gif',
+    image: URL_STORAGE + 'male-barbell-upright-row-front.gif',
     technique: [
       'Agarre estrecho en la barra',
       'Tira de la barra hacia la barbilla',
@@ -835,7 +835,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-dumbbell-shoulder-press-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-shoulder-press-front.gif',
     technique: [
       'Siéntate con respaldo vertical',
       'Inicia con mancuernas a la altura de los hombros',
@@ -853,7 +853,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-cable-lateral-raise-front.gif',
+    image: URL_STORAGE + 'male-cable-lateral-raise-front.gif',
     technique: [
       'Párate de lado a la polea',
       'Tensión constante durante todo el movimiento',
@@ -873,7 +873,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-barbell-bicep-curl-front.gif',
+    image: URL_STORAGE + 'male-barbell-bicep-curl-front.gif',
     technique: [
       'Codos pegados a los costados',
       'No balancees el cuerpo',
@@ -891,7 +891,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-bodyweight-tricep-dip-front.gif',
+    image: URL_STORAGE + 'male-bodyweight-tricep-dip-front.gif',
     technique: [
       'Mantén el cuerpo vertical para enfoque en tríceps',
       'Baja hasta que codos formen 90 grados',
@@ -909,7 +909,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-hammer-curl-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-hammer-curl-front.gif',
     technique: [
       'Palmas enfrentadas entre sí durante todo el movimiento',
       'Mantén los codos fijos',
@@ -927,7 +927,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas/Polea',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-overhead-tricep-extension-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-overhead-tricep-extension-front.gif',
     technique: [
       'Mantén los codos quietos y apuntando hacia arriba',
       'Solo mueve los antebrazos',
@@ -945,7 +945,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-dumbbell-concentration-curl-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-concentration-curl-front.gif',
     technique: [
       'Siéntate, apoya el codo en la parte interna del muslo',
       'Aísla completamente el bíceps',
@@ -963,7 +963,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
-    image: '/exercises/male-barbell-close-grip-bench-press-front.gif',
+    image: URL_STORAGE + 'male-barbell-close-grip-bench-press-front.gif',
     technique: [
       'Manos separadas al ancho de los hombros o menos',
       'Mantén los codos cerca del cuerpo',
@@ -981,7 +981,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra/Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-barbell-preacher-curl-front.gif',
+    image: URL_STORAGE + 'male-barbell-preacher-curl-front.gif',
     technique: [
       'Apoya los brazos en el banco inclinado',
       'Elimina el impulso del cuerpo',
@@ -999,7 +999,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-barbell-skull-crusher-side.gif',
+    image: URL_STORAGE + 'male-barbell-skull-crusher-side.gif',
     technique: [
       'Acuéstate en un banco, barra sobre la frente',
       'Mantén los codos fijos apuntando al techo',
@@ -1017,7 +1017,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-cable-bicep-curl-front.gif',
+    image: URL_STORAGE + 'male-cable-bicep-curl-front.gif',
     technique: [
       'Usa polea baja con barra o cuerda',
       'Tensión constante en el bíceps',
@@ -1035,7 +1035,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-cable-tricep-pushdown-front.gif',
+    image: URL_STORAGE + 'male-cable-tricep-pushdown-front.gif',
     technique: [
       'Usa barra recta o cuerda en polea alta',
       'Mantén los codos pegados a los costados',
@@ -1053,7 +1053,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-dumbbell-zottman-curl-front.gif',
+    image: URL_STORAGE + 'male-dumbbell-zottman-curl-front.gif',
     technique: [
       'Sube con palmas hacia arriba (curl normal)',
       'Rota las muñecas arriba (palmas hacia abajo)',
@@ -1073,7 +1073,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 60,
-    image: '/exercises/male-bodyweight-plank-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-plank-side.gif',
     technique: [
       'Mantén el cuerpo en línea recta',
       'No dejes caer las caderas',
@@ -1091,7 +1091,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 20,
-    image: '/exercises/male-bodyweight-crunch-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-crunch-side.gif',
     technique: [
       'Manos detrás de la cabeza sin jalar el cuello',
       'Levanta solo los omóplatos del suelo',
@@ -1109,7 +1109,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 20,
-    image: '/exercises/male-bodyweight-russian-twist-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-russian-twist-side.gif',
     technique: [
       'Siéntate con rodillas dobladas, pies elevados',
       'Inclínate ligeramente hacia atrás',
@@ -1127,7 +1127,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-bodyweight-leg-raise-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-leg-raise-side.gif',
     technique: [
       'Acuéstate boca arriba, manos bajo los glúteos',
       'Mantén las piernas rectas',
@@ -1145,7 +1145,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 20,
-    image: '/exercises/male-bodyweight-bicycle-crunch-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-bicycle-crunch-side.gif',
     technique: [
       'Acuéstate boca arriba, manos detrás de la cabeza',
       'Lleva el codo al rodilla opuesta alternadamente',
@@ -1163,7 +1163,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 30,
-    image: '/exercises/male-bodyweight-mountain-climbers-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-mountain-climbers-side.gif',
     technique: [
       'Posición de plancha alta',
       'Lleva las rodillas al pecho alternadamente',
@@ -1181,7 +1181,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-bodyweight-dead-bug-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-dead-bug-side.gif',
     technique: [
       'Acuéstate boca arriba, brazos extendidos al techo',
       'Rodillas a 90 grados',
@@ -1199,7 +1199,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-cable-wood-chop-front.gif',
+    image: URL_STORAGE + 'male-cable-wood-chop-front.gif',
     technique: [
       'Polea alta, agarre con ambas manos',
       'Gira el torso llevando el cable en diagonal',
@@ -1217,7 +1217,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 15,
-    image: '/exercises/male-bodyweight-hanging-knee-raise-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-hanging-knee-raise-side.gif',
     technique: [
       'Cuélgate de una barra',
       'Eleva las rodillas hacia el pecho',
@@ -1235,7 +1235,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Rueda abdominal',
     defaultSets: 3,
     defaultReps: 12,
-    image: '/exercises/male-wheel-ab-wheel-rollout-side.gif',
+    image: URL_STORAGE + 'male-wheel-ab-wheel-rollout-side.gif',
     technique: [
       'Arrodíllate, sostén la rueda con ambas manos',
       'Rueda hacia adelante manteniendo el core tenso',
@@ -1253,7 +1253,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 45,
-    image: '/exercises/male-bodyweight-side-plank-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-side-plank-side.gif',
     technique: [
       'Apóyate en un antebrazo y el lado del pie',
       'Mantén el cuerpo en línea recta',
@@ -1273,7 +1273,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina/Mancuernas',
     defaultSets: 4,
     defaultReps: 20,
-    image: '/exercises/male-barbell-standing-calf-raise-side.gif',
+    image: URL_STORAGE + 'male-barbell-standing-calf-raise-side.gif',
     technique: [
       'Elévate sobre las puntas de los pies',
       'Sube lo más alto posible',
@@ -1291,7 +1291,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 20,
-    image: '/exercises/male-machine-seated-calf-raise-side.gif',
+    image: URL_STORAGE + 'male-machine-seated-calf-raise-side.gif',
     technique: [
       'Coloca las puntas de los pies en la plataforma',
       'Trabaja específicamente el músculo sóleo',
