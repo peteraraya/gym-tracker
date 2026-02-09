@@ -1,9 +1,17 @@
 /**
  * Custom hook para optimizar cálculos de estadísticas del dashboard
+ * 
+ * IMPROVED: Usa helpers de dateUtils para evitar bugs de DST y código duplicado
  */
 
 import { useMemo } from 'react';
 import type { WorkoutSession } from '@/types';
+import {
+  calculateSessionVolume,
+  calculateTotalSets,
+  calculateStreak,
+  filterSessionsByMonth
+} from '@/lib/utils/dateUtils';
 
 export interface DashboardStats {
   totalSessions: number;
@@ -18,7 +26,7 @@ export interface DashboardStats {
 
 export function useDashboardStats(sessions: WorkoutSession[]): DashboardStats {
   return useMemo(() => {
-    const stats = {
+    const stats: DashboardStats = {
       totalSessions: sessions.length,
       totalVolume: 0,
       totalSets: 0,
@@ -31,81 +39,34 @@ export function useDashboardStats(sessions: WorkoutSession[]): DashboardStats {
 
     if (sessions.length === 0) return stats;
 
-    // Total volume y sets
-    stats.totalVolume = sessions.reduce((total, session) => {
-      if (!session.exercises || !Array.isArray(session.exercises)) return total;
-      return total + session.exercises.reduce((exTotal, ex) => {
-        if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
-        return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-          return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
-        }, 0);
-      }, 0);
-    }, 0);
+    // Total volume usando helper (sin duplicación de código)
+    stats.totalVolume = sessions.reduce((total, session) =>
+      total + calculateSessionVolume(session.exercises), 0);
 
-    stats.totalSets = sessions.reduce((total, session) => {
-      if (!session.exercises || !Array.isArray(session.exercises)) return total;
-      return total + session.exercises.reduce((exTotal, ex) => {
-        return exTotal + (ex.actualReps?.length || 0);
-      }, 0);
-    }, 0);
+    // Total sets usando helper
+    stats.totalSets = sessions.reduce((total, session) =>
+      total + calculateTotalSets(session.exercises), 0);
 
-    // Current streak
-    const sortedDates = sessions
-      .map(s => new Date(s.date).setHours(0, 0, 0, 0))
-      .sort((a, b) => b - a);
+    // Current streak usando helper (sin bugs de DST)
+    stats.currentStreak = calculateStreak(sessions);
 
-    const uniqueDates = [...new Set(sortedDates)];
-    const today = new Date().setHours(0, 0, 0, 0);
-    
-    if (uniqueDates[0] === today || uniqueDates[0] === today - 86400000) {
-      let streak = 0;
-      let currentDate = today;
-
-      for (const date of uniqueDates) {
-        if (date === currentDate || date === currentDate - 86400000) {
-          streak++;
-          currentDate = date - 86400000;
-        } else {
-          break;
-        }
-      }
-      stats.currentStreak = streak;
-    }
-
-    // Monthly volumes
+    // Monthly volumes usando helper
     const now = new Date();
-    const thisMonth = sessions.filter(s => {
-      const date = new Date(s.date);
-      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-    });
-
-    stats.thisMonthVolume = thisMonth.reduce((total, session) => {
-      if (!session.exercises || !Array.isArray(session.exercises)) return total;
-      return total + session.exercises.reduce((exTotal, ex) => {
-        if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
-        return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-          return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
-        }, 0);
-      }, 0);
-    }, 0);
+    const thisMonth = filterSessionsByMonth(sessions, now.getMonth(), now.getFullYear());
+    stats.thisMonthVolume = thisMonth.reduce((total, session) =>
+      total + calculateSessionVolume(session.exercises), 0);
 
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthSessions = sessions.filter(s => {
-      const date = new Date(s.date);
-      return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
-    });
+    const lastMonthSessions = filterSessionsByMonth(
+      sessions,
+      lastMonth.getMonth(),
+      lastMonth.getFullYear()
+    );
+    stats.lastMonthVolume = lastMonthSessions.reduce((total, session) =>
+      total + calculateSessionVolume(session.exercises), 0);
 
-    stats.lastMonthVolume = lastMonthSessions.reduce((total, session) => {
-      if (!session.exercises || !Array.isArray(session.exercises)) return total;
-      return total + session.exercises.reduce((exTotal, ex) => {
-        if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
-        return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-          return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
-        }, 0);
-      }, 0);
-    }, 0);
-
-    stats.volumeTrend = stats.lastMonthVolume > 0 
+    // Volume trend
+    stats.volumeTrend = stats.lastMonthVolume > 0
       ? ((stats.thisMonthVolume - stats.lastMonthVolume) / stats.lastMonthVolume) * 100
       : 0;
 

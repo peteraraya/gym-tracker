@@ -71,7 +71,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateRoutine = useCallback(async (id: string, updatedData: Partial<Routine>) => {
     try {
-      const routine = routines.find(r => r.id === id);
+      // Obtener la rutina actual del storage en lugar del estado
+      // Esto evita dependencia de 'routines' y problemas de stale state
+      const currentRoutines = await storageService.getRoutines();
+      const routine = currentRoutines.find(r => r.id === id);
       if (!routine) throw new Error('Rutina no encontrada');
 
       await storageService.updateRoutine(id, {
@@ -84,7 +87,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Error updating routine:', error);
       throw error;
     }
-  }, [routines, refreshRoutines]);
+  }, [refreshRoutines]); // Removido 'routines' de las dependencias
 
   const deleteRoutine = useCallback(async (id: string) => {
     try {

@@ -45,7 +45,7 @@ export interface CreateRoutineData {
  */
 export async function getRoutines(): Promise<Routine[]> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
@@ -98,7 +98,7 @@ export async function getRoutines(): Promise<Routine[]> {
  */
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
@@ -142,18 +142,25 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
   const routines = await getRoutines();
   const created = routines.find(r => r.id === routine.id);
   if (!created) throw new Error('Rutina creada pero no encontrada');
-  
+
   return created;
 }
 
 /**
  * Update a routine
+ * IMPROVED: Includes rollback if exercise insertion fails
  */
 export async function updateRoutine(id: string, data: CreateRoutineData): Promise<Routine> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
+
+  // Backup old exercises for potential rollback
+  const { data: oldExercises } = await supabase
+    .from('exercises')
+    .select('*')
+    .eq('routine_id', id);
 
   // Update routine
   const { error: routineError } = await supabase
@@ -187,13 +194,20 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
     .from('exercises')
     .insert(exercisesWithOrder);
 
-  if (exercisesError) throw new Error(`Error al actualizar ejercicios: ${exercisesError.message}`);
+  if (exercisesError) {
+    // ROLLBACK: Restore old exercises if insert failed
+    if (oldExercises && oldExercises.length > 0) {
+      console.warn('updateRoutine: Rolling back exercises after insert failure');
+      await supabase.from('exercises').insert(oldExercises);
+    }
+    throw new Error(`Error al actualizar ejercicios: ${exercisesError.message}`);
+  }
 
   // Return updated routine
   const routines = await getRoutines();
   const updated = routines.find(r => r.id === id);
   if (!updated) throw new Error('Rutina actualizada pero no encontrada');
-  
+
   return updated;
 }
 
@@ -202,7 +216,7 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
  */
 export async function deleteRoutine(id: string): Promise<void> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
@@ -222,7 +236,7 @@ export async function deleteRoutine(id: string): Promise<void> {
  */
 export async function getSessions(): Promise<WorkoutSession[]> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
@@ -265,7 +279,7 @@ export async function getSessions(): Promise<WorkoutSession[]> {
  */
 export async function saveSession(session: WorkoutSession): Promise<void> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
@@ -316,21 +330,16 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
 
 // ==================== PROFILE ====================
 
-export interface UserProfile {
-  name: string;
-  email: string;
-  avatarUrl?: string;
-  currentWeight?: number;
-  targetWeight?: number;
-  height?: number;
-}
+// Import unified UserProfile type
+import type { UserProfile } from '@/types/userProfile';
+export type { UserProfile };
 
 /**
  * Get user profile
  */
 export async function getProfile(): Promise<UserProfile> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
@@ -359,7 +368,7 @@ export async function getProfile(): Promise<UserProfile> {
  */
 export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
   const supabase = createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
