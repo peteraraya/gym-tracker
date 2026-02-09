@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo } from
 import esMessages from '@/messages/es.json';
 import enMessages from '@/messages/en.json';
 
-type Messages = typeof esMessages;
+type Messages = typeof esMessages | typeof enMessages;
 
 interface LocaleContextType {
   locale: string;
