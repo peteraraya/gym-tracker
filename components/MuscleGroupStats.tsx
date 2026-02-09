@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE, MuscleGroup } from '@/data/exercises';
+import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 
 interface MuscleGroupStatsProps {
   sessions: WorkoutSession[];
@@ -27,17 +28,6 @@ const MUSCLE_GROUP_COLORS: Record<MuscleGroup, string> = {
   pantorrillas: '#84cc16'
 };
 
-const MUSCLE_GROUP_EMOJI: Record<MuscleGroup, string> = {
-  pecho: '💪',
-  espalda: '🦾',
-  piernas: '🦵',
-  hombros: '🏋️',
-  brazos: '💪',
-  core: '🎯',
-  gluteos: '🍑',
-  pantorrillas: '🦿'
-};
-
 export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) => {
   // Calcular estadísticas por grupo muscular
   const muscleStats = React.useMemo(() => {
@@ -53,7 +43,7 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
 
         if (exerciseTemplate) {
           const muscleGroup = exerciseTemplate.muscleGroup;
-          
+
           if (!stats.has(muscleGroup)) {
             stats.set(muscleGroup, {
               muscleGroup,
@@ -64,7 +54,7 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
           }
 
           const data = stats.get(muscleGroup)!;
-          
+
           // Calcular volumen (peso × reps)
           const volume = ex.actualReps.reduce((total, reps, idx) => {
             return total + (reps * (ex.actualWeight[idx] || 0));
@@ -107,12 +97,15 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
         <div className="space-y-4">
           {muscleStats.map((stat) => {
             const percentage = (stat.volume / maxVolume) * 100;
-            
+
             return (
               <div key={stat.muscleGroup} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{MUSCLE_GROUP_EMOJI[stat.muscleGroup]}</span>
+                    <MuscleGroupIcon
+                      muscleGroup={stat.muscleGroup}
+                      size={24}
+                    />
                     <span className="font-semibold capitalize text-gray-900 dark:text-gray-100">
                       {stat.muscleGroup}
                     </span>

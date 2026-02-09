@@ -1,4 +1,4 @@
-export type MuscleGroup = 
+export type MuscleGroup =
   | 'pecho'
   | 'espalda'
   | 'piernas'
@@ -1304,15 +1304,15 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   }
 ];
 
-export const MUSCLE_GROUPS: { id: MuscleGroup; name: string; emoji: string }[] = [
-  { id: 'pecho', name: 'Pecho', emoji: '💪' },
-  { id: 'espalda', name: 'Espalda', emoji: '🦵' },
-  { id: 'piernas', name: 'Piernas', emoji: '🦿' },
-  { id: 'gluteos', name: 'Glúteos', emoji: '🍑' },
-  { id: 'hombros', name: 'Hombros', emoji: '💪' },
-  { id: 'brazos', name: 'Brazos', emoji: '💪' },
-  { id: 'core', name: 'Core/Abdomen', emoji: '🎯' },
-  { id: 'pantorrillas', name: 'Pantorrillas', emoji: '🦵' }
+export const MUSCLE_GROUPS: { id: MuscleGroup; name: string }[] = [
+  { id: 'pecho', name: 'Pecho' },
+  { id: 'espalda', name: 'Espalda' },
+  { id: 'piernas', name: 'Piernas' },
+  { id: 'gluteos', name: 'Glúteos' },
+  { id: 'hombros', name: 'Hombros' },
+  { id: 'brazos', name: 'Brazos' },
+  { id: 'core', name: 'Core/Abdomen' },
+  { id: 'pantorrillas', name: 'Pantorrillas' }
 ];
 
 export const getExercisesByMuscleGroup = (muscleGroup: MuscleGroup): ExerciseTemplate[] => {
@@ -1329,10 +1329,10 @@ export const getExerciseByName = (name: string): ExerciseTemplate | undefined =>
     ex => ex.name.toLowerCase() === name.toLowerCase()
   );
   if (exactMatch) return exactMatch;
-  
+
   // Búsqueda parcial
   return EXERCISE_DATABASE.find(
     ex => ex.name.toLowerCase().includes(name.toLowerCase()) ||
-          name.toLowerCase().includes(ex.name.toLowerCase())
+      name.toLowerCase().includes(ex.name.toLowerCase())
   );
 };
