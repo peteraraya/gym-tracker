@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { useTranslations } from '@/context/LocaleContext';
 import { AlertTriangle } from 'lucide-react';
 
 interface ConfirmOptions {
@@ -32,6 +33,8 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
       setResolver(() => resolve);
     });
   }, []);
+
+  const t = useTranslations('common');
 
   const handleConfirm = () => {
     if (resolver) resolver(true);
@@ -65,7 +68,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
         <Modal 
           isOpen={isOpen} 
           onClose={handleCancel}
-          title={options.title || 'Confirmar acción'}
+          title={options.title || t('confirm') || 'Confirmar acción'}
         >
           <div className="p-6">
             <div className="flex items-start gap-4 mb-4">
@@ -84,13 +87,13 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                 variant="ghost"
                 onClick={handleCancel}
               >
-                {options.cancelText || 'Cancelar'}
+                {options.cancelText || t('cancel') || 'Cancelar'}
               </Button>
               <Button
                 variant={options.variant === 'danger' ? 'danger' : 'primary'}
                 onClick={handleConfirm}
               >
-                {options.confirmText || 'Confirmar'}
+                {options.confirmText || t('confirm') || 'Confirmar'}
               </Button>
             </div>
           </div>

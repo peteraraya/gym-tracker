@@ -4,12 +4,15 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
 import { Calendar } from 'lucide-react';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface TrainingFrequencyProps {
   sessions: WorkoutSession[];
 }
 
 export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }) => {
+  const t = useTranslations('dashboard.trainingFrequency');
+  const tDashboard = useTranslations('dashboard');
   const stats = React.useMemo(() => {
     if (sessions.length === 0) {
       return {
@@ -17,7 +20,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
         lastWeek: 0,
         avgPerWeek: 0,
         avgPerMonth: 0,
-        mostActiveDay: 'N/A',
+        mostActiveDay: tDashboard('notApplicable'),
         totalWeeks: 0
       };
     }
@@ -49,16 +52,16 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
     const avgPerMonth = avgPerWeek * 4.33; // Promedio de semanas en un mes
 
     // Día más activo
+    const dayNames = [t('daysOfWeek.0'), t('daysOfWeek.1'), t('daysOfWeek.2'), t('daysOfWeek.3'), t('daysOfWeek.4'), t('daysOfWeek.5'), t('daysOfWeek.6')];
     const dayCount: Record<string, number> = {};
-    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    
+
     sessions.forEach(s => {
       const day = new Date(s.date).getDay();
       const dayName = dayNames[day];
       dayCount[dayName] = (dayCount[dayName] || 0) + 1;
     });
 
-    const mostActiveDay = Object.entries(dayCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+    const mostActiveDay = Object.entries(dayCount).sort((a, b) => b[1] - a[1])[0]?.[0] || tDashboard('notApplicable');
 
     return {
       thisWeek,
@@ -77,7 +80,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-blue-600" />
-          Frecuencia de Entrenamiento
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -85,14 +88,14 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
           {/* Esta semana */}
           <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="text-sm text-blue-800 dark:text-blue-200 mb-1">
-              Esta Semana
+              {t('thisWeek')}
             </div>
             <div className="flex items-baseline gap-2">
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                 {stats.thisWeek}
               </div>
               <div className="text-sm text-blue-600 dark:text-blue-400">
-                sesiones
+                {t('sessionsPlural')}
               </div>
             </div>
             {weekTrend !== 0 && (
@@ -100,7 +103,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
                 weekTrend > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {weekTrend > 0 ? '↗' : '↘'}
-                <span>{Math.abs(weekTrend)} vs semana anterior</span>
+                <span>{Math.abs(weekTrend)} {t('vsLastWeek')}</span>
               </div>
             )}
           </div>
@@ -108,14 +111,14 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
           {/* Semana pasada */}
           <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              Semana Pasada
+              {t('lastWeek')}
             </div>
             <div className="flex items-baseline gap-2">
               <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                 {stats.lastWeek}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                sesiones
+                {t('sessionsPlural')}
               </div>
             </div>
           </div>
@@ -123,32 +126,32 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
           {/* Promedio semanal */}
           <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
             <div className="text-sm text-purple-800 dark:text-purple-200 mb-1">
-              Promedio Semanal
+              {t('weeklyAverage')}
             </div>
             <div className="flex items-baseline gap-2">
               <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                 {stats.avgPerWeek}
               </div>
               <div className="text-sm text-purple-600 dark:text-purple-400">
-                sesiones
+                {t('sessionsPlural')}
               </div>
             </div>
             <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-              últimas {stats.totalWeeks} semanas
+              {t('lastWeeks', { count: stats.totalWeeks })}
             </div>
           </div>
 
           {/* Promedio mensual */}
           <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <div className="text-sm text-green-800 dark:text-green-200 mb-1">
-              Promedio Mensual
+              {t('monthlyAverage')}
             </div>
             <div className="flex items-baseline gap-2">
               <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                 {stats.avgPerMonth}
               </div>
               <div className="text-sm text-green-600 dark:text-green-400">
-                sesiones
+                {t('sessionsPlural')}
               </div>
             </div>
           </div>
@@ -159,7 +162,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-orange-800 dark:text-orange-200 mb-1">
-                Tu día favorito para entrenar
+                {t('favoriteDay')}
               </div>
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {stats.mostActiveDay}
@@ -175,7 +178,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
         {stats.avgPerWeek < 3 && sessions.length > 0 && (
           <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
             <p className="text-xs text-yellow-800 dark:text-yellow-200">
-              💡 <strong>Consejo:</strong> Para mejores resultados, intenta entrenar al menos 3-4 veces por semana.
+              💡 <strong>{t('tipTitle')}</strong> {t('tipText')}
             </p>
           </div>
         )}
@@ -183,7 +186,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
         {stats.avgPerWeek >= 5 && (
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <p className="text-xs text-green-800 dark:text-green-200">
-              🔥 <strong>¡Excelente!</strong> Mantienes una frecuencia de entrenamiento muy buena. ¡Sigue así!
+              🔥 <strong>{t('excellentTitle')}</strong> {t('excellentText')}
             </p>
           </div>
         )}

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { useTranslations, useLocale } from '@/context/LocaleContext';
 
 interface ActivityHeatmapProps {
   sessions: Array<{
@@ -10,6 +11,9 @@ interface ActivityHeatmapProps {
 }
 
 export function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
+  const t = useTranslations('dashboard.activityHeatmap');
+  const { locale } = useLocale();
+  const tDashboard = useTranslations('dashboard');
   const heatmapData = useMemo(() => {
     // Últimos 90 días
     const days = 90;
@@ -72,16 +76,16 @@ export function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Actividad de Entrenamiento</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
           <div className="flex gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-zinc-600 dark:text-zinc-400">Racha actual:</span>
+              <span className="text-zinc-600 dark:text-zinc-400">{t('currentStreak')}</span>
               <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                🔥 {currentStreak} días
+                🔥 {currentStreak} {tDashboard('statsCards.days')}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-zinc-600 dark:text-zinc-400">Días activos:</span>
+              <span className="text-zinc-600 dark:text-zinc-400">{t('activeDays')}</span>
               <span className="font-bold text-blue-600 dark:text-blue-400">
                 {totalDays} / {heatmapData.length}
               </span>
@@ -99,7 +103,7 @@ export function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
                   <div
                     key={dayIndex}
                     className={`w-3 h-3 rounded-sm ${getLevelColor(day.level)} transition-all hover:ring-2 hover:ring-blue-500 cursor-pointer`}
-                    title={`${day.date.toLocaleDateString('es-ES')} - ${day.count} sesión${day.count !== 1 ? 'es' : ''}`}
+                    title={`${day.date.toLocaleDateString(locale)} - ${day.count} ${day.count !== 1 ? t('sessionsPlural') : t('sessionSingular')}`}
                   />
                 ))}
               </div>
@@ -108,7 +112,7 @@ export function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
 
           {/* Leyenda */}
           <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-500">
-            <span>Menos</span>
+            <span>{t('less')}</span>
             <div className="flex gap-1">
               {[0, 1, 2, 3, 4].map(level => (
                 <div
@@ -117,7 +121,7 @@ export function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
                 />
               ))}
             </div>
-            <span>Más</span>
+            <span>{t('more')}</span>
           </div>
         </div>
       </CardContent>

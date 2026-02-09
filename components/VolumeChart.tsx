@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
+import { useTranslations, useLocale } from '@/context/LocaleContext';
 
 interface VolumeChartProps {
   sessions: WorkoutSession[];
@@ -10,6 +11,9 @@ interface VolumeChartProps {
 }
 
 export function VolumeChart({ sessions, period }: VolumeChartProps) {
+  const t = useTranslations('dashboard.volumeChart');
+  const tDashboard = useTranslations('dashboard');
+  const { locale } = useLocale();
   const chartData = useMemo(() => {
     const days = period === 'week' ? 7 : 30;
     const today = new Date();
@@ -50,9 +54,9 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Volumen de Entrenamiento ({period === 'week' ? 'Última Semana' : 'Último Mes'})</CardTitle>
+          <CardTitle>{t('title')} ({period === 'week' ? t('lastWeek') : t('lastMonth')})</CardTitle>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            Promedio: <span className="font-bold text-blue-600 dark:text-blue-400">{avgVolume.toLocaleString()} kg</span>
+            {t('average')}: <span className="font-bold text-blue-600 dark:text-blue-400">{avgVolume.toLocaleString()} {t('units.kg')}</span>
           </div>
         </div>
       </CardHeader>
@@ -76,18 +80,18 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
                           : 'bg-zinc-200 dark:bg-zinc-800'
                       }`}
                       style={{ height: `${height}%` }}
-                      title={`${day.date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}\nVolumen: ${day.volume.toLocaleString()} kg\nSesiones: ${day.sessions}`}
+                      title={`${day.date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}\n${t('tooltipVolume')}: ${day.volume.toLocaleString()} ${tDashboard('units.kg')}\n${t('tooltipSessions')}: ${day.sessions}`}
                     />
                     {day.volume > 0 && (
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs px-2 py-1 rounded whitespace-nowrap">
-                          {day.volume.toLocaleString()} kg
+                          {day.volume.toLocaleString()} {t('units.kg')}
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="text-[10px] text-zinc-500 dark:text-zinc-500 text-center">
-                    {day.date.toLocaleDateString('es-ES', { weekday: 'short' })}
+                    {day.date.toLocaleDateString(locale, { weekday: 'short' })}
                   </div>
                 </div>
               );
@@ -97,24 +101,24 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
           {/* Resumen */}
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
             <div className="text-center">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Total</p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('total')}</p>
+                <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                 {totalVolume.toLocaleString()}
-                <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">kg</span>
+                <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">{tDashboard('units.kg')}</span>
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Promedio</p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('average')}</p>
+                <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                 {avgVolume.toLocaleString()}
-                <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">kg/día</span>
+                <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">{t('kgPerDay')}</span>
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Sesiones</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('sessions')}</p>
               <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                 {chartData.filter(d => d.sessions > 0).length}
-                <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">días</span>
+                <span className="text-sm text-zinc-500 dark:text-zinc-500 ml-1">{t('days')}</span>
               </p>
             </div>
           </div>
