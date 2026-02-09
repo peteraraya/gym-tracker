@@ -190,29 +190,29 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
               strokeWidth="1.5" />
           </g>
 
-          {/* Calves (anatomical gastrocnemius) */}
+          {/* Gemelos (anatomical gastrocnemius) */}
           <g
             role="button"
             tabIndex={0}
-            aria-pressed={isSelected('pantorrillas')}
-            onClick={() => onMuscleClick('pantorrillas')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('pantorrillas'); }}
-            onMouseEnter={() => setHovered('pantorrillas')}
+            aria-pressed={isSelected('gemelos')}
+            onClick={() => onMuscleClick('gemelos')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('gemelos'); }}
+            onMouseEnter={() => setHovered('gemelos')}
             onMouseLeave={() => setHovered(null)}
-            onFocus={() => setHovered('pantorrillas')}
+            onFocus={() => setHovered('gemelos')}
             onBlur={() => setHovered(null)}
-            aria-label="Pantorrillas"
+            aria-label="Gemelos"
             className="cursor-pointer"
           >
             {/* Left calf */}
             <path className="muscle" d="M 86 304 Q 82 310 78 322 Q 74 338 74 356 Q 74 374 78 390 Q 82 402 88 410 L 94 408 Q 98 396 100 380 Q 102 362 102 344 Q 102 326 100 314 Z" 
-              fill={isActive('pantorrillas') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('pantorrillas') ? 'var(--primary-dark)' : 'var(--border)'} 
+              fill={isActive('gemelos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
+              stroke={isActive('gemelos') ? 'var(--primary-dark)' : 'var(--border)'} 
               strokeWidth="1.2" />
             {/* Right calf */}
             <path className="muscle" d="M 134 304 Q 138 310 142 322 Q 146 338 146 356 Q 146 374 142 390 Q 138 402 132 410 L 126 408 Q 122 396 120 380 Q 118 362 118 344 Q 118 326 120 314 Z" 
-              fill={isActive('pantorrillas') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('pantorrillas') ? 'var(--primary-dark)' : 'var(--border)'} 
+              fill={isActive('gemelos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
+              stroke={isActive('gemelos') ? 'var(--primary-dark)' : 'var(--border)'} 
               strokeWidth="1.2" />
           </g>
 
@@ -451,28 +451,28 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
               strokeWidth="1.5" />
           </g>
 
-          {/* Calves (back) */}
+          {/* Gemelos (back) */}
           <g
             role="button"
             tabIndex={0}
-            aria-pressed={isSelected('pantorrillas')}
-            onClick={() => onMuscleClick('pantorrillas')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('pantorrillas'); }}
-            onMouseEnter={() => setHovered('pantorrillas')}
+            aria-pressed={isSelected('gemelos')}
+            onClick={() => onMuscleClick('gemelos')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('gemelos'); }}
+            onMouseEnter={() => setHovered('gemelos')}
             onMouseLeave={() => setHovered(null)}
-            onFocus={() => setHovered('pantorrillas')}
+            onFocus={() => setHovered('gemelos')}
             onBlur={() => setHovered(null)}
             className="cursor-pointer transition-all"
           >
             {/* Left calf */}
             <path className="muscle" d="M 86 304 Q 82 310 78 322 Q 74 338 74 356 Q 74 374 78 390 Q 82 402 88 410 L 94 408 Q 98 396 100 380 Q 102 362 102 344 Q 102 326 100 314 Z" 
-              fill={isActive('pantorrillas') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
-              stroke={isActive('pantorrillas') ? 'var(--primary-dark)' : 'var(--border)'} 
+              fill={isActive('gemelos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('gemelos') ? 'var(--primary-dark)' : 'var(--border)'} 
               strokeWidth="1.2" />
             {/* Right calf */}
             <path className="muscle" d="M 134 304 Q 138 310 142 322 Q 146 338 146 356 Q 146 374 142 390 Q 138 402 132 410 L 126 408 Q 122 396 120 380 Q 118 362 118 344 Q 118 326 120 314 Z" 
-              fill={isActive('pantorrillas') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
-              stroke={isActive('pantorrillas') ? 'var(--primary-dark)' : 'var(--border)'} 
+              fill={isActive('gemelos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('gemelos') ? 'var(--primary-dark)' : 'var(--border)'} 
               strokeWidth="1.2" />
           </g>
         </svg>

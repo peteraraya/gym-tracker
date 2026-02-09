@@ -14,7 +14,7 @@ const MUSCLE_GROUPS: MuscleGroup[] = [
   'brazos',
   'core',
   'gluteos',
-  'pantorrillas'
+  'gemelos'
 ];
 
 const MUSCLE_COLORS: Record<MuscleGroup, string> = {
@@ -25,7 +25,7 @@ const MUSCLE_COLORS: Record<MuscleGroup, string> = {
   hombros: '#8b5cf6',    // purple
   brazos: '#f97316',     // orange
   core: '#eab308',       // yellow
-  pantorrillas: '#14b8a6' // teal
+  gemelos: '#14b8a6' // teal
 };
 
 const MUSCLE_LABELS: Record<MuscleGroup, string> = {
@@ -36,7 +36,7 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   hombros: 'Hombros',
   brazos: 'Brazos',
   core: 'Core',
-  pantorrillas: 'Pantorrillas'
+  gemelos: 'Gemelos'
 };
 
 export default function ProgressPage() {
@@ -52,7 +52,7 @@ export default function ProgressPage() {
       hombros: 0,
       brazos: 0,
       core: 0,
-      pantorrillas: 0
+      gemelos: 0
     };
 
     const count: Record<MuscleGroup, number> = {
@@ -63,7 +63,7 @@ export default function ProgressPage() {
       hombros: 0,
       brazos: 0,
       core: 0,
-      pantorrillas: 0
+      gemelos: 0
     };
 
     sessions.forEach(session => {

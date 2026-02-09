@@ -25,7 +25,7 @@ const MUSCLE_GROUP_COLORS: Record<MuscleGroup, string> = {
   brazos: '#ec4899',
   core: '#06b6d4',
   gluteos: '#f43f5e',
-  pantorrillas: '#84cc16'
+  gemelos: '#84cc16'
 };
 
 export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) => {

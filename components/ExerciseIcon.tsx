@@ -14,7 +14,7 @@ const MUSCLE_ICONS: Record<MuscleGroup, string> = {
   hombros: '🏋️',
   brazos: '💪',
   core: '🎯',
-  pantorrillas: '🦶'
+  gemelos: '🦶'
 };
 
 const MUSCLE_COLORS: Record<MuscleGroup, { bg: string; text: string }> = {
@@ -25,7 +25,7 @@ const MUSCLE_COLORS: Record<MuscleGroup, { bg: string; text: string }> = {
   hombros: { bg: 'bg-purple-100 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' },
   brazos: { bg: 'bg-orange-100 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
   core: { bg: 'bg-yellow-100 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400' },
-  pantorrillas: { bg: 'bg-teal-100 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' }
+  gemelos: { bg: 'bg-teal-100 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' }
 };
 
 export function ExerciseIcon({ muscleGroup, className = '' }: ExerciseIconProps) {
