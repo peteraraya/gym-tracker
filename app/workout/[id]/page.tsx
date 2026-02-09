@@ -313,8 +313,18 @@ export default function WorkoutPage() {
     });
     
     if (confirmed) {
+      try {
+        localStorage.setItem('gym-tracker-cancelled', Date.now().toString());
+      } catch (e) {}
+
+      // Remove any modal/backdrop elements that might have been left behind
+      try {
+        document.querySelectorAll('.modal-backdrop, .modal-overlay, [data-backdrop]').forEach(el => el.remove());
+      } catch (e) {}
+
       cancelWorkout();
-      router.push('/routines');
+      // Use replace so user doesn't return to the canceled workout via back
+      router.replace('/routines');
     }
   };
 

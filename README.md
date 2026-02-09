@@ -246,7 +246,7 @@ npm start
 - 💪 **Brazos**: Curl bíceps, press francés, tríceps, etc.
 - 🧘 **Core**: Abdominales, planchas, oblicuos, etc.
 - 🍑 **Glúteos**: Hip thrust, patada, puente, etc.
-- 🦿 **Pantorrillas**: Elevaciones de talones, etc.
+- 🦿 **Gemelos**: Elevaciones de talones, etc.
 
 ## 🌍 Idiomas Soportados
 

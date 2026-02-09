@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import type { WorkoutSession } from '@/types';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface StrengthProgressionProps {
   sessions: WorkoutSession[];
@@ -24,6 +25,8 @@ const calculate1RM = (weight: number, reps: number): number => {
 
 export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessions }) => {
   const [selectedExercise, setSelectedExercise] = useState<string>('');
+  const t = useTranslations('dashboard.strengthProgression');
+  const tDashboard = useTranslations('dashboard');
 
   // Obtener lista de ejercicios únicos
   const exercises = React.useMemo(() => {
@@ -112,11 +115,11 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
     return (
       <Card>
         <CardHeader>
-          <CardTitle>📈 Progresión de Fuerza</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-            No hay datos de progresión. Completa algunos entrenamientos primero.
+            {t('noData')}
           </p>
         </CardContent>
       </Card>
@@ -128,13 +131,13 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
   return (
     <Card>
       <CardHeader>
-        <CardTitle>📈 Progresión de Fuerza (1RM Estimado)</CardTitle>
+        <CardTitle>{t('title1RM')}</CardTitle>
       </CardHeader>
       <CardContent>
         {/* Selector de ejercicio */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Selecciona un ejercicio
+            {t('selectExercise')}
           </label>
           <select
             value={selectedExercise}
@@ -153,21 +156,21 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="text-xs text-blue-600 dark:text-blue-400 mb-1">Inicial</div>
+              <div className="text-xs text-blue-600 dark:text-blue-400 mb-1">{t('initial')}</div>
               <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
-                {Math.round(stats.first1RM)} kg
+                {Math.round(stats.first1RM)} {tDashboard('units.kg')}
               </div>
             </div>
             <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div className="text-xs text-green-600 dark:text-green-400 mb-1">Actual</div>
+              <div className="text-xs text-green-600 dark:text-green-400 mb-1">{t('current')}</div>
               <div className="text-xl font-bold text-green-700 dark:text-green-300">
-                {Math.round(stats.last1RM)} kg
+                {Math.round(stats.last1RM)} {tDashboard('units.kg')}
               </div>
             </div>
             <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">Máximo</div>
+              <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">{t('max')}</div>
               <div className="text-xl font-bold text-purple-700 dark:text-purple-300">
-                {Math.round(stats.max1RM)} kg
+                {Math.round(stats.max1RM)} {tDashboard('units.kg')}
               </div>
             </div>
             <div className={`p-3 rounded-lg ${
@@ -180,7 +183,7 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
                   ? 'text-emerald-600 dark:text-emerald-400' 
                   : 'text-red-600 dark:text-red-400'
               }`}>
-                Progreso
+                {t('progress')}
               </div>
               <div className={`text-xl font-bold flex items-center gap-1 ${
                 stats.improvement >= 0 

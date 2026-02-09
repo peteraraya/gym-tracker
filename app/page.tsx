@@ -180,34 +180,64 @@ export default function Home() {
             </Card>
           </div>
 
-          {routines.length === 0 && (
-            <div className="mt-8 sm:mt-12">
-              <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 sm:p-8">
-                <div className="text-center mb-6">
-                  <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    👋 {t('welcomeMessage')}
-                  </p>
-                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                    Comienza tu viaje fitness con una rutina profesional
-                  </p>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                  <Link href="/recommended">
-                    <Button variant="primary" className="w-full">
-                      <Target className="w-5 h-5" />
-                      {t('exploreRecommended')}
-                    </Button>
-                  </Link>
-                  <Link href="/routines">
-                    <Button variant="secondary" className="w-full">
-                      <Plus className="w-5 h-5" />
-                      {t('createFirstRoutine')}
-                    </Button>
-                  </Link>
-                </div>
+          <div className="mt-8 sm:mt-12">
+            <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 sm:p-8">
+              <div className="text-center mb-6">
+                {routines.length === 0 ? (
+                  <>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      👋 {t('welcomeMessage')}
+                    </p>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                      {t('getStartedDesc')}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      🚀 {t('haveRoutines.title')}
+                    </p>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                      {t('haveRoutines.subtitle')}
+                    </p>
+                  </>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                {routines.length === 0 ? (
+                  <>
+                    <Link href="/recommended">
+                      <Button variant="primary" className="w-full">
+                        <Target className="w-5 h-5" />
+                        {t('exploreRecommended')}
+                      </Button>
+                    </Link>
+                    <Link href="/routines">
+                      <Button variant="secondary" className="w-full">
+                        <Plus className="w-5 h-5" />
+                        {t('createFirstRoutine')}
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/routines">
+                      <Button variant="primary" className="w-full">
+                        <Plus className="w-5 h-5" />
+                        {t('haveRoutines.cta')}
+                      </Button>
+                    </Link>
+                    <Link href="/recommended">
+                      <Button variant="secondary" className="w-full">
+                        <Target className="w-5 h-5" />
+                        {t('exploreRecommended')}
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </ProtectedRoute>

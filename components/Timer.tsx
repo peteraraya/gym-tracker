@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslations } from '@/context/LocaleContext';
 import { Button } from '@/components/ui/Button';
 import { 
   getRestMessage, 
@@ -23,7 +24,7 @@ export const Timer: React.FC<TimerProps> = ({
   duration, 
   onComplete, 
   autoStart = false,
-  title = 'Descanso',
+  title = undefined,
   nextExerciseName,
   showMotivation = true
 }) => {
@@ -123,16 +124,19 @@ export const Timer: React.FC<TimerProps> = ({
 
   const percentage = ((duration - timeLeft) / duration) * 100;
   const motivationMessage = showMotivation ? getRestMessage(timeLeft, duration) : '';
+  const t = useTranslations('timer');
+
+  const resolvedTitle = title ?? (t ? t('rest') : 'Descanso');
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
       <div className="text-center mb-6">
         <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {title}
+          {resolvedTitle}
         </h3>
         {nextExerciseName && (
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Próximo: <span className="font-semibold">{nextExerciseName}</span>
+            {t ? `${t('nextLabel')}: ` : 'Próximo: '}<span className="font-semibold">{nextExerciseName}</span>
           </p>
         )}
         {showMotivation && motivationMessage && (
@@ -191,10 +195,10 @@ export const Timer: React.FC<TimerProps> = ({
       {isCompleted && (
         <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-500 dark:border-green-400">
           <div className="text-green-600 dark:text-green-400 text-xl font-bold text-center mb-2 animate-bounce">
-            ✓ ¡Descanso Completado!
+            {t ? t('restCompleted') : '✓ ¡Descanso Completado!'}
           </div>
           <p className="text-green-700 dark:text-green-300 text-sm text-center">
-            {nextExerciseName ? `Listo para ${nextExerciseName}` : '¡Vamos con todo! 💪'}
+            {nextExerciseName ? (t ? t('readyFor').replace('{0}', nextExerciseName) : `Listo para ${nextExerciseName}`) : (t ? t('cheer') : '¡Vamos con todo! 💪')}
           </p>
         </div>
       )}
@@ -214,13 +218,13 @@ export const Timer: React.FC<TimerProps> = ({
               onClick={handleStartPause}
               size="lg"
             >
-              {isRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+              {isRunning ? `⏸️ ${t ? t('pause') : 'Pausar'}` : `▶️ ${t ? t('start') : 'Iniciar'}`}
             </Button>
             <Button variant="ghost" onClick={handleReset} size="lg">
-              🔄 Reiniciar
+              🔄 {t ? t('restart') : 'Reiniciar'}
             </Button>
             <Button variant="ghost" onClick={handleSkip} size="lg">
-              ⏭️ Saltar
+              ⏭️ {t ? t('skip') : 'Saltar'}
             </Button>
           </>
         ) : (

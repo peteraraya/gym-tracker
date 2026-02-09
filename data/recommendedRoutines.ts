@@ -64,7 +64,7 @@ export const RECOMMENDED_ROUTINES: RecommendedRoutine[] = [
   {
     id: 'ppl-legs',
     name: 'Push Pull Legs - Legs (Piernas)',
-    description: 'Día de piernas completo: cuádriceps, isquiotibiales, glúteos y pantorrillas.',
+    description: 'Día de piernas completo: cuádriceps, isquiotibiales, glúteos y gemelos.',
     category: 'intermediate',
     frequency: '1-2 veces/semana',
     duration: '60-75 min',

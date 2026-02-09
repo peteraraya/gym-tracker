@@ -6,7 +6,7 @@ export type MuscleGroup =
   | 'brazos'
   | 'core'
   | 'gluteos'
-  | 'pantorrillas';
+  | 'gemelos';
 
 export interface ExerciseTemplate {
   id: string;
@@ -1265,11 +1265,11 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '45-60 segundos'
   },
 
-  // PANTORRILLAS
+  // GEMELOS
   {
     id: 'calf-raises',
     name: 'Elevación de Talones',
-    muscleGroup: 'pantorrillas',
+    muscleGroup: 'gemelos',
     equipment: 'Máquina/Mancuernas',
     defaultSets: 4,
     defaultReps: 20,
@@ -1287,7 +1287,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'seated-calf-raises',
     name: 'Elevación de Talones Sentado',
-    muscleGroup: 'pantorrillas',
+    muscleGroup: 'gemelos',
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 20,
@@ -1312,7 +1312,7 @@ export const MUSCLE_GROUPS: { id: MuscleGroup; name: string }[] = [
   { id: 'hombros', name: 'Hombros' },
   { id: 'brazos', name: 'Brazos' },
   { id: 'core', name: 'Core/Abdomen' },
-  { id: 'pantorrillas', name: 'Pantorrillas' }
+  { id: 'gemelos', name: 'Gemelos' }
 ];
 
 export const getExercisesByMuscleGroup = (muscleGroup: MuscleGroup): ExerciseTemplate[] => {

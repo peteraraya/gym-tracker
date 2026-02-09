@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
@@ -21,12 +22,15 @@ import {
   Flame
 } from 'lucide-react';
 
+import { useTranslations } from '@/context/LocaleContext';
+
 export default function RoutinesPage() {
   const router = useRouter();
-  const { routines, deleteRoutine } = useGym();
+  const { routines, deleteRoutine, loading } = useGym();
   const { startWorkout, isWorkoutActive, activeWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
+  const t = useTranslations('routines');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
 
@@ -40,22 +44,31 @@ export default function RoutinesPage() {
     setEditingRoutine(null);
   };
 
+  // Abrir modal si la URL contiene ?create=1
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams?.get('create') === '1') {
+      setIsModalOpen(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleDelete = async (id: string) => {
     const confirmed = await confirm({
-      title: 'Eliminar rutina',
-      message: '¿Estás seguro de que quieres eliminar esta rutina?',
-      confirmText: 'Eliminar',
-      cancelText: 'Cancelar',
+      title: t('confirmDelete.title'),
+      message: t('confirmDelete.message'),
+      confirmText: t('confirmDelete.confirmText'),
+      cancelText: t('confirmDelete.cancelText'),
       variant: 'danger'
     });
-    
+
     if (confirmed) {
       try {
         await deleteRoutine(id);
-        success('Rutina eliminada exitosamente');
+        success(t('toast.deleteSuccess'));
       } catch (err) {
         console.error('Error deleting routine:', err);
-        error('Error al eliminar la rutina');
+        error(t('toast.deleteError'));
       }
     }
   };
@@ -64,10 +77,10 @@ export default function RoutinesPage() {
     // Si hay un workout activo, preguntar si quiere cancelarlo
     if (isWorkoutActive && activeWorkout?.routineId !== routineId) {
       const confirmed = await confirm({
-        title: 'Entrenamiento activo',
-        message: 'Ya tienes un entrenamiento activo. ¿Deseas cancelarlo e iniciar uno nuevo?',
-        confirmText: 'Iniciar nuevo',
-        cancelText: 'Cancelar',
+        title: t('confirmActive.title'),
+        message: t('confirmActive.message'),
+        confirmText: t('confirmActive.confirmText'),
+        cancelText: t('confirmActive.cancelText'),
         variant: 'warning'
       });
       
@@ -93,10 +106,10 @@ export default function RoutinesPage() {
               <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl">
                 <ClipboardList className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
-              Mis Rutinas
+              {t('title')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Gestiona tus rutinas de entrenamiento
+              {t('subtitle')}
             </p>
           </div>
           <Button 
@@ -105,24 +118,31 @@ export default function RoutinesPage() {
             className="w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
-            Nueva Rutina
+            {t('newRoutine')}
           </Button>
         </div>
 
-        {routines.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
+            </div>
+          </div>
+        ) : routines.length === 0 ? (
           <div className="text-center py-12 sm:py-16">
             <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center">
               <ClipboardList className="w-10 h-10 sm:w-12 sm:h-12 text-blue-600 dark:text-blue-400" />
             </div>
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              No tienes rutinas todavía
+              {t('empty.title')}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Crea tu primera rutina para comenzar a entrenar
+              {t('empty.description')}
             </p>
             <Button variant="primary" onClick={() => setIsModalOpen(true)}>
               <Plus className="w-5 h-5" />
-              Crear Rutina
+              {t('empty.createButton')}
             </Button>
           </div>
         ) : (
@@ -152,7 +172,7 @@ export default function RoutinesPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
                         <Dumbbell className="w-4 h-4" />
-                        Ejercicios:
+                        {t('exercisesLabel')}
                       </span>
                       <span className="font-semibold text-gray-900 dark:text-gray-100">
                         {routine.exercises.length}
@@ -161,7 +181,7 @@ export default function RoutinesPage() {
 
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                       <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 font-medium">
-                        Vista previa:
+                        {t('previewLabel')}
                       </p>
                       <div className="space-y-1">
                         {routine.exercises.slice(0, 3).map((exercise) => {
@@ -181,7 +201,7 @@ export default function RoutinesPage() {
                         })}
                         {routine.exercises.length > 3 && (
                           <div className="text-sm text-gray-500 dark:text-gray-500 pl-4">
-                            +{routine.exercises.length - 3} más
+                            +{routine.exercises.length - 3} {t('more')}
                           </div>
                         )}
                       </div>
@@ -197,12 +217,12 @@ export default function RoutinesPage() {
                         {activeWorkout?.routineId === routine.id ? (
                           <>
                             <Flame className="w-4 h-4" />
-                            Continuar Entrenamiento
+                            {t('continueWorkout')}
                           </>
                         ) : (
                           <>
                             <Play className="w-4 h-4" />
-                            Iniciar Entrenamiento
+                            {t('startWorkout')}
                           </>
                         )}
                       </Button>
@@ -216,7 +236,7 @@ export default function RoutinesPage() {
                         onClick={() => handleEdit(routine.id)}
                       >
                         <Pencil className="w-4 h-4" />
-                        Editar
+                        {t('edit')}
                       </Button>
                       <Button
                         variant="danger"
@@ -225,7 +245,7 @@ export default function RoutinesPage() {
                         onClick={() => handleDelete(routine.id)}
                       >
                         <Trash2 className="w-4 h-4" />
-                        Eliminar
+                        {t('delete')}
                       </Button>
                     </div>
                   </div>
@@ -239,7 +259,7 @@ export default function RoutinesPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingRoutine ? 'Editar Rutina' : 'Nueva Rutina'}
+        title={editingRoutine ? t('modal.editTitle') : t('modal.newTitle')}
       >
         <RoutineForm routineId={editingRoutine} onClose={handleCloseModal} />
       </Modal>

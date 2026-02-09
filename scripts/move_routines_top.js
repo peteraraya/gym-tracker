@@ -1,0 +1,1 @@
+const fs=require('fs');const p='messages/es.json';const obj=JSON.parse(fs.readFileSync(p,'utf8'));if(obj.dashboard && obj.dashboard.routines){obj.routines = obj.dashboard.routines; delete obj.dashboard.routines; fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8'); console.log('MOVED');} else {console.log('NOOP');}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Play, Pause, Square, Timer as TimerIcon } from 'lucide-react';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface SetTimerProps {
   onComplete?: (duration: number, pausedTime: number) => void;
@@ -81,18 +82,20 @@ export const SetTimer: React.FC<SetTimerProps> = ({
 
   const activeTime = elapsedTime - pausedTime;
 
+  const t = useTranslations('setTimer');
+
   return (
     <div className="bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-2xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <TimerIcon className={`w-5 h-5 ${isPaused ? 'text-amber-600' : 'text-blue-600'}`} />
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            Cronómetro de Serie
+            {t ? t('title') : 'Cronómetro de Serie'}
           </h3>
         </div>
         {isPaused && (
           <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs font-semibold rounded-full animate-pulse">
-            PAUSADO
+            {t ? t('paused') : 'PAUSADO'}
           </span>
         )}
       </div>
@@ -105,12 +108,12 @@ export const SetTimer: React.FC<SetTimerProps> = ({
         <div className="flex justify-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span>Activo: {formatTime(activeTime)}</span>
+            <span>{t ? `${t('active')}: ${formatTime(activeTime)}` : `Activo: ${formatTime(activeTime)}`}</span>
           </div>
           {pausedTime > 0 && (
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-              <span>Pausado: {formatTime(pausedTime)}</span>
+              <span>{t ? `${t('pausedLabel')}: ${formatTime(pausedTime)}` : `Pausado: ${formatTime(pausedTime)}`}</span>
             </div>
           )}
         </div>
@@ -126,12 +129,12 @@ export const SetTimer: React.FC<SetTimerProps> = ({
           {isPaused ? (
             <>
               <Play className="w-5 h-5" />
-              Reanudar
+              {t ? t('resume') : 'Reanudar'}
             </>
           ) : (
             <>
               <Pause className="w-5 h-5" />
-              Pausar
+              {t ? t('pause') : 'Pausar'}
             </>
           )}
         </Button>
@@ -142,14 +145,14 @@ export const SetTimer: React.FC<SetTimerProps> = ({
           className="flex-1"
         >
           <Square className="w-5 h-5" />
-          Completar Serie
+          {t ? t('completeSet') : 'Completar Serie'}
         </Button>
       </div>
 
       {/* Info adicional */}
       <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
         <p className="text-xs text-blue-800 dark:text-blue-200 text-center">
-          💡 El cronómetro mide el tiempo de cada serie. Puedes pausar si necesitas un descanso.
+          {t ? t('helper') : '💡 El cronómetro mide el tiempo de cada serie. Puedes pausar si necesitas un descanso.'}
         </p>
       </div>
     </div>

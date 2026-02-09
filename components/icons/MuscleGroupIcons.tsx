@@ -18,7 +18,7 @@ const MUSCLE_GROUP_IMAGES: Record<MuscleGroup, string> = {
     brazos: '/icons/muscles/biceps.png',
     core: '/icons/muscles/abdomen.png',
     gluteos: '/icons/muscles/gluteos.png',
-    pantorrillas: '/icons/muscles/pantorrilla.png'
+    gemelos: '/icons/muscles/gemelos.png'
 };
 
 // Componente wrapper para usar dinámicamente

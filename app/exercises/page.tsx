@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { MUSCLE_GROUPS, getExercisesByMuscleGroup, ExerciseTemplate, MuscleGroup } from '@/data/exercises';
+import { useToast } from '@/context/ToastContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +18,7 @@ export default function ExercisesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedExercise, setSelectedExercise] = useState<ExerciseTemplate | null>(null);
   const { hasEquipment, selectedEquipment } = useEquipment();
+  const toast = useToast();
 
   const filteredExercises = selectedMuscle
     ? getExercisesByMuscleGroup(selectedMuscle)
@@ -66,24 +68,57 @@ export default function ExercisesPage() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {MUSCLE_GROUPS.map((muscle) => (
-                  <button
-                    key={muscle.id}
-                    onClick={() => setSelectedMuscle(muscle.id)}
-                    className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all group"
-                  >
-                    <div className="mb-3 group-hover:scale-110 transition-transform">
-                      <MuscleGroupIcon
-                        muscleGroup={muscle.id}
-                        size={48}
-                        className="text-blue-500 dark:text-blue-400"
-                      />
-                    </div>
-                    <span className="text-base font-semibold text-gray-900 dark:text-gray-100 text-center">
-                      {muscle.name}
-                    </span>
-                  </button>
-                ))}
+                {MUSCLE_GROUPS.map((muscle) => {
+                  const exercisesForMuscle = getExercisesByMuscleGroup(muscle.id);
+                  const total = exercisesForMuscle.length;
+                  const available = exercisesForMuscle.filter(ex => hasEquipment(ex.equipment)).length;
+                  return (
+                    <button
+                      key={muscle.id}
+                      onClick={() => setSelectedMuscle(muscle.id)}
+                      className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all group"
+                      aria-label={`Seleccionar grupo ${muscle.name}, ${total} ejercicios`}
+                    >
+                      <div className="mb-1 group-hover:scale-110 transition-transform">
+                        <MuscleGroupIcon
+                          muscleGroup={muscle.id}
+                          size={48}
+                          className="text-blue-500 dark:text-blue-400"
+                        />
+                      </div>
+                      <span className="text-base font-semibold text-gray-900 dark:text-gray-100 text-center">
+                        {muscle.name}
+                      </span>
+                      {selectedEquipment.size > 0 ? (
+                        <span className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                          {available}/{total} ejercicios
+                        </span>
+                      ) : (
+                        <span className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                          {total} ejercicios
+                        </span>
+                      )}
+
+                      {total > 0 && total < 11 && (
+                        <div className="mt-2 text-center">
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            Pronto habrá más ejercicios
+                          </div>
+                          {/*
+                          <small>
+                            <button
+                              onClick={() => toast.info(`Te avisaremos cuando agreguemos más ejercicios en ${muscle.name}`)}
+                              className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              Avisarme
+                            </button>
+                          </small>
+                          */}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </>
           ) : (
@@ -120,6 +155,23 @@ export default function ExercisesPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+
+              {totalCount > 0 && totalCount < 11 && (
+                <div className="mb-6 p-6 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl text-center">
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Pronto habrá más ejercicios</h3>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Estamos trabajando en ampliar esta sección. Mientras tanto puedes explorar otros grupos musculares o suscribirte para recibir notificaciones.</p>
+                  <div className="mt-4">
+                    {/*
+                    <button
+                      onClick={() => toast.info(`Te avisaremos cuando agreguemos más ejercicios en ${MUSCLE_GROUPS.find(m=>m.id===selectedMuscle)?.name}`)}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold"
+                    >
+                      Avisarme
+                    </button>
+                    */}
+                  </div>
+                </div>
+              )}
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredExercises.map((exercise) => (

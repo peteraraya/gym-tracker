@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
 import { Trophy, TrendingUp } from 'lucide-react';
+import { useTranslations, useLocale } from '@/context/LocaleContext';
 
 interface PersonalRecordsProps {
   sessions: WorkoutSession[];
@@ -27,6 +28,9 @@ const calculate1RM = (weight: number, reps: number): number => {
 };
 
 export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) => {
+  const t = useTranslations('dashboard.personalRecords');
+  const { locale } = useLocale();
+  const tDashboard = useTranslations('dashboard');
   // Calcular récords personales
   const records = React.useMemo(() => {
     const recordsMap = new Map<string, PersonalRecord>();
@@ -73,12 +77,12 @@ export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) =>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-yellow-600" />
-            Récords Personales (PR)
+            {t('title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-            No hay récords aún. ¡Completa entrenamientos para establecer tus PRs!
+            {t('noRecords')}
           </p>
         </CardContent>
       </Card>
@@ -90,7 +94,7 @@ export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) =>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="w-5 h-5 text-yellow-600" />
-          Récords Personales (PR)
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -120,7 +124,7 @@ export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) =>
                       {record.exerciseName}
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(record.date).toLocaleDateString('es-ES', {
+                      {new Date(record.date).toLocaleDateString(locale, {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric'
@@ -130,11 +134,11 @@ export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) =>
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                    {record.maxWeight} kg × {record.reps}
+                    {record.maxWeight} {tDashboard('units.kg')} × {record.reps}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                     <TrendingUp className="w-3 h-3" />
-                    <span>1RM: ~{Math.round(record.estimated1RM)} kg</span>
+                    <span>{t('rmShort')}: ~{Math.round(record.estimated1RM)} {tDashboard('units.kg')}</span>
                   </div>
                 </div>
               </div>
@@ -145,8 +149,7 @@ export const PersonalRecords: React.FC<PersonalRecordsProps> = ({ sessions }) =>
         {/* Información sobre 1RM */}
         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-xs text-blue-900 dark:text-blue-100">
-            💡 <strong>1RM (Una Repetición Máxima):</strong> Es el peso máximo que podrías levantar en una sola repetición.
-            Se estima usando la fórmula de Epley basada en tus mejores series.
+            {t('rmDefinition')}
           </p>
         </div>
       </CardContent>
