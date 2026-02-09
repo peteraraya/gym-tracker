@@ -27,13 +27,25 @@ export function ActiveWorkoutBanner() {
     });
     
     if (confirmed) {
+      try {
+        localStorage.setItem('gym-tracker-cancelled', Date.now().toString());
+      } catch (e) {
+        // ignore
+      }
+      // Remove possible modal/backdrop elements left in the DOM
+      try {
+        document.querySelectorAll('.modal-backdrop, .modal-overlay, [data-backdrop]').forEach(el => el.remove());
+      } catch (e) {}
       cancelWorkout();
+      router.replace('/routines');
     }
   };
 
   return (
-    <div className="bg-linear-to-r from-emerald-500 to-green-600 text-white px-4 py-2 shadow-lg">
-      <div className="container mx-auto flex items-center justify-between">
+    <>
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <div className="bg-linear-to-r from-emerald-500 to-green-600 text-white px-4 py-2 shadow-lg">
+          <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 animate-pulse" />
           <div>
@@ -62,7 +74,11 @@ export function ActiveWorkoutBanner() {
             <X className="w-4 h-4" />
           </button>
         </div>
+          </div>
+        </div>
       </div>
-    </div>
+      {/* spacer to keep layout from jumping when banner is fixed */}
+      <div aria-hidden className="h-12 md:h-14" />
+    </>
   );
 }
