@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { BodyMap } from '@/components/BodyMap';
 import { ExerciseDetails } from '@/components/ExerciseDetails';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
+import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { useEquipment } from '@/context/EquipmentContext';
 
 interface ExerciseSelectorProps {
@@ -40,7 +41,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
 
   const handleConfirmSelection = () => {
     if (selectedExercises.size === 0) return;
-    
+
     const exercises = filteredExercises.filter(ex => selectedExercises.has(ex.id));
     onSelectExercises(exercises);
     setSelectedMuscle(null);
@@ -50,8 +51,8 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
 
   const filteredExercises = selectedMuscle
     ? getExercisesByMuscleGroup(selectedMuscle)
-        .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        .filter(ex => hasEquipment(ex.equipment))
+      .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(ex => hasEquipment(ex.equipment))
     : [];
 
   const totalExercises = selectedMuscle ? getExercisesByMuscleGroup(selectedMuscle).length : 0;
@@ -100,8 +101,12 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                   onClick={() => handleMuscleSelect(muscle.id)}
                   className="flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all group"
                 >
-                  <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">
-                    {muscle.emoji}
+                  <div className="mb-2 group-hover:scale-110 transition-transform">
+                    <MuscleGroupIcon
+                      muscleGroup={muscle.id}
+                      size={40}
+                      className="text-blue-500 dark:text-blue-400"
+                    />
                   </div>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100 text-center">
                     {muscle.name}
@@ -152,22 +157,20 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                 return (
                   <div
                     key={exercise.id}
-                    className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
-                        : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
-                    }`}
+                    className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${isSelected
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
+                      : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                      }`}
                     onClick={() => handleExerciseToggle(exercise)}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div 
+                      <div
                         className="flex items-start gap-3 flex-1"
                       >
-                        <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                          isSelected
-                            ? 'bg-blue-600 border-blue-600'
-                            : 'border-gray-300 dark:border-gray-500'
-                        }`}>
+                        <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'border-gray-300 dark:border-gray-500'
+                          }`}>
                           {isSelected && (
                             <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
                               <path d="M5 13l4 4L19 7"></path>
@@ -195,7 +198,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                             />
                           </div>
                         ) : (
-                          <ExerciseIcon 
+                          <ExerciseIcon
                             muscleGroup={exercise.muscleGroup}
                             className="shrink-0 w-16 h-16"
                           />
@@ -247,15 +250,15 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => setSelectedMuscle(null)}
               className="flex-1"
             >
               Cancelar
             </Button>
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               onClick={handleConfirmSelection}
               disabled={selectedExercises.size === 0}
               className="flex-1"

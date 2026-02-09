@@ -14,31 +14,35 @@ interface EquipmentContextType {
 const EquipmentContext = createContext<EquipmentContextType | undefined>(undefined);
 
 export function EquipmentProvider({ children }: { children: React.ReactNode }) {
-  const [selectedEquipment, setSelectedEquipment] = useState<Set<EquipmentType>>(() => {
-    // Inicializar desde localStorage
-    if (typeof window !== 'undefined') {
+  // Inicializar con Set vacío para evitar hydration mismatch entre SSR y cliente
+  const [selectedEquipment, setSelectedEquipment] = useState<Set<EquipmentType>>(new Set());
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Cargar de localStorage después del mount (evita hydration mismatch)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isInitialized) {
       const stored = localStorage.getItem('selectedEquipment');
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          return new Set(parsed);
+          setSelectedEquipment(new Set(parsed));
         } catch (error) {
           console.error('Error loading equipment:', error);
         }
       }
+      setIsInitialized(true);
     }
-    return new Set();
-  });
+  }, [isInitialized]);
 
-  // Guardar en localStorage cuando cambia
+  // Guardar en localStorage cuando cambia (solo después de inicializado)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isInitialized && typeof window !== 'undefined') {
       localStorage.setItem(
         'selectedEquipment',
         JSON.stringify(Array.from(selectedEquipment))
       );
     }
-  }, [selectedEquipment]);
+  }, [selectedEquipment, isInitialized]);
 
   const toggleEquipment = useCallback((equipment: EquipmentType) => {
     setSelectedEquipment(prev => {
@@ -62,10 +66,10 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
 
   const hasEquipment = useCallback((equipment: string | undefined): boolean => {
     if (!equipment || selectedEquipment.size === 0) return true;
-    
+
     // Normalizar el string del equipamiento para comparación
     const normalizedEquipment = equipment.toLowerCase();
-    
+
     // Mapeo de variaciones de nombres a IDs
     const equipmentMap: Record<string, EquipmentType[]> = {
       'barra': ['barra', 'ez-bar'],

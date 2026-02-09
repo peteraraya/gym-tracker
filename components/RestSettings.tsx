@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { requestNotificationPermission } from '@/lib/restCalculator';
@@ -10,28 +10,31 @@ import { requestNotificationPermission } from '@/lib/restCalculator';
  * y otras configuraciones del sistema de descanso
  */
 export const RestSettings: React.FC = () => {
-  const getInitialNotificationStatus = (): NotificationPermission => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      return Notification.permission;
+  // Initialize with neutral defaults to keep server and client HTML identical
+  const [notificationStatus, setNotificationStatus] = useState<NotificationPermission>('default');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [motivationEnabled, setMotivationEnabled] = useState<boolean>(true);
+
+  // Populate values after mount to avoid hydration mismatches
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if ('Notification' in window) {
+        setNotificationStatus(Notification.permission);
+      }
+
+      try {
+        const savedSound = localStorage.getItem('restSoundEnabled');
+        if (savedSound !== null) setSoundEnabled(savedSound === 'true');
+
+        const savedMotivation = localStorage.getItem('restMotivationEnabled');
+        if (savedMotivation !== null) setMotivationEnabled(savedMotivation === 'true');
+      } catch (err) {
+        // ignore localStorage errors
+        // eslint-disable-next-line no-console
+        console.warn('RestSettings: unable to read localStorage', err);
+      }
     }
-    return 'default';
-  };
-
-  const getInitialSoundEnabled = (): boolean => {
-    if (typeof window === 'undefined') return true;
-    const saved = localStorage.getItem('restSoundEnabled');
-    return saved === null ? true : saved === 'true';
-  };
-
-  const getInitialMotivationEnabled = (): boolean => {
-    if (typeof window === 'undefined') return true;
-    const saved = localStorage.getItem('restMotivationEnabled');
-    return saved === null ? true : saved === 'true';
-  };
-
-  const [notificationStatus, setNotificationStatus] = useState<NotificationPermission>(getInitialNotificationStatus);
-  const [soundEnabled, setSoundEnabled] = useState(getInitialSoundEnabled);
-  const [motivationEnabled, setMotivationEnabled] = useState(getInitialMotivationEnabled);
+  }, []);
 
   const handleRequestNotifications = async () => {
     const granted = await requestNotificationPermission();

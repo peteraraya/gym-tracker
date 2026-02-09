@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { ExerciseDetails } from '@/components/ExerciseDetails';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
+import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { useEquipment } from '@/context/EquipmentContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -19,8 +20,8 @@ export default function ExercisesPage() {
 
   const filteredExercises = selectedMuscle
     ? getExercisesByMuscleGroup(selectedMuscle)
-        .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        .filter(ex => hasEquipment(ex.equipment))
+      .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(ex => hasEquipment(ex.equipment))
     : [];
 
   const availableCount = filteredExercises.length;
@@ -71,8 +72,12 @@ export default function ExercisesPage() {
                     onClick={() => setSelectedMuscle(muscle.id)}
                     className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all group"
                   >
-                    <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">
-                      {muscle.emoji}
+                    <div className="mb-3 group-hover:scale-110 transition-transform">
+                      <MuscleGroupIcon
+                        muscleGroup={muscle.id}
+                        size={48}
+                        className="text-blue-500 dark:text-blue-400"
+                      />
                     </div>
                     <span className="text-base font-semibold text-gray-900 dark:text-gray-100 text-center">
                       {muscle.name}
@@ -139,7 +144,7 @@ export default function ExercisesPage() {
                       </div>
                     ) : (
                       <div className="flex justify-center p-6 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
-                        <ExerciseIcon 
+                        <ExerciseIcon
                           muscleGroup={exercise.muscleGroup}
                           className="w-32 h-32"
                         />

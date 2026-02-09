@@ -68,6 +68,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = useCallback(async (email: string, password: string) => {
     if (!isDatabaseEnabled) {
       console.warn('Authentication is disabled in localStorage mode');
+      // Simulate a successful signup in local mode
+      const mockUser = { id: 'local-user', email } as User;
+      setUser(mockUser);
+      setLoading(false);
       return { error: null };
     }
 
@@ -82,6 +86,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     if (!isDatabaseEnabled) {
       console.warn('Authentication is disabled in localStorage mode');
+      // Simulate a successful signin in local mode
+      const mockUser = { id: 'local-user', email } as User;
+      setUser(mockUser);
+      setLoading(false);
       return { error: null };
     }
 
@@ -96,6 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     if (!isDatabaseEnabled) {
       console.warn('Authentication is disabled in localStorage mode');
+      // Clear the mock local user when database/auth is disabled
+      setUser(null);
+      setLoading(false);
       return;
     }
 
