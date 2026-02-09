@@ -35,7 +35,8 @@ try {
   process.exit(2);
 }
 
-const actualSet = new Set(actualFiles.map(f => path.join('exercises', f)));
+// Use POSIX-style paths (forward slashes) so comparison works on Windows and POSIX
+const actualSet = new Set(actualFiles.map(f => `exercises/${f}`));
 
 const missing = [];
 for (const rel of expected) {
