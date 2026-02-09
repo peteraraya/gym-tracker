@@ -1265,7 +1265,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '45-60 segundos'
   },
 
-  // PANTORRILLAS
+  // GEMELOS
   {
     id: 'calf-raises',
     name: 'Elevación de Talones',
