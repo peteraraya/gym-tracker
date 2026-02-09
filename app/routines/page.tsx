@@ -1,7 +1,9 @@
-'use client';
+"use client";
+
+// Evita prerender estático para esta página (usa hooks de navegación del cliente)
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
@@ -44,13 +46,14 @@ export default function RoutinesPage() {
     setEditingRoutine(null);
   };
 
-  // Abrir modal si la URL contiene ?create=1
-  const searchParams = useSearchParams();
+  // Abrir modal si la URL contiene ?create=1 (lee desde window para evitar hooks de navegación en prerender)
   useEffect(() => {
-    if (searchParams?.get('create') === '1') {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('create') === '1') {
       setIsModalOpen(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   const handleDelete = async (id: string) => {

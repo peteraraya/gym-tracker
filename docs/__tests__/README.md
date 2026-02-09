@@ -1,3 +1,4 @@
+````markdown
 # 🧪 Test Suite - Gym Tracker
 
 Suite completa de pruebas unitarias e integración para garantizar la calidad y estabilidad de la aplicación.
@@ -245,3 +246,5 @@ Al agregar nuevas features:
 
 **Mantenido por**: Equipo de Desarrollo  
 **Última actualización**: 30 de noviembre de 2025
+
+````

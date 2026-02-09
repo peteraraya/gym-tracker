@@ -1,3 +1,4 @@
+```markdown
 # Migraciones Pendientes de Supabase
 
 ## ⚠️ IMPORTANTE: Debes ejecutar estas migraciones en Supabase
@@ -43,7 +44,7 @@ Tu app tiene migraciones SQL pendientes que deben ejecutarse en Supabase Dashboa
 3. Ve a **SQL Editor** (menú lateral izquierdo)
 4. Click en **New Query**
 5. Copia y pega el contenido de `supabase/add_duration_tracking.sql`
-6. Click en **Run** (esquina inferior derecha)
+6. Click en **Run**
 
 ---
 
@@ -127,3 +128,5 @@ Después de ejecutar las migraciones, tu app estará lista para:
 - Funcionar en Android/iOS sin problemas
 
 **No olvides ejecutar estas migraciones antes de hacer el build móvil.**
+
+```

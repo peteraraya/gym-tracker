@@ -1,3 +1,4 @@
+```markdown
 Despliegue continuo (CI/CD) — Resumen
 
 Objetivo: desplegar automáticamente a producción cuando se hace `push` a la rama `main`.
@@ -16,3 +17,5 @@ Notas rápidas
 - Para builds que dependan de variables server-side añade también los valores en el dashboard de Vercel.
 
 Si quieres que añada tests, linting o un paso de preview deploy para ramas feature, lo configuro.
+
+```

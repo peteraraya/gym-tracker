@@ -137,7 +137,7 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
               </div>
             </div>
             <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-              {t('lastWeeks', { count: stats.totalWeeks })}
+              {t('lastWeeks').replace('{{count}}', String(stats.totalWeeks))}
             </div>
           </div>
 

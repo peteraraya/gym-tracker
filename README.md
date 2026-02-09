@@ -171,7 +171,7 @@ npm install
 1. En **SQL Editor**, ejecuta `supabase/add_duration_tracking.sql`
 2. Luego ejecuta `supabase/add_session_fields.sql`
 
-📖 **Ver guía completa**: [SUPABASE_MIGRATIONS.md](./SUPABASE_MIGRATIONS.md)
+📖 **Ver guía completa**: [SUPABASE_MIGRATIONS.md](./docs/SUPABASE_MIGRATIONS.md)
 
 Sin estas migraciones, **no podrás guardar sesiones de entrenamiento**.
 
@@ -192,7 +192,7 @@ Para las imágenes de rutinas personalizadas:
 1. Ve a **Storage** en el dashboard
 2. Crea un bucket llamado `routine-images`
 3. Configura como público
-4. Aplica las políticas de acceso (ver `SUPABASE_SETUP.md`)
+4. Aplica las políticas de acceso (ver `docs/SUPABASE_SETUP.md`)
 
 ### 4. Ejecutar la aplicación
 
@@ -339,12 +339,51 @@ Las contribuciones son bienvenidas. Por favor:
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
+
+# 📂 Guía de Migraciones en Supabase
+## 🚨 Importancia de las Migraciones
+Las migraciones son cambios estructurales en la base de datos que permiten agregar nuevas funcionalidades o corregir errores. En este proyecto, las migraciones son críticas para el correcto funcionamiento de la aplicación.
+
+
+## 🔴 Migraciones Pendientes
+1. **Tracking de Duración**: Agrega campos para rastrear duración de series y descansos.
+2. **Campos de Sesión**: Agrega campos para guardar nombre de ejercicio, notas
+3. **Optimización de consultas**: Agrega índices y optimiza consultas para mejorar performance.
+4. **Seguridad**: Agrega políticas de RLS para nuevas columnas y tablas.
+5. **Compatibilidad hacia atrás**: Hace opcionales columnas antiguas para evitar errores en sesiones existentes.
+6. **Integración con nuevas features**: Permite funcionalidades como notas en ejercicios, seguimiento de duración, etc.
+   1. Estas migraciones son bloqueantes para ciertas funcionalidades, como guardar sesiones de entrenamiento. Sin ellas, la app no funcionará correctamente.
+   2. Es fundamental ejecutar estas migraciones antes de usar la app para evitar errores críticos.
+   3. Ver [SUPABASE_MIGRATIONS.md](./docs/SUPABASE_MIGRATIONS.md) para guía detallada de ejecución.
+   4. Si tienes dudas o necesitas ayuda, no dudes en abrir un issue o contactar al autor.
+
+
+# 📂 Guía de Testing
+## ✅ Testing con Jest y React Testing Library
+### Mocking de Datos
+
+```typescript
+import { createMockSession, createMultipleSessions } from '@/__tests__/helpers/mockData';
+
+
+# Crear datos con valores por defecto
+const session = createMockSession()
+
+
+
+// Sobrescribir campos específicos
+const customSession = createMockSession({ 
+  id: 'custom-id',
+  notes: 'My custom notes',
+})
+```
+
 ## 📚 Documentación Adicional
 
-- 📊 **[ANALISIS_Y_MEJORAS.md](./ANALISIS_Y_MEJORAS.md)** - Análisis completo de la aplicación con recomendaciones
-- ✅ **[MEJORAS_IMPLEMENTADAS.md](./MEJORAS_IMPLEMENTADAS.md)** - Resumen de mejoras y correcciones aplicadas
-- 🗄️ **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** - Guía de configuración de Supabase
-- 🔄 **[SUPABASE_MIGRATIONS.md](./SUPABASE_MIGRATIONS.md)** - Guía de ejecución de migraciones
+- 📊 **[ANALISIS_Y_MEJORAS.md](./docs/ANALISIS_Y_MEJORAS.md)** - Análisis completo de la aplicación con recomendaciones
+- ✅ **[MEJORAS_IMPLEMENTADAS.md](./docs/MEJORAS_IMPLEMENTADAS.md)** - Resumen de mejoras y correcciones aplicadas
+- 🗄️ **[SUPABASE_SETUP.md](./docs/SUPABASE_SETUP.md)** - Guía de configuración de Supabase
+- 🔄 **[SUPABASE_MIGRATIONS.md](./docs/SUPABASE_MIGRATIONS.md)** - Guía de ejecución de migraciones
 
 ## 📝 Licencia
 
@@ -369,4 +408,3 @@ Si encuentras algún problema o tienes sugerencias:
 
 ---
 
-**¡Empieza a trackear tus entrenamientos hoy! 💪**

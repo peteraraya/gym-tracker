@@ -14,17 +14,15 @@ interface EquipmentContextType {
 const EquipmentContext = createContext<EquipmentContextType | undefined>(undefined);
 
 export function EquipmentProvider({ children }: { children: React.ReactNode }) {
-  // Inicializar con Set vacío para evitar hydration mismatch entre SSR y cliente
   const [selectedEquipment, setSelectedEquipment] = useState<Set<EquipmentType>>(new Set());
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Cargar de localStorage después del mount (evita hydration mismatch)
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
       const stored = localStorage.getItem('selectedEquipment');
       if (stored) {
         try {
-          const parsed = JSON.parse(stored);
+          const parsed = JSON.parse(stored) as EquipmentType[];
           setSelectedEquipment(new Set(parsed));
         } catch (error) {
           console.error('Error loading equipment:', error);
@@ -34,13 +32,9 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isInitialized]);
 
-  // Guardar en localStorage cuando cambia (solo después de inicializado)
   useEffect(() => {
     if (isInitialized && typeof window !== 'undefined') {
-      localStorage.setItem(
-        'selectedEquipment',
-        JSON.stringify(Array.from(selectedEquipment))
-      );
+      localStorage.setItem('selectedEquipment', JSON.stringify(Array.from(selectedEquipment)));
     }
   }, [selectedEquipment, isInitialized]);
 
@@ -52,12 +46,19 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
       } else {
         newSet.add(equipment);
       }
+      // debug log to trace selection changes
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('[EquipmentContext] toggleEquipment ->', equipment, Array.from(newSet));
+      } catch (e) {
+        // noop
+      }
       return newSet;
     });
   }, []);
 
   const setEquipment = useCallback((equipment: Set<EquipmentType>) => {
-    setSelectedEquipment(equipment);
+    setSelectedEquipment(new Set(equipment));
   }, []);
 
   const clearEquipment = useCallback(() => {
@@ -67,10 +68,8 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
   const hasEquipment = useCallback((equipment: string | undefined): boolean => {
     if (!equipment || selectedEquipment.size === 0) return true;
 
-    // Normalizar el string del equipamiento para comparación
     const normalizedEquipment = equipment.toLowerCase();
 
-    // Mapeo de variaciones de nombres a IDs
     const equipmentMap: Record<string, EquipmentType[]> = {
       'barra': ['barra', 'ez-bar'],
       'mancuernas': ['mancuernas'],
@@ -92,14 +91,12 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
       'landmine': ['landmine'],
     };
 
-    // Verificar si alguna de las palabras clave coincide
     for (const [keyword, equipmentIds] of Object.entries(equipmentMap)) {
       if (normalizedEquipment.includes(keyword)) {
         return equipmentIds.some(id => selectedEquipment.has(id));
       }
     }
 
-    // Si no hay coincidencia específica, permitir el ejercicio
     return true;
   }, [selectedEquipment]);
 
@@ -112,9 +109,7 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
   }), [selectedEquipment, toggleEquipment, setEquipment, clearEquipment, hasEquipment]);
 
   return (
-    <EquipmentContext.Provider value={value}>
-      {children}
-    </EquipmentContext.Provider>
+    <EquipmentContext.Provider value={value}>{children}</EquipmentContext.Provider>
   );
 }
 
