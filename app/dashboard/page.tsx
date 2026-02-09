@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from '@/context/LocaleContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatsCard } from '@/components/StatsCard';
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
+  const t = useTranslations('dashboard');
 
   useEffect(() => {
     loadData();
@@ -186,7 +188,7 @@ export default function DashboardPage() {
           
           // Si aún no tenemos nombre, usar un fallback descriptivo
           if (!exerciseName) {
-            exerciseName = 'Ejercicio sin nombre';
+            exerciseName = t('unnamedExercise');
           }
           
           exerciseCounts[exerciseName] = (exerciseCounts[exerciseName] || 0) + 1;
@@ -194,7 +196,7 @@ export default function DashboardPage() {
       });
 
       const entries = Object.entries(exerciseCounts);
-      if (entries.length === 0) return 'N/A';
+      if (entries.length === 0) return t('notApplicable');
       
       return entries.sort((a, b) => b[1] - a[1])[0][0];
     })()
@@ -208,7 +210,7 @@ export default function DashboardPage() {
     return (
       <div className="p-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="text-zinc-500 dark:text-zinc-400">Cargando estadísticas...</div>
+          <div className="text-zinc-500 dark:text-zinc-400">{t('loadingStats')}</div>
         </div>
       </div>
     );
@@ -220,10 +222,10 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Panel de Control
+            {t('pageTitle')}
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-            Resumen de tu progreso y estadísticas
+            {t('pageDescription')}
           </p>
         </div>
         {profile && (
@@ -231,11 +233,11 @@ export default function DashboardPage() {
             <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <div className="text-sm">
               <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {profile.fitnessGoal === 'muscle_gain' && 'Ganancia Muscular'}
-                {profile.fitnessGoal === 'strength' && 'Fuerza'}
-                {profile.fitnessGoal === 'weight_loss' && 'Pérdida de Peso'}
-                {profile.fitnessGoal === 'endurance' && 'Resistencia'}
-                {profile.fitnessGoal === 'general_fitness' && 'Fitness General'}
+                {profile.fitnessGoal === 'muscle_gain' && t('fitnessGoals.muscle_gain')}
+                {profile.fitnessGoal === 'strength' && t('fitnessGoals.strength')}
+                {profile.fitnessGoal === 'weight_loss' && t('fitnessGoals.weight_loss')}
+                {profile.fitnessGoal === 'endurance' && t('fitnessGoals.endurance')}
+                {profile.fitnessGoal === 'general_fitness' && t('fitnessGoals.general_fitness')}
               </p>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 capitalize">
                 {profile.fitnessLevel}
@@ -248,33 +250,33 @@ export default function DashboardPage() {
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="Total de Sesiones"
+          title={t('statsCards.totalSessions')}
           value={stats.totalSessions.toString()}
           icon={<Calendar className="w-6 h-6" />}
           gradient="from-blue-500 to-blue-600"
         />
         
         <StatsCard
-          title="Volumen Total"
-          value={`${stats.totalVolume.toLocaleString()} kg`}
+          title={t('statsCards.totalVolume')}
+          value={`${stats.totalVolume.toLocaleString()} ${t('units.kg')}`}
           icon={<Dumbbell className="w-6 h-6" />}
           gradient="from-purple-500 to-purple-600"
           trend={volumeTrend !== 0 ? {
             value: Math.abs(volumeTrend),
             isPositive: volumeTrend > 0
           } : undefined}
-          subtitle={volumeTrend !== 0 ? "vs mes anterior" : undefined}
+          subtitle={volumeTrend !== 0 ? t('statsCards.vsLastMonth') : undefined}
         />
         
         <StatsCard
-          title="Racha Actual"
-          value={`${stats.currentStreak} días`}
+          title={t('statsCards.currentStreak')}
+          value={`${stats.currentStreak} ${t('statsCards.days')}`}
           icon={<Flame className="w-6 h-6" />}
           gradient="from-orange-500 to-red-600"
         />
         
         <StatsCard
-          title="Sets Completados"
+          title={t('statsCards.totalSets')}
           value={stats.totalSets.toString()}
           icon={<Activity className="w-6 h-6" />}
           gradient="from-emerald-500 to-emerald-600"
@@ -284,21 +286,21 @@ export default function DashboardPage() {
       {/* Volume Chart */}
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Gráfica de Volumen</h2>
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{t('charts.volumeChartTitle')}</h2>
         <div className="ml-auto flex gap-2">
           <Button
             variant={period === 'week' ? 'primary' : 'secondary'}
             onClick={() => setPeriod('week')}
             className="text-sm"
           >
-            Semana
+            {t('charts.week')}
           </Button>
           <Button
             variant={period === 'month' ? 'primary' : 'secondary'}
             onClick={() => setPeriod('month')}
             className="text-sm"
           >
-            Mes
+            {t('charts.month')}
           </Button>
         </div>
       </div>
@@ -308,7 +310,7 @@ export default function DashboardPage() {
       <div>
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Actividad de Entrenamiento</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{t('charts.activityHeatmapTitle')}</h2>
         </div>
         <ActivityHeatmap sessions={sessions} />
       </div>
@@ -319,7 +321,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Award className="w-5 h-5 text-yellow-600" />
-              Ejercicio Favorito
+              {t('additionalStats.favoriteExercise')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -327,7 +329,7 @@ export default function DashboardPage() {
               {stats.favoriteExercise}
             </p>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-              El ejercicio que más has realizado
+              {t('additionalStats.mostPerformedExercise')}
             </p>
           </CardContent>
         </Card>
@@ -336,19 +338,19 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-600" />
-              Volumen Este Mes
+              {t('additionalStats.thisMonthVolume')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              {stats.thisMonthVolume.toLocaleString()} kg
+              {stats.thisMonthVolume.toLocaleString()} {t('units.kg')}
             </p>
             {stats.lastMonthVolume > 0 && (
               <div className={`flex items-center gap-1 mt-1 text-sm ${
                 volumeTrend > 0 ? 'text-emerald-600' : volumeTrend < 0 ? 'text-red-600' : 'text-zinc-600'
               }`}>
                 {volumeTrend > 0 ? '↗' : volumeTrend < 0 ? '↘' : '→'}
-                <span>{Math.abs(volumeTrend).toFixed(1)}% vs mes anterior</span>
+                <span>{Math.abs(volumeTrend).toFixed(1)}% {t('additionalStats.vsLastMonthShort')}</span>
               </div>
             )}
           </CardContent>
@@ -365,10 +367,10 @@ export default function DashboardPage() {
                 <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 <div>
                   <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                    Logros Recientes
+                    {t('achievements.recentAchievementsTitle')}
                   </h2>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Tus últimos desbloqueos
+                    {t('achievements.recentAchievementsDescription')}
                   </p>
                 </div>
               </div>
@@ -377,7 +379,7 @@ export default function DashboardPage() {
                 onClick={() => router.push('/achievements')}
                 className="text-sm"
               >
-                Ver Todos
+                {t('achievements.viewAll')}
               </Button>
             </div>
 
@@ -391,7 +393,7 @@ export default function DashboardPage() {
                 if (recentAchievements.length === 0) {
                   return (
                     <div className="text-center w-full py-8 text-zinc-600 dark:text-zinc-400">
-                      <p className="text-sm">¡Sigue entrenando para desbloquear logros!</p>
+                      <p className="text-sm">{t('achievements.noAchievements')}</p>
                     </div>
                   );
                 }
@@ -418,20 +420,20 @@ export default function DashboardPage() {
                 <div className="mt-6 pt-6 border-t border-amber-200 dark:border-zinc-700">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Racha Actual</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">{t('achievements.currentStreak')}</p>
                       <div className="flex items-center justify-center gap-2">
                         <Flame className="w-5 h-5 text-orange-500" />
                         <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                          {streak.current} días
+                          {streak.current} {t('statsCards.days')}
                         </p>
                       </div>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Racha Máxima</p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">{t('achievements.longestStreak')}</p>
                       <div className="flex items-center justify-center gap-2">
                         <Award className="w-5 h-5 text-amber-600" />
                         <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                          {streak.longest} días
+                          {streak.longest} {t('statsCards.days')}
                         </p>
                       </div>
                     </div>
@@ -464,10 +466,10 @@ export default function DashboardPage() {
           <CardContent className="py-8 text-center">
             <Dumbbell className="w-16 h-16 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
             <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              ¡Comienza tu viaje fitness!
+              {t('quickActions.startFitnessJourneyTitle')}
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              Aún no has registrado ninguna sesión de entrenamiento. Comienza hoy mismo.
+              {t('quickActions.startFitnessJourneyDescription')}
             </p>
             <Button
               variant="gradient"
@@ -475,7 +477,7 @@ export default function DashboardPage() {
               className="gap-2"
             >
               <Award className="w-4 h-4" />
-              Ver Rutinas
+              {t('quickActions.viewRoutines')}
             </Button>
           </CardContent>
         </Card>

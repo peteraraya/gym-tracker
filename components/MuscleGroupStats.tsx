@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE, MuscleGroup } from '@/data/exercises';
 import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface MuscleGroupStatsProps {
   sessions: WorkoutSession[];
@@ -29,6 +30,9 @@ const MUSCLE_GROUP_COLORS: Record<MuscleGroup, string> = {
 };
 
 export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) => {
+  const t = useTranslations('dashboard.muscleGroupStats');
+  const tMuscles = useTranslations('muscleGroups');
+  const tDashboard = useTranslations('dashboard');
   // Calcular estadísticas por grupo muscular
   const muscleStats = React.useMemo(() => {
     const stats = new Map<MuscleGroup, MuscleGroupData>();
@@ -77,11 +81,11 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
     return (
       <Card>
         <CardHeader>
-          <CardTitle>📊 Volumen por Grupo Muscular</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-            No hay datos disponibles. Completa algunos entrenamientos para ver tus estadísticas.
+            {t('noData')}
           </p>
         </CardContent>
       </Card>
@@ -91,7 +95,7 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>📊 Volumen por Grupo Muscular</CardTitle>
+        <CardTitle>{t('title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -107,14 +111,14 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
                       size={24}
                     />
                     <span className="font-semibold capitalize text-gray-900 dark:text-gray-100">
-                      {stat.muscleGroup}
+                      {tMuscles(stat.muscleGroup)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
-                    <span>{stat.exercises.size} ejercicios</span>
-                    <span>{stat.sets} series</span>
-                    <span className="font-bold text-gray-900 dark:text-gray-100">
-                      {stat.volume.toLocaleString()} kg
+                    <span>{stat.exercises.size} {t('exercises')}</span>
+                    <span>{stat.sets} {t('sets')}</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">
+                      {stat.volume.toLocaleString()} {tDashboard('units.kg')}
                     </span>
                   </div>
                 </div>
@@ -145,19 +149,19 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {muscleStats.reduce((sum, s) => sum + s.volume, 0).toLocaleString()}
               </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">kg Total</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">{t('kgTotal')}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {muscleStats.reduce((sum, s) => sum + s.sets, 0)}
               </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Series Totales</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">{t('totalSets')}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {muscleStats.length}
               </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Grupos Trabajados</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">{t('groupsWorked')}</div>
             </div>
           </div>
         </div>

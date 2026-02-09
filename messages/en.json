@@ -90,7 +90,40 @@
     "startRoutine": "Start",
     "editRoutine": "Edit",
     "deleteRoutine": "Delete",
-    "confirmDelete": "Are you sure you want to delete this routine?"
+    "confirmDelete": "Are you sure you want to delete this routine?",
+    "exercisesLabel": "Exercises:",
+    "previewLabel": "Preview:",
+    "more": "more",
+    "continueWorkout": "Continue Workout",
+    "startWorkout": "Start Workout",
+    "edit": "Edit",
+    "delete": "Delete",
+    "modal": {
+      "newTitle": "New Routine",
+      "editTitle": "Edit Routine"
+    },
+    "confirmDelete": {
+      "title": "Delete routine",
+      "message": "Are you sure you want to delete this routine?",
+      "confirmText": "Delete",
+      "cancelText": "Cancel"
+    },
+    "confirmActive": {
+      "title": "Active workout",
+      "message": "You already have an active workout. Do you want to cancel it and start a new one?",
+      "confirmText": "Start new",
+      "cancelText": "Cancel"
+    },
+    "toast": {
+      "deleteSuccess": "Routine deleted successfully",
+      "deleteError": "Error deleting routine"
+    }
+    ,
+    "empty": {
+      "title": "No routines yet",
+      "description": "Create your first routine to start training",
+      "createButton": "Create Routine"
+    }
   },
   "routineForm": {
     "newRoutine": "New Routine",
@@ -115,6 +148,25 @@
     "exerciseName": "Exercise name",
     "createRoutineBtn": "Create Routine",
     "updateRoutineBtn": "Update Routine"
+    ,
+    "imageLabel": "Image (optional)",
+    "imageUploadClick": "Click to upload an image",
+    "imageFormats": "JPG, PNG or GIF",
+    "equipmentLabel": "Equipment",
+    "equipmentPlaceholder": "Select equipment (optional)",
+    "copySetTitle": "Copy set",
+    "removeSetTitle": "Remove set",
+    "addSet": "Add set",
+    "selectExercisesTitle": "Select Exercises",
+    "saving": "⏳ Saving..."
+    ,
+    "createSuccess": "Routine created successfully",
+    "updateSuccess": "Routine updated successfully",
+    "saveError": "Error saving routine. Please try again."
+    ,
+    "imagePreviewAlt": "Preview"
+    ,
+    "removeExercise": "Remove"
   },
   "exerciseSelector": {
     "title": "Select a muscle group",
@@ -242,5 +294,238 @@
     "readyFor": "Ready for {0}",
     "cheer": "Let's go! 💪",
     "nextLabel": "Next"
+  },
+  "dashboard": {
+    "loadingStats": "Loading stats...",
+    "pageTitle": "Dashboard",
+    "pageDescription": "Summary of your progress and statistics",
+    "fitnessGoals": {
+      "muscle_gain": "Muscle Gain",
+      "strength": "Strength",
+      "weight_loss": "Weight Loss",
+      "endurance": "Endurance",
+      "general_fitness": "General Fitness"
+    },
+    "statsCards": {
+      "totalSessions": "Total Sessions",
+      "totalVolume": "Total Volume",
+      "vsLastMonth": "vs last month",
+      "currentStreak": "Current Streak",
+      "days": "days",
+      "totalSets": "Sets Completed"
+    },
+    "charts": {
+      "volumeChartTitle": "Volume Chart",
+      "week": "Week",
+      "month": "Month",
+      "activityHeatmapTitle": "Training Activity"
+    },
+    "additionalStats": {
+      "favoriteExercise": "Favorite Exercise",
+      "mostPerformedExercise": "The exercise you've performed the most",
+      "thisMonthVolume": "This Month's Volume",
+      "vsLastMonthShort": "% vs last month"
+    },
+    "achievements": {
+      "recentAchievementsTitle": "Recent Achievements",
+      "recentAchievementsDescription": "Your latest unlocks",
+      "viewAll": "View All",
+      "noAchievements": "Keep training to unlock achievements!",
+      "currentStreak": "Current Streak",
+      "longestStreak": "Longest Streak"
+    },
+    "quickActions": {
+      "startFitnessJourneyTitle": "Start your fitness journey!",
+      "startFitnessJourneyDescription": "You haven't logged any workout sessions yet. Start today.",
+      "viewRoutines": "View Routines"
+    },
+    "unnamedExercise": "Unnamed Exercise",
+    "notApplicable": "N/A",
+    "units": {
+      "kg": "kg"
+    },
+    "volumeChart": {
+      "title": "Training Volume",
+      "lastWeek": "Last Week",
+      "lastMonth": "Last Month",
+      "average": "Average",
+      "total": "Total",
+      "sessions": "Sessions",
+      "days": "days",
+      "kgPerDay": "kg/day",
+      "volume": "Volume",
+      "tooltipVolume": "Volume",
+      "tooltipSessions": "Sessions"
+    },
+    "activityHeatmap": {
+      "title": "Training Activity",
+      "currentStreak": "Current streak:",
+      "activeDays": "Active days:",
+      "sessionsPlural": "sessions",
+      "sessionSingular": "session",
+      "less": "Less",
+      "more": "More"
+    },
+    "muscleGroupStats": {
+      "title": "Volume by Muscle Group",
+      "noData": "No data available. Complete some workouts to see your stats.",
+      "exercises": "exercises",
+      "sets": "sets",
+      "kgTotal": "kg Total",
+      "totalSets": "Total Sets",
+      "groupsWorked": "Muscle Groups Worked"
+    },
+    "personalRecords": {
+      "title": "Personal Records (PR)",
+      "noRecords": "No records yet. Complete workouts to set your PRs!",
+      "rmDefinition": "💡 1RM (One Rep Max): Is the maximum weight you could lift for a single repetition. It's estimated using the Epley formula based on your best sets.",
+      "rmShort": "1RM"
+    },
+    "trainingFrequency": {
+      "title": "Training Frequency",
+      "thisWeek": "This Week",
+      "sessionsPlural": "sessions",
+      "vsLastWeek": "vs last week",
+      "lastWeek": "Last Week",
+      "weeklyAverage": "Weekly Average",
+      "lastWeeks": "last {{count}} weeks",
+      "monthlyAverage": "Monthly Average",
+      "favoriteDay": "Your favorite day to train",
+      "tipTitle": "Tip:",
+      "tipText": "For best results, try to train at least 3-4 times a week.",
+      "excellentTitle": "Excellent!",
+      "excellentText": "You maintain a very good training frequency. Keep it up!",
+      "daysOfWeek": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      }
+    },
+    "strengthProgression": {
+      "title": "Strength Progression",
+      "title1RM": "Strength Progression (Estimated 1RM)",
+      "noData": "No progression data. Complete some workouts first.",
+      "selectExercise": "Select an exercise",
+      "initial": "Initial",
+      "current": "Current",
+      "max": "Max",
+      "progress": "Progress",
+      "rmDefinition": "1RM (One Rep Max): Is the maximum weight you could lift for a single repetition. It's estimated using the Epley formula based on your best sets."
+    },
+    "progressDashboard": {
+      "exerciseProgress": {
+        "noData": "No sufficient data for",
+        "improving": "Improving",
+        "decreasing": "Decreasing",
+        "stable": "Stable",
+        "bestVolume": "Best Volume",
+        "totalVolume": "Total Volume",
+        "sessions": "Sessions",
+        "improvement": "Improvement",
+        "personalRecord": "Personal record:",
+        "reps": "reps"
+      },
+      "title": "Progress by Exercise",
+      "noSessions": "Complete some sessions to see your progress",
+      "noExercises": "No exercises recorded",
+      "tipTitle": "Tip:",
+      "tipText": "Progress is calculated by comparing the total volume (weight × repetitions) of your first 3 sessions with the last 3 sessions of each exercise."
+    }
+    
+  },
+  "volumeChart": {
+    "title": "Training Volume",
+    "lastWeek": "Last Week",
+    "lastMonth": "Last Month",
+    "average": "Average",
+    "total": "Total",
+    "sessions": "Sessions",
+    "days": "days",
+    "kgPerDay": "kg/day",
+    "volume": "Volume",
+    "tooltipVolume": "Volume",
+    "tooltipSessions": "Sessions"
+  },
+  "activityHeatmap": {
+    "title": "Training Activity",
+    "currentStreak": "Current streak:",
+    "activeDays": "Active days:",
+    "sessionsPlural": "sessions",
+    "sessionSingular": "session",
+    "less": "Less",
+    "more": "More"
+  },
+  "muscleGroupStats": {
+    "title": "Volume by Muscle Group",
+    "noData": "No data available. Complete some workouts to see your stats.",
+    "exercises": "exercises",
+    "sets": "sets",
+    "kgTotal": "kg Total",
+    "totalSets": "Total Sets",
+    "groupsWorked": "Muscle Groups Worked"
+  },
+  "personalRecords": {
+    "title": "Personal Records (PR)",
+    "noRecords": "No records yet. Complete workouts to set your PRs!",
+    "rmDefinition": "💡 1RM (One Rep Max): Is the maximum weight you could lift for a single repetition. It's estimated using the Epley formula based on your best sets.",
+    "rmShort": "1RM"
+  },
+  "trainingFrequency": {
+    "title": "Training Frequency",
+    "thisWeek": "This Week",
+    "sessionsPlural": "sessions",
+    "vsLastWeek": "vs last week",
+    "lastWeek": "Last Week",
+    "weeklyAverage": "Weekly Average",
+    "lastWeeks": "last {{count}} weeks",
+    "monthlyAverage": "Monthly Average",
+    "favoriteDay": "Your favorite day to train",
+    "tipTitle": "Tip:",
+    "tipText": "For best results, try to train at least 3-4 times a week.",
+    "excellentTitle": "Excellent!",
+    "excellentText": "You maintain a very good training frequency. Keep it up!",
+    "daysOfWeek": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    }
+  },
+  "strengthProgression": {
+    "title": "Strength Progression",
+    "title1RM": "Strength Progression (Estimated 1RM)",
+    "noData": "No progression data. Complete some workouts first.",
+    "selectExercise": "Select an exercise",
+    "initial": "Initial",
+    "current": "Current",
+    "max": "Max",
+    "progress": "Progress",
+    "rmDefinition": "1RM (One Rep Max): Is the maximum weight you could lift for a single repetition. It's estimated using the Epley formula based on your best sets."
+  },
+  "progressDashboard": {
+    "exerciseProgress": {
+      "noData": "No sufficient data for",
+      "improving": "Improving",
+      "decreasing": "Decreasing",
+      "stable": "Stable",
+      "bestVolume": "Best Volume",
+      "totalVolume": "Total Volume",
+      "sessions": "Sessions",
+      "improvement": "Improvement",
+      "personalRecord": "Personal record:",
+      "reps": "reps"
+    },
+    "title": "Progress by Exercise",
+    "noSessions": "Complete some sessions to see your progress",
+    "noExercises": "No exercises recorded",
+    "tipTitle": "Tip:",
+    "tipText": "Progress is calculated by comparing the total volume (weight × repetitions) of your first 3 sessions with the last 3 sessions of each exercise."
   }
 }

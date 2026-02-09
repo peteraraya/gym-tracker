@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import type { WorkoutSession } from '@/types';
 import { calculateExerciseProgress } from '@/lib/personalRecords';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface ExerciseProgressProps {
   sessions: WorkoutSession[];
@@ -12,6 +13,9 @@ interface ExerciseProgressProps {
 }
 
 export function ExerciseProgress({ sessions, exerciseName }: ExerciseProgressProps) {
+  const t = useTranslations('dashboard.progressDashboard.exerciseProgress');
+  const tDashboard = useTranslations('dashboard');
+
   const progress = useMemo(
     () => calculateExerciseProgress(sessions, exerciseName),
     [sessions, exerciseName]
@@ -21,7 +25,7 @@ export function ExerciseProgress({ sessions, exerciseName }: ExerciseProgressPro
     return (
       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          No hay datos suficientes para {exerciseName}
+          {t('noData')} {exerciseName}
         </p>
       </div>
     );
@@ -49,35 +53,35 @@ export function ExerciseProgress({ sessions, exerciseName }: ExerciseProgressPro
         <div className="flex items-center gap-2">
           {getTrendIcon()}
           <span className={`text-sm font-medium capitalize ${getTrendColor()}`}>
-            {progress.trend === 'up' ? 'Mejorando' : progress.trend === 'down' ? 'Bajando' : 'Estable'}
+            {progress.trend === 'up' ? t('improving') : progress.trend === 'down' ? t('decreasing') : t('stable')}
           </span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Mejor Volumen</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('bestVolume')}</p>
           <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            {(progress.personalRecord.maxWeight * progress.personalRecord.reps).toLocaleString()} kg
+            {(progress.personalRecord.maxWeight * progress.personalRecord.reps).toLocaleString()} {tDashboard('units.kg')}
           </p>
         </div>
 
         <div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Volumen Total</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('totalVolume')}</p>
           <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            {progress.totalVolume.toLocaleString()} kg
+            {progress.totalVolume.toLocaleString()} {tDashboard('units.kg')}
           </p>
         </div>
 
         <div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Sesiones</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('sessions')}</p>
           <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {progress.sessions}
           </p>
         </div>
 
         <div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Mejora</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('improvement')}</p>
           <p className={`text-lg font-bold ${getTrendColor()}`}>
             {progress.improvement > 0 ? '+' : ''}
             {progress.improvement.toFixed(1)}%
@@ -87,8 +91,8 @@ export function ExerciseProgress({ sessions, exerciseName }: ExerciseProgressPro
 
       <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800">
         <p className="text-xs text-gray-600 dark:text-gray-400">
-          Récord personal: <span className="font-semibold text-gray-900 dark:text-gray-100">
-            {progress.personalRecord.maxWeight} kg × {progress.personalRecord.reps} reps
+          {t('personalRecord')} <span className="font-semibold text-gray-900 dark:text-gray-100">
+            {progress.personalRecord.maxWeight} {tDashboard('units.kg')} × {progress.personalRecord.reps} {t('reps')}
           </span>
         </p>
       </div>
@@ -101,6 +105,7 @@ interface ProgressDashboardProps {
 }
 
 export function ProgressDashboard({ sessions }: ProgressDashboardProps) {
+  const t = useTranslations('dashboard.progressDashboard');
   // Obtener ejercicios únicos de las sesiones
   const uniqueExercises = useMemo(() => {
     const exerciseSet = new Set<string>();
@@ -119,12 +124,12 @@ export function ProgressDashboard({ sessions }: ProgressDashboardProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Progreso por Ejercicio</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <p className="text-gray-600 dark:text-gray-400">
-              Completa algunas sesiones para ver tu progreso
+              {t('noSessions')}
             </p>
           </div>
         </CardContent>
@@ -137,14 +142,14 @@ export function ProgressDashboard({ sessions }: ProgressDashboardProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />
-          Progreso por Ejercicio
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {uniqueExercises.length === 0 ? (
             <p className="text-center text-gray-600 dark:text-gray-400 py-4">
-              No hay ejercicios registrados
+              {t('noExercises')}
             </p>
           ) : (
             uniqueExercises.map(exerciseName => (
@@ -160,8 +165,7 @@ export function ProgressDashboard({ sessions }: ProgressDashboardProps) {
         {uniqueExercises.length > 0 && (
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              💡 <strong>Tip:</strong> El progreso se calcula comparando el volumen total 
-              (peso × repeticiones) de tus primeras 3 sesiones con las últimas 3 sesiones de cada ejercicio.
+              💡 <strong>{t('tipTitle')}</strong> {t('tipText')}
             </p>
           </div>
         )}

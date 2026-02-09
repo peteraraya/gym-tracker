@@ -168,11 +168,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           restBetweenExercises,
         });
       }
-      success(routineId ? 'Rutina actualizada exitosamente' : 'Rutina creada exitosamente');
+      success(routineId ? t('updateSuccess') : t('createSuccess'));
       onClose();
     } catch (err) {
       console.error('Error saving routine:', err);
-      error('Error al guardar la rutina. Por favor intenta de nuevo.');
+      error(t('saveError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -194,35 +194,36 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   };
 
   const t = useTranslations('routineForm');
+  const tc = useTranslations('common');
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Input
-        label={t ? t('routineName') : 'Nombre de la rutina'}
+        label={t('routineName')}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder={t ? t('routineNamePlaceholder') : 'Ej: Rutina de piernas'}
+        placeholder={t('routineNamePlaceholder')}
         required
       />
 
       <TextArea
-        label={t ? t('description') : 'Descripción (opcional)'}
+        label={t('description')}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder={t ? t('descriptionPlaceholder') : 'Describe tu rutina...'}
+        placeholder={t('descriptionPlaceholder')}
         rows={3}
       />
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Imagen (opcional)
+          {t('imageLabel')}
         </label>
         {image ? (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={image} 
-              alt="Vista previa" 
+              alt={t('imagePreviewAlt')}
               className="w-full h-48 object-cover rounded-lg"
             />
             <button
@@ -247,8 +248,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               className="cursor-pointer flex flex-col items-center"
             >
               <span className="text-4xl mb-2">📷</span>
-              <span className="text-gray-600 dark:text-gray-400">Haz clic para subir una imagen</span>
-              <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">JPG, PNG o GIF</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('imageUploadClick')}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('imageFormats')}</span>
             </label>
           </div>
         )}
@@ -258,27 +259,27 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         <div>
           <Input
             type="number"
-            label="Descanso entre series (segundos)"
+            label={t('restBetweenSets')}
             value={restBetweenSets}
             onChange={(e) => setRestBetweenSets(parseInt(e.target.value) || 0)}
             min="0"
             step="5"
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            ⏱️ {Math.floor(restBetweenSets / 60)}:{(restBetweenSets % 60).toString().padStart(2, '0')} minutos
+            ⏱️ {Math.floor(restBetweenSets / 60)}:{(restBetweenSets % 60).toString().padStart(2, '0')} {t('minutes')}
           </p>
         </div>
         <div>
           <Input
             type="number"
-            label="Descanso entre ejercicios (segundos)"
+            label={t('restBetweenExercises')}
             value={restBetweenExercises}
             onChange={(e) => setRestBetweenExercises(parseInt(e.target.value) || 0)}
             min="0"
             step="5"
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            ⏱️ {Math.floor(restBetweenExercises / 60)}:{(restBetweenExercises % 60).toString().padStart(2, '0')} minutos
+            ⏱️ {Math.floor(restBetweenExercises / 60)}:{(restBetweenExercises % 60).toString().padStart(2, '0')} {t('minutes')}
           </p>
         </div>
       </div>
@@ -286,27 +287,27 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Ejercicios
+            {t('exercisesTitle')}
           </h3>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" size="sm" onClick={handleAddExercise}>
-              ➕ Desde biblioteca
+              ➕ {t('fromLibrary')}
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={handleAddCustomExercise}>
-              ✏️ Manual
+              ✏️ {t('manual')}
             </Button>
           </div>
         </div>
 
         {exercises.length === 0 && (
-          <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              No hay ejercicios agregados
-            </p>
-            <Button type="button" variant="primary" size="sm" onClick={handleAddExercise}>
-              Agregar primer ejercicio
-            </Button>
-          </div>
+            <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {t('noExercises')}
+              </p>
+              <Button type="button" variant="primary" size="sm" onClick={handleAddExercise}>
+                {t('addFirstExercise')}
+              </Button>
+            </div>
         )}
 
         <div className="space-y-4">
@@ -317,7 +318,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Ejercicio {exerciseIndex + 1}
+                  {t('exercise')} {exerciseIndex + 1}
                 </span>
                 {exercises.length > 1 && (
                   <button
@@ -325,13 +326,13 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     onClick={() => handleRemoveExercise(exerciseIndex)}
                     className="text-red-600 hover:text-red-700 text-sm"
                   >
-                    ❌ Eliminar
+                    ❌ {t('removeExercise')}
                   </button>
                 )}
               </div>
 
               <Input
-                placeholder="Nombre del ejercicio"
+                placeholder={t('exerciseName')}
                 value={exercise.name}
                 onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
                 required
@@ -339,18 +340,18 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Equipamiento
+                  {t('equipmentLabel')}
                 </label>
                 <EquipmentDropdown
                   value={exercise.equipment || ''}
                   onChange={(value) => handleExerciseChange(exerciseIndex, 'equipment', value)}
-                  placeholder="Seleccionar equipamiento (opcional)"
+                  placeholder={t('equipmentPlaceholder')}
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Series
+                  {t('sets')}
                 </label>
                 {exercise.sets.map((set, setIndex) => (
                   <div key={setIndex} className="flex items-center gap-2">
@@ -359,7 +360,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     </span>
                     <Input
                       type="number"
-                      placeholder="Reps"
+                      placeholder={t('reps')}
                       value={set.reps}
                       onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value) || 0)}
                       min="1"
@@ -368,7 +369,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     />
                     <Input
                       type="number"
-                      placeholder="Peso (kg)"
+                      placeholder={t('weight')}
                       value={set.weight || ''}
                       onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
                       min="0"
@@ -380,7 +381,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                         type="button"
                         onClick={() => handleCopySet(exerciseIndex, setIndex)}
                         className="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                        title="Copiar serie"
+                        title={t('copySetTitle')}
                       >
                         📋
                       </button>
@@ -389,7 +390,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                           type="button"
                           onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
                           className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                          title="Eliminar serie"
+                          title={t('removeSetTitle')}
                         >
                           🗑️
                         </button>
@@ -404,12 +405,12 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                   onClick={() => handleAddSet(exerciseIndex)}
                   className="w-full"
                 >
-                  ➕ Añadir serie
+                  ➕ {t('addSet')}
                 </Button>
               </div>
 
               <Input
-                placeholder="Notas (opcional)"
+                placeholder={t('notes')}
                 value={exercise.notes || ''}
                 onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
               />
@@ -420,7 +421,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
       <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
         <Button type="button" variant="ghost" onClick={onClose} className="flex-1" disabled={isSubmitting}>
-          Cancelar
+          {tc('cancel')}
         </Button>
         <Button 
           type="submit" 
@@ -428,14 +429,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           className="flex-1" 
           disabled={exercises.length === 0 || isSubmitting}
         >
-          {isSubmitting ? '⏳ Guardando...' : routineId ? 'Actualizar Rutina' : 'Crear Rutina'}
+          {isSubmitting ? t('saving') : routineId ? t('updateRoutineBtn') : t('createRoutineBtn')}
         </Button>
       </div>
 
       <Modal
         isOpen={isExerciseSelectorOpen}
         onClose={() => setIsExerciseSelectorOpen(false)}
-        title="Seleccionar Ejercicios"
+        title={t('selectExercisesTitle')}
       >
         <ExerciseSelector
           onSelectExercises={handleSelectExercises}
