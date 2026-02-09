@@ -91,20 +91,32 @@ export default function AuthPage() {
                 if (isLogin) {
                   const { error } = await signIn(values.email, values.password);
                   if (error) {
-                    setStatus?.({ error: error.message });
-                    toastError(error.message);
+                    // Map common Supabase auth messages to translated, user-friendly text
+                    const raw = (error as any)?.message || '';
+                    const isInvalid = /invalid login credentials|invalid_credentials|Invalid login credentials/i.test(raw);
+                    const message = isInvalid ? (t('invalidCredentials') || 'Invalid login credentials') : (t('signInError') || 'Error signing in. Please try again.');
+                    setStatus?.({ error: message });
+                    toastError(message);
                   }
                 } else {
                   const { error } = await signUp(values.email, values.password);
-                  if (error) setStatus?.({ error: error.message });
-                  else {
+                  if (error) {
+                    const raw = (error as any)?.message || '';
+                    const message = /already exists|duplicate|already registered/i.test(raw)
+                      ? (t('accountCreated') || 'Account created! Check your email to confirm your account.')
+                      : ((error as any)?.message || t('signInError'));
+                    setStatus?.({ error: message });
+                    toastError(message as string);
+                  } else {
                     const msg = t('accountCreated');
                     setStatus?.({ success: msg });
                     success(msg);
                   }
                 }
               } catch {
-                setStatus?.({ error: '⚠️ Error de conexión. Verifica la configuración.' });
+                const msg = '⚠️ Error de conexión. Verifica la configuración.';
+                setStatus?.({ error: msg });
+                toastError(msg);
               } finally {
                 setSubmitting(false);
               }
@@ -134,12 +146,7 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                {status?.error && (
-                  <div className="p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">{status.error}</div>
-                )}
-                {status?.success && (
-                  <div className="p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">{status.success}</div>
-                )}
+                {/* Errors/success are shown via toasts; inline status hidden to avoid duplication */}
                 
 
                 <div className="flex flex-col gap-3 items-center">

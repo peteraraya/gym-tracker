@@ -47,6 +47,8 @@
   "auth": {
     "signIn": "Iniciar Sesión",
     "signUp": "Crear Cuenta",
+    "invalidCredentials": "Credenciales inválidas",
+    "signInError": "Error al iniciar sesión. Intenta de nuevo.",
     "emailInvalid": "Email inválido",
     "required": "Requerido",
     "passwordsNoMatch": "Las contraseñas no coinciden",

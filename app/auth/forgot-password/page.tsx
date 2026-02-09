@@ -71,8 +71,7 @@ export default function ForgotPasswordPage() {
                     ? (t('emailRateLimit') || 'Se ha excedido el límite de envío de correos. Intenta de nuevo más tarde.')
                     : ((error as any)?.message || t('sendResetError') || 'Error al enviar el enlace. Intenta nuevamente más tarde.');
                   setStatus?.({ error: message });
-                  // also show toast for errors
-                  toastError(message);
+                  toastError(message as string);
                 } else {
                   const msg = t('checkYourEmail') || 'Revisa tu correo para continuar con la recuperación.';
                   setStatus?.({ success: msg });
@@ -87,7 +86,9 @@ export default function ForgotPasswordPage() {
                   } catch {}
                 }
               } catch (err) {
-                setStatus?.({ error: t('sendResetError') || 'Error de conexión. Intenta nuevamente.' });
+                const msg = t('sendResetError') || 'Error de conexión. Intenta nuevamente.';
+                setStatus?.({ error: msg });
+                toastError(msg);
               } finally {
                 setSubmitting(false);
               }
@@ -99,16 +100,11 @@ export default function ForgotPasswordPage() {
                 <Form className="space-y-4">
                   <FormikTextInput name="email" type="email" label={t('email') || 'Email'} placeholder="tu@email.com" required onValueChange={handleEmailChange} />
 
-                  {status?.error && (
-                    <div className="p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">{status.error}</div>
-                  )}
-                  {status?.success && (
-                    <div className="p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">{status.success}</div>
-                  )}
+                  {/* Status messages shown via toasts; inline status hidden to avoid duplication */}
 
                   {cooldown > 0 && (
                     <p className="text-sm text-gray-600 dark:text-gray-400 text-center">{t('emailRateLimit') || `Espera ${cooldown}s antes de reintentar.`}</p>
-                  )}
+                  )} 
                   <div className="flex flex-col gap-3 items-center">
                     <Button type="submit" variant="primary" className="w-full max-w-md" loading={isSubmitting} disabled={cooldown > 0}>
                       {isSubmitting
