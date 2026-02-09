@@ -56,6 +56,12 @@
     "hidePassword": "Ocultar contraseña",
     "password": "Contraseña",
     "confirmPassword": "Repetir Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "sendReset": "Enviar enlace de recuperación",
+    "backToLogin": "Volver al inicio de sesión",
+    "emailRateLimit": "Se ha excedido el límite de envío de correos. Intenta de nuevo más tarde.",
+    "sendResetError": "Error al enviar el enlace. Intenta nuevamente más tarde.",
+    "checkYourEmail": "Revisa tu correo para continuar con la recuperación.",
     "noAccount": "¿No tienes cuenta? Regístrate",
     "haveAccount": "¿Ya tienes cuenta? Inicia sesión",
     "submitting": "Enviando..."

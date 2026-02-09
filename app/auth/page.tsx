@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -33,6 +34,7 @@ export default function AuthPage() {
   if (!isConfigured) return null;
 
   const t = useTranslations('auth');
+  const { success, error: toastError } = useToast();
 
   const initialValues = {
     email: '',
@@ -88,11 +90,18 @@ export default function AuthPage() {
               try {
                 if (isLogin) {
                   const { error } = await signIn(values.email, values.password);
-                  if (error) setStatus?.({ error: error.message });
+                  if (error) {
+                    setStatus?.({ error: error.message });
+                    toastError(error.message);
+                  }
                 } else {
                   const { error } = await signUp(values.email, values.password);
                   if (error) setStatus?.({ error: error.message });
-                  else setStatus?.({ success: t('accountCreated') });
+                  else {
+                    const msg = t('accountCreated');
+                    setStatus?.({ success: msg });
+                    success(msg);
+                  }
                 }
               } catch {
                 setStatus?.({ error: '⚠️ Error de conexión. Verifica la configuración.' });
@@ -116,6 +125,8 @@ export default function AuthPage() {
 
                 <FormikPasswordInput name="password" label={t('password')} placeholder="••••••••" />
 
+        
+
                 {!isLogin && (
                   <div>
                     <FormikPasswordInput name="confirmPassword" label={t('confirmPassword')} placeholder="••••••••" />
@@ -129,19 +140,26 @@ export default function AuthPage() {
                 {status?.success && (
                   <div className="p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">{status.success}</div>
                 )}
+                
 
-                <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? t('submitting') : isLogin ? t('signIn') : t('signUp')}
-                </Button>
+                <div className="flex flex-col gap-3 items-center">
+                  <Button type="submit" variant="primary" className="w-full max-w-md" loading={isSubmitting}>
+                    {isSubmitting ? (t('submitting') || 'Enviando...') : isLogin ? t('signIn') : t('signUp')}
+                  </Button>
 
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    {isLogin ? t('noAccount') : t('haveAccount')}
-                  </button>
+                  <div className="w-full max-w-md flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setIsLogin(!isLogin)}
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      {isLogin ? t('noAccount') : t('haveAccount')}
+                    </button>
+
+                    {isLogin && (
+                      <a href="/auth/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">{t('forgotPassword') || '¿Olvidaste tu contraseña?'}</a>
+                    )}
+                  </div>
                 </div>
                 </Form>
               );
