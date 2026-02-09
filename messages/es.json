@@ -313,6 +313,9 @@
       "sessions": "Sesiones",
       "days": "días",
       "kgPerDay": "kg/día",
+      "units": {
+        "kg": "kg"
+      },
       "volume": "Volumen",
       "tooltipVolume": "Volumen",
       "tooltipSessions": "Sesiones"
@@ -490,6 +493,7 @@
   "routines": {
     "title": "Mis Rutinas",
     "subtitle": "Gestiona tus rutinas de entrenamiento",
+    "loading": "Cargando rutinas...",
     "newRoutine": "Nueva Rutina",
     "empty": {
       "title": "No tienes rutinas todavía",

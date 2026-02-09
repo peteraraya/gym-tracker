@@ -82,6 +82,7 @@
   "routines": {
     "title": "My Routines",
     "subtitle": "Manage your workout routines",
+    "loading": "Loading...",
     "newRoutine": "New Routine",
     "noRoutines": "No routines yet",
     "noRoutinesDesc": "Create your first routine to start training",
@@ -446,6 +447,9 @@
     "sessions": "Sessions",
     "days": "days",
     "kgPerDay": "kg/day",
+    "units": {
+      "kg": "kg"
+    },
     "volume": "Volume",
     "tooltipVolume": "Volume",
     "tooltipSessions": "Sessions"

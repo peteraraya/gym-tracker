@@ -26,7 +26,7 @@ import { useTranslations } from '@/context/LocaleContext';
 
 export default function RoutinesPage() {
   const router = useRouter();
-  const { routines, deleteRoutine } = useGym();
+  const { routines, deleteRoutine, loading } = useGym();
   const { startWorkout, isWorkoutActive, activeWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
@@ -122,7 +122,14 @@ export default function RoutinesPage() {
           </Button>
         </div>
 
-        {routines.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
+            </div>
+          </div>
+        ) : routines.length === 0 ? (
           <div className="text-center py-12 sm:py-16">
             <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center">
               <ClipboardList className="w-10 h-10 sm:w-12 sm:h-12 text-blue-600 dark:text-blue-400" />
