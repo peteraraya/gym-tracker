@@ -8,9 +8,8 @@ import { EquipmentProvider } from "@/context/EquipmentContext";
 import { WorkoutProvider } from "@/context/WorkoutContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { ConfirmProvider } from "@/context/ConfirmContext";
-import { Navbar } from "@/components/Navbar";
 import { ClientOnly } from "@/components/ClientOnly";
-import FloatingCreateRoutine from '@/components/FloatingCreateRoutine';
+import GlobalUI from '@/components/GlobalUI';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,11 +44,9 @@ export default function RootLayout({
                 <WorkoutProvider>
                   <ToastProvider>
                     <ConfirmProvider>
+                      {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
                       <ClientOnly>
-                        <Navbar />
-                      </ClientOnly>
-                      <ClientOnly>
-                        <FloatingCreateRoutine />
+                        <GlobalUI />
                       </ClientOnly>
                       <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
                         {children}

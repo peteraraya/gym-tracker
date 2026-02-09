@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
+import PasswordInput from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 
@@ -11,6 +12,7 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, isConfigured, user } = useAuth();
@@ -39,6 +41,32 @@ export default function AuthPage() {
 
     setError('');
     setLoading(true);
+
+    // Validaciones en registro
+    if (!isLogin) {
+      // Reglas básicas: mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial
+      const pwd = password;
+      const rules = [
+        { ok: pwd.length >= 8, msg: 'La contraseña debe tener al menos 8 caracteres.' },
+        { ok: /[A-Z]/.test(pwd), msg: 'La contraseña debe contener al menos una letra mayúscula.' },
+        { ok: /[a-z]/.test(pwd), msg: 'La contraseña debe contener al menos una letra minúscula.' },
+        { ok: /[0-9]/.test(pwd), msg: 'La contraseña debe contener al menos un número.' },
+        { ok: /[^A-Za-z0-9]/.test(pwd), msg: 'La contraseña debe contener al menos un carácter especial.' }
+      ];
+
+      const failed = rules.find(r => !r.ok);
+      if (failed) {
+        setError(failed.msg);
+        setLoading(false);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError('Las contraseñas no coinciden.');
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       const { error } = isLogin
@@ -87,16 +115,27 @@ export default function AuthPage() {
               autoComplete="email"
             />
 
-            <Input
-              type="password"
+            <PasswordInput
               label="Contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
               autoComplete={isLogin ? 'current-password' : 'new-password'}
-              minLength={6}
+              minLength={8}
             />
+
+            {!isLogin && (
+              <PasswordInput
+                label="Repetir Contraseña"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                autoComplete="new-password"
+                minLength={8}
+              />
+            )}
 
             {error && (
               <div className={`p-3 rounded-lg text-sm ${

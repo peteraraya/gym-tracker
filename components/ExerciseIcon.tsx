@@ -7,8 +7,8 @@ interface ExerciseIconProps {
 }
 
 const MUSCLE_ICONS: Record<MuscleGroup, string> = {
-  pecho: '💪',
-  espalda: '🔙',
+  pecho: '🫀',
+  espalda: '🦴',
   piernas: '🦵',
   gluteos: '🍑',
   hombros: '🏋️',
