@@ -10,6 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
   isConfigured: boolean;
 }
 
@@ -114,9 +115,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   }, [isDatabaseEnabled]);
 
+  const resetPassword = useCallback(async (email: string) => {
+    if (!isDatabaseEnabled) {
+      console.warn('Authentication is disabled in localStorage mode');
+      return { error: null };
+    }
+
+    const supabase = createClient();
+    // Opcional: redirect back to app after password reset
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    return { error: error || null };
+  }, [isDatabaseEnabled]);
+
   const value = useMemo(() => ({
-    user, loading, signUp, signIn, signOut, isConfigured
-  }), [user, loading, signUp, signIn, signOut, isConfigured]);
+    user, loading, signUp, signIn, signOut, resetPassword, isConfigured
+  }), [user, loading, signUp, signIn, signOut, resetPassword, isConfigured]);
 
   return (
     <AuthContext.Provider value={value}>
