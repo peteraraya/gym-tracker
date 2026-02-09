@@ -16,8 +16,8 @@
     "skip": "Saltar",
     "pause": "Pausar",
     "resume": "Reanudar",
-    "restart": "Reiniciar"
-    ,"confirm": "Confirmar"
+    "restart": "Reiniciar",
+    "confirm": "Confirmar"
   },
   "setTimer": {
     "title": "Cronómetro de Serie",
@@ -34,7 +34,7 @@
     "routines": "Rutinas",
     "sessions": "Historial",
     "appName": "Gym Tracker",
-    "dashboard": "Dashboard",
+    "dashboard": "Panel de Control",
     "recommended": "Recomendadas",
     "progress": "Progreso",
     "achievements": "Logros",
@@ -51,16 +51,15 @@
     "required": "Requerido",
     "passwordsNoMatch": "Las contraseñas no coinciden",
     "accountCreated": "¡Cuenta creada! Revisa tu email para confirmar tu cuenta.",
-    "email": "Email",
+    "email": "Correo electrónico",
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña",
     "password": "Contraseña",
     "confirmPassword": "Repetir Contraseña",
     "noAccount": "¿No tienes cuenta? Regístrate",
     "haveAccount": "¿Ya tienes cuenta? Inicia sesión",
-    "submitting": "..."
+    "submitting": "Enviando..."
   },
- 
   "home": {
     "welcome": "Bienvenido a Gym Tracker",
     "subtitle": "Registra y sigue tus rutinas de gimnasio de manera sencilla",
@@ -90,44 +89,6 @@
     "exploreRecommended": "Explorar rutinas recomendadas",
     "createFirstRoutine": "Crear mi primera rutina"
   },
-  "routines": {
-    "title": "Mis Rutinas",
-    "subtitle": "Gestiona tus rutinas de entrenamiento",
-    "newRoutine": "Nueva Rutina",
-    "noRoutines": "No tienes rutinas todavía",
-    "noRoutinesDesc": "Crea tu primera rutina para comenzar a entrenar",
-    "createRoutine": "Crear Rutina",
-    "exercises": "Ejercicios",
-    "startRoutine": "Iniciar",
-    "editRoutine": "Editar",
-    "deleteRoutine": "Eliminar",
-    "confirmDelete": "¿Estás seguro de que quieres eliminar esta rutina?"
-    ,
-    "empty": {
-      "title": "No tienes rutinas todavía",
-      "description": "Crea tu primera rutina para comenzar a entrenar",
-      "createButton": "Crear Rutina"
-    }
-    ,
-    "imageLabel": "Imagen (opcional)",
-    "imageUploadClick": "Haz clic para subir una imagen",
-    "imageFormats": "JPG, PNG o GIF",
-    "equipmentLabel": "Equipamiento",
-    "equipmentPlaceholder": "Seleccionar equipamiento (opcional)",
-    "copySetTitle": "Copiar serie",
-    "removeSetTitle": "Eliminar serie",
-    "addSet": "Añadir serie",
-    "selectExercisesTitle": "Seleccionar Ejercicios",
-    "saving": "⏳ Guardando..."
-    ,
-    "createSuccess": "Rutina creada exitosamente",
-    "updateSuccess": "Rutina actualizada exitosamente",
-    "saveError": "Error al guardar la rutina. Por favor intenta de nuevo."
-    ,
-    "imagePreviewAlt": "Vista previa"
-    ,
-    "removeExercise": "Eliminar"
-  },
   "routineForm": {
     "newRoutine": "Nueva Rutina",
     "editRoutine": "Editar Rutina",
@@ -150,7 +111,22 @@
     "notes": "Notas (opcional)",
     "exerciseName": "Nombre del ejercicio",
     "createRoutineBtn": "Crear Rutina",
-    "updateRoutineBtn": "Actualizar Rutina"
+    "updateRoutineBtn": "Actualizar Rutina",
+    "imageLabel": "Imagen (opcional)",
+    "imageUploadClick": "Haz clic para subir una imagen",
+    "imageFormats": "JPG, PNG o GIF",
+    "equipmentLabel": "Equipamiento",
+    "equipmentPlaceholder": "Seleccionar equipamiento (opcional)",
+    "copySetTitle": "Copiar serie",
+    "removeSetTitle": "Eliminar serie",
+    "addSet": "Añadir serie",
+    "selectExercisesTitle": "Seleccionar Ejercicios",
+    "saving": "⏳ Guardando...",
+    "createSuccess": "Rutina creada exitosamente",
+    "updateSuccess": "Rutina actualizada exitosamente",
+    "saveError": "Error al guardar la rutina. Por favor intenta de nuevo.",
+    "imagePreviewAlt": "Vista previa",
+    "removeExercise": "Eliminar"
   },
   "exerciseSelector": {
     "title": "Selecciona un grupo muscular",
@@ -324,7 +300,7 @@
       "viewRoutines": "Ver Rutinas"
     },
     "unnamedExercise": "Ejercicio sin nombre",
-    "notApplicable": "N/A",
+    "notApplicable": "No aplica",
     "units": {
       "kg": "kg"
     },
@@ -398,7 +374,7 @@
       "current": "Actual",
       "max": "Máximo",
       "progress": "Progreso",
-      "rmDefinition": "1RM (One Rep Max): Is the maximum weight you could lift for a single repetition. It's estimated using the Epley formula based on your best sets."
+      "rmDefinition": "1RM (Una Repetición Máxima): Es el peso máximo que podrías levantar en una sola repetición. Se estima usando la fórmula de Epley basada en tus mejores series."
     },
     "progressDashboard": {
       "exerciseProgress": {
@@ -411,51 +387,13 @@
         "sessions": "Sesiones",
         "improvement": "Mejora",
         "personalRecord": "Récord personal:",
-        "reps": "reps"
+        "reps": "repeticiones"
       },
       "title": "Progreso por Ejercicio",
       "noSessions": "Completa algunas sesiones para ver tu progreso",
       "noExercises": "No hay ejercicios registrados",
-      "tipTitle": "Tip:",
+      "tipTitle": "Consejo:",
       "tipText": "El progreso se calcula comparando el volumen total (peso × repeticiones) de tus primeras 3 sesiones con las últimas 3 sesiones de cada ejercicio."
-    }
-    ,
-    "routines": {
-      "title": "Mis Rutinas",
-      "subtitle": "Gestiona tus rutinas de entrenamiento",
-      "newRoutine": "Nueva Rutina",
-      "empty": {
-        "title": "No tienes rutinas todavía",
-        "description": "Crea tu primera rutina para comenzar a entrenar",
-        "createButton": "Crear Rutina"
-      },
-      "exercisesLabel": "Ejercicios:",
-      "previewLabel": "Vista previa:",
-      "more": "más",
-      "continueWorkout": "Continuar Entrenamiento",
-      "startWorkout": "Iniciar Entrenamiento",
-      "edit": "Editar",
-      "delete": "Eliminar",
-      "modal": {
-        "newTitle": "Nueva Rutina",
-        "editTitle": "Editar Rutina"
-      },
-      "confirmDelete": {
-        "title": "Eliminar rutina",
-        "message": "¿Estás seguro de que quieres eliminar esta rutina?",
-        "confirmText": "Eliminar",
-        "cancelText": "Cancelar"
-      },
-      "confirmActive": {
-        "title": "Entrenamiento activo",
-        "message": "Ya tienes un entrenamiento activo. ¿Deseas cancelarlo e iniciar uno nuevo?",
-        "confirmText": "Iniciar nuevo",
-        "cancelText": "Cancelar"
-      },
-      "toast": {
-        "deleteSuccess": "Rutina eliminada exitosamente",
-        "deleteError": "Error al eliminar la rutina"
-      }
     }
   },
   "volumeChart": {
@@ -528,25 +466,62 @@
     "current": "Actual",
     "max": "Máximo",
     "progress": "Progreso",
-    "rmDefinition": "1RM (One Rep Max): Is the maximum weight you could lift for a single repetition. It's estimated using the Epley formula based on your best sets."
+    "rmDefinition": "1RM (Una Repetición Máxima): Es el peso máximo que podrías levantar en una sola repetición. Se estima usando la fórmula de Epley basada en tus mejores series."
   },
   "progressDashboard": {
-      "exerciseProgress": {
-        "noData": "No hay datos suficientes para",
-        "improving": "Mejorando",
-        "decreasing": "Bajando",
-        "stable": "Estable",
-        "bestVolume": "Mejor Volumen",
-        "totalVolume": "Volumen Total",
-        "sessions": "Sesiones",
-        "improvement": "Mejora",
-        "personalRecord": "Récord personal:",
-        "reps": "reps"
-      },
-      "title": "Progreso por Ejercicio",
-      "noSessions": "Completa algunas sesiones para ver tu progreso",
-      "noExercises": "No hay ejercicios registrados",
-      "tipTitle": "Tip:",
-      "tipText": "El progreso se calcula comparando el volumen total (peso × repeticiones) de tus primeras 3 sesiones con las últimas 3 sesiones de cada ejercicio."
+    "exerciseProgress": {
+      "noData": "No hay datos suficientes para",
+      "improving": "Mejorando",
+      "decreasing": "Bajando",
+      "stable": "Estable",
+      "bestVolume": "Mejor Volumen",
+      "totalVolume": "Volumen Total",
+      "sessions": "Sesiones",
+      "improvement": "Mejora",
+      "personalRecord": "Récord personal:",
+      "reps": "repeticiones"
+    },
+    "title": "Progreso por Ejercicio",
+    "noSessions": "Completa algunas sesiones para ver tu progreso",
+    "noExercises": "No hay ejercicios registrados",
+    "tipTitle": "Consejo:",
+    "tipText": "El progreso se calcula comparando el volumen total (peso × repeticiones) de tus primeras 3 sesiones con las últimas 3 sesiones de cada ejercicio."
+  },
+  "routines": {
+    "title": "Mis Rutinas",
+    "subtitle": "Gestiona tus rutinas de entrenamiento",
+    "newRoutine": "Nueva Rutina",
+    "empty": {
+      "title": "No tienes rutinas todavía",
+      "description": "Crea tu primera rutina para comenzar a entrenar",
+      "createButton": "Crear Rutina"
+    },
+    "exercisesLabel": "Ejercicios:",
+    "previewLabel": "Vista previa:",
+    "more": "más",
+    "continueWorkout": "Continuar Entrenamiento",
+    "startWorkout": "Iniciar Entrenamiento",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "modal": {
+      "newTitle": "Nueva Rutina",
+      "editTitle": "Editar Rutina"
+    },
+    "confirmDelete": {
+      "title": "Eliminar rutina",
+      "message": "¿Estás seguro de que quieres eliminar esta rutina?",
+      "confirmText": "Eliminar",
+      "cancelText": "Cancelar"
+    },
+    "confirmActive": {
+      "title": "Entrenamiento activo",
+      "message": "Ya tienes un entrenamiento activo. ¿Deseas cancelarlo e iniciar uno nuevo?",
+      "confirmText": "Iniciar nuevo",
+      "cancelText": "Cancelar"
+    },
+    "toast": {
+      "deleteSuccess": "Rutina eliminada exitosamente",
+      "deleteError": "Error al eliminar la rutina"
     }
+  }
 }
