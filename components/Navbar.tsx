@@ -33,7 +33,13 @@ export const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => {
+    if (!pathname) return false;
+    // Root must match exactly
+    if (path === '/') return pathname === '/';
+    // Match exact path or any nested subpath (e.g. /routines -> /routines/create)
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
 
   const handleSignOut = async () => {
     await signOut();
