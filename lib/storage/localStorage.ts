@@ -191,30 +191,37 @@ export async function getSessions(): Promise<WorkoutSession[]> {
 
 /**
  * Save a workout session to localStorage
+ * IMPROVED: Now checks for duplicates and updates instead of creating duplicates
  */
 export async function saveSession(session: WorkoutSession): Promise<void> {
     const sessions = await getSessions();
 
+    const sessionId = session.id || generateId();
+
+    // Verificar si ya existe una sesión con este ID
+    const existingIndex = sessions.findIndex(s => s.id === sessionId);
+
     const newSession: WorkoutSession = {
         ...session,
-        id: session.id || generateId(),
+        id: sessionId,
         date: session.date || new Date(),
     };
 
-    sessions.push(newSession);
+    if (existingIndex !== -1) {
+        // Actualizar existente en lugar de duplicar
+        sessions[existingIndex] = newSession;
+    } else {
+        sessions.push(newSession);
+    }
+
     saveToStorage(STORAGE_KEYS.SESSIONS, sessions);
 }
 
 // ==================== PROFILE ====================
 
-export interface UserProfile {
-    name: string;
-    email: string;
-    avatarUrl?: string;
-    currentWeight?: number;
-    targetWeight?: number;
-    height?: number;
-}
+// Import and re-export unified UserProfile type
+import type { UserProfile } from '@/types/userProfile';
+export type { UserProfile };
 
 /**
  * Get user profile from localStorage
