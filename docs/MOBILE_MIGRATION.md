@@ -1,3 +1,4 @@
+````markdown
 # Guía de Migración a Android con Capacitor
 
 ## ✅ Estado de Preparación
@@ -296,3 +297,5 @@ Verifica en Chrome DevTools → Mobile emulation → iPhone/Android para debug
 ---
 
 **✅ Tu app está lista. Solo faltan los comandos de instalación.**
+
+````
