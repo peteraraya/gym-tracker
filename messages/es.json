@@ -17,13 +17,50 @@
     "pause": "Pausar",
     "resume": "Reanudar",
     "restart": "Reiniciar"
+    ,"confirm": "Confirmar"
+  },
+  "setTimer": {
+    "title": "Cronómetro de Serie",
+    "paused": "PAUSADO",
+    "active": "Activo",
+    "pausedLabel": "Pausado",
+    "resume": "Reanudar",
+    "pause": "Pausar",
+    "completeSet": "Completar Serie",
+    "helper": "💡 El cronómetro mide el tiempo de cada serie. Puedes pausar si necesitas un descanso."
   },
   "nav": {
     "home": "Inicio",
     "routines": "Rutinas",
     "sessions": "Historial",
-    "appName": "Gym Tracker"
+    "appName": "Gym Tracker",
+    "dashboard": "Dashboard",
+    "recommended": "Recomendadas",
+    "progress": "Progreso",
+    "achievements": "Logros",
+    "exercises": "Ejercicios",
+    "calculators": "Calculadoras",
+    "data": "Datos",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión"
   },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signUp": "Crear Cuenta",
+    "emailInvalid": "Email inválido",
+    "required": "Requerido",
+    "passwordsNoMatch": "Las contraseñas no coinciden",
+    "accountCreated": "¡Cuenta creada! Revisa tu email para confirmar tu cuenta.",
+    "email": "Email",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "password": "Contraseña",
+    "confirmPassword": "Repetir Contraseña",
+    "noAccount": "¿No tienes cuenta? Regístrate",
+    "haveAccount": "¿Ya tienes cuenta? Inicia sesión",
+    "submitting": "..."
+  },
+ 
   "home": {
     "welcome": "Bienvenido a Gym Tracker",
     "subtitle": "Registra y sigue tus rutinas de gimnasio de manera sencilla",
@@ -211,6 +248,10 @@
     "start": "Iniciar",
     "pause": "Pausar",
     "restart": "Reiniciar",
-    "skip": "Saltar"
+    "skip": "Saltar",
+    "restCompleted": "✓ ¡Descanso Completado!",
+    "readyFor": "Listo para {0}",
+    "cheer": "¡Vamos con todo! 💪",
+    "nextLabel": "Próximo"
   }
 }

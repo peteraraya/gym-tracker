@@ -17,13 +17,50 @@
     "pause": "Pause",
     "resume": "Resume",
     "restart": "Restart"
+    ,"confirm": "Confirm"
+  },
+  "setTimer": {
+    "title": "Set Stopwatch",
+    "paused": "PAUSED",
+    "active": "Active",
+    "pausedLabel": "Paused",
+    "resume": "Resume",
+    "pause": "Pause",
+    "completeSet": "Complete Set",
+    "helper": "💡 The stopwatch measures the time of each set. You can pause if you need a rest."
   },
   "nav": {
     "home": "Home",
     "routines": "Routines",
     "sessions": "History",
-    "appName": "Gym Tracker"
+    "appName": "Gym Tracker",
+    "dashboard": "Dashboard",
+    "recommended": "Recommended",
+    "progress": "Progress",
+    "achievements": "Achievements",
+    "exercises": "Exercises",
+    "calculators": "Calculators",
+    "data": "Data",
+    "profile": "Profile",
+    "logout": "Sign out"
   },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Create Account",
+    "emailInvalid": "Invalid email",
+    "required": "Required",
+    "passwordsNoMatch": "Passwords do not match",
+    "accountCreated": "Account created! Check your email to confirm your account.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "noAccount": "Don't have an account? Sign up",
+    "haveAccount": "Already have an account? Sign in",
+    "submitting": "..."
+  },
+ 
   "home": {
     "welcome": "Welcome to Gym Tracker",
     "subtitle": "Track and follow your gym routines easily",
@@ -200,6 +237,10 @@
     "start": "Start",
     "pause": "Pause",
     "restart": "Restart",
-    "skip": "Skip"
+    "skip": "Skip",
+    "restCompleted": "✓ Rest Completed!",
+    "readyFor": "Ready for {0}",
+    "cheer": "Let's go! 💪",
+    "nextLabel": "Next"
   }
 }

@@ -10,6 +10,7 @@ import * as Yup from 'yup';
 import FormikPasswordInput from '@/components/ui/FormikPasswordInput';
 import FormikTextInput from '@/components/ui/FormikTextInput';
 import { AppLogo } from '@/components/AppLogo';
+import { useTranslations } from '@/context/LocaleContext';
 import PasswordRequirements from '@/components/PasswordRequirements';
 
 export default function AuthPage() {
@@ -31,6 +32,8 @@ export default function AuthPage() {
 
   if (!isConfigured) return null;
 
+  const t = useTranslations('auth');
+
   const initialValues = {
     email: '',
     password: '',
@@ -40,23 +43,23 @@ export default function AuthPage() {
   const getSchema = (loginMode: boolean) => {
     if (loginMode) {
       return Yup.object().shape({
-        email: Yup.string().email('Email inválido').required('Requerido'),
-        password: Yup.string().required('Requerido')
+        email: Yup.string().email(t('emailInvalid')).required(t('required')),
+        password: Yup.string().required(t('required'))
       });
     }
 
     return Yup.object().shape({
-      email: Yup.string().email('Email inválido').required('Requerido'),
+      email: Yup.string().email(t('emailInvalid')).required(t('required')),
       password: Yup.string()
-        .required('Requerido')
+        .required(t('required'))
         .min(8, 'Mínimo 8 caracteres')
         .matches(/[A-Z]/, 'Debe tener al menos una mayúscula')
         .matches(/[a-z]/, 'Debe tener al menos una minúscula')
         .matches(/[0-9]/, 'Debe tener al menos un número')
         .matches(/[^A-Za-z0-9]/, 'Debe tener al menos un carácter especial'),
       confirmPassword: Yup.string()
-        .oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')
-        .required('Requerido')
+        .oneOf([Yup.ref('password')], t('passwordsNoMatch'))
+        .required(t('required'))
     });
   };
 
@@ -89,7 +92,7 @@ export default function AuthPage() {
                 } else {
                   const { error } = await signUp(values.email, values.password);
                   if (error) setStatus?.({ error: error.message });
-                  else setStatus?.({ success: '¡Cuenta creada! Revisa tu email para confirmar tu cuenta.' });
+                  else setStatus?.({ success: t('accountCreated') });
                 }
               } catch {
                 setStatus?.({ error: '⚠️ Error de conexión. Verifica la configuración.' });
@@ -105,17 +108,17 @@ export default function AuthPage() {
                 <FormikTextInput
                   name="email"
                   type="email"
-                  label="Email"
+                  label={t('emailInvalid') ? 'Email' : 'Email'}
                   placeholder="tu@email.com"
                   required
                   autoComplete="email"
                 />
 
-                <FormikPasswordInput name="password" label="Contraseña" placeholder="••••••••" />
+                <FormikPasswordInput name="password" label={t('password')} placeholder="••••••••" />
 
                 {!isLogin && (
                   <div>
-                    <FormikPasswordInput name="confirmPassword" label="Repetir Contraseña" placeholder="••••••••" />
+                    <FormikPasswordInput name="confirmPassword" label={t('confirmPassword')} placeholder="••••••••" />
                     <PasswordRequirements password={values.password} />
                   </div>
                 )}
@@ -128,7 +131,7 @@ export default function AuthPage() {
                 )}
 
                 <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? '...' : isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                  {isSubmitting ? t('submitting') : isLogin ? t('signIn') : t('signUp')}
                 </Button>
 
                 <div className="text-center">
@@ -137,7 +140,7 @@ export default function AuthPage() {
                     onClick={() => setIsLogin(!isLogin)}
                     className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                   >
-                    {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+                    {isLogin ? t('noAccount') : t('haveAccount')}
                   </button>
                 </div>
                 </Form>

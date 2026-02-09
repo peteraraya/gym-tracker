@@ -5,6 +5,7 @@ import { useGym } from '@/context/GymContext';
 import { useToast } from '@/context/ToastContext';
 import { Exercise } from '@/types';
 import { Input, TextArea } from '@/components/ui/Input';
+import { useTranslations } from '@/context/LocaleContext';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
@@ -192,21 +193,23 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     setImage('');
   };
 
+  const t = useTranslations('routineForm');
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Input
-        label="Nombre de la rutina"
+        label={t ? t('routineName') : 'Nombre de la rutina'}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Ej: Rutina de piernas"
+        placeholder={t ? t('routineNamePlaceholder') : 'Ej: Rutina de piernas'}
         required
       />
 
       <TextArea
-        label="Descripción (opcional)"
+        label={t ? t('description') : 'Descripción (opcional)'}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Describe tu rutina..."
+        placeholder={t ? t('descriptionPlaceholder') : 'Describe tu rutina...'}
         rows={3}
       />
 

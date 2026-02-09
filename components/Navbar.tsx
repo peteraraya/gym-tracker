@@ -65,16 +65,16 @@ export const Navbar: React.FC = () => {
             <div className="hidden lg:flex items-center space-x-1">
               <div className="flex items-center space-x-1 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-1.5">
                 <NavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} color="blue" />
-                <NavLink href="/dashboard" icon={LayoutDashboard} label="Dashboard" isActive={isActive('/dashboard')} color="cyan" />
+                <NavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} color="cyan" />
                 <NavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} color="blue" />
-                <NavLink href="/recommended" icon={Target} label="Recomendadas" isActive={isActive('/recommended')} color="purple" />
-                <NavLink href="/progress" icon={TrendingUp} label="Progreso" isActive={isActive('/progress')} color="emerald" />
-                <NavLink href="/sessions" icon={Calendar} label="Sesiones" isActive={isActive('/sessions')} color="indigo" />
-                <NavLink href="/achievements" icon={Trophy} label="Logros" isActive={isActive('/achievements')} color="amber" />
-                <NavLink href="/exercises" icon={Lightbulb} label="Ejercicios" isActive={isActive('/exercises')} color="blue" />
-                <NavLink href="/calculators" icon={Calculator} label="Calculadoras" isActive={isActive('/calculators')} color="teal" />
-                <NavLink href="/data" icon={Database} label="Datos" isActive={isActive('/data')} color="indigo" />
-                {user && <NavLink href="/profile" icon={User} label="Perfil" isActive={isActive('/profile')} color="blue" />}
+                <NavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} color="purple" />
+                <NavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} color="emerald" />
+                <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" />
+                <NavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} color="amber" />
+                <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" />
+                <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" />
+                <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" />
+                {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" />}
               </div>
               
               <LanguageSwitcher />
@@ -108,16 +108,16 @@ export const Navbar: React.FC = () => {
             <div className="lg:hidden pb-4 border-t border-zinc-200 dark:border-zinc-800 mt-2 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <MobileNavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/dashboard" icon={LayoutDashboard} label="Dashboard" isActive={isActive('/dashboard')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/recommended" icon={Target} label="Recomendadas" isActive={isActive('/recommended')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/progress" icon={TrendingUp} label="Progreso" isActive={isActive('/progress')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/sessions" icon={Calendar} label="Sesiones" isActive={isActive('/sessions')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/achievements" icon={Trophy} label="Logros" isActive={isActive('/achievements')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/exercises" icon={Lightbulb} label="Ejercicios" isActive={isActive('/exercises')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/calculators" icon={Calculator} label="Calculadoras" isActive={isActive('/calculators')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/data" icon={Database} label="Datos" isActive={isActive('/data')} onClick={() => setMobileMenuOpen(false)} />
-                {user && <MobileNavLink href="/profile" icon={User} label="Perfil" isActive={isActive('/profile')} onClick={() => setMobileMenuOpen(false)} />}
+                <MobileNavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} onClick={() => setMobileMenuOpen(false)} />
+                {user && <MobileNavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} onClick={() => setMobileMenuOpen(false)} />}
               </div>
               {user && (
                 <Button
@@ -130,7 +130,7 @@ export const Navbar: React.FC = () => {
                   className="w-full mt-4"
                 >
                   <LogOut className="w-4 h-4" />
-                  Cerrar sesión
+                  {t('logout') || 'Cerrar sesión'}
                 </Button>
               )}
             </div>
