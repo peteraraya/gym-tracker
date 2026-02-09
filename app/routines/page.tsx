@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
@@ -39,6 +40,15 @@ export default function RoutinesPage() {
     setIsModalOpen(false);
     setEditingRoutine(null);
   };
+
+  // Abrir modal si la URL contiene ?create=1
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams?.get('create') === '1') {
+      setIsModalOpen(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async (id: string) => {
     const confirmed = await confirm({

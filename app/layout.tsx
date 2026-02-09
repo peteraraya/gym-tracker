@@ -10,6 +10,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { ConfirmProvider } from "@/context/ConfirmContext";
 import { Navbar } from "@/components/Navbar";
 import { ClientOnly } from "@/components/ClientOnly";
+import FloatingCreateRoutine from '@/components/FloatingCreateRoutine';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +47,9 @@ export default function RootLayout({
                     <ConfirmProvider>
                       <ClientOnly>
                         <Navbar />
+                      </ClientOnly>
+                      <ClientOnly>
+                        <FloatingCreateRoutine />
                       </ClientOnly>
                       <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
                         {children}
