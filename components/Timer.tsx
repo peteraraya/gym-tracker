@@ -204,29 +204,30 @@ export const Timer: React.FC<TimerProps> = ({
         </div>
       )}
 
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center overflow-visible">
         {!isCompleted ? (
           <>
             <Button
               variant={isRunning ? 'secondary' : 'primary'}
               onClick={handleStartPause}
               size="lg"
+              className="relative z-10"
             >
               {isRunning ? `⏸️ ${t ? t('pause') : 'Pausar'}` : `▶️ ${t ? t('start') : 'Iniciar'}`}
             </Button>
-            <Button variant="ghost" onClick={handleReset} size="lg">
+            <Button variant="ghost" onClick={handleReset} size="lg" className="relative z-10">
               🔄 {t ? t('restart') : 'Reiniciar'}
             </Button>
-            <Button variant="ghost" onClick={handleSkip} size="lg">
+            <Button variant="ghost" onClick={handleSkip} size="lg" className="relative z-10">
               ⏭️ {t ? t('skip') : 'Saltar'}
             </Button>
           </>
         ) : (
           <div className="flex flex-col gap-2 w-full">
-            <Button variant="primary" onClick={() => { if (onComplete) onComplete(); }} size="lg" className="w-full">
+            <Button variant="primary" onClick={() => { if (onComplete) onComplete(); }} size="lg" className="w-full relative z-10">
               ✅ Continuar con la siguiente serie
             </Button>
-            <Button variant="ghost" onClick={handleReset} size="lg" className="w-full">
+            <Button variant="ghost" onClick={handleReset} size="lg" className="w-full relative z-10">
               🔄 Más descanso
             </Button>
           </div>

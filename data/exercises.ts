@@ -2001,7 +2001,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
-    image: URL_STORAGE + 'male-cable-wide-grip-seated-row-back.gif',
+    image: URL_STORAGE + 'male-cable-wide-grip-seated-row-back.gif', // es wooman
     technique: [
       'Usa barra larga en la polea baja',
       'Agarre ancho prono (palmas hacia abajo)',
@@ -2189,7 +2189,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Banda elástica',
     defaultSets: 3,
     defaultReps: 15,
-    image: URL_STORAGE + 'male-band-lateral-walk-front.gif',
+    image: URL_STORAGE + 'male-band-lateral-walk-front.gif', // wooman
     technique: [
       'Banda elástica alrededor de los tobillos o sobre las rodillas',
       'Posición de media sentadilla',
@@ -2207,7 +2207,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 15,
-    image: URL_STORAGE + 'male-machine-glute-kickback-side.gif',
+    image: URL_STORAGE + 'male-machine-glute-kickback-side.gif', // wooman
     technique: [
       'Apoya el pie en la plataforma de la máquina',
       'Empuja la pierna hacia atrás extendiendo la cadera',
@@ -2225,7 +2225,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
-    image: URL_STORAGE + 'male-bodyweight-fire-hydrant-side.gif',
+    image: URL_STORAGE + 'male-bodyweight-fire-hydrant-side.gif',// wooman
     technique: [
       'En cuatro puntos de apoyo',
       'Eleva la pierna hacia el lado manteniendo la rodilla a 90 grados',
