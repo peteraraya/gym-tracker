@@ -89,15 +89,9 @@ export const Timer: React.FC<TimerProps> = ({
   }, [isCompleted, notificationPermission, nextExerciseName, soundEnabled]);
 
   // Efecto separado para llamar a onComplete cuando se completa el timer
-  useEffect(() => {
-    if (isCompleted && onComplete && !onCompleteCalledRef.current) {
-      onCompleteCalledRef.current = true;
-      // Usar setTimeout para asegurar que se ejecuta después del render
-      setTimeout(() => {
-        onComplete();
-      }, 0);
-    }
-  }, [isCompleted, onComplete]);
+  // Ya NO se llama automáticamente - el usuario debe presionar "Continuar" o "Saltar"
+  // Esto evita que el timer avance sin que el usuario esté listo
+  // onComplete se llama desde handleSkip o desde el botón "Continuar" del padre
 
   const handleStartPause = () => {
     setIsRunning(!isRunning);
@@ -228,9 +222,14 @@ export const Timer: React.FC<TimerProps> = ({
             </Button>
           </>
         ) : (
-          <Button variant="primary" onClick={handleReset} size="lg">
-            🔄 Nuevo descanso
-          </Button>
+          <div className="flex flex-col gap-2 w-full">
+            <Button variant="primary" onClick={() => { if (onComplete) onComplete(); }} size="lg" className="w-full">
+              ✅ Continuar con la siguiente serie
+            </Button>
+            <Button variant="ghost" onClick={handleReset} size="lg" className="w-full">
+              🔄 Más descanso
+            </Button>
+          </div>
         )}
       </div>
     </div>

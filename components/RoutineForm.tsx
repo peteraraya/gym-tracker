@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
 import { EquipmentDropdown } from '@/components/EquipmentDropdown';
-import { ExerciseTemplate } from '@/data/exercises';
+import { ExerciseTemplate, getExerciseByName, MuscleGroup } from '@/data/exercises';
+import { WarmupExercise } from '@/data/warmupExercises';
+import { WarmupRecommendation } from '@/components/WarmupRecommendation';
 
 interface RoutineFormProps {
   routineId?: string | null;
@@ -69,15 +71,30 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   };
 
   const handleSelectExercises = (exerciseTemplates: ExerciseTemplate[]) => {
-    const newExercises: Omit<Exercise, 'id'>[] = exerciseTemplates.map(template => ({
-      name: template.name,
-      sets: Array(template.defaultSets || 3).fill(null).map(() => ({ 
-        reps: template.defaultReps || 10, 
-        weight: 0 
-      })),
-      equipment: template.equipment,
-      notes: ''
-    }));
+    const newExercises: Omit<Exercise, 'id'>[] = exerciseTemplates.map(template => {
+      // Parsear restTime del template a segundos (ej: "60-90 segundos" -> 60)
+      let defaultRestSecs: number | undefined;
+      if (template.restTime) {
+        const match = template.restTime.match(/(\d+)/);
+        if (match) {
+          defaultRestSecs = parseInt(match[1]);
+          // Si es "2-3 minutos", convertir a segundos
+          if (template.restTime.toLowerCase().includes('minuto')) {
+            defaultRestSecs = defaultRestSecs * 60;
+          }
+        }
+      }
+      return {
+        name: template.name,
+        sets: Array(template.defaultSets || 3).fill(null).map(() => ({ 
+          reps: template.defaultReps || 10, 
+          weight: 0 
+        })),
+        equipment: template.equipment,
+        notes: '',
+        restBetweenSets: defaultRestSecs
+      };
+    });
     setExercises([...exercises, ...newExercises]);
     setIsExerciseSelectorOpen(false);
   };
@@ -196,6 +213,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const t = useTranslations('routineForm');
   const tc = useTranslations('common');
 
+  // Detectar grupos musculares de los ejercicios actuales para recomendar calentamientos
+  const routineMuscleGroups: MuscleGroup[] = exercises
+    .map(ex => {
+      const template = getExerciseByName(ex.name);
+      return template?.muscleGroup;
+    })
+    .filter((mg): mg is MuscleGroup => mg !== undefined);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Input
@@ -283,6 +308,26 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           </p>
         </div>
       </div>
+
+      {/* Recomendación de calentamiento */}
+      {exercises.length > 0 && (
+        <WarmupRecommendation
+          routineMuscleGroups={routineMuscleGroups}
+          onAddWarmups={(warmups: WarmupExercise[]) => {
+            const warmupExercises: Omit<Exercise, 'id'>[] = warmups.map(w => ({
+              name: `🔥 ${w.name}`,
+              sets: Array(w.defaultSets || 2).fill(null).map(() => ({
+                reps: w.defaultReps || 10,
+                weight: 0
+              })),
+              equipment: w.equipment,
+              notes: w.duration ? `Duración: ${w.duration}` : ''
+            }));
+            // Insertar al inicio de la rutina
+            setExercises([...warmupExercises, ...exercises]);
+          }}
+        />
+      )}
 
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -414,6 +459,33 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 value={exercise.notes || ''}
                 onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
               />
+
+              {/* Descanso entre series por ejercicio */}
+              <div className="flex items-center gap-3 p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+                <span className="text-sm">⏱️</span>
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  Descanso entre series:
+                </label>
+                <input
+                  type="number"
+                  value={exercise.restBetweenSets || ''}
+                  onChange={(e) => {
+                    const newExercises = [...exercises];
+                    (newExercises[exerciseIndex] as any).restBetweenSets = parseInt(e.target.value) || 0;
+                    setExercises(newExercises);
+                  }}
+                  placeholder={`${restBetweenSets}s (global)`}
+                  min="0"
+                  step="5"
+                  className="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {exercise.restBetweenSets 
+                    ? `${Math.floor(exercise.restBetweenSets / 60)}:${(exercise.restBetweenSets % 60).toString().padStart(2, '0')}`
+                    : 'Usa global'
+                  }
+                </span>
+              </div>
             </div>
           ))}
         </div>

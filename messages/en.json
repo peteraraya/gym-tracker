@@ -551,5 +551,21 @@
     "noExercises": "No exercises recorded",
     "tipTitle": "Tip:",
     "tipText": "Progress is calculated by comparing the total volume (weight × repetitions) of your first 3 sessions with the last 3 sessions of each exercise."
+  },
+  "warmup": {
+    "title": "Recommended Warmup",
+    "subtitle": "Warmup and mobility exercises for: {muscles}",
+    "available": "exercises",
+    "addEssentials": "Add essentials",
+    "viewAll": "View all",
+    "allCategories": "All",
+    "recommended": "Recommended",
+    "noWarmups": "No warmup exercises for this category",
+    "close": "Close",
+    "addSelected": "Add ({count})",
+    "warmupCategory": "Warm-up",
+    "mobilityCategory": "Mobility",
+    "activationCategory": "Activation",
+    "addedSuccess": "Warmup exercises added to the beginning of the routine"
   }
 }

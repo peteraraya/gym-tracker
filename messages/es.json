@@ -547,5 +547,21 @@
       "deleteSuccess": "Rutina eliminada exitosamente",
       "deleteError": "Error al eliminar la rutina"
     }
+  },
+  "warmup": {
+    "title": "Calentamiento Recomendado",
+    "subtitle": "Ejercicios de calentamiento y movilidad para: {muscles}",
+    "available": "ejercicios",
+    "addEssentials": "Agregar esenciales",
+    "viewAll": "Ver todos",
+    "allCategories": "Todos",
+    "recommended": "Recomendado",
+    "noWarmups": "No hay ejercicios de calentamiento para esta categoría",
+    "close": "Cerrar",
+    "addSelected": "Agregar ({count})",
+    "warmupCategory": "Calentamiento",
+    "mobilityCategory": "Movilidad",
+    "activationCategory": "Activación",
+    "addedSuccess": "Ejercicios de calentamiento agregados al inicio de la rutina"
   }
 }

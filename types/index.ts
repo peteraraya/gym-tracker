@@ -13,6 +13,7 @@ export interface Exercise {
   recommendedSets?: string; // Ej: "3-4 series"
   recommendedReps?: string; // Ej: "8-12 repeticiones"
   restTime?: string; // Ej: "60-90 segundos"
+  restBetweenSets?: number; // Descanso entre series en segundos (override por ejercicio)
 }
 
 export interface Routine {
