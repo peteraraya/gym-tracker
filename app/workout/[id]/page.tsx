@@ -25,7 +25,7 @@ export default function WorkoutPage() {
   const params = useParams();
   const id = params.id as string;
   const { getRoutineById, addSession } = useGym();
-  const { activeWorkout, startWorkout, updateWorkoutProgress, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
+  const { activeWorkout, startWorkout, updateWorkoutProgress, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
   
@@ -47,6 +47,7 @@ export default function WorkoutPage() {
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [workoutStartTime] = useState(Date.now());
   const [totalPausedTime, setTotalPausedTime] = useState(0);
+  const [useSmartRest, setUseSmartRest] = useState(true); // Descanso inteligente activado por defecto
 
   useEffect(() => {
     const foundRoutine = getRoutineById(id);
@@ -63,6 +64,18 @@ export default function WorkoutPage() {
       setCompletedSets(activeWorkout.completedSets);
       setActualReps(activeWorkout.actualReps);
       setActualWeights(activeWorkout.actualWeights);
+      
+      // Restaurar estado del timer de descanso si estaba descansando
+      if (activeWorkout.isResting && activeWorkout.restTimerDuration && activeWorkout.restTimerStartedAt) {
+        const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
+        const remaining = activeWorkout.restTimerDuration - elapsed;
+        if (remaining > 0) {
+          setShowTimer(true);
+          setTimerDuration(remaining);
+          setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
+          setNextExerciseName(activeWorkout.restTimerNextExercise);
+        }
+      }
       
       const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
       if (currentExercise) {
@@ -152,18 +165,19 @@ export default function WorkoutPage() {
         // Mostrar modal para notas antes de finalizar
         setShowNotesModal(true);
       } else {
-        // Pasar al siguiente ejercicio - usar descanso inteligente
+        // Pasar al siguiente ejercicio
         const nextExercise = routine.exercises[currentExerciseIndex + 1];
         const nextExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
         const currentExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
         
+        // Prioridad: 1) Override del ejercicio, 2) Valor de la rutina, 3) Cálculo inteligente, 4) Fallback
         let restTime = routine.restBetweenExercises || 120;
         
-        if (currentExerciseTemplate && nextExerciseTemplate) {
+        if (useSmartRest && currentExerciseTemplate && nextExerciseTemplate) {
           const restRecommendation = calculateRestBetweenExercises(
             currentExerciseTemplate,
             nextExerciseTemplate,
-            'intermediate' // Podrías obtener esto del perfil del usuario
+            'intermediate'
           );
           restTime = restRecommendation.recommended;
         }
@@ -172,28 +186,63 @@ export default function WorkoutPage() {
         setTimerDuration(restTime);
         setTimerTitle('Descanso entre ejercicios');
         setNextExerciseName(nextExercise.name);
+        
+        // Persistir estado del timer
+        updateWorkoutProgress(
+          currentExerciseIndex,
+          currentSet,
+          newCompletedSets,
+          newActualReps,
+          newActualWeights,
+          { isResting: true, restTimerDuration: restTime, restTimerTitle: 'Descanso entre ejercicios', restTimerNextExercise: nextExercise.name, restTimerStartedAt: Date.now() }
+        );
       }
     } else {
-      // Descanso entre series - usar descanso inteligente
-      const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+      // Descanso entre series
+      // Prioridad: 1) Override del ejercicio actual, 2) Valor global de la rutina, 3) Cálculo inteligente, 4) Fallback 60s
+      let restTime: number;
       
-      let restTime = routine.restBetweenSets || 60;
-      
-      if (exerciseTemplate) {
-        const currentSetData = currentExercise.sets[currentSet - 1];
-        const restRecommendation = calculateRestBetweenSets(
-          exerciseTemplate,
-          currentExercise.sets.length,
-          currentSetData?.reps || 10,
-          'intermediate' // Podrías obtener esto del perfil del usuario
-        );
-        restTime = restRecommendation.recommended;
+      if (currentExercise.restBetweenSets && currentExercise.restBetweenSets > 0) {
+        // El ejercicio tiene su propio tiempo de descanso configurado
+        restTime = currentExercise.restBetweenSets;
+      } else if (routine.restBetweenSets && routine.restBetweenSets > 0) {
+        // Usar el valor global de la rutina
+        restTime = routine.restBetweenSets;
+      } else if (useSmartRest) {
+        // Cálculo inteligente como fallback
+        const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+        if (exerciseTemplate) {
+          const currentSetData = currentExercise.sets[currentSet - 1];
+          const restRecommendation = calculateRestBetweenSets(
+            exerciseTemplate,
+            currentExercise.sets.length,
+            currentSetData?.reps || 10,
+            'intermediate'
+          );
+          restTime = restRecommendation.recommended;
+        } else {
+          restTime = 60;
+        }
+      } else {
+        restTime = 60;
       }
+      
+      const timerTitleText = `Descanso - Serie ${currentSet + 1}/${currentExercise.sets.length}`;
       
       setShowTimer(true);
       setTimerDuration(restTime);
-      setTimerTitle(`Descanso - Serie ${currentSet + 1}/${currentExercise.sets.length}`);
+      setTimerTitle(timerTitleText);
       setNextExerciseName(undefined);
+      
+      // Persistir estado del timer
+      updateWorkoutProgress(
+        currentExerciseIndex,
+        currentSet,
+        newCompletedSets,
+        newActualReps,
+        newActualWeights,
+        { isResting: true, restTimerDuration: restTime, restTimerTitle: timerTitleText, restTimerStartedAt: Date.now() }
+      );
     }
   };
 
@@ -221,6 +270,7 @@ export default function WorkoutPage() {
 
   const handleTimerComplete = () => {
     setShowTimer(false);
+    clearRestState(); // Limpiar estado de descanso persistido
     
     if (isLastSet && !isLastExercise) {
       // Siguiente ejercicio
@@ -348,8 +398,10 @@ export default function WorkoutPage() {
             <Button variant="ghost" onClick={skipTimer} className="w-full">
               ⏭️ Saltar descanso
             </Button>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              💡 Tip: Aprovecha este tiempo para hidratarte y respirar profundo
+            {/* Indicador del tiempo configurado */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <p>⏱️ Tiempo configurado: {Math.floor(timerDuration / 60)}:{(timerDuration % 60).toString().padStart(2, '0')}</p>
+              <p>💡 Tip: Aprovecha este tiempo para hidratarte y respirar profundo</p>
             </div>
           </div>
         </div>
@@ -439,39 +491,96 @@ export default function WorkoutPage() {
                 />
               </div>
               
-              {/* Información de descanso inteligente */}
-              {(() => {
-                const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-                if (exerciseTemplate) {
-                  const currentSetData = currentExercise.sets[currentSet - 1];
-                  const restRecommendation = calculateRestBetweenSets(
-                    exerciseTemplate,
-                    currentExercise.sets.length,
-                    currentSetData?.reps || 10,
-                    'intermediate'
-                  );
-                  return (
-                    <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">⏱️</span>
-                        <span className="text-sm font-semibold text-purple-900 dark:text-purple-100">
-                          Descanso recomendado
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-                        {formatRestTime(restRecommendation.recommended)}
-                      </div>
-                      <p className="text-xs text-purple-700 dark:text-purple-300">
-                        {restRecommendation.description}
-                      </p>
-                      <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                        Rango: {formatRestTime(restRecommendation.min)} - {formatRestTime(restRecommendation.max)}
-                      </p>
+              {/* Información de descanso */}
+              <div className="mt-4 space-y-3">
+                {/* Tiempo de descanso configurado */}
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">⏱️</span>
+                      <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                        Descanso entre series
+                      </span>
                     </div>
-                  );
-                }
-                return null;
-              })()}
+                    <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                      {(() => {
+                        const restSecs = currentExercise.restBetweenSets || routine.restBetweenSets || 60;
+                        return `${Math.floor(restSecs / 60)}:${(restSecs % 60).toString().padStart(2, '0')}`;
+                      })()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    {currentExercise.restBetweenSets 
+                      ? '⚙️ Configurado para este ejercicio'
+                      : routine.restBetweenSets 
+                        ? '⚙️ Configurado en la rutina'
+                        : '⚙️ Valor por defecto (60s)'}
+                  </p>
+                </div>
+
+                {/* Toggle y sugerencia inteligente */}
+                {(() => {
+                  const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+                  if (exerciseTemplate) {
+                    const currentSetData = currentExercise.sets[currentSet - 1];
+                    const restRecommendation = calculateRestBetweenSets(
+                      exerciseTemplate,
+                      currentExercise.sets.length,
+                      currentSetData?.reps || 10,
+                      'intermediate'
+                    );
+                    return (
+                      <div className={`p-3 rounded-lg border ${
+                        useSmartRest 
+                          ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' 
+                          : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🧠</span>
+                            <span className={`text-sm font-semibold ${
+                              useSmartRest 
+                                ? 'text-purple-900 dark:text-purple-100' 
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}>
+                              Descanso inteligente
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setUseSmartRest(!useSmartRest)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                              useSmartRest ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                            }`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              useSmartRest ? 'translate-x-6' : 'translate-x-1'
+                            }`} />
+                          </button>
+                        </div>
+                        {useSmartRest ? (
+                          <>
+                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mb-1">
+                              {formatRestTime(restRecommendation.recommended)}
+                            </div>
+                            <p className="text-xs text-purple-700 dark:text-purple-300">
+                              {restRecommendation.description}
+                            </p>
+                            <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                              Rango: {formatRestTime(restRecommendation.min)} - {formatRestTime(restRecommendation.max)}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Actívalo para usar tiempos calculados según el tipo de ejercicio y series
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
             </div>
           </CardContent>
         </Card>
