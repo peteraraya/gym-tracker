@@ -246,8 +246,13 @@ export default function ExercisesPage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={exercise.image} alt={exercise.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          const parent = target.parentElement;
-                          if (parent) parent.style.display = 'none';
+                          if (!target.dataset.fallback) {
+                            target.dataset.fallback = '1';
+                            target.src = '/images/not-available.svg';
+                          } else {
+                            const parent = target.parentElement;
+                            if (parent) parent.style.display = 'none';
+                          }
                         }} />
                       </div>
                     ) : (

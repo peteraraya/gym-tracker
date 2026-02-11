@@ -2959,3 +2959,12 @@ export const WARMUP_CATEGORY_LABELS: Record<WarmupCategory, { es: string; en: st
   mobility: { es: 'Movilidad', en: 'Mobility', icon: '🧘' },
   activation: { es: 'Activación', en: 'Activation', icon: '⚡' }
 };
+
+// Fallback: asegurar que todos los ejercicios de warmup tengan una imagen válida
+const DEFAULT_PLACEHOLDER_IMAGE = '/images/not-available.svg';
+WARMUP_DATABASE.forEach(ex => {
+  if (!ex.image) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (ex as any).image = DEFAULT_PLACEHOLDER_IMAGE;
+  }
+});

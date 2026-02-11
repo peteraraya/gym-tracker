@@ -287,16 +287,17 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                               alt={exercise.name}
                               className="w-full h-full object-cover"
                               loading="lazy"
-                              onError={(e) => {
-                                // Si la imagen falla, mostrar el icono
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                const parent = target.parentElement;
-                                if (parent) {
-                                  parent.innerHTML = '';
-                                  parent.className = 'shrink-0 w-16 h-16';
-                                }
-                              }}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  // Evitar bucle si el placeholder también falla
+                                  if (!target.dataset.fallback) {
+                                    target.dataset.fallback = '1';
+                                    target.src = '/images/not-available.svg';
+                                  } else {
+                                    // Si falla el placeholder, ocultar imagen
+                                    target.style.display = 'none';
+                                  }
+                                }}
                             />
                           </div>
                         ) : (
