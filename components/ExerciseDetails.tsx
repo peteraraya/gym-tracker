@@ -51,11 +51,13 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                   className="w-full h-auto object-contain"
                   loading="lazy"
                   onError={(e) => {
-                    // Si la imagen falla, ocultar
                     const target = e.target as HTMLImageElement;
-                    const parent = target.parentElement;
-                    if (parent) {
-                      parent.style.display = 'none';
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = '/images/not-available.svg';
+                    } else {
+                      const parent = target.parentElement;
+                      if (parent) parent.style.display = 'none';
                     }
                   }}
                 />

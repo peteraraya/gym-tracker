@@ -2988,3 +2988,12 @@ export const getExerciseByName = (name: string): ExerciseTemplate | undefined =>
       name.toLowerCase().includes(ex.name.toLowerCase())
   );
 };
+
+// Fallback: asegurar que todos los ejercicios tengan una imagen válida
+const DEFAULT_PLACEHOLDER_IMAGE = '/images/not-available.svg';
+EXERCISE_DATABASE.forEach(ex => {
+  if (!ex.image) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (ex as any).image = DEFAULT_PLACEHOLDER_IMAGE;
+  }
+});
