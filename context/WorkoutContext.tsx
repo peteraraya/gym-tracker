@@ -12,6 +12,12 @@ interface WorkoutState {
   actualReps: { [key: string]: number[] };
   actualWeights: { [key: string]: number[] };
   startedAt: Date;
+  // Estado del timer de descanso para persistencia
+  isResting?: boolean;
+  restTimerDuration?: number;
+  restTimerTitle?: string;
+  restTimerNextExercise?: string;
+  restTimerStartedAt?: number; // timestamp de cuando empezó el descanso
 }
 
 interface WorkoutContextType {
@@ -22,8 +28,16 @@ interface WorkoutContextType {
     set: number,
     completedSets: { [key: string]: number },
     actualReps: { [key: string]: number[] },
-    actualWeights: { [key: string]: number[] }
+    actualWeights: { [key: string]: number[] },
+    restState?: {
+      isResting?: boolean;
+      restTimerDuration?: number;
+      restTimerTitle?: string;
+      restTimerNextExercise?: string;
+      restTimerStartedAt?: number;
+    }
   ) => void;
+  clearRestState: () => void;
   finishWorkout: () => void;
   cancelWorkout: () => void;
   isWorkoutActive: boolean;
@@ -81,7 +95,14 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     set: number,
     completedSets: { [key: string]: number },
     actualReps: { [key: string]: number[] },
-    actualWeights: { [key: string]: number[] }
+    actualWeights: { [key: string]: number[] },
+    restState?: {
+      isResting?: boolean;
+      restTimerDuration?: number;
+      restTimerTitle?: string;
+      restTimerNextExercise?: string;
+      restTimerStartedAt?: number;
+    }
   ) => {
     setActiveWorkout(prev => {
       if (!prev) return null;
@@ -91,7 +112,27 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         currentSet: set,
         completedSets,
         actualReps,
-        actualWeights
+        actualWeights,
+        // Persistir estado del timer de descanso
+        isResting: restState?.isResting ?? false,
+        restTimerDuration: restState?.restTimerDuration,
+        restTimerTitle: restState?.restTimerTitle,
+        restTimerNextExercise: restState?.restTimerNextExercise,
+        restTimerStartedAt: restState?.restTimerStartedAt
+      };
+    });
+  }, []);
+
+  const clearRestState = useCallback(() => {
+    setActiveWorkout(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        isResting: false,
+        restTimerDuration: undefined,
+        restTimerTitle: undefined,
+        restTimerNextExercise: undefined,
+        restTimerStartedAt: undefined
       };
     });
   }, []);
@@ -108,10 +149,11 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     activeWorkout,
     startWorkout,
     updateWorkoutProgress,
+    clearRestState,
     finishWorkout,
     cancelWorkout,
     isWorkoutActive: activeWorkout !== null
-  }), [activeWorkout, startWorkout, updateWorkoutProgress, finishWorkout, cancelWorkout]);
+  }), [activeWorkout, startWorkout, updateWorkoutProgress, clearRestState, finishWorkout, cancelWorkout]);
 
   return (
     <WorkoutContext.Provider value={value}>

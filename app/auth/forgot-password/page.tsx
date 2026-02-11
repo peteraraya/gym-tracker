@@ -130,7 +130,7 @@ export default function ForgotPasswordPage() {
 }
 
 // Start/stop cooldown timer when `cooldown` changes
-function useCooldownTimer(cooldown: number, setCooldown: (v: number) => void, cooldownEmail: string | null, keyPrefix: string) {
+function useCooldownTimer(cooldown: number, setCooldown: React.Dispatch<React.SetStateAction<number>>, cooldownEmail: string | null, keyPrefix: string) {
   useEffect(() => {
     if (cooldown <= 0) return;
     const id = setInterval(() => {

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { MuscleGroup, MUSCLE_GROUPS, getExercisesByMuscleGroup, ExerciseTemplate } from '@/data/exercises';
+import { getWarmupsByMuscleGroup, WARMUP_CATEGORY_LABELS, WarmupExercise, WarmupCategory } from '@/data/warmupExercises';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { BodyMap } from '@/components/BodyMap';
@@ -21,12 +22,15 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
   const [selectedExercises, setSelectedExercises] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'body' | 'grid'>('body');
   const [detailsExercise, setDetailsExercise] = useState<ExerciseTemplate | null>(null);
+  const [exerciseTab, setExerciseTab] = useState<'training' | 'warmup'>('training');
+  const [warmupCategoryFilter, setWarmupCategoryFilter] = useState<'all' | WarmupCategory>('all');
   const { hasEquipment, selectedEquipment } = useEquipment();
 
   const handleMuscleSelect = (muscleGroup: MuscleGroup) => {
     setSelectedMuscle(muscleGroup);
     setSearchTerm('');
     setSelectedExercises(new Set());
+    setExerciseTab('training');
   };
 
   const handleExerciseToggle = (exercise: ExerciseTemplate) => {
@@ -42,7 +46,8 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
   const handleConfirmSelection = () => {
     if (selectedExercises.size === 0) return;
 
-    const exercises = filteredExercises.filter(ex => selectedExercises.has(ex.id));
+    const allAvailable = [...filteredExercises, ...warmupExercises];
+    const exercises = allAvailable.filter(ex => selectedExercises.has(ex.id));
     onSelectExercises(exercises);
     setSelectedMuscle(null);
     setSearchTerm('');
@@ -54,6 +59,29 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
       .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
       .filter(ex => hasEquipment(ex.equipment))
     : [];
+
+  const warmupExercises: ExerciseTemplate[] = selectedMuscle
+    ? getWarmupsByMuscleGroup(selectedMuscle)
+      .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter(ex => warmupCategoryFilter === 'all' || ex.category === warmupCategoryFilter)
+      .map((w: WarmupExercise) => ({
+        ...w,
+        name: `🔥 ${w.name}`,
+        description: `${WARMUP_CATEGORY_LABELS[w.category].icon} ${WARMUP_CATEGORY_LABELS[w.category].es} • ${w.description || ''}`,
+      }))
+    : [];
+
+  const allWarmupCount = selectedMuscle
+    ? getWarmupsByMuscleGroup(selectedMuscle)
+      .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase())).length
+    : 0;
+
+  const allWarmupRaw = selectedMuscle
+    ? getWarmupsByMuscleGroup(selectedMuscle)
+      .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : [];
+
+  const currentExercises = exerciseTab === 'training' ? filteredExercises : warmupExercises;
 
   const totalExercises = selectedMuscle ? getExercisesByMuscleGroup(selectedMuscle).length : 0;
 
@@ -95,7 +123,11 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
             />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {MUSCLE_GROUPS.map((muscle) => (
+              {MUSCLE_GROUPS.map((muscle) => {
+                const trainingCount = getExercisesByMuscleGroup(muscle.id).filter(ex => hasEquipment(ex.equipment)).length;
+                const totalTraining = getExercisesByMuscleGroup(muscle.id).length;
+                const warmupCount = getWarmupsByMuscleGroup(muscle.id).length;
+                return (
                 <button
                   key={muscle.id}
                   onClick={() => handleMuscleSelect(muscle.id)}
@@ -111,8 +143,22 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100 text-center">
                     {muscle.name}
                   </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {trainingCount}/{totalTraining} ejercicios
+                  </span>
+                  {warmupCount > 0 && (
+                    <span className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                      🔥 {warmupCount} calentamiento
+                    </span>
+                  )}
+                  {trainingCount < totalTraining && (
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                      Pronto habrá más ejercicios
+                    </span>
+                  )}
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </>
@@ -150,15 +196,71 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
+          {/* Tab de entrenamiento vs calentamiento */}
+          <div className="flex gap-2 mb-1">
+            <button
+              type="button"
+              onClick={() => setExerciseTab('training')}
+              className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border-2 transition-all ${
+                exerciseTab === 'training'
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300'
+                  : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-blue-300'
+              }`}
+            >
+              🏋️ Entrenamiento ({filteredExercises.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setExerciseTab('warmup')}
+              className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border-2 transition-all ${
+                exerciseTab === 'warmup'
+                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 text-amber-700 dark:text-amber-300'
+                  : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-amber-300'
+              }`}
+            >
+              🔥 Calentamiento ({allWarmupCount})
+            </button>
+          </div>
+
+          {/* Filtros de categoría para calentamiento */}
+          {exerciseTab === 'warmup' && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {[
+                { key: 'all' as const, label: 'Todos', count: allWarmupCount },
+                { key: 'warmup' as const, label: WARMUP_CATEGORY_LABELS.warmup.icon + ' ' + WARMUP_CATEGORY_LABELS.warmup.es, count: allWarmupRaw.filter(e => e.category === 'warmup').length },
+                { key: 'mobility' as const, label: WARMUP_CATEGORY_LABELS.mobility.icon + ' ' + WARMUP_CATEGORY_LABELS.mobility.es, count: allWarmupRaw.filter(e => e.category === 'mobility').length },
+                { key: 'activation' as const, label: WARMUP_CATEGORY_LABELS.activation.icon + ' ' + WARMUP_CATEGORY_LABELS.activation.es, count: allWarmupRaw.filter(e => e.category === 'activation').length },
+              ].map((filter) => (
+                <button
+                  key={filter.key}
+                  onClick={() => setWarmupCategoryFilter(filter.key)}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                    warmupCategoryFilter === filter.key
+                      ? filter.key === 'warmup' ? 'bg-red-100 dark:bg-red-900/30 border-red-400 text-red-700 dark:text-red-300'
+                      : filter.key === 'mobility' ? 'bg-purple-100 dark:bg-purple-900/30 border-purple-400 text-purple-700 dark:text-purple-300'
+                      : filter.key === 'activation' ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-400 text-yellow-700 dark:text-yellow-300'
+                      : 'bg-amber-100 dark:bg-amber-900/30 border-amber-400 text-amber-700 dark:text-amber-300'
+                      : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400'
+                  }`}
+                >
+                  {filter.label} ({filter.count})
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="grid gap-3 max-h-96 overflow-y-auto">
-            {filteredExercises.length > 0 ? (
-              filteredExercises.map((exercise) => {
+            {currentExercises.length > 0 ? (
+              currentExercises.map((exercise) => {
                 const isSelected = selectedExercises.has(exercise.id);
+                const isWarmupTab = exerciseTab === 'warmup';
                 return (
                   <div
                     key={exercise.id}
                     className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${isSelected
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
+                      ? isWarmupTab
+                        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 shadow-md'
+                        : 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
                       : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
                       }`}
                     onClick={() => handleExerciseToggle(exercise)}
@@ -168,7 +270,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                         className="flex items-start gap-3 flex-1"
                       >
                         <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected
-                          ? 'bg-blue-600 border-blue-600'
+                          ? isWarmupTab ? 'bg-amber-500 border-amber-500' : 'bg-blue-600 border-blue-600'
                           : 'border-gray-300 dark:border-gray-500'
                           }`}>
                           {isSelected && (
