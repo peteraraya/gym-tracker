@@ -47,7 +47,7 @@ export default function WorkoutPage() {
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [workoutStartTime] = useState(Date.now());
   const [totalPausedTime, setTotalPausedTime] = useState(0);
-  const [useSmartRest, setUseSmartRest] = useState(false); // Descanso inteligente desactivado por defecto
+  const [useSmartRest, setUseSmartRest] = useState(true); // Descanso inteligente activado por defecto
 
   useEffect(() => {
     const foundRoutine = getRoutineById(id);

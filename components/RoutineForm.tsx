@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
 import { EquipmentDropdown } from '@/components/EquipmentDropdown';
+import { RestTimeSelector, RestTimeSelectorCompact } from '@/components/RestTimeSelector';
 import { ExerciseTemplate, getExerciseByName, MuscleGroup } from '@/data/exercises';
 import { WarmupExercise } from '@/data/warmupExercises';
 import { WarmupRecommendation } from '@/components/WarmupRecommendation';
@@ -281,32 +282,18 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Input
-            type="number"
-            label={t('restBetweenSets')}
-            value={restBetweenSets}
-            onChange={(e) => setRestBetweenSets(parseInt(e.target.value) || 0)}
-            min="0"
-            step="5"
-          />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            ⏱️ {Math.floor(restBetweenSets / 60)}:{(restBetweenSets % 60).toString().padStart(2, '0')} {t('minutes')}
-          </p>
-        </div>
-        <div>
-          <Input
-            type="number"
-            label={t('restBetweenExercises')}
-            value={restBetweenExercises}
-            onChange={(e) => setRestBetweenExercises(parseInt(e.target.value) || 0)}
-            min="0"
-            step="5"
-          />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            ⏱️ {Math.floor(restBetweenExercises / 60)}:{(restBetweenExercises % 60).toString().padStart(2, '0')} {t('minutes')}
-          </p>
-        </div>
+        <RestTimeSelector
+          label={t('restBetweenSets')}
+          value={restBetweenSets}
+          onChange={(v) => setRestBetweenSets(v)}
+          includeZero={false}
+        />
+        <RestTimeSelector
+          label={t('restBetweenExercises')}
+          value={restBetweenExercises}
+          onChange={(v) => setRestBetweenExercises(v)}
+          includeZero={false}
+        />
       </div>
 
       {/* Recomendación de calentamiento */}
@@ -466,25 +453,16 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 <label className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                   Descanso entre series:
                 </label>
-                <input
-                  type="number"
-                  value={exercise.restBetweenSets || ''}
-                  onChange={(e) => {
+                <RestTimeSelectorCompact
+                  value={exercise.restBetweenSets}
+                  onChange={(v) => {
                     const newExercises = [...exercises];
-                    (newExercises[exerciseIndex] as any).restBetweenSets = parseInt(e.target.value) || 0;
+                    (newExercises[exerciseIndex] as any).restBetweenSets = v;
                     setExercises(newExercises);
                   }}
-                  placeholder={`${restBetweenSets}s (global)`}
-                  min="0"
-                  step="5"
-                  className="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
+                  className="w-36"
                 />
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {exercise.restBetweenSets 
-                    ? `${Math.floor(exercise.restBetweenSets / 60)}:${(exercise.restBetweenSets % 60).toString().padStart(2, '0')}`
-                    : 'Usa global'
-                  }
-                </span>
               </div>
             </div>
           ))}

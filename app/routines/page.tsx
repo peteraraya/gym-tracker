@@ -21,7 +21,8 @@ import {
   Trash2, 
   ClipboardList, 
   Dumbbell,
-  Flame
+  Flame,
+  Zap
 } from 'lucide-react';
 
 import { useTranslations } from '@/context/LocaleContext';
@@ -123,6 +124,28 @@ export default function RoutinesPage() {
             <Plus className="w-5 h-5" />
             {t('newRoutine')}
           </Button>
+        </div>
+
+        {/* Botón de entrenamiento libre */}
+        <div className="mb-6">
+          <button
+            onClick={() => router.push('/workout/free')}
+            className="w-full p-4 rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-700 bg-linear-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 hover:from-orange-100 hover:to-red-100 dark:hover:from-orange-900/20 dark:hover:to-red-900/20 transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-linear-to-br from-orange-500 to-red-600 rounded-xl group-hover:scale-105 transition-transform">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  🏋️ Entrenamiento Libre
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Entrena sin rutina predefinida — agrega ejercicios y registra series sobre la marcha
+                </p>
+              </div>
+            </div>
+          </button>
         </div>
 
         {loading ? (
