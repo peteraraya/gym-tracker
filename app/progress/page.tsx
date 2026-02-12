@@ -40,7 +40,7 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
 };
 
 export default function ProgressPage() {
-  const { sessions, routines } = useGym();
+  const { sessions, routines, loading } = useGym();
 
   // Excluir sesiones cuya `routineId` ya no exista en las rutinas guardadas
   const validSessions = useMemo(() => {
@@ -134,6 +134,35 @@ export default function ProgressPage() {
     return Math.max(...Object.values(muscleGroupVolume.volume));
   }, [muscleGroupVolume.volume]);
 
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Progreso por Grupo Muscular
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                Analiza tu volumen de entrenamiento por grupo muscular
+              </p>
+            </div>
+
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">⏳</div>
+              <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Cargando progreso...
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Cargando tus sesiones y rutinas, esto puede tardar unos segundos
+              </p>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   if (validSessions.length === 0) {
     return (
       <ProtectedRoute>
@@ -213,7 +242,7 @@ export default function ProgressPage() {
           </div>
 
           {/* Gráfica de barras por grupo muscular */}
-           <Card className="mb-8">
+           {/* <Card className="mb-8">
             <CardHeader>
               <CardTitle>Volumen por Grupo Muscular</CardTitle>
             </CardHeader>
@@ -271,7 +300,7 @@ export default function ProgressPage() {
                 })}
               </div>
             </CardContent>
-          </Card> 
+          </Card>  */}
 
           {/* Distribución porcentual
           <Card>

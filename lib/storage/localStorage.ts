@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
     ROUTINES: 'gym_tracker_routines',
     SESSIONS: 'gym_tracker_sessions',
     PROFILE: 'gym_tracker_profile',
+    RECOMMENDATIONS: 'gym_tracker_recommendations',
 } as const;
 
 // Helper to generate unique IDs
@@ -313,4 +314,37 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
     };
 
     saveToStorage(STORAGE_KEYS.PROFILE, updatedProfile);
+}
+
+// ==================== RECOMMENDATIONS ====================
+
+export interface ProgressRecommendation {
+    exerciseId: string;
+    recommend: boolean;
+    suggestedWeight?: number;
+    reason?: string;
+    createdAt: string;
+    lastWeights?: number[];
+}
+
+export async function getRecommendations(): Promise<ProgressRecommendation[]> {
+    const recs = getFromStorage<ProgressRecommendation[]>(STORAGE_KEYS.RECOMMENDATIONS, []);
+    return Array.isArray(recs) ? recs : [];
+}
+
+export async function saveRecommendations(recommendations: ProgressRecommendation[]): Promise<void> {
+    const current = await getRecommendations();
+    const map = new Map<string, ProgressRecommendation>();
+    current.forEach(r => map.set(r.exerciseId, r));
+    recommendations.forEach(r => map.set(r.exerciseId, r));
+    const merged = Array.from(map.values());
+    saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, merged);
+}
+
+export async function saveRecommendation(recommendation: ProgressRecommendation): Promise<void> {
+    const current = await getRecommendations();
+    const idx = current.findIndex(r => r.exerciseId === recommendation.exerciseId);
+    if (idx >= 0) current[idx] = recommendation;
+    else current.push(recommendation);
+    saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, current);
 }

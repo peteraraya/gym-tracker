@@ -10,7 +10,7 @@ import { SessionComparison } from '@/components/SessionComparison';
 import type { WorkoutSession } from '@/types';
 
 export default function SessionsPage() {
-  const { sessions: serverSessions, routines } = useGym();
+  const { sessions: serverSessions, routines, loading } = useGym();
   
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>(() => {
     if (typeof window !== 'undefined') {
@@ -88,6 +88,37 @@ export default function SessionsPage() {
     const routine = routines.find((r) => r.id === routineId);
     return routine ? routine.name : 'Rutina eliminada';
   };
+
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Historial de Sesiones
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">
+                  Revisa tus entrenamientos anteriores
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">⏳</div>
+              <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Cargando sesiones...
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Cargando historial de sesiones, espera unos segundos
+              </p>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>

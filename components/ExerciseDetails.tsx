@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import * as storageService from '@/lib/storage/storage';
 import { ExerciseTemplate } from '@/data/exercises';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
 
@@ -10,6 +11,21 @@ interface ExerciseDetailsProps {
 }
 
 export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
+  const [recommendation, setRecommendation] = useState<any | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const recs = await storageService.getRecommendations();
+        const rec = (recs || []).find((r: any) => r.exerciseId === exercise.id || r.exerciseId === exercise.name);
+        if (mounted && rec) setRecommendation(rec);
+      } catch (e) {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, [exercise.id, exercise.name]);
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -117,6 +133,52 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
               </div>
             )}
           </div>
+
+          {/* Progression Recommendation */}
+          {recommendation && (
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-indigo-800 dark:text-indigo-200 font-semibold mb-1">🚀 Recomendación</div>
+                  <div className="text-gray-900 dark:text-gray-100 font-bold text-lg">
+                    Subir a {recommendation.suggestedWeight} kg
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">{recommendation.reason}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="px-3 py-2 bg-indigo-600 text-white rounded-md"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(String(recommendation.suggestedWeight));
+                        // eslint-disable-next-line no-console
+                        console.log('Copied suggested weight to clipboard');
+                      } catch (e) {
+                        // ignore
+                      }
+                    }}
+                  >
+                    Copiar
+                  </button>
+                  <button
+                    className="px-3 py-2 border rounded-md"
+                    onClick={async () => {
+                      try {
+                        const recs = await storageService.getRecommendations();
+                        const updated = (recs || []).filter((r: any) => r.exerciseId !== recommendation.exerciseId);
+                        await storageService.saveRecommendations(updated);
+                        setRecommendation(null);
+                      } catch (e) {
+                        // ignore
+                      }
+                    }}
+                  >
+                    Descartar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Technique Tips */}
           {exercise.technique && exercise.technique.length > 0 && (

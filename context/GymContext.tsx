@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { Routine, WorkoutSession } from '@/types';
 import { useAuth } from './AuthContext';
 import * as storageService from '@/lib/storage/storage';
+import { recommendForSession } from '@/lib/progression';
 
 interface GymContextType {
   routines: Routine[];
@@ -70,7 +71,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const orphan = orphanList.length;
 
         // Logs y exposición temporal en window para inspección
-        // eslint-disable-next-line no-console
+         
         console.log('[GymContext] refreshSessions -> sessions loaded:', total, { completed, inProgress, orphan });
         if (typeof window !== 'undefined') {
           // @ts-ignore - temporal
@@ -79,7 +80,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           window.__GYM_SESSIONS_DETAILS__ = { total, completed, inProgress, orphan, orphanIds: orphanList.map(s => s.id || null) };
         }
       } catch (e) {
-        // eslint-disable-next-line no-console
+         
         console.warn('[GymContext] refreshSessions - debug info error', e);
       }
     } catch (error) {
@@ -147,7 +148,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Evitar fallos si localStorage no está disponible
         if (typeof window !== 'undefined') {
           // Mostrar keys locales relevantes
-          // eslint-disable-next-line no-console
+           
           console.log('[GymContext] addSession called, session summary:', {
             routineId: session.routineId,
             date: session.date,
@@ -155,9 +156,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           });
           try {
             // Mostrar localStorage keys que podrían contener sesiones
-            // eslint-disable-next-line no-console
+             
             console.log('[GymContext] localStorage workoutSessions length:', (localStorage.getItem('workoutSessions') || '').length);
-            // eslint-disable-next-line no-console
+             
             console.log('[GymContext] localStorage gym_tracker_sessions length:', (localStorage.getItem('gym_tracker_sessions') || '').length);
           } catch (e) {
             // ignore localStorage read errors
@@ -170,14 +171,32 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await storageService.saveSession(session as WorkoutSession);
 
       // TEMP LOG: confirmar que saveSession resolvió
-      // eslint-disable-next-line no-console
+       
       console.log('[GymContext] storageService.saveSession resolved');
 
       await refreshSessions();
 
       // TEMP LOG: confirmar refresh
-      // eslint-disable-next-line no-console
+       
       console.log('[GymContext] refreshSessions called (sessions state should update)');
+
+      // Generar recomendaciones de progresión (2-for-2) y persistir mediante storageService
+      try {
+        const allSessions = await storageService.getSessions();
+        const recs = recommendForSession(session as WorkoutSession, allSessions, { repTarget: 8, compound: true });
+        if (recs && recs.length > 0) {
+          try {
+            await storageService.saveRecommendations(recs);
+             
+            console.log('[GymContext] Saved progression recommendations via storageService', recs);
+          } catch (e) {
+             
+            console.warn('[GymContext] Failed to save recommendations via storageService, falling back to localStorage', e);
+          }
+        }
+      } catch (e) {
+        // ignore recommendation errors
+      }
     } catch (error) {
       console.error('Error adding session:', error);
       throw error;
@@ -207,16 +226,16 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // @ts-ignore
       window.__rebuildRoutinesFromSessions = async () => {
         try {
-          // eslint-disable-next-line no-console
+           
           console.log('[GymContext] Rebuilding routines from sessions...');
           const created = await storageService.rebuildRoutinesFromSessions();
           await refreshRoutines();
           await refreshSessions();
-          // eslint-disable-next-line no-console
+           
           console.log('[GymContext] Rebuild finished, created:', created?.length || 0);
           return created;
         } catch (e) {
-          // eslint-disable-next-line no-console
+           
           console.error('[GymContext] rebuild failed', e);
           throw e;
         }

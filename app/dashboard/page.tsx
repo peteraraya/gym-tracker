@@ -84,9 +84,10 @@ export default function DashboardPage() {
   };
 
   // Cálculos de estadísticas
-  const stats = { totalSessions: sessions.length,
+  const stats = {
+    totalSessions: validSessions.length,
     
-    totalVolume: sessions.reduce((total, session) => {
+    totalVolume: validSessions.reduce((total, session) => {
       if (!session.exercises || !Array.isArray(session.exercises)) return total;
       return total + session.exercises.reduce((exTotal, ex) => {
         if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
@@ -96,7 +97,7 @@ export default function DashboardPage() {
       }, 0);
     }, 0),
 
-    totalSets: sessions.reduce((total, session) => {
+    totalSets: validSessions.reduce((total, session) => {
       if (!session.exercises || !Array.isArray(session.exercises)) return total;
       return total + session.exercises.reduce((exTotal, ex) => {
         return exTotal + (ex.actualReps?.length || 0);
@@ -104,9 +105,9 @@ export default function DashboardPage() {
     }, 0),
 
     currentStreak: (() => {
-      if (sessions.length === 0) return 0;
+      if (validSessions.length === 0) return 0;
       
-      const sortedDates = sessions
+      const sortedDates = validSessions
         .map(s => new Date(s.date).setHours(0, 0, 0, 0))
         .sort((a, b) => b - a);
 
@@ -134,7 +135,7 @@ export default function DashboardPage() {
 
     thisMonthVolume: (() => {
       const now = new Date();
-      const thisMonth = sessions.filter(s => {
+      const thisMonth = validSessions.filter(s => {
         const date = new Date(s.date);
         return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
       });
@@ -153,7 +154,7 @@ export default function DashboardPage() {
     lastMonthVolume: (() => {
       const now = new Date();
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthSessions = sessions.filter(s => {
+      const lastMonthSessions = validSessions.filter(s => {
         const date = new Date(s.date);
         return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
       });
@@ -172,7 +173,7 @@ export default function DashboardPage() {
     favoriteExercise: (() => {
       const exerciseCounts: Record<string, number> = {};
       
-      sessions.forEach(session => {
+      validSessions.forEach(session => {
         if (!session.exercises || !Array.isArray(session.exercises)) return;
         session.exercises.forEach(ex => {
           // Intentar usar el nombre guardado primero

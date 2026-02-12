@@ -315,3 +315,59 @@ export async function rebuildRoutinesFromSessions(): Promise<any> {
         return localStorageService.rebuildRoutinesFromSessions();
     }
 }
+
+// ==================== RECOMMENDATIONS ====================
+
+export async function getRecommendations(): Promise<any[]> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getRecommendations();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if (supabaseService.getRecommendations) {
+                const result = await supabaseService.getRecommendations();
+                handleStorageSuccess();
+                return result;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getRecommendations();
+        } catch (err) {
+            handleStorageError(err, 'getRecommendations');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getRecommendations();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getRecommendations();
+    }
+}
+
+export async function saveRecommendations(recommendations: any[]): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveRecommendations(recommendations);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if (supabaseService.saveRecommendations) {
+                await supabaseService.saveRecommendations(recommendations);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveRecommendations(recommendations);
+        } catch (err) {
+            handleStorageError(err, 'saveRecommendations');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveRecommendations(recommendations);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveRecommendations(recommendations);
+    }
+}
