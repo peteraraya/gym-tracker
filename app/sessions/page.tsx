@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useGym } from '@/context/GymContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -8,35 +8,30 @@ import { ClientOnly } from '@/components/ClientOnly';
 import { SessionFilters } from '@/components/SessionFilters';
 import { SessionComparison } from '@/components/SessionComparison';
 import type { WorkoutSession } from '@/types';
+import * as storageService from '@/lib/storage/storage';
 
 export default function SessionsPage() {
   const { sessions: serverSessions, routines, loading } = useGym();
   
-  const [localSessions, setLocalSessions] = useState<WorkoutSession[]>(() => {
-    if (typeof window !== 'undefined') {
+  const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
       try {
-        const storedA = localStorage.getItem('workoutSessions');
-        const storedB = localStorage.getItem('gym_tracker_sessions');
-
-        const a: WorkoutSession[] = storedA ? JSON.parse(storedA) : [];
-        const b: WorkoutSession[] = storedB ? JSON.parse(storedB) : [];
-
+        const all = await storageService.getSessions();
         // Merge and dedupe by id (or by date+routine as fallback)
         const map = new Map<string, WorkoutSession>();
         const keyFor = (s: WorkoutSession) => s.id || `${s.date}-${s.routineId}`;
-
-        [...b, ...a].forEach(s => map.set(keyFor(s), s));
-
-        return Array.from(map.values());
+        (all || []).forEach(s => map.set(keyFor(s), s));
+        const merged = Array.from(map.values());
+        if (mounted) setLocalSessions(merged);
       } catch (err) {
-        // fall back to empty
-         
-        console.warn('Error parsing local sessions:', err);
-        return [];
+        console.warn('Error loading local sessions:', err);
       }
-    }
-    return [];
-  });
+    })();
+    return () => { mounted = false };
+  }, []);
 
   // Combina sesiones del servidor y sesiones importadas en localStorage
   // Evitar eliminar sesiones distintas con el mismo nombre: dedupe SOLO por `id`.

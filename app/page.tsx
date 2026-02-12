@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
-  const { routines, sessions } = useGym();
+  const { routines, sessions, loading } = useGym();
   const t = useTranslations('home');
   const tCommon = useTranslations('common');
 
@@ -48,8 +48,17 @@ export default function Home() {
                 <CardTitle>{t('routinesCard')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-blue-600 mb-2">{routines.length}</p>
-                <p className="text-gray-600 dark:text-gray-400">{t('routinesCreated')}</p>
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                    <span className="sr-only">{tCommon('loading')}</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-blue-600 mb-2">{routines.length}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('routinesCreated')}</p>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -59,8 +68,17 @@ export default function Home() {
                 <CardTitle>{t('sessionsCard')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-green-600 mb-2">{sessions.length}</p>
-                <p className="text-gray-600 dark:text-gray-400">{t('workoutsCompleted')}</p>
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                    <span className="sr-only">{tCommon('loading')}</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-green-600 mb-2">{sessions.length}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('workoutsCompleted')}</p>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -70,10 +88,19 @@ export default function Home() {
                 <CardTitle>{t('exercisesCard')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-purple-600 mb-2">
-                  {routines.reduce((acc, r) => acc + r.exercises.length, 0)}
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">{t('totalExercises')}</p>
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                    <span className="sr-only">{tCommon('loading')}</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-purple-600 mb-2">
+                      {routines.reduce((acc, r) => acc + r.exercises.length, 0)}
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('totalExercises')}</p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

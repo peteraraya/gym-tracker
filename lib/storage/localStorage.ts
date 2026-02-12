@@ -12,7 +12,10 @@ const STORAGE_KEYS = {
     ROUTINES: 'gym_tracker_routines',
     SESSIONS: 'gym_tracker_sessions',
     PROFILE: 'gym_tracker_profile',
+    WEEKLY_PLAN: 'weekly_routine_plan',
+    ACTIVE_WORKOUT: 'gym-tracker-active-workout',
     RECOMMENDATIONS: 'gym_tracker_recommendations',
+    LAST_WEIGHTS: 'gym_tracker_last_weights',
 } as const;
 
 // Helper to generate unique IDs
@@ -372,10 +375,104 @@ export async function saveRecommendations(recommendations: ProgressRecommendatio
     saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, merged);
 }
 
+// ==================== ACTIVE WORKOUT (Local fallback) ====================
+
+/**
+ * Get active workout from localStorage
+ */
+export async function getActiveWorkout(): Promise<any | null> {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn('getActiveWorkout local error', e);
+        try { localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT); } catch {};
+        return null;
+    }
+}
+
+/**
+ * Save active workout to localStorage
+ */
+export async function saveActiveWorkout(payload: any): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, JSON.stringify(payload));
+    } catch (e) {
+        console.warn('saveActiveWorkout local error', e);
+        throw e;
+    }
+}
+
+// ==================== LAST WEIGHTS ====================
+
+/**
+ * Get last weights stored locally
+ */
+export async function getLastWeights(): Promise<Record<string, number[]>> {
+    if (typeof window === 'undefined') return {};
+    try {
+        const raw = localStorage.getItem(STORAGE_KEYS.LAST_WEIGHTS);
+        if (!raw) return {};
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn('getLastWeights local error', e);
+        try { localStorage.removeItem(STORAGE_KEYS.LAST_WEIGHTS); } catch {};
+        return {};
+    }
+}
+
+export async function saveLastWeights(weights: Record<string, number[]>): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(STORAGE_KEYS.LAST_WEIGHTS, JSON.stringify(weights));
+    } catch (e) {
+        console.warn('saveLastWeights local error', e);
+        throw e;
+    }
+}
+
+/**
+ * Clear active workout from localStorage
+ */
+export async function clearActiveWorkout(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try { localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT); } catch (e) { /* ignore */ }
+}
+
 export async function saveRecommendation(recommendation: ProgressRecommendation): Promise<void> {
     const current = await getRecommendations();
     const idx = current.findIndex(r => r.exerciseId === recommendation.exerciseId);
     if (idx >= 0) current[idx] = recommendation;
     else current.push(recommendation);
     saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, current);
+}
+
+// ==================== WEEKLY PLAN ====================
+
+/**
+ * Get weekly plan from localStorage
+ */
+export async function getWeeklyPlan(): Promise<Record<string, any>> {
+    const raw = getFromStorage<Record<string, any> | null>(STORAGE_KEYS.WEEKLY_PLAN, null);
+    if (!raw) {
+        // Default empty plan structure
+        const defaultPlan = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+            .reduce((acc: any, d: string) => ({ ...acc, [d]: { routines: [] } }), {});
+        return defaultPlan;
+    }
+    return raw;
+}
+
+/**
+ * Save weekly plan to localStorage
+ */
+export async function saveWeeklyPlan(plan: Record<string, any>): Promise<void> {
+    try {
+        saveToStorage(STORAGE_KEYS.WEEKLY_PLAN, plan);
+    } catch (e) {
+        throw new Error('Error saving weekly plan locally');
+    }
 }

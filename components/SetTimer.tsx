@@ -102,7 +102,7 @@ export const SetTimer: React.FC<SetTimerProps> = ({
 
       {/* Display principal */}
       <div className="text-center mb-6">
-        <div className="text-6xl font-bold font-mono text-blue-600 dark:text-blue-400 mb-2 tabular-nums">
+        <div className="text-3xl sm:text-4xl md:text-6xl font-bold font-mono text-blue-600 dark:text-blue-400 mb-2 tabular-nums leading-tight">
           {formatTime(elapsedTime)}
         </div>
         <div className="flex justify-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
@@ -120,11 +120,11 @@ export const SetTimer: React.FC<SetTimerProps> = ({
       </div>
 
       {/* Controles */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Button
           variant={isPaused ? "primary" : "secondary"}
           onClick={handleStartPause}
-          className="flex-1"
+          className="w-full sm:flex-1"
         >
           {isPaused ? (
             <>
@@ -142,7 +142,7 @@ export const SetTimer: React.FC<SetTimerProps> = ({
         <Button
           variant="primary"
           onClick={handleStop}
-          className="flex-1"
+          className="w-full sm:flex-1"
         >
           <Square className="w-5 h-5" />
           {t ? t('completeSet') : 'Completar Serie'}

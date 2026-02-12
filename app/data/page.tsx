@@ -1,23 +1,34 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Database, Shield, Download, Upload, Info } from 'lucide-react';
 import ExportData from '@/components/ExportData';
 import ImportData from '@/components/ImportData';
 import { useGym } from '@/context/GymContext';
 import type { WorkoutSession, UserProfile } from '@/types';
+import * as storageService from '@/lib/storage/storage';
 
 export default function DataManagementPage() {
   const { routines, sessions: contextSessions } = useGym();
   
-  const [localSessions, setLocalSessions] = useState<WorkoutSession[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('workoutSessions');
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const all = await storageService.getSessions();
+        // Keep only sessions that are not present in contextSessions (local/imported)
+        const serverIds = new Set(contextSessions.filter(s => s.id).map(s => s.id));
+        const locals = all.filter(s => !s.id || !serverIds.has(s.id));
+        if (mounted) setLocalSessions(locals);
+      } catch (e) {
+        // fallback keep empty
+      }
+    })();
+    return () => { mounted = false };
+  }, [contextSessions]);
 
   const [profile, setProfile] = useState<UserProfile | null>(() => {
     if (typeof window !== 'undefined') {
@@ -33,18 +44,28 @@ export default function DataManagementPage() {
   }, [contextSessions, localSessions]);
 
   const handleImportSessions = async (importedSessions: WorkoutSession[]) => {
-    // Merge with existing sessions
-    const existingSessions = [...allSessions];
+    // Determine which imported sessions are new
+    const existing = [...allSessions];
     const newSessions = importedSessions.filter(
-      imported => !existingSessions.some(existing => 
-        existing.date === imported.date && 
-        existing.routineId === imported.routineId
+      imported => !existing.some(existingItem => 
+        existingItem.date === imported.date && existingItem.routineId === imported.routineId
       )
     );
 
-    const updatedSessions = [...localSessions, ...newSessions];
-    setLocalSessions(updatedSessions);
-    localStorage.setItem('workoutSessions', JSON.stringify(updatedSessions));
+    if (newSessions.length === 0) return;
+
+    // Save each new session via storageService (DB or local fallback)
+    await Promise.all(newSessions.map(s => storageService.saveSession(s)));
+
+    // Refresh localSessions from storage and keep only non-server sessions
+    try {
+      const all = await storageService.getSessions();
+      const serverIds = new Set(contextSessions.filter(s => s.id).map(s => s.id));
+      const locals = all.filter(s => !s.id || !serverIds.has(s.id));
+      setLocalSessions(locals);
+    } catch (e) {
+      // ignore
+    }
   };
 
   return (

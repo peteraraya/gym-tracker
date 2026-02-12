@@ -300,6 +300,62 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
     }
 }
 
+// ==================== WEEKLY PLAN ====================
+
+export async function getWeeklyPlan(): Promise<any> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getWeeklyPlan();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).getWeeklyPlan) {
+                const res = await (supabaseService as any).getWeeklyPlan();
+                handleStorageSuccess();
+                return res;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getWeeklyPlan();
+        } catch (err) {
+            handleStorageError(err, 'getWeeklyPlan');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getWeeklyPlan();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getWeeklyPlan();
+    }
+}
+
+export async function saveWeeklyPlan(plan: any): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveWeeklyPlan(plan);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).saveWeeklyPlan) {
+                await (supabaseService as any).saveWeeklyPlan(plan);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveWeeklyPlan(plan);
+        } catch (err) {
+            handleStorageError(err, 'saveWeeklyPlan');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveWeeklyPlan(plan);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveWeeklyPlan(plan);
+    }
+}
+
 // ==================== UTILITIES ====================
 
 export async function rebuildRoutinesFromSessions(): Promise<any> {
@@ -329,6 +385,145 @@ export async function rebuildRoutinesFromSessions(): Promise<any> {
     } else {
         const localStorageService = await import('@/lib/storage/localStorage');
         return localStorageService.rebuildRoutinesFromSessions();
+    }
+}
+
+// ==================== ACTIVE WORKOUT ====================
+
+export async function getActiveWorkout(): Promise<any | null> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getActiveWorkout();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).getActiveWorkout) {
+                const res = await (supabaseService as any).getActiveWorkout();
+                handleStorageSuccess();
+                return res;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getActiveWorkout();
+        } catch (err) {
+            handleStorageError(err, 'getActiveWorkout');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getActiveWorkout();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getActiveWorkout();
+    }
+}
+
+export async function saveActiveWorkout(payload: any): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveActiveWorkout(payload);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).saveActiveWorkout) {
+                await (supabaseService as any).saveActiveWorkout(payload);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveActiveWorkout(payload);
+        } catch (err) {
+            handleStorageError(err, 'saveActiveWorkout');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveActiveWorkout(payload);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveActiveWorkout(payload);
+    }
+}
+
+// ==================== LAST WEIGHTS ====================
+
+export async function getLastWeights(): Promise<Record<string, number[]>> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getLastWeights();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).getLastWeights) {
+                const res = await (supabaseService as any).getLastWeights();
+                handleStorageSuccess();
+                return res;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getLastWeights();
+        } catch (err) {
+            handleStorageError(err, 'getLastWeights');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getLastWeights();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getLastWeights();
+    }
+}
+
+export async function saveLastWeights(weights: Record<string, number[]>): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveLastWeights(weights);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).saveLastWeights) {
+                await (supabaseService as any).saveLastWeights(weights);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveLastWeights(weights);
+        } catch (err) {
+            handleStorageError(err, 'saveLastWeights');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveLastWeights(weights);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveLastWeights(weights);
+    }
+}
+
+export async function clearActiveWorkout(): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.clearActiveWorkout();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).clearActiveWorkout) {
+                await (supabaseService as any).clearActiveWorkout();
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.clearActiveWorkout();
+        } catch (err) {
+            handleStorageError(err, 'clearActiveWorkout');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.clearActiveWorkout();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.clearActiveWorkout();
     }
 }
 
