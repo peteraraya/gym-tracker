@@ -220,6 +220,24 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
     }
 
     saveToStorage(STORAGE_KEYS.SESSIONS, sessions);
+
+    // Marcador adicional para depuración: persistir un resumen ligero indicando
+    // que el guardado local ocurrió y cuántas sesiones hay.
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            const marker = {
+                savedAt: Date.now(),
+                id: sessionId,
+                totalSessions: sessions.length
+            };
+            localStorage.setItem('gym_tracker_last_saved_session_local', JSON.stringify(marker));
+            // También log para consola del navegador
+            // eslint-disable-next-line no-console
+            console.log('[localStorage.saveSession] saved session local marker', marker);
+        }
+    } catch (e) {
+        // ignore marker failures
+    }
 }
 
 /**

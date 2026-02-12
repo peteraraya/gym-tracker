@@ -188,8 +188,18 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await storageService.saveSession(session as WorkoutSession);
 
       // TEMP LOG: confirmar que saveSession resolvió
-       
       console.log('[GymContext] storageService.saveSession resolved');
+
+      // Leer marcadores de depuración para confirmar dónde se guardó la sesión
+      try {
+        if (typeof window !== 'undefined') {
+          const markerDb = localStorage.getItem('gym_tracker_last_saved_session');
+          const markerLocal = localStorage.getItem('gym_tracker_last_saved_session_local');
+          console.log('[GymContext] save markers -> db:', markerDb, 'local:', markerLocal);
+        }
+      } catch (e) {
+        // ignore
+      }
 
       await refreshSessions();
 

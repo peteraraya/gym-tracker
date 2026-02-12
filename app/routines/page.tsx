@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RoutineForm } from '@/components/RoutineForm';
+import WeeklyPlanner from '@/components/WeeklyPlanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   Plus, 
@@ -128,7 +129,7 @@ export default function RoutinesPage() {
 
         {/* Botón de entrenamiento libre */}
         <div className="mb-6">
-          <button
+            <button
             onClick={() => router.push('/workout/free')}
             className="w-full p-4 rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-700 bg-linear-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 hover:from-orange-100 hover:to-red-100 dark:hover:from-orange-900/20 dark:hover:to-red-900/20 transition-all group"
           >
@@ -147,6 +148,8 @@ export default function RoutinesPage() {
             </div>
           </button>
         </div>
+
+        <WeeklyPlanner />
 
         {loading ? (
           <div className="flex items-center justify-center py-24">

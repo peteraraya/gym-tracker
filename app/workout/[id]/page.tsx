@@ -45,6 +45,7 @@ export default function WorkoutPage() {
   const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
   const [sessionNotes, setSessionNotes] = useState('');
   const [showNotesModal, setShowNotesModal] = useState(false);
+  const [proposedDuration, setProposedDuration] = useState<number>(0); // seconds
   const [workoutStartTime] = useState(Date.now());
   const [totalPausedTime, setTotalPausedTime] = useState(0);
   const [useSmartRest, setUseSmartRest] = useState(true); // Descanso inteligente activado por defecto
@@ -166,6 +167,9 @@ export default function WorkoutPage() {
     if (isLastSet) {
       if (isLastExercise) {
         // Mostrar modal para notas antes de finalizar
+        // calcular duración propuesta y abrir modal para confirmar/editar
+        const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+        setProposedDuration(Math.max(duration, 60));
         setShowNotesModal(true);
       } else {
         // Pasar al siguiente ejercicio
@@ -321,8 +325,10 @@ export default function WorkoutPage() {
   };
 
   const finishCompleteWorkout = async () => {
-    // Calcular duración total del entrenamiento
-    const totalDuration = Math.floor((Date.now() - workoutStartTime) / 1000);
+    // Usar la duración confirmada por el usuario si existe, sino calcular
+    const totalDuration = proposedDuration && proposedDuration > 0
+      ? proposedDuration
+      : Math.floor((Date.now() - workoutStartTime) / 1000);
 
     // Guardar sesión
     const sessionExercises = routine.exercises.map(ex => ({
@@ -622,7 +628,7 @@ export default function WorkoutPage() {
         )}
       </div>
 
-      {/* Modal de notas al finalizar */}
+      {/* Modal de notas y duración al finalizar */}
       <Modal
         isOpen={showNotesModal}
         onClose={() => setShowNotesModal(false)}
@@ -630,9 +636,27 @@ export default function WorkoutPage() {
       >
         <div className="space-y-4">
           <p className="text-gray-600 dark:text-gray-400">
-            ¿Quieres agregar alguna nota sobre este entrenamiento?
+            Revisa la duración y agrega una nota antes de guardar la sesión.
           </p>
-          
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selecciona duración</label>
+            <select
+              value={Math.floor(proposedDuration / 60)}
+              onChange={(e) => setProposedDuration(Math.max(0, parseInt(e.target.value || '0')) * 60)}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700"
+            >
+              {/* minutes 1..59 */}
+              {Array.from({ length: 59 }, (_, i) => i + 1).map(m => (
+                <option key={`m-${m}`} value={m}>{m} min</option>
+              ))}
+              {/* hours 1..5 */}
+              {Array.from({ length: 5 }, (_, i) => i + 1).map(h => (
+                <option key={`h-${h}`} value={h * 60}>{h} h</option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Notas (opcional)

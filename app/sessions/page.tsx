@@ -65,8 +65,18 @@ export default function SessionsPage() {
 
   const [filteredSessions, setFilteredSessions] = useState<WorkoutSession[]>(sessions);
 
+  function formatDuration(seconds?: number) {
+    if (!seconds && seconds !== 0) return '-';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m ${s}s`;
+  }
+
   // Opción para ocultar sesiones cuya rutina fue eliminada
-  const [hideDeletedRoutines, setHideDeletedRoutines] = React.useState<boolean>(true);
+  // Cambiado a `false` para mostrar por defecto las sesiones huérfanas.
+  const [hideDeletedRoutines, setHideDeletedRoutines] = React.useState<boolean>(false);
 
   // Keep filteredSessions in sync when sessions change
   React.useEffect(() => {
@@ -206,6 +216,11 @@ export default function SessionsPage() {
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             Ejercicios completados: {session.exercises.length}
                           </p>
+                          {session.totalDuration !== undefined && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Duración: {formatDuration(session.totalDuration)}
+                            </p>
+                          )}
                           {session.notes && (
                             <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                               <p className="text-sm text-gray-700 dark:text-gray-300">
