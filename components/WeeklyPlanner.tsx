@@ -420,7 +420,15 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         {/* El input de búsqueda principal está en la página de Rutinas; este componente usa la prop `searchQuery`. */}
 
         <div className="max-h-64 overflow-auto p-2 border rounded bg-white dark:bg-gray-800">
-          {filteredRoutines.length === 0 ? (
+          {(isLoadingPlan || routinesLoading) ? (
+            <div className="flex items-center justify-center py-6">
+              <svg className="animate-spin h-6 w-6 text-gray-600 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+              <span className="ml-2 text-sm text-gray-500">Cargando rutinas...</span>
+            </div>
+          ) : filteredRoutines.length === 0 ? (
             <div className="text-sm text-gray-500">No se encontraron rutinas</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
