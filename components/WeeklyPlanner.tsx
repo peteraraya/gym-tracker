@@ -116,6 +116,9 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     return (r.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (r.description || '').toLowerCase().includes(searchQuery.toLowerCase());
   });
 
+  // Routines that are not already assigned to any day
+  const availableRoutines = filteredRoutines.filter(r => !DAYS.some(d => (plan[d]?.routines || []).includes(r.id)));
+
   const addRoutineToDay = (routineId: string, day: DayKey | '') => {
     if (!day) {
       try { info('Selecciona un día primero'); } catch { };
@@ -222,26 +225,30 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               onDragOver={onDragOver as any}
               className={`min-w-[120px] md:min-w-0 flex-shrink-0 md:flex-shrink p-4 rounded-lg shadow-sm min-h-[150px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-800/10 to-red-800/5 border border-red-600/30' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/60 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/60 dark:bg-gray-800')}`}
             >
-              <div className="flex items-center justify-between mb-2">
-                {/* titulo del día */}
-                <span className="font-semibold text-sm text-white">{LABELS[day]}{plan[day]?.blocked ? ' 😴' : ''}</span>
-                <div className="flex items-center gap-2">
-                  {/* numero de rutinas */}
-                  <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-800/60 rounded-md">{plan[day]?.routines?.length || 0}</span>
+              <div className="mb-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider ">{LABELS[day]}</div>
+                    <div className="text-sm font-semibold text-white truncate">{plan[day]?.blocked ? `Descanso` :''}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`${(plan[day]?.routines?.length || 0) > 0 ? 'bg-emerald-600 text-white' : 'bg-gray-800/60 text-gray-400'} text-xs px-2 py-0.5 rounded-md`}>{plan[day]?.routines?.length || 0}</span>
+                  </div>
                 </div>
+                <div className="mt-2 border-b border-gray-700/30" />
               </div>
 
               {/* Dia bloqueado */}
               {plan[day]?.blocked ? (
                 <div className="space-y-2">
 
-                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20">
+                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24 min-[320px]:">
                     <p className="text-sm font-semibold text-red-300">Día de descanso </p>
 
                     {plan[day]?.note ? (
-                      <div className="text-xs text-gray-300 mt-1">{plan[day].note}</div>
+                      <p className="text-xs text-gray-300 mt-1  ">{plan[day].note}</p>
                     ) : (
-                      <div className="text-xs text-gray-400 mt-1">Sin nota</div>
+                      <p className="text-xs text-gray-400 mt-1">Sin nota</p>
                     )}
                   </div>
                   <div className="flex gap-2 flex-col">
@@ -311,8 +318,8 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                       const r = routines.find(x => x.id === rid);
                       if (!r) return null;
                       return (
-                        <div key={rid} className="flex items-center justify-between bg-gray-800/40 hover:bg-gray-700/50 p-3 rounded-md border border-gray-700 transition-colors">
-                          <div className="text-xs text-gray-100 no-wrap">{r.name}</div>
+                        <div key={rid} className="flex items-center justify-between bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left overflow-auto max-h-20">
+                          <p className="text-xs text-gray-100 ">{r.name}</p>
                           <Button variant="danger" size="sm" onClick={() => removeFromDay(day, rid)}>x</Button>
                         </div>
                       );
@@ -347,48 +354,61 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               </svg>
               <span className="ml-2 text-sm text-gray-500">Cargando rutinas...</span>
             </div>
-          ) : filteredRoutines.length === 0 ? (
-            <div className="text-sm text-gray-500">No se encontraron rutinas</div>
+          ) : availableRoutines.length === 0 ? (
+            <div className="text-sm text-gray-500">{filteredRoutines.length === 0 ? 'No se encontraron rutinas' : 'No hay rutinas disponibles (todas asignadas)'}</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {filteredRoutines.map(r => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {availableRoutines.map(r => (
                 <div
                   key={r.id}
                   draggable
                   onDragStart={(e) => onDragStart(e, r.id)}
-                  className="p-3 border rounded-md bg-gray-900/60 border-gray-700 flex items-center gap-3 w-full"
+                  className="p-3 border rounded-lg bg-gray-900/60 border-gray-700 flex items-center gap-3 w-full hover:shadow-md hover:scale-[1.01] transition-transform"
                 >
-                  <div className="text-gray-500"><GripVertical className="w-4 h-4 cursor-grab" /></div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-white truncate">{r.name}</div>
-                    <div className="text-xs text-gray-400">{r.exercises.length} ejercicios</div>
+                  <div className="text-gray-400 flex-shrink-0 mr-1">
+                    <GripVertical className="w-5 h-5 cursor-grab opacity-80 hover:opacity-100" />
                   </div>
 
-                  <div className="flex items-center gap-0 w-44 sm:w-56">
-                    <select
-                      value={selectedDayByRoutine[r.id] ?? ''}
-                      onChange={(e) => setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: e.target.value as DayKey }))}
-                      className="block w-full px-3 py-2 bg-gray-800 border border-r-0 border-gray-700 text-sm text-gray-200 rounded-l-md focus:outline-none"
-                    >
-                      <option value="">Seleccionar día...</option>
-                      {DAYS.map(d => {
-                        const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
-                        if (alreadyAdded) return null;
-                        const isBlocked = !!plan[d]?.blocked;
-                        return (
-                          <option key={d} value={d} disabled={isBlocked}>
-                            {LABELS[d]}{isBlocked ? ' (descanso)' : ''}
-                          </option>
-                        );
-                      })}
-                    </select>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-semibold text-sm text-white truncate">{r.name}</div>
+                      <div className="text-xs text-gray-400 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length} ejercicios</div>
+                    </div>
+                    {r.description ? <div className="text-xs text-gray-500 truncate mt-1">{r.description}</div> : null}
+                  </div>
+
+                  <div className="flex items-center gap-2 w-44 sm:w-48">
+                    <div className="w-full">
+                      <select
+                        value={selectedDayByRoutine[r.id] ?? ''}
+                        onChange={(e) => setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: e.target.value as DayKey }))}
+                        className="block w-full px-3 py-2 bg-gray-800 border border-gray-700 text-sm text-gray-200 rounded-md focus:outline-none"
+                        aria-label={`Seleccionar día para ${r.name}`}
+                        title={`Seleccionar día para ${r.name}`}
+                      >
+                        <option value="">Seleccionar día...</option>
+                        {DAYS.map(d => {
+                          const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
+                          if (alreadyAdded) return null;
+                          const isBlocked = !!plan[d]?.blocked;
+                          return (
+                            <option key={d} value={d} disabled={isBlocked}>
+                              {LABELS[d]}{isBlocked ? ' (descanso)' : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
                     <Button
                       variant="gradient"
-                      className="ml-1 rounded-4xl"
+                      className="rounded-full p-0 w-9 h-9 flex items-center justify-center"
                       size="sm"
+                      aria-label={`Agregar ${r.name} al día seleccionado`}
                       onClick={() => addRoutineToDay(r.id, selectedDayByRoutine[r.id] ?? '')}
-                    >+</Button>
+                    >
+                      +
+                    </Button>
                   </div>
                 </div>
               ))}
