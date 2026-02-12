@@ -8,63 +8,39 @@ import { useConfirm } from '@/context/ConfirmContext';
 import { useToast } from '@/context/ToastContext';
 import { getWeeklyPlan, saveWeeklyPlan } from '@/lib/storage/storage';
 
-type DayKey = 'monday'|'tuesday'|'wednesday'|'thursday'|'friday'|'saturday'|'sunday';
+type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
-const DAYS: DayKey[] = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const DAYS: DayKey[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-const LABELS: Record<DayKey,string> = {
-  monday: 'Lun',
-  tuesday: 'Mar',
-  wednesday: 'Mié',
-  thursday: 'Jue',
-  friday: 'Vie',
-  saturday: 'Sáb',
-  sunday: 'Dom'
+const LABELS: Record<DayKey, string> = {
+  monday: 'Lunes',
+  tuesday: 'Martes',
+  wednesday: 'Miércoles',
+  thursday: 'Jueves',
+  friday: 'Viernes',
+  saturday: 'Sábado',
+  sunday: 'Domingo'
 };
 
-const STORAGE_KEY = 'weekly_routine_plan';
-
-type PlanDay = {
-  routines: string[];
-  blocked?: boolean; // día de descanso
-  note?: string;     // texto editable asociado al día
-};
-
-type Plan = Record<DayKey, PlanDay>;
+type DayPlan = { routines: string[]; blocked?: boolean; note?: string };
+type Plan = Record<DayKey, DayPlan>;
 
 export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: string }) {
   const { routines, loading: routinesLoading } = useGym();
   const { confirm } = useConfirm();
   const { info } = useToast();
+
+  const defaultPlan: Plan = DAYS.reduce((acc, d) => ({ ...acc, [d]: { routines: [], blocked: false, note: '' } }), {} as Plan);
+  const [plan, setPlan] = useState<Plan>(defaultPlan);
+  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
+  const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | ''>>({});
+  const [editingDay, setEditingDay] = useState<DayKey | null>(null);
+  const [editingNote, setEditingNote] = useState('');
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const daysRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [exporting, setExporting] = useState(false);
-
-  const updateIndicators = () => {
-    const el = daysRef.current;
-    if (!el) {
-      setCanScrollLeft(false);
-      setCanScrollRight(false);
-      return;
-    }
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
-  };
-
-  useEffect(() => {
-    updateIndicators();
-    const onResize = () => updateIndicators();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  const [plan, setPlan] = useState<Plan>(() => DAYS.reduce((acc, d) => ({...acc, [d]: { routines: [] }}), {} as any) as Plan);
-  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
-
-  // Modal state para editar nota del día
-  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [editingDay, setEditingDay] = useState<DayKey | null>(null);
-  const [editingNote, setEditingNote] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -72,144 +48,81 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       try {
         const stored = await getWeeklyPlan();
         if (!mounted) return;
-        <div className="mb-2 relative">
-          {(isLoadingPlan || routinesLoading) ? (
-            <div className="flex items-center justify-center p-6 rounded-lg border bg-white dark:bg-gray-800 min-h-[160px]">
-              <div className="text-center">
-                <svg className="animate-spin h-8 w-8 mx-auto text-gray-600 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-                <div className="mt-2 text-sm text-gray-500">Cargando planificación...</div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div ref={daysRef} onScroll={updateIndicators} className="flex gap-2 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-2 touch-pan-x">
-                {DAYS.map(day => (
-                  <div
-                    key={day}
-                    onDrop={(e) => onDropToDay(e as any, day)}
-                    onDragOver={onDragOver as any}
-                    className={`min-w-[140px] md:min-w-0 flex-shrink-0 md:flex-shrink p-3 rounded-lg shadow-sm min-h-[160px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-900/10 to-red-900/5 border border-red-700/40' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/50 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/50 dark:bg-gray-800')}`}
-                  >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-sm text-white">{LABELS[day]}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-800/60 rounded-md">{plan[day]?.routines?.length || 0}</span>
-                      <Button
-                        title={(plan[day]?.routines?.length || 0) > 0
-                          ? 'No puedes bloquear un día que tiene rutinas'
-                          : (plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso')
-                        }
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if ((plan[day]?.routines?.length || 0) > 0) return;
-                          if (plan[day]?.blocked) {
-                            // desbloquear mediante confirm modal
-                            try {
-                              const confirmed = await confirm({
-                                title: 'Desbloquear día',
-                                message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
-                                confirmText: 'Desbloquear',
-                                cancelText: 'Cancelar',
-                                variant: 'warning'
-                              });
-                              if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
-                            } catch (e) {
-                              // ignore
-                            }
-                          } else {
-                            setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: !prev[day].blocked } }));
-                          }
-                        }}
-                        disabled={(plan[day]?.routines?.length || 0) > 0}
-                        variant={plan[day]?.blocked ? 'danger' : 'ghost'}
-                        size="sm"
-                        className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md border ${plan[day]?.blocked ? 'bg-red-700/10 border-red-700 text-red-300' : 'bg-gray-800/30 border-gray-700 text-gray-200'} ${ (plan[day]?.routines?.length || 0) > 0 ? 'opacity-50 cursor-not-allowed' : '' }`}
-                      >
-                        {plan[day]?.blocked ? '😴 Descanso' : 'Bloquear'}
-                      </Button>
-                    </div>
-                  </div>
+        if (!stored) {
+          setIsLoadingPlan(false);
+          return;
+        }
+        const parsed = stored as any;
+        if (Array.isArray(parsed) === false && Object.values(parsed).every((v: any) => Array.isArray(v))) {
+          const converted = DAYS.reduce((acc, d) => ({ ...acc, [d]: { routines: parsed[d] || [] } }), {} as any) as Plan;
+          setPlan(converted);
+        } else {
+          const normalized = DAYS.reduce((acc, d) => ({
+            ...acc,
+            [d]: {
+              routines: (parsed[d]?.routines as string[]) || (parsed[d] as string[]) || [],
+              blocked: parsed[d]?.blocked || false,
+              note: parsed[d]?.note || ''
+            }
+          }), {} as any) as Plan;
+          setPlan(normalized);
+        }
+      } catch (e) {
+        console.warn('Error loading weekly plan, using local default', e);
+      } finally {
+        if (mounted) setIsLoadingPlan(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
-                  {plan[day]?.blocked ? (
-                    <div className="space-y-2">
-                      <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20">
-                        <div className="text-sm font-semibold text-red-300">Día de descanso</div>
-                        {plan[day]?.note ? (
-                          <div className="text-xs text-gray-300 mt-1">{plan[day].note}</div>
-                        ) : (
-                          <div className="text-xs text-gray-400 mt-1">Sin nota</div>
-                        )}
-                      </div>
-                      <div className="flex gap-2 flex-col">
-                        <Button
-                          className="text-sm"
-                          variant="info"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingDay(day);
-                            setEditingNote(plan[day]?.note || '');
-                            setIsNoteModalOpen(true);
-                          }}
-                        >Editar nota</Button>
-                        <Button
-                          variant="danger"
-                          block
-                          className="text-sm"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              const confirmed = await confirm({
-                                title: 'Desbloquear día',
-                                message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
-                                confirmText: 'Desbloquear',
-                                cancelText: 'Cancelar',
-                                variant: 'warning'
-                              });
-                              if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
-                            } catch (e) {}
-                          }}
-                        >Desbloquear</Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {(plan[day]?.routines || []).map(rid => {
-                        const r = routines.find(x => x.id === rid);
-                        if (!r) return null;
-                        return (
-                          <div key={rid} className="flex items-center justify-between bg-gray-800/40 p-2 rounded-md border border-gray-700">
-                            <div className="text-sm text-gray-100">{r.name}</div>
-                            <Button variant="ghost" size="sm" onClick={() => removeFromDay(day, rid)} className="text-red-400 text-sm px-2 py-1">✕</Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-                ))}
-              </div>
+  useEffect(() => {
+    if (isLoadingPlan) return;
+    try { saveWeeklyPlan(plan); } catch (e) { /* ignore */ }
+  }, [plan, isLoadingPlan]);
 
-              {/* Scroll indicators */}
-              <div className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 flex items-center transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
-                <div className="h-full w-full bg-gradient-to-r from-white/90 to-transparent dark:from-gray-900/80" />
-              </div>
-              <div className={`pointer-events-none absolute right-0 top-0 bottom-0 w-6 flex items-center transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
-                <div className="h-full w-full bg-gradient-to-l from-white/90 to-transparent dark:from-gray-900/80" />
-              </div>
-            </>
-          )}
-        </div>
+  const updateIndicators = () => {
+    const el = daysRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  const onDragStart = (e: DragEvent, id: string) => {
+    try { e.dataTransfer?.setData('text/plain', id); } catch (err) { }
+  };
+
+  const onDragOver = (e: DragEvent) => { e.preventDefault(); };
+
+  const onDropToDay = (e: DragEvent, day: DayKey) => {
+    e.preventDefault();
+    try {
+      const id = e.dataTransfer?.getData('text/plain');
+      if (id) addRoutineToDay(id, day);
+    } catch (err) { }
+  };
+
+  const removeFromDay = (day: DayKey, rid: string) => {
+    setPlan(prev => ({ ...prev, [day]: { ...prev[day], routines: prev[day].routines.filter(x => x !== rid) } }));
+  };
+
+  const clearPlan = () => {
+    setPlan(defaultPlan);
+    try { saveWeeklyPlan(defaultPlan); } catch (e) { }
+  };
+
+  const filteredRoutines = routines.filter(r => {
+    if (!searchQuery) return true;
+    return (r.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (r.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const addRoutineToDay = (routineId: string, day: DayKey | '') => {
     if (!day) {
-      try { info('Selecciona un día primero'); } catch {};
+      try { info('Selecciona un día primero'); } catch { };
       return;
     }
     if (plan[day]?.blocked) {
-      try { info('Ese día está bloqueado (descanso). Desbloquéalo primero para agregar rutinas.'); } catch {};
+      try { info('Ese día está bloqueado (descanso). Desbloquéalo primero para agregar rutinas.'); } catch { };
       return;
     }
     setPlan(prev => {
@@ -244,8 +157,8 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                 });
                 if (confirmed) {
                   clearPlan();
-                  try { info('Planificación eliminada'); } catch {}
-                  try { console.log('Weekly plan cleared'); } catch {}
+                  try { info('Planificación eliminada'); } catch { }
+                  try { console.log('Weekly plan cleared'); } catch { }
                   try {
                     if (typeof window !== 'undefined' && (window as any).gtag) {
                       (window as any).gtag('event', 'weekly_plan_cleared', { method: 'manual' });
@@ -261,7 +174,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           >
             Limpiar
           </Button>
-         
+
           {/* <Button
             variant={exporting ? 'primary' : 'ghost'}
             size="sm"
@@ -301,124 +214,114 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       </div>
 
       <div className="mb-2 relative">
-        <div ref={daysRef} onScroll={updateIndicators} className="flex gap-2 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-2 touch-pan-x">
-            {DAYS.map(day => (
-              <div
-                key={day}
-                onDrop={(e) => onDropToDay(e as any, day)}
-                onDragOver={onDragOver as any}
-                className={`min-w-[140px] md:min-w-0 flex-shrink-0 md:flex-shrink p-3 rounded-lg shadow-sm min-h-[160px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-900/10 to-red-900/5 border border-red-700/40' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/50 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/50 dark:bg-gray-800')}`}
-              >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-sm text-white">{LABELS[day]}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-800/60 rounded-md">{plan[day]?.routines?.length || 0}</span>
-                <Button
-                  title={(plan[day]?.routines?.length || 0) > 0
-                    ? 'No puedes bloquear un día que tiene rutinas'
-                    : (plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso')
-                  }
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if ((plan[day]?.routines?.length || 0) > 0) return;
-                    if (plan[day]?.blocked) {
-                      // desbloquear mediante confirm modal
-                      try {
-                        const confirmed = await confirm({
-                          title: 'Desbloquear día',
-                          message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
-                          confirmText: 'Desbloquear',
-                          cancelText: 'Cancelar',
-                          variant: 'warning'
-                        });
-                        if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
-                      } catch (e) {
-                        // ignore
-                      }
-                    } else {
-                      setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: !prev[day].blocked } }));
-                    }
-                  }}
-                  disabled={(plan[day]?.routines?.length || 0) > 0}
-                  variant={plan[day]?.blocked ? 'danger' : 'ghost'}
-                  size="sm"
-                  className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md border ${plan[day]?.blocked ? 'bg-red-700/10 border-red-700 text-red-300' : 'bg-gray-800/30 border-gray-700 text-gray-200'} ${ (plan[day]?.routines?.length || 0) > 0 ? 'opacity-50 cursor-not-allowed' : '' }`}
-                >
-                  {plan[day]?.blocked ? '😴 Descanso' : 'Bloquear'}
-                </Button>
+        <div ref={daysRef} onScroll={updateIndicators} className="flex gap-3 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-3 touch-pan-x">
+          {DAYS.map(day => (
+            <div
+              key={day}
+              onDrop={(e) => onDropToDay(e as any, day)}
+              onDragOver={onDragOver as any}
+              className={`min-w-[120px] md:min-w-0 flex-shrink-0 md:flex-shrink p-4 rounded-lg shadow-sm min-h-[150px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-800/10 to-red-800/5 border border-red-600/30' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/60 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/60 dark:bg-gray-800')}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                {/* titulo del día */}
+                <span className="font-semibold text-sm text-white">{LABELS[day]}{plan[day]?.blocked ? ' 😴' : ''}</span>
+                <div className="flex items-center gap-2">
+                  {/* numero de rutinas */}
+                  <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-800/60 rounded-md">{plan[day]?.routines?.length || 0}</span>
+                </div>
               </div>
-            </div>
 
-            {plan[day]?.blocked ? (
-              <div className="space-y-2">
-                <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20">
-                  <div className="text-sm font-semibold text-red-300">Día de descanso</div>
-                  {plan[day]?.note ? (
-                    <div className="text-xs text-gray-300 mt-1">{plan[day].note}</div>
-                  ) : (
-                    <div className="text-xs text-gray-400 mt-1">Sin nota</div>
-                  )}
-                </div>
-                <div className="flex gap-2 flex-col">
-                  <Button
-                    className="text-sm"
-                    variant="info"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingDay(day);
-                      setEditingNote(plan[day]?.note || '');
-                      setIsNoteModalOpen(true);
-                    }}
-                  >Editar nota</Button>
-                  <Button
-                    variant="danger"
-                    block
-                    className="text-sm"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const confirmed = await confirm({
-                          title: 'Desbloquear día',
-                          message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
-                          confirmText: 'Desbloquear',
-                          cancelText: 'Cancelar',
-                          variant: 'warning'
-                        });
-                        if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
-                      } catch (e) {}
-                    }}
-                  >Desbloquear</Button>
-                </div>
-              </div>
-            ) : (
-              // Mostrar loader por día mientras se carga el plan o las rutinas
-              (isLoadingPlan || routinesLoading) ? (
-                <div className="flex items-center justify-center py-6">
-                  <div className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                    <span className="text-sm text-gray-300">Cargando...</span>
+              {/* Dia bloqueado */}
+              {plan[day]?.blocked ? (
+                <div className="space-y-2">
+
+                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20">
+                    <p className="text-sm font-semibold text-red-300">Día de descanso </p>
+
+                    {plan[day]?.note ? (
+                      <div className="text-xs text-gray-300 mt-1">{plan[day].note}</div>
+                    ) : (
+                      <div className="text-xs text-gray-400 mt-1">Sin nota</div>
+                    )}
+                  </div>
+                  <div className="flex gap-2 flex-col">
+                    <Button
+                      className="text-sm"
+                      variant="info"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingDay(day);
+                        setEditingNote(plan[day]?.note || '');
+                        setIsNoteModalOpen(true);
+                      }}
+                    >Editar nota</Button>
+
+                    <Button
+                      title={(plan[day]?.routines?.length || 0) > 0
+                        ? 'No puedes bloquear un día que tiene rutinas'
+                        : (plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso')
+                      }
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if ((plan[day]?.routines?.length || 0) > 0) return;
+                        if (plan[day]?.blocked) {
+                          // desbloquear mediante confirm modal
+                          try {
+                            const confirmed = await confirm({
+                              title: 'Desbloquear día',
+                              message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
+                              confirmText: 'Desbloquear',
+                              cancelText: 'Cancelar',
+                              variant: 'warning'
+                            });
+                            if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
+                          } catch (e) {
+                            // ignore
+                          }
+                        } else {
+                          setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: !prev[day].blocked } }));
+                        }
+                      }}
+                      disabled={(plan[day]?.routines?.length || 0) > 0}
+                      variant={plan[day]?.blocked ? "danger" : 'ghost'}
+                      block
+                      className="text-sm"
+                    >
+                      {plan[day]?.blocked ? 'Desbloquear' : 'Bloquear'}
+                    </Button>
+
+
+
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {(plan[day]?.routines || []).map(rid => {
-                    const r = routines.find(x => x.id === rid);
-                    if (!r) return null;
-                    return (
-                      <div key={rid} className="flex items-center justify-between bg-gray-800/40 p-2 rounded-md border border-gray-700">
-                        <div className="text-sm text-gray-100">{r.name}</div>
-                        <Button variant="ghost" size="sm" onClick={() => removeFromDay(day, rid)} className="text-red-400 text-sm px-2 py-1">✕</Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )
-            )}
-          </div>
-        ))}
+                // Mostrar loader por día mientras se carga el plan o las rutinas
+                (isLoadingPlan || routinesLoading) ? (
+                  <div className="flex items-center justify-center py-6">
+                    <div className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {(plan[day]?.routines || []).map(rid => {
+                      const r = routines.find(x => x.id === rid);
+                      if (!r) return null;
+                      return (
+                        <div key={rid} className="flex items-center justify-between bg-gray-800/40 hover:bg-gray-700/50 p-3 rounded-md border border-gray-700 transition-colors">
+                          <div className="text-xs text-gray-100 no-wrap">{r.name}</div>
+                          <Button variant="danger" size="sm" onClick={() => removeFromDay(day, rid)}>x</Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Scroll indicators */}
