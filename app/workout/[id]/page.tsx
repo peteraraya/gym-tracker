@@ -39,6 +39,8 @@ export default function WorkoutPage() {
   const [completedSets, setCompletedSets] = useState<{[key: string]: number}>({});
   const [actualReps, setActualReps] = useState<{[key: string]: number[]}>({});
   const [actualWeights, setActualWeights] = useState<{[key: string]: number[]}>({});
+  const [lastWeights, setLastWeights] = useState<{[key: string]: number[]}>({});
+  const [restOverrides, setRestOverrides] = useState<{[key: string]: number}>({});
   const [actualSetDurations, setActualSetDurations] = useState<{[key: string]: number[]}>({});
   const [actualPauseDurations, setActualPauseDurations] = useState<{[key: string]: number[]}>({});
   const [currentReps, setCurrentReps] = useState<number | ''>(0);
@@ -77,6 +79,16 @@ export default function WorkoutPage() {
           setNextExerciseName(activeWorkout.restTimerNextExercise);
         }
       }
+      // Cargar últimos pesos guardados para los ejercicios
+      try {
+        const raw = localStorage.getItem('gym_tracker_last_weights');
+        if (raw) {
+          const parsed = JSON.parse(raw || '{}');
+          setLastWeights(parsed);
+        }
+      } catch (e) {
+        // ignore
+      }
       
       const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
       if (currentExercise) {
@@ -96,7 +108,15 @@ export default function WorkoutPage() {
         const firstSet = firstExercise.sets[0];
         if (firstSet) {
           setCurrentReps(firstSet.reps);
-          setCurrentWeight(firstSet.weight || 0);
+          // Preferir último peso utilizado si existe
+          try {
+            const raw = localStorage.getItem('gym_tracker_last_weights');
+            const parsed = raw ? JSON.parse(raw) : {};
+            const last = parsed[firstExercise.id] && parsed[firstExercise.id][0];
+            setCurrentWeight(typeof last === 'number' ? last : (firstSet.weight || 0));
+          } catch (e) {
+            setCurrentWeight(firstSet.weight || 0);
+          }
         }
       }
     }
@@ -153,6 +173,17 @@ export default function WorkoutPage() {
 
     setActualReps(newActualReps);
     setActualWeights(newActualWeights);
+    // Persistir último peso para esta serie en localStorage inmediatamente
+    try {
+      const raw = localStorage.getItem('gym_tracker_last_weights');
+      const parsed = raw ? JSON.parse(raw) : {};
+      parsed[exerciseId] = parsed[exerciseId] || [];
+      parsed[exerciseId][(newActualWeights[exerciseId] || []).length - 1] = weightValue;
+      localStorage.setItem('gym_tracker_last_weights', JSON.stringify(parsed));
+      setLastWeights(parsed);
+    } catch (e) {
+      // ignore
+    }
     setCompletedSets(newCompletedSets);
 
     // Actualizar el contexto global
@@ -177,8 +208,8 @@ export default function WorkoutPage() {
         const nextExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
         const currentExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
         
-        // Prioridad: 1) Override del ejercicio, 2) Valor de la rutina, 3) Cálculo inteligente, 4) Fallback
-        let restTime = routine.restBetweenExercises || 120;
+        // Prioridad: 1) Override del ejercicio (editing live), 2) Valor de la rutina, 3) Cálculo inteligente, 4) Fallback
+        let restTime = restOverrides[currentExercise.id] || routine.restBetweenExercises || 120;
         
         if (useSmartRest && currentExerciseTemplate && nextExerciseTemplate) {
           const restRecommendation = calculateRestBetweenExercises(
@@ -206,10 +237,12 @@ export default function WorkoutPage() {
       }
     } else {
       // Descanso entre series
-      // Prioridad: 1) Override del ejercicio actual, 2) Valor global de la rutina, 3) Cálculo inteligente, 4) Fallback 60s
+      // Prioridad: 1) Override del ejercicio actual (editing live), 2) Valor global de la rutina, 3) Cálculo inteligente, 4) Fallback 60s
       let restTime: number;
       
-      if (currentExercise.restBetweenSets && currentExercise.restBetweenSets > 0) {
+      if (restOverrides[currentExercise.id] && restOverrides[currentExercise.id] > 0) {
+        restTime = restOverrides[currentExercise.id];
+      } else if (currentExercise.restBetweenSets && currentExercise.restBetweenSets > 0) {
         // El ejercicio tiene su propio tiempo de descanso configurado
         restTime = currentExercise.restBetweenSets;
       } else if (routine.restBetweenSets && routine.restBetweenSets > 0) {
@@ -275,6 +308,50 @@ export default function WorkoutPage() {
     handleCompleteSet();
   };
 
+  // Helpers para gestionar pesos recientes en localStorage
+  const saveLastWeight = (exerciseId: string, setIndex: number, weight: number) => {
+    try {
+      const copy = { ...(lastWeights || {}) };
+      copy[exerciseId] = copy[exerciseId] || [];
+      copy[exerciseId][setIndex] = weight;
+      setLastWeights(copy);
+      localStorage.setItem('gym_tracker_last_weights', JSON.stringify(copy));
+    } catch (e) {
+      console.warn('Failed to save last weight', e);
+    }
+  };
+
+  const handleEditWeight = (exerciseId: string, setIndex: number, value: number) => {
+    // actualizar actualWeights en memoria
+    setActualWeights(prev => {
+      const copy = { ...prev };
+      copy[exerciseId] = copy[exerciseId] ? [...copy[exerciseId]] : [];
+      copy[exerciseId][setIndex] = value;
+      // Persistir en contexto
+      updateWorkoutProgress(
+        currentExerciseIndex,
+        currentSet,
+        completedSets,
+        actualReps,
+        copy
+      );
+      return copy;
+    });
+    // guardar como último peso
+    saveLastWeight(exerciseId, setIndex, value);
+    // Si estamos editando la serie actual, actualizar el input principal
+    if (exerciseId === currentExercise.id && setIndex === currentSet - 1) {
+      setCurrentWeight(value);
+    }
+  };
+
+  const handleEditRestOverride = (exerciseId: string, value: number) => {
+    setRestOverrides(prev => {
+      const copy = { ...prev, [exerciseId]: value };
+      return copy;
+    });
+  };
+
   const handleTimerComplete = () => {
     setShowTimer(false);
     clearRestState(); // Limpiar estado de descanso persistido
@@ -336,7 +413,8 @@ export default function WorkoutPage() {
       exerciseName: ex.name, // Guardar el nombre para facilitar búsquedas
       completedSets: completedSets[ex.id] || 0,
       actualReps: actualReps[ex.id] || [],
-      actualWeight: actualWeights[ex.id] || [],
+      // Preferir los pesos registrados en la sesión; si no hay, usar los últimos pesos guardados
+      actualWeight: (actualWeights[ex.id] && actualWeights[ex.id].length) ? actualWeights[ex.id] : (lastWeights[ex.id] || []),
       setDurations: actualSetDurations[ex.id] || [],
       pauseDurations: actualPauseDurations[ex.id] || []
     }));
@@ -385,6 +463,12 @@ export default function WorkoutPage() {
       // Use replace so user doesn't return to the canceled workout via back
       router.replace('/routines');
     }
+  };
+
+  const handleFinishNow = () => {
+    const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+    setProposedDuration(Math.max(duration, 60));
+    setShowNotesModal(true);
   };
 
   const skipTimer = () => {
@@ -483,7 +567,7 @@ export default function WorkoutPage() {
               </div>
 
               <div className="space-y-3">
-                <Input
+                {/* <Input
                   type="number"
                   label="Repeticiones realizadas"
                   value={currentReps}
@@ -497,7 +581,58 @@ export default function WorkoutPage() {
                   onChange={(e) => setCurrentWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
                   min="0"
                   step="0.5"
-                />
+                /> */}
+                
+                  {/* Lista de series configuradas: mostrar peso/reps/estado y permitir edición en vivo */}
+                  <div className="mt-4">
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Series configuradas</h4>
+                    <div className="space-y-2">
+                      {currentExercise.sets.map((set, idx) => {
+                        const exerciseId = currentExercise.id;
+                        const doneReps = (actualReps[exerciseId] && actualReps[exerciseId][idx]) ?? null;
+                        const doneWeight = (actualWeights[exerciseId] && actualWeights[exerciseId][idx]) ?? lastWeights[exerciseId]?.[idx] ?? set.weight ?? '';
+                        const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                        return (
+                          <div key={`${exerciseId}-s-${idx}`} className={`flex items-center gap-3 p-2 rounded-lg ${isCompleted ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-50 dark:bg-gray-800'}`}>
+                            <div className="w-8 text-sm font-medium text-gray-800 dark:text-gray-100">{idx + 1}</div>
+                            <div className="flex-1">
+                              <div className="text-sm text-gray-700 dark:text-gray-200">Reps: <span className="font-semibold">{set.reps}</span></div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">Descanso: {currentExercise.restBetweenSets ?? routine.restBetweenSets ?? 60}s</div>
+                            </div>
+                            <div className="w-28">
+                              <input
+                                type="number"
+                                className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-sm"
+                                value={doneWeight}
+                                onChange={(e) => {
+                                  const v = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                  handleEditWeight(currentExercise.id, idx, v);
+                                }}
+                                step="0.5"
+                                min="0"
+                              />
+                              <div className="text-xs text-gray-500">kg</div>
+                            </div>
+                            <div className="w-28">
+                              <select
+                                className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-sm"
+                                value={restOverrides[currentExercise.id] ?? currentExercise.restBetweenSets ?? routine.restBetweenSets ?? 60}
+                                onChange={(e) => {
+                                  const v = parseInt(e.target.value || '0');
+                                  handleEditRestOverride(currentExercise.id, v);
+                                }}
+                              >
+                                {Array.from({ length: 60 }, (_, i) => (i + 1) * 5).map(sec => (
+                                  <option key={sec} value={sec}>{sec}s</option>
+                                ))}
+                              </select>
+                              <div className="text-xs text-gray-500">Descanso</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
               </div>
               
               {/* Información de descanso */}
@@ -602,6 +737,13 @@ export default function WorkoutPage() {
             className="flex-1"
           >
             Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleFinishNow}
+            className="flex-1"
+          >
+            Terminar sesión
           </Button>
         </div>
 
