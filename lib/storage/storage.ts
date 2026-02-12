@@ -300,6 +300,62 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
     }
 }
 
+// ==================== WEEKLY PLAN ====================
+
+export async function getWeeklyPlan(): Promise<any> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getWeeklyPlan();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).getWeeklyPlan) {
+                const res = await (supabaseService as any).getWeeklyPlan();
+                handleStorageSuccess();
+                return res;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getWeeklyPlan();
+        } catch (err) {
+            handleStorageError(err, 'getWeeklyPlan');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getWeeklyPlan();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getWeeklyPlan();
+    }
+}
+
+export async function saveWeeklyPlan(plan: any): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveWeeklyPlan(plan);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).saveWeeklyPlan) {
+                await (supabaseService as any).saveWeeklyPlan(plan);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveWeeklyPlan(plan);
+        } catch (err) {
+            handleStorageError(err, 'saveWeeklyPlan');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveWeeklyPlan(plan);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveWeeklyPlan(plan);
+    }
+}
+
 // ==================== UTILITIES ====================
 
 export async function rebuildRoutinesFromSessions(): Promise<any> {

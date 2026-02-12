@@ -6,6 +6,7 @@ import { useGym } from '@/context/GymContext';
 import { Button } from '@/components/ui/Button';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useToast } from '@/context/ToastContext';
+import { getWeeklyPlan, saveWeeklyPlan } from '@/lib/storage/storage';
 
 type DayKey = 'monday'|'tuesday'|'wednesday'|'thursday'|'friday'|'saturday'|'sunday';
 
@@ -57,31 +58,8 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
-  const [plan, setPlan] = useState<Plan>(() => {
-    try {
-      if (typeof window === 'undefined') return DAYS.reduce((acc, d) => ({...acc, [d]: { routines: [] }}), {} as any) as Plan;
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return DAYS.reduce((acc, d) => ({...acc, [d]: { routines: [] }}), {} as any) as Plan;
-      const parsed = JSON.parse(raw);
-      // Compatibilidad: si el formato antiguo era Record<DayKey,string[]>, convertir
-      if (Array.isArray(parsed) === false && Object.values(parsed).every(v => Array.isArray(v))) {
-        const converted = DAYS.reduce((acc, d) => ({...acc, [d]: { routines: parsed[d] || [] }}), {} as any) as Plan;
-        return converted;
-      }
-      // Si ya tiene la forma nueva, devolverlo y normalizar campos
-      const normalized = DAYS.reduce((acc, d) => ({
-        ...acc,
-        [d]: {
-          routines: (parsed[d]?.routines as string[]) || (parsed[d] as string[]) || [],
-          blocked: parsed[d]?.blocked || false,
-          note: parsed[d]?.note || ''
-        }
-      }), {} as any) as Plan;
-      return normalized;
-    } catch {
-      return DAYS.reduce((acc, d) => ({...acc, [d]: { routines: [] }}), {} as any) as Plan;
-    }
-  });
+  const [plan, setPlan] = useState<Plan>(() => DAYS.reduce((acc, d) => ({...acc, [d]: { routines: [] }}), {} as any) as Plan);
+  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
 
   // Modal state para editar nota del día
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
@@ -89,8 +67,50 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   const [editingNote, setEditingNote] = useState('');
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(plan)); } catch {};
-  }, [plan]);
+    let mounted = true;
+    (async () => {
+      try {
+        const stored = await getWeeklyPlan();
+        if (!mounted) return;
+        if (!stored) return setIsLoadingPlan(false);
+        // Normalize shape similar to previous logic
+        const parsed = stored as any;
+        if (Array.isArray(parsed) === false && Object.values(parsed).every((v: any) => Array.isArray(v))) {
+          const converted = DAYS.reduce((acc, d) => ({...acc, [d]: { routines: parsed[d] || [] }}), {} as any) as Plan;
+          setPlan(converted);
+        } else {
+          const normalized = DAYS.reduce((acc, d) => ({
+            ...acc,
+            [d]: {
+              routines: (parsed[d]?.routines as string[]) || (parsed[d] as string[]) || [],
+              blocked: parsed[d]?.blocked || false,
+              note: parsed[d]?.note || ''
+            }
+          }), {} as any) as Plan;
+          setPlan(normalized);
+        }
+      } catch (e) {
+        // fallback: keep default plan
+        console.warn('Error loading weekly plan, using local default', e);
+      } finally {
+        if (mounted) setIsLoadingPlan(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Persist to storage when plan changes
+  useEffect(() => {
+    if (isLoadingPlan) return;
+    (async () => {
+      try {
+        await saveWeeklyPlan(plan as any);
+      } catch (e) {
+        // Best-effort: log but don't break UI
+        console.warn('Failed to persist weekly plan', e);
+      }
+    })();
+  }, [plan, isLoadingPlan]);
 
   // const handleExportPDF = () => {
   //   try {

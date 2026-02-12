@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
     ROUTINES: 'gym_tracker_routines',
     SESSIONS: 'gym_tracker_sessions',
     PROFILE: 'gym_tracker_profile',
+    WEEKLY_PLAN: 'weekly_routine_plan',
     RECOMMENDATIONS: 'gym_tracker_recommendations',
 } as const;
 
@@ -378,4 +379,31 @@ export async function saveRecommendation(recommendation: ProgressRecommendation)
     if (idx >= 0) current[idx] = recommendation;
     else current.push(recommendation);
     saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, current);
+}
+
+// ==================== WEEKLY PLAN ====================
+
+/**
+ * Get weekly plan from localStorage
+ */
+export async function getWeeklyPlan(): Promise<Record<string, any>> {
+    const raw = getFromStorage<Record<string, any> | null>(STORAGE_KEYS.WEEKLY_PLAN, null);
+    if (!raw) {
+        // Default empty plan structure
+        const defaultPlan = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+            .reduce((acc: any, d: string) => ({ ...acc, [d]: { routines: [] } }), {});
+        return defaultPlan;
+    }
+    return raw;
+}
+
+/**
+ * Save weekly plan to localStorage
+ */
+export async function saveWeeklyPlan(plan: Record<string, any>): Promise<void> {
+    try {
+        saveToStorage(STORAGE_KEYS.WEEKLY_PLAN, plan);
+    } catch (e) {
+        throw new Error('Error saving weekly plan locally');
+    }
 }

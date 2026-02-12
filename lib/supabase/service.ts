@@ -433,3 +433,41 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
 
   if (error) throw new Error(`Error al actualizar perfil: ${error.message}`);
 }
+
+/**
+ * Obtener el plan semanal asociado al perfil del usuario
+ */
+export async function getWeeklyPlan(): Promise<any> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('weekly_plan')
+    .eq('id', user.id)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Error al obtener plan semanal: ${error.message}`);
+  }
+
+  return profile?.weekly_plan || null;
+}
+
+/**
+ * Guardar el plan semanal en el perfil del usuario
+ */
+export async function saveWeeklyPlan(plan: any): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({ id: user.id, weekly_plan: plan, updated_at: new Date().toISOString() });
+
+  if (error) throw new Error(`Error al guardar plan semanal: ${error.message}`);
+}
