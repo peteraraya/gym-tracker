@@ -222,25 +222,51 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * Muestra una notificación cuando el descanso termina
  */
 export function showRestCompleteNotification(exerciseName?: string): void {
-  if (Notification.permission === 'granted') {
-    const notification = new Notification('⏰ Descanso Terminado', {
-      body: exerciseName 
-        ? `Es hora de continuar con ${exerciseName}!`
-        : '¡Es hora de la siguiente serie!',
-      icon: '/icon-192x192.png', // Puedes crear un ícono para la app
-      badge: '/icon-192x192.png',
-      tag: 'rest-timer',
-      requireInteraction: false
-    });
-    
-    // Auto-cerrar después de 5 segundos
-    setTimeout(() => notification.close(), 5000);
-    
-    // Click en la notificación enfoca la ventana
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+
+  try {
+    if (Notification.permission === 'granted') {
+      const notification = new Notification('⏰ Descanso Terminado', {
+        body: exerciseName 
+          ? `Es hora de continuar con ${exerciseName}!`
+          : '¡Es hora de la siguiente serie!',
+        icon: '/icon-192x192.png', // Puedes crear un ícono para la app
+        badge: '/icon-192x192.png',
+        tag: 'rest-timer',
+        requireInteraction: false
+      });
+
+      // Auto-cerrar después de 5 segundos si el método está disponible
+      try {
+        setTimeout(() => {
+          if (typeof notification.close === 'function') notification.close();
+        }, 5000);
+      } catch (e) {
+        // ignore
+      }
+
+      // Click en la notificación enfoca la ventana (proteger por si onclick falla)
+      try {
+        notification.onclick = () => {
+          try {
+            window.focus();
+          } catch (e) {
+            // ignore
+          }
+          try {
+            if (typeof notification.close === 'function') notification.close();
+          } catch (e) {
+            // ignore
+          }
+        };
+      } catch (e) {
+        // ignore
+      }
+    }
+  } catch (err) {
+    // Evitar que errores en entornos limitados (webviews móviles) rompan la app
+    // eslint-disable-next-line no-console
+    console.warn('showRestCompleteNotification failed:', err);
   }
 }
 

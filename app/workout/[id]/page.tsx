@@ -41,8 +41,8 @@ export default function WorkoutPage() {
   const [actualWeights, setActualWeights] = useState<{[key: string]: number[]}>({});
   const [actualSetDurations, setActualSetDurations] = useState<{[key: string]: number[]}>({});
   const [actualPauseDurations, setActualPauseDurations] = useState<{[key: string]: number[]}>({});
-  const [currentReps, setCurrentReps] = useState(0);
-  const [currentWeight, setCurrentWeight] = useState(0);
+  const [currentReps, setCurrentReps] = useState<number | ''>(0);
+  const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
   const [sessionNotes, setSessionNotes] = useState('');
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [workoutStartTime] = useState(Date.now());
@@ -80,10 +80,10 @@ export default function WorkoutPage() {
       const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
       if (currentExercise) {
         const currentSetData = currentExercise.sets[activeWorkout.currentSet - 1];
-        if (currentSetData) {
-          setCurrentReps(currentSetData.reps);
-          setCurrentWeight(currentSetData.weight || 0);
-        }
+            if (currentSetData) {
+              setCurrentReps(currentSetData.reps);
+              setCurrentWeight(currentSetData.weight || 0);
+            }
       }
     } else if (!activeWorkout) {
       // Si no hay workout activo, iniciar uno nuevo
@@ -132,14 +132,17 @@ export default function WorkoutPage() {
     const exerciseId = currentExercise.id;
     
     // Guardar repeticiones y peso de esta serie
+    const repsValue: number = typeof currentReps === 'number' ? currentReps : 0;
+    const weightValue: number = typeof currentWeight === 'number' ? currentWeight : 0;
+
     const newActualReps = {
       ...actualReps,
-      [exerciseId]: [...(actualReps[exerciseId] || []), currentReps]
+      [exerciseId]: [...(actualReps[exerciseId] || []), repsValue]
     };
     
     const newActualWeights = {
       ...actualWeights,
-      [exerciseId]: [...(actualWeights[exerciseId] || []), currentWeight]
+      [exerciseId]: [...(actualWeights[exerciseId] || []), weightValue]
     };
 
     const newCompletedSets = {
@@ -478,14 +481,14 @@ export default function WorkoutPage() {
                   type="number"
                   label="Repeticiones realizadas"
                   value={currentReps}
-                  onChange={(e) => setCurrentReps(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setCurrentReps(e.target.value === '' ? '' : parseInt(e.target.value))}
                   min="0"
                 />
                 <Input
                   type="number"
                   label="Peso utilizado (kg)"
                   value={currentWeight}
-                  onChange={(e) => setCurrentWeight(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => setCurrentWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
                   min="0"
                   step="0.5"
                 />

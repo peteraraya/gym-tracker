@@ -42,6 +42,46 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const data = await storageService.getSessions();
       setSessions(data);
+
+      // Calcular detalles útiles para depuración: completadas, en progreso, huérfanas
+      try {
+        // Obtener rutinas actuales para detectar sesiones huérfanas
+        const currentRoutines = await storageService.getRoutines();
+        const routineIds = new Set((currentRoutines || []).map(r => r.id));
+
+        const isSessionCompleted = (s: import('@/types').WorkoutSession) => {
+          if (s.completedAt) return true;
+          if (s.totalDuration && s.totalDuration > 0) return true;
+          if (s.exercises && Array.isArray(s.exercises)) {
+            return s.exercises.some(ex => {
+              const hasReps = Array.isArray(ex.actualReps) && ex.actualReps.some(r => typeof r === 'number' && r > 0);
+              const hasWeight = Array.isArray(ex.actualWeight) && ex.actualWeight.some(w => typeof w === 'number' && w > 0);
+              const hasSets = typeof ex.completedSets === 'number' && ex.completedSets > 0;
+              return hasReps || hasWeight || hasSets;
+            });
+          }
+          return false;
+        };
+
+        const total = Array.isArray(data) ? data.length : 0;
+        const completed = (data || []).filter(isSessionCompleted).length;
+        const inProgress = (data || []).filter(s => s.startedAt && !isSessionCompleted(s)).length;
+        const orphanList = (data || []).filter(s => s.routineId && !routineIds.has(s.routineId));
+        const orphan = orphanList.length;
+
+        // Logs y exposición temporal en window para inspección
+        // eslint-disable-next-line no-console
+        console.log('[GymContext] refreshSessions -> sessions loaded:', total, { completed, inProgress, orphan });
+        if (typeof window !== 'undefined') {
+          // @ts-ignore - temporal
+          window.__GYM_SESSIONS__ = data;
+          // @ts-ignore - temporal
+          window.__GYM_SESSIONS_DETAILS__ = { total, completed, inProgress, orphan, orphanIds: orphanList.map(s => s.id || null) };
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[GymContext] refreshSessions - debug info error', e);
+      }
     } catch (error) {
       console.error('Error fetching sessions:', error);
       setSessions([]);
@@ -101,8 +141,43 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addSession = useCallback(async (session: Omit<WorkoutSession, 'id'>) => {
     try {
+      // TEMP LOG: depuración - eliminar en producción
+      try {
+        // Mostrar resumen ligero para evitar volcar objetos grandes
+        // Evitar fallos si localStorage no está disponible
+        if (typeof window !== 'undefined') {
+          // Mostrar keys locales relevantes
+          // eslint-disable-next-line no-console
+          console.log('[GymContext] addSession called, session summary:', {
+            routineId: session.routineId,
+            date: session.date,
+            exercises: session.exercises ? session.exercises.length : 0,
+          });
+          try {
+            // Mostrar localStorage keys que podrían contener sesiones
+            // eslint-disable-next-line no-console
+            console.log('[GymContext] localStorage workoutSessions length:', (localStorage.getItem('workoutSessions') || '').length);
+            // eslint-disable-next-line no-console
+            console.log('[GymContext] localStorage gym_tracker_sessions length:', (localStorage.getItem('gym_tracker_sessions') || '').length);
+          } catch (e) {
+            // ignore localStorage read errors
+          }
+        }
+      } catch (e) {
+        // ignore logging errors
+      }
+
       await storageService.saveSession(session as WorkoutSession);
+
+      // TEMP LOG: confirmar que saveSession resolvió
+      // eslint-disable-next-line no-console
+      console.log('[GymContext] storageService.saveSession resolved');
+
       await refreshSessions();
+
+      // TEMP LOG: confirmar refresh
+      // eslint-disable-next-line no-console
+      console.log('[GymContext] refreshSessions called (sessions state should update)');
     } catch (error) {
       console.error('Error adding session:', error);
       throw error;
@@ -125,6 +200,30 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshRoutines,
     refreshSessions,
   }), [routines, sessions, loading, addRoutine, updateRoutine, deleteRoutine, addSession, getRoutineById, refreshRoutines, refreshSessions]);
+
+  // Exponer helper temporal para reconstruir rutinas desde sesiones (invocar desde consola)
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // @ts-ignore
+      window.__rebuildRoutinesFromSessions = async () => {
+        try {
+          // eslint-disable-next-line no-console
+          console.log('[GymContext] Rebuilding routines from sessions...');
+          const created = await storageService.rebuildRoutinesFromSessions();
+          await refreshRoutines();
+          await refreshSessions();
+          // eslint-disable-next-line no-console
+          console.log('[GymContext] Rebuild finished, created:', created?.length || 0);
+          return created;
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('[GymContext] rebuild failed', e);
+          throw e;
+        }
+      };
+    }
+    // cleanup not necessary for temporary debug helper
+  }, [refreshRoutines, refreshSessions]);
 
   return (
     <GymContext.Provider value={value}>

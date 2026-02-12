@@ -281,7 +281,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <RestTimeSelector
           label={t('restBetweenSets')}
           value={restBetweenSets}
@@ -321,7 +321,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {t('exercisesTitle')}
           </h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button type="button" variant="secondary" size="sm" onClick={handleAddExercise}>
               ➕ {t('fromLibrary')}
             </Button>
@@ -469,14 +469,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         </div>
       </div>
 
-      <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <Button type="button" variant="ghost" onClick={onClose} className="flex-1" disabled={isSubmitting}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <Button type="button" variant="ghost" onClick={onClose} className="w-full sm:flex-1" disabled={isSubmitting}>
           {tc('cancel')}
         </Button>
         <Button 
           type="submit" 
           variant="primary" 
-          className="flex-1" 
+          className="w-full sm:flex-1" 
           disabled={exercises.length === 0 || isSubmitting}
         >
           {isSubmitting ? t('saving') : routineId ? t('updateRoutineBtn') : t('createRoutineBtn')}

@@ -66,8 +66,8 @@ export default function FreeWorkoutPage() {
     } catch { /* ignore */ }
     return null;
   });
-  const [currentReps, setCurrentReps] = useState(10);
-  const [currentWeight, setCurrentWeight] = useState(0);
+  const [currentReps, setCurrentReps] = useState<number | ''>(10);
+  const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [sessionNotes, setSessionNotes] = useState('');
@@ -146,13 +146,17 @@ export default function FreeWorkoutPage() {
     const exercise = exercises[activeExerciseIndex];
     if (!exercise) return;
 
+    // Add set (normalizar valores vacíos a 0)
+    const repsValue = typeof currentReps === 'number' ? currentReps : 0;
+    const weightValue = typeof currentWeight === 'number' ? currentWeight : 0;
+
     // Add set
     const newExercises = [...exercises];
     newExercises[activeExerciseIndex] = {
       ...exercise,
       completedSets: [
         ...exercise.completedSets,
-        { reps: currentReps, weight: currentWeight }
+        { reps: repsValue, weight: weightValue }
       ]
     };
     setExercises(newExercises);
@@ -384,14 +388,14 @@ export default function FreeWorkoutPage() {
                       type="number"
                       label="Repeticiones"
                       value={currentReps}
-                      onChange={(e) => setCurrentReps(parseInt(e.target.value) || 0)}
+                      onChange={(e) => setCurrentReps(e.target.value === '' ? '' : parseInt(e.target.value))}
                       min="0"
                     />
                     <Input
                       type="number"
                       label="Peso (kg)"
                       value={currentWeight}
-                      onChange={(e) => setCurrentWeight(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => setCurrentWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       min="0"
                       step="0.5"
                     />

@@ -29,6 +29,14 @@ export function SessionComparison({ sessions, routines }: SessionComparisonProps
     return routines.find(r => r.id === routineId)?.name || 'Desconocida';
   };
 
+  // Dedupe sesiones por id (o date+routine) para evitar keys duplicadas en los selects
+  const dedupedSessions = useMemo(() => {
+    const map = new Map<string, WorkoutSession>();
+    const keyFor = (s: WorkoutSession) => s.id || `${new Date(s.date).getTime()}-${s.routineId}`;
+    sessions.forEach(s => map.set(keyFor(s), s));
+    return Array.from(map.values());
+  }, [sessions]);
+
   const comparison = useMemo(() => {
     if (!session1 || !session2) return null;
 
@@ -113,8 +121,8 @@ export function SessionComparison({ sessions, routines }: SessionComparisonProps
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="">Selecciona una sesión</option>
-                {sessions.map(session => (
-                  <option key={session.id} value={session.id}>
+                {dedupedSessions.map((session) => (
+                  <option key={session.id ?? `${new Date(session.date).getTime()}-${session.routineId}`} value={session.id ?? ''}>
                     {getRoutineName(session.routineId)} - {new Date(session.date).toLocaleDateString('es-ES')}
                   </option>
                 ))}
@@ -131,8 +139,8 @@ export function SessionComparison({ sessions, routines }: SessionComparisonProps
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="">Selecciona una sesión</option>
-                {sessions.map(session => (
-                  <option key={session.id} value={session.id}>
+                {dedupedSessions.map((session) => (
+                  <option key={session.id ?? `${new Date(session.date).getTime()}-${session.routineId}`} value={session.id ?? ''}>
                     {getRoutineName(session.routineId)} - {new Date(session.date).toLocaleDateString('es-ES')}
                   </option>
                 ))}

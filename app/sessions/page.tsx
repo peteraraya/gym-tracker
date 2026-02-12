@@ -11,26 +11,78 @@ import type { WorkoutSession } from '@/types';
 
 export default function SessionsPage() {
   const { sessions: serverSessions, routines } = useGym();
-
+  
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('workoutSessions');
-      return stored ? JSON.parse(stored) : [];
+      try {
+        const storedA = localStorage.getItem('workoutSessions');
+        const storedB = localStorage.getItem('gym_tracker_sessions');
+
+        const a: WorkoutSession[] = storedA ? JSON.parse(storedA) : [];
+        const b: WorkoutSession[] = storedB ? JSON.parse(storedB) : [];
+
+        // Merge and dedupe by id (or by date+routine as fallback)
+        const map = new Map<string, WorkoutSession>();
+        const keyFor = (s: WorkoutSession) => s.id || `${s.date}-${s.routineId}`;
+
+        [...b, ...a].forEach(s => map.set(keyFor(s), s));
+
+        return Array.from(map.values());
+      } catch (err) {
+        // fall back to empty
+         
+        console.warn('Error parsing local sessions:', err);
+        return [];
+      }
     }
     return [];
   });
 
   // Combina sesiones del servidor y sesiones importadas en localStorage
+  // Evitar eliminar sesiones distintas con el mismo nombre: dedupe SOLO por `id`.
+  // Para sesiones sin `id` asignamos un id temporal basado en el índice para permitir selección/comparación.
   const sessions = useMemo(() => {
-    return [...serverSessions, ...localSessions];
+    const serverById = new Map<string, WorkoutSession>();
+    serverSessions.forEach(s => { if (s.id) serverById.set(s.id, s); });
+
+    const merged: WorkoutSession[] = [];
+
+    // Añadir todas las sesiones del servidor
+    serverSessions.forEach(s => merged.push(s));
+
+    // Añadir las locales solo si no colisionan por id con servidor
+    localSessions.forEach(s => {
+      if (s.id && serverById.has(s.id)) return; // servidor ya tiene la versión
+      merged.push(s);
+    });
+
+    // Asegurar que cada sesión tenga un `id` estable (generar temporal para las que no tienen)
+    return merged.map((s, idx) => ({
+      ...s,
+      id: s.id || `__local_${idx}_${new Date(s.date).getTime()}`,
+    }));
   }, [serverSessions, localSessions]);
 
   const [filteredSessions, setFilteredSessions] = useState<WorkoutSession[]>(sessions);
+
+  // Opción para ocultar sesiones cuya rutina fue eliminada
+  const [hideDeletedRoutines, setHideDeletedRoutines] = React.useState<boolean>(true);
 
   // Keep filteredSessions in sync when sessions change
   React.useEffect(() => {
     setFilteredSessions(sessions);
   }, [sessions]);
+
+  // Computar sesiones que se muestran según la opción de ocultar rutinas eliminadas
+  const displayedSessions = React.useMemo(() => {
+    if (!hideDeletedRoutines) return sessions;
+    return sessions.filter(s => routines.some(r => r.id === s.routineId));
+  }, [sessions, hideDeletedRoutines, routines]);
+
+  // Mantener filteredSessions sincronizado con displayedSessions
+  React.useEffect(() => {
+    setFilteredSessions(displayedSessions);
+  }, [displayedSessions]);
 
   const getRoutineName = (routineId: string) => {
     const routine = routines.find((r) => r.id === routineId);
@@ -50,9 +102,20 @@ export default function SessionsPage() {
               Revisa tus entrenamientos anteriores
             </p>
           </div>
-          {sessions.length > 1 && (
-            <SessionComparison sessions={sessions} routines={routines} />
-          )}
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={hideDeletedRoutines}
+                onChange={(e) => setHideDeletedRoutines(e.target.checked)}
+                className="form-checkbox h-4 w-4"
+              />
+              Ocultar rutinas eliminadas
+            </label>
+            {displayedSessions.length > 1 && (
+              <SessionComparison sessions={displayedSessions} routines={routines} />
+            )}
+          </div>
         </div>
 
         {sessions.length === 0 ? (

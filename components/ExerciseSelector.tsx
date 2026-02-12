@@ -352,11 +352,11 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
             )}
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               variant="ghost"
               onClick={() => setSelectedMuscle(null)}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               Cancelar
             </Button>
@@ -364,7 +364,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
               variant="primary"
               onClick={handleConfirmSelection}
               disabled={selectedExercises.size === 0}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               Agregar {selectedExercises.size > 0 ? `(${selectedExercises.size})` : ''}
             </Button>
