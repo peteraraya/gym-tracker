@@ -226,7 +226,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
             Limpiar
           </Button>
          
-          <Button
+          {/* <Button
             variant={exporting ? 'primary' : 'ghost'}
             size="sm"
             disabled={exporting}
@@ -260,24 +260,24 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
             }}
           >
             {exporting ? 'Exportando...' : 'Exportar PDF'}
-          </Button>
+          </Button> */}
         </div>
       </div>
 
       <div className="mb-2 relative">
-        <div ref={daysRef} onScroll={updateIndicators} className="flex gap-2 overflow-x-auto py-2 -mx-2 sm:mx-0 sm:grid sm:grid-cols-7 sm:gap-2 touch-pan-x">
-        {DAYS.map(day => (
-          <div
-            key={day}
-            onDrop={(e) => onDropToDay(e as any, day)}
-            onDragOver={onDragOver as any}
-            className={`min-w-[110px] sm:min-w-0 flex-shrink-0 sm:flex-shrink p-3 rounded-lg shadow-sm ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-900/10 to-red-900/5 border border-red-700/40' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/50 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/50 dark:bg-gray-800')}`}
-          >
+        <div ref={daysRef} onScroll={updateIndicators} className="flex gap-2 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-2 touch-pan-x">
+            {DAYS.map(day => (
+              <div
+                key={day}
+                onDrop={(e) => onDropToDay(e as any, day)}
+                onDragOver={onDragOver as any}
+                className={`min-w-[140px] md:min-w-0 flex-shrink-0 md:flex-shrink p-3 rounded-lg shadow-sm min-h-[160px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-900/10 to-red-900/5 border border-red-700/40' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/50 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/50 dark:bg-gray-800')}`}
+              >
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-sm text-white">{LABELS[day]}</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-800/60 rounded-md">{plan[day]?.routines?.length || 0}</span>
-                <button
+                <Button
                   title={(plan[day]?.routines?.length || 0) > 0
                     ? 'No puedes bloquear un día que tiene rutinas'
                     : (plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso')
@@ -304,10 +304,12 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     }
                   }}
                   disabled={(plan[day]?.routines?.length || 0) > 0}
+                  variant={plan[day]?.blocked ? 'danger' : 'ghost'}
+                  size="sm"
                   className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md border ${plan[day]?.blocked ? 'bg-red-700/10 border-red-700 text-red-300' : 'bg-gray-800/30 border-gray-700 text-gray-200'} ${ (plan[day]?.routines?.length || 0) > 0 ? 'opacity-50 cursor-not-allowed' : '' }`}
                 >
                   {plan[day]?.blocked ? '😴 Descanso' : 'Bloquear'}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -360,7 +362,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                   return (
                     <div key={rid} className="flex items-center justify-between bg-gray-800/40 p-2 rounded-md border border-gray-700">
                       <div className="text-sm text-gray-100">{r.name}</div>
-                      <button onClick={() => removeFromDay(day, rid)} className="text-red-400 text-sm">✕</button>
+                      <Button variant="ghost" size="sm" onClick={() => removeFromDay(day, rid)} className="text-red-400 text-sm px-2 py-1">✕</Button>
                     </div>
                   );
                 })}
