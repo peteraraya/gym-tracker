@@ -150,7 +150,24 @@ export default function RoutinesPage() {
 
         {/* Botón flotante de Entrenamiento Libre (esquina inferior derecha) */}
 
-        <WeeklyPlanner />
+        <WeeklyPlanner searchQuery={searchFilter} />
+
+        <div className="mb-3 mt-4">
+          <input
+            type="search"
+            placeholder="Buscar rutinas..."
+            value={searchFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSearchFilter(v);
+              try {
+                localStorage.setItem('weekly_routines_search', v);
+                try { window.dispatchEvent(new CustomEvent('weekly_routines_search_changed', { detail: v })); } catch (e) {}
+              } catch (e) {}
+            }}
+            className="w-full h-11 px-3 rounded-lg bg-gray-900/40 border border-gray-700 text-gray-200 placeholder-gray-400"
+          />
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -183,7 +200,7 @@ export default function RoutinesPage() {
                 return (r.name || '').toLowerCase().includes(searchFilter.toLowerCase()) || (r.description || '').toLowerCase().includes(searchFilter.toLowerCase());
               })
               .map((routine) => (
-              <Card key={routine.id}>
+              <Card key={routine.id} className="bg-gradient-to-b from-gray-900/60 to-gray-800/40 border-gray-700 shadow-sm p-4">
                 {routine.image && (
                   <div className="w-full h-48 overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -214,7 +231,7 @@ export default function RoutinesPage() {
                       </span>
                     </div>
 
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                    <div className="border-t border-gray-700/40 pt-3">
                       <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 font-medium">
                         {t('previewLabel')}
                       </p>
@@ -246,7 +263,7 @@ export default function RoutinesPage() {
                       <Button
                         variant="primary"
                         size="sm"
-                        className="w-full"
+                        className="w-full shadow-md"
                         onClick={() => handleStartWorkout(routine.id)}
                       >
                         {activeWorkout?.routineId === routine.id ? (
