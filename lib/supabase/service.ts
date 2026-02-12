@@ -229,6 +229,46 @@ export async function deleteRoutine(id: string): Promise<void> {
   if (error) throw new Error(`Error al eliminar rutina: ${error.message}`);
 }
 
+/**
+ * Delete all sessions (and their exercises) associated with a routine id
+ */
+export async function deleteSessionsByRoutine(routineId: string): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  // Obtener sesiones asociadas a la rutina
+  const { data: sessions, error: fetchError } = await supabase
+    .from('workout_sessions')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('routine_id', routineId);
+
+  if (fetchError) throw new Error(`Error al buscar sesiones para eliminar: ${fetchError.message}`);
+
+  const sessionIds = (sessions || []).map(s => s.id).filter(Boolean);
+
+  if (sessionIds.length === 0) return;
+
+  // Eliminar ejercicios asociados
+  const { error: exErr } = await supabase
+    .from('session_exercises')
+    .delete()
+    .in('session_id', sessionIds);
+
+  if (exErr) throw new Error(`Error al eliminar ejercicios de sesiones: ${exErr.message}`);
+
+  // Eliminar sesiones
+  const { error: sessErr } = await supabase
+    .from('workout_sessions')
+    .delete()
+    .in('id', sessionIds)
+    .eq('user_id', user.id);
+
+  if (sessErr) throw new Error(`Error al eliminar sesiones: ${sessErr.message}`);
+}
+
 // ==================== SESSIONS ====================
 
 /**

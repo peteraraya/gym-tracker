@@ -86,67 +86,15 @@ export default function FreeWorkoutPage() {
     if (typeof window === 'undefined') return 60;
     try {
       const stored = localStorage.getItem('gym-tracker-free-workout');
-        <div className="space-y-4">
-          <p className="text-gray-600 dark:text-gray-400">
-            Revisa la duración y agrega una nota antes de guardar la sesión.
-          </p>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selecciona duración</label>
-            <select
-              value={Math.floor(proposedDuration / 60)}
-              onChange={(e) => setProposedDuration(Math.max(0, parseInt(e.target.value || '0')) * 60)}
-              className="w-full p-2 border rounded bg-white dark:bg-gray-700"
-            >
-              {Array.from({ length: 59 }, (_, i) => i + 1).map(m => (
-                <option key={`m-${m}`} value={m}>{m} min</option>
-              ))}
-              {Array.from({ length: 5 }, (_, i) => i + 1).map(h => (
-                <option key={`h-${h}`} value={h * 60}>{h} h</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Notas (opcional)
-            </label>
-            <textarea
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={4}
-              placeholder="Ej: Probé un nuevo ejercicio, me gustó la variación..."
-              value={sessionNotes}
-              onChange={(e) => setSessionNotes(e.target.value)}
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setSessionNotes('');
-                setShowNotesModal(false);
-                finishCompleteWorkout();
-              }}
-              className="flex-1"
-            >
-              Omitir
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                setShowNotesModal(false);
-                finishCompleteWorkout();
-              }}
-              className="flex-1"
-            >
-              Guardar y finalizar
-            </Button>
-          </div>
-        </div>
-      setActiveExerciseIndex(exercises.length);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.globalRestTime ?? 60;
+      }
+    } catch (e) {
+      // ignore
     }
-  };
+    return 60;
+  });
 
   const handleRemoveExercise = (index: number) => {
     setExercises(prev => prev.filter((_, i) => i !== index));
@@ -155,6 +103,56 @@ export default function FreeWorkoutPage() {
     } else if (activeExerciseIndex !== null && activeExerciseIndex > index) {
       setActiveExerciseIndex(activeExerciseIndex - 1);
     }
+  };
+
+  // Añadir ejercicios seleccionados desde el selector
+  const handleAddExercises = (templates: ExerciseTemplate[]) => {
+    const newItems: FreeExercise[] = templates.map(t => ({
+      id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2,9)}`,
+      name: t.name,
+      equipment: t.equipment,
+      completedSets: [],
+      restBetweenSets: (() => {
+        if (t.restTime) {
+          const m = t.restTime.match(/(\d+)/);
+          if (m) {
+            let v = parseInt(m[1], 10);
+            if (t.restTime.toLowerCase().includes('minuto')) v = v * 60;
+            return v;
+          }
+        }
+        return undefined;
+      })()
+    }));
+
+    setExercises(prev => {
+      const next = [...prev, ...newItems];
+      // Abrir el primer ejercicio agregado
+      setActiveExerciseIndex(next.length - newItems.length);
+      return next;
+    });
+    setShowExerciseSelector(false);
+  };
+
+  // Persistir estado del entrenamiento libre en localStorage
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return;
+      localStorage.setItem('gym-tracker-free-workout', JSON.stringify({
+        exercises,
+        activeExerciseIndex,
+        globalRestTime
+      }));
+    } catch (e) {
+      // ignore
+    }
+  }, [exercises, activeExerciseIndex, globalRestTime]);
+
+  const clearStorage = () => {
+    try {
+      if (typeof window === 'undefined') return;
+      localStorage.removeItem('gym-tracker-free-workout');
+    } catch (e) {}
   };
 
   const handleCompleteSet = () => {

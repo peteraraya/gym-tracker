@@ -31,6 +31,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [restBetweenSets, setRestBetweenSets] = useState(60);
   const [restBetweenExercises, setRestBetweenExercises] = useState(120);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Array<{ exerciseIndex: number; setIndex: number; message: string }>>([]);
 
   useEffect(() => {
     if (routineId) {
@@ -157,6 +158,30 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     e.preventDefault();
 
     if (isSubmitting) return; // Prevenir múltiples envíos
+    // Validación: asegurar que todos los pesos sean mayores a 0
+    const errors: Array<{ exerciseIndex: number; setIndex: number; message: string }> = [];
+    exercises.forEach((exercise, ei) => {
+      exercise.sets.forEach((s, si) => {
+        const weight = typeof s.weight === 'number' ? s.weight : parseFloat(String(s.weight || 0));
+        if (!weight || weight <= 0) {
+          errors.push({ exerciseIndex: ei, setIndex: si, message: 'Peso requerido (> 0)' });
+        }
+      });
+    });
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      // Enfocar en el primer campo con error si es posible
+      try {
+        const first = errors[0];
+        const selector = `input[name=weight-${first.exerciseIndex}-${first.setIndex}]`;
+        const el = typeof window !== 'undefined' ? document.querySelector(selector) as HTMLElement | null : null;
+        el?.focus();
+      } catch (e) {}
+      return;
+    }
+
+    setValidationErrors([]);
     setIsSubmitting(true);
 
     const exercisesWithIds: Exercise[] = exercises.map((exercise, index) => ({
@@ -401,13 +426,19 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     />
                     <Input
                       type="number"
+                      name={`weight-${exerciseIndex}-${setIndex}`}
                       placeholder={t('weight')}
                       value={set.weight || ''}
                       onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
-                      min="0"
+                      min="0.1"
                       step="0.5"
+                      required
                       className="flex-1"
                     />
+                    {/* Mostrar error de validación para peso si existe */}
+                    {validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex) && (
+                      <div className="text-sm text-red-600 mt-1">Peso requerido</div>
+                    )}
                     <div className="flex gap-1">
                       <button
                         type="button"

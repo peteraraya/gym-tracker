@@ -130,20 +130,36 @@ export async function deleteRoutine(id: string): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
+            // Also remove local sessions associated with this routine to avoid orphans
+            if (localStorageService.deleteSessionsByRoutine) {
+                await localStorageService.deleteSessionsByRoutine(id);
+            }
             return localStorageService.deleteRoutine(id);
         }
 
         try {
             const supabaseService = await import('@/lib/supabase/service');
+            // Attempt to delete sessions associated with the routine first
+            if (supabaseService.deleteSessionsByRoutine) {
+                await supabaseService.deleteSessionsByRoutine(id);
+            }
             await supabaseService.deleteRoutine(id);
             handleStorageSuccess();
         } catch (err) {
             handleStorageError(err, 'deleteRoutine');
             const localStorageService = await import('@/lib/storage/localStorage');
+            // Ensure local sessions are cleaned up as fallback
+            if (localStorageService.deleteSessionsByRoutine) {
+                await localStorageService.deleteSessionsByRoutine(id);
+            }
             return localStorageService.deleteRoutine(id);
         }
     } else {
         const localStorageService = await import('@/lib/storage/localStorage');
+        // Also remove local sessions associated with this routine to avoid orphans
+        if (localStorageService.deleteSessionsByRoutine) {
+            await localStorageService.deleteSessionsByRoutine(id);
+        }
         return localStorageService.deleteRoutine(id);
     }
 }

@@ -183,6 +183,19 @@ export async function deleteRoutine(id: string): Promise<void> {
     saveToStorage(STORAGE_KEYS.ROUTINES, filtered);
 }
 
+/**
+ * Delete all sessions associated with a routineId to avoid orphaned sessions
+ */
+export async function deleteSessionsByRoutine(routineId: string): Promise<void> {
+    const sessions = await getSessions();
+    const filtered = sessions.filter(s => s.routineId !== routineId);
+    if (filtered.length === sessions.length) {
+        // nothing to delete
+        return;
+    }
+    saveToStorage(STORAGE_KEYS.SESSIONS, filtered);
+}
+
 // ==================== SESSIONS ====================
 
 /**

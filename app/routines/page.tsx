@@ -127,27 +127,7 @@ export default function RoutinesPage() {
           </Button>
         </div>
 
-        {/* Botón de entrenamiento libre */}
-        <div className="mb-6">
-            <button
-            onClick={() => router.push('/workout/free')}
-            className="w-full p-4 rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-700 bg-linear-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 hover:from-orange-100 hover:to-red-100 dark:hover:from-orange-900/20 dark:hover:to-red-900/20 transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-linear-to-br from-orange-500 to-red-600 rounded-xl group-hover:scale-105 transition-transform">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  🏋️ Entrenamiento Libre
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Entrena sin rutina predefinida — agrega ejercicios y registra series sobre la marcha
-                </p>
-              </div>
-            </div>
-          </button>
-        </div>
+        {/* Botón flotante de Entrenamiento Libre (esquina inferior derecha) */}
 
         <WeeklyPlanner />
 
@@ -283,6 +263,18 @@ export default function RoutinesPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Floating Free Workout button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          onClick={() => router.push('/workout/free')}
+          aria-label="Entrenamiento Libre"
+          title="Entrenamiento Libre"
+          className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+        >
+          <Zap className="w-6 h-6" />
+        </button>
       </div>
 
       <Modal
