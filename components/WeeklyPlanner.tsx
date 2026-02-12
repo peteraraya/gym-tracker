@@ -33,7 +33,7 @@ type PlanDay = {
 type Plan = Record<DayKey, PlanDay>;
 
 export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: string }) {
-  const { routines } = useGym();
+  const { routines, loading: routinesLoading } = useGym();
   const { confirm } = useConfirm();
   const { info } = useToast();
   const daysRef = useRef<HTMLDivElement | null>(null);
@@ -375,18 +375,31 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                {(plan[day]?.routines || []).map(rid => {
-                  const r = routines.find(x => x.id === rid);
-                  if (!r) return null;
-                  return (
-                    <div key={rid} className="flex items-center justify-between bg-gray-800/40 p-2 rounded-md border border-gray-700">
-                      <div className="text-sm text-gray-100">{r.name}</div>
-                      <Button variant="ghost" size="sm" onClick={() => removeFromDay(day, rid)} className="text-red-400 text-sm px-2 py-1">✕</Button>
-                    </div>
-                  );
-                })}
-              </div>
+              // Mostrar loader por día mientras se carga el plan o las rutinas
+              (isLoadingPlan || routinesLoading) ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span className="text-sm text-gray-300">Cargando...</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {(plan[day]?.routines || []).map(rid => {
+                    const r = routines.find(x => x.id === rid);
+                    if (!r) return null;
+                    return (
+                      <div key={rid} className="flex items-center justify-between bg-gray-800/40 p-2 rounded-md border border-gray-700">
+                        <div className="text-sm text-gray-100">{r.name}</div>
+                        <Button variant="ghost" size="sm" onClick={() => removeFromDay(day, rid)} className="text-red-400 text-sm px-2 py-1">✕</Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
             )}
           </div>
         ))}
