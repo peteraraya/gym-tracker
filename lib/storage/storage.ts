@@ -388,6 +388,89 @@ export async function rebuildRoutinesFromSessions(): Promise<any> {
     }
 }
 
+// ==================== ACTIVE WORKOUT ====================
+
+export async function getActiveWorkout(): Promise<any | null> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getActiveWorkout();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).getActiveWorkout) {
+                const res = await (supabaseService as any).getActiveWorkout();
+                handleStorageSuccess();
+                return res;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getActiveWorkout();
+        } catch (err) {
+            handleStorageError(err, 'getActiveWorkout');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getActiveWorkout();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getActiveWorkout();
+    }
+}
+
+export async function saveActiveWorkout(payload: any): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveActiveWorkout(payload);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).saveActiveWorkout) {
+                await (supabaseService as any).saveActiveWorkout(payload);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveActiveWorkout(payload);
+        } catch (err) {
+            handleStorageError(err, 'saveActiveWorkout');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveActiveWorkout(payload);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveActiveWorkout(payload);
+    }
+}
+
+export async function clearActiveWorkout(): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.clearActiveWorkout();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).clearActiveWorkout) {
+                await (supabaseService as any).clearActiveWorkout();
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.clearActiveWorkout();
+        } catch (err) {
+            handleStorageError(err, 'clearActiveWorkout');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.clearActiveWorkout();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.clearActiveWorkout();
+    }
+}
+
 // ==================== RECOMMENDATIONS ====================
 
 export async function getRecommendations(): Promise<any[]> {

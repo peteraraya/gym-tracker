@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
     SESSIONS: 'gym_tracker_sessions',
     PROFILE: 'gym_tracker_profile',
     WEEKLY_PLAN: 'weekly_routine_plan',
+    ACTIVE_WORKOUT: 'gym-tracker-active-workout',
     RECOMMENDATIONS: 'gym_tracker_recommendations',
 } as const;
 
@@ -371,6 +372,45 @@ export async function saveRecommendations(recommendations: ProgressRecommendatio
     recommendations.forEach(r => map.set(r.exerciseId, r));
     const merged = Array.from(map.values());
     saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, merged);
+}
+
+// ==================== ACTIVE WORKOUT (Local fallback) ====================
+
+/**
+ * Get active workout from localStorage
+ */
+export async function getActiveWorkout(): Promise<any | null> {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn('getActiveWorkout local error', e);
+        try { localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT); } catch {};
+        return null;
+    }
+}
+
+/**
+ * Save active workout to localStorage
+ */
+export async function saveActiveWorkout(payload: any): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, JSON.stringify(payload));
+    } catch (e) {
+        console.warn('saveActiveWorkout local error', e);
+        throw e;
+    }
+}
+
+/**
+ * Clear active workout from localStorage
+ */
+export async function clearActiveWorkout(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try { localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT); } catch (e) { /* ignore */ }
 }
 
 export async function saveRecommendation(recommendation: ProgressRecommendation): Promise<void> {

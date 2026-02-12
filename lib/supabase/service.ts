@@ -434,6 +434,63 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
   if (error) throw new Error(`Error al actualizar perfil: ${error.message}`);
 }
 
+// ==================== ACTIVE WORKOUT ====================
+
+/**
+ * Obtener el entrenamiento activo del usuario (data JSONB)
+ */
+export async function getActiveWorkout(): Promise<any | null> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('active_workouts')
+    .select('data')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Error al obtener active workout: ${error.message}`);
+  }
+
+  return data?.data || null;
+}
+
+/**
+ * Guardar o actualizar el entrenamiento activo para el usuario
+ */
+export async function saveActiveWorkout(payload: any): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  const { error } = await supabase
+    .from('active_workouts')
+    .upsert({ user_id: user.id, data: payload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+
+  if (error) throw new Error(`Error al guardar active workout: ${error.message}`);
+}
+
+/**
+ * Eliminar el entrenamiento activo (cuando se finaliza o cancela)
+ */
+export async function clearActiveWorkout(): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  const { error } = await supabase
+    .from('active_workouts')
+    .delete()
+    .eq('user_id', user.id);
+
+  if (error) throw new Error(`Error al eliminar active workout: ${error.message}`);
+}
+
 /**
  * Obtener el plan semanal asociado al perfil del usuario
  */

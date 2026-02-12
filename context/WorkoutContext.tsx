@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import * as storageService from '@/lib/storage/storage';
 import type { Routine } from '@/types';
 
 interface WorkoutState {
@@ -45,36 +46,48 @@ interface WorkoutContextType {
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'gym-tracker-active-workout';
-
-function loadActiveWorkout(): WorkoutState | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return null;
-    
-    const parsed = JSON.parse(stored);
-    parsed.startedAt = new Date(parsed.startedAt);
-    return parsed;
-  } catch (error) {
-    console.error('Error loading active workout:', error);
-    localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
-}
-
 export function WorkoutProvider({ children }: { children: ReactNode }) {
-  const [activeWorkout, setActiveWorkout] = useState<WorkoutState | null>(loadActiveWorkout);
+  const [activeWorkout, setActiveWorkout] = useState<WorkoutState | null>(null);
+  const [isLoadingActiveWorkout, setIsLoadingActiveWorkout] = useState(true);
 
-  // Guardar estado en localStorage cada vez que cambie
+  // Cargar active workout desde storage unificado (DB o local)
   useEffect(() => {
-    if (activeWorkout) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(activeWorkout));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, [activeWorkout]);
+    let mounted = true;
+    (async () => {
+      try {
+        const stored = await storageService.getActiveWorkout();
+        if (!mounted) return;
+        if (stored) {
+          // Ensure Date objects where expected
+          try {
+            if (stored.startedAt) stored.startedAt = new Date(stored.startedAt);
+          } catch (e) { /* ignore */ }
+          setActiveWorkout(stored as WorkoutState);
+        }
+      } catch (e) {
+        console.warn('Failed to load active workout from storage', e);
+      } finally {
+        if (mounted) setIsLoadingActiveWorkout(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Persistir cambios del activeWorkout en storage unificado
+  useEffect(() => {
+    if (isLoadingActiveWorkout) return;
+    (async () => {
+      try {
+        if (activeWorkout) {
+          await storageService.saveActiveWorkout(activeWorkout);
+        } else {
+          await storageService.clearActiveWorkout();
+        }
+      } catch (e) {
+        console.warn('Failed to persist active workout', e);
+      }
+    })();
+  }, [activeWorkout, isLoadingActiveWorkout]);
 
   const startWorkout = useCallback((routine: Routine) => {
     const newWorkout: WorkoutState = {
