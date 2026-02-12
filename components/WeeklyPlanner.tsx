@@ -38,6 +38,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   const daysRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const updateIndicators = () => {
     const el = daysRef.current;
@@ -90,6 +91,38 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(plan)); } catch {};
   }, [plan]);
+
+  // const handleExportPDF = () => {
+  //   try {
+  //     const routinesMap = routines.reduce((acc, r) => ({ ...acc, [r.id]: r }), {} as Record<string, any>);
+  //     const content = DAYS.map(d => {
+  //       const day = plan[d];
+  //       const items = (day?.routines || []).map(id => {
+  //         const r = routinesMap[id];
+  //         return `<li><strong>${r?.name || id}</strong> — ${r?.exercises?.length || 0} ejercicios</li>`;
+  //       }).join('');
+  //       return `
+  //         <section style="margin-bottom:14px">
+  //           <h3 style="margin:0 0 6px 0">${LABELS[d]}</h3>
+  //           <div style="font-size:12px;color:#444;margin-bottom:6px">Nota: ${day?.note || ''}</div>
+  //           <ul style="margin:0 0 0 18px">${items || '<li style="color:#888">(sin rutinas)</li>'}</ul>
+  //         </section>`;
+  //     }).join('\n');
+
+  //     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Plan semanal</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;padding:20px;color:#111}h1{font-size:18px;margin-bottom:12px}h3{font-size:14px;margin:6px 0}ul{margin:6px 0 12px 18px;padding:0}@media print{button{display:none}}</style></head><body><h1>Plan semanal — ${new Date().toLocaleString()}</h1>${content}</body><script>window.onload=function(){setTimeout(()=>{window.print();},200);}</script></html>`;
+
+  //     const w = window.open('', '_blank');
+  //     if (!w) {
+  //       try { info('Permite ventanas emergentes para exportar PDF'); } catch {}
+  //       return;
+  //     }
+  //     w.document.write(html);
+  //     w.document.close();
+  //   } catch (e) {
+  //     console.error('Export PDF failed', e);
+  //     try { info('Error al generar PDF'); } catch {}
+  //   }
+  // };
 
   const onDragStart = (e: DragEvent, routineId: string) => {
     e.dataTransfer.setData('text/plain', routineId);
@@ -161,7 +194,73 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold">Planificador semanal</h2>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={clearPlan}>Limpiar</Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              try {
+                const confirmed = await confirm({
+                  title: 'Eliminar planificación',
+                  message: 'Se eliminará toda la planificación semanal. Esto no se puede deshacer. ¿Deseas continuar?',
+                  confirmText: 'Eliminar definitivamente',
+                  cancelText: 'Cancelar',
+                  variant: 'warning'
+                });
+                if (confirmed) {
+                  clearPlan();
+                  try { info('Planificación eliminada'); } catch {}
+                  try { console.log('Weekly plan cleared'); } catch {}
+                  try {
+                    if (typeof window !== 'undefined' && (window as any).gtag) {
+                      (window as any).gtag('event', 'weekly_plan_cleared', { method: 'manual' });
+                    }
+                  } catch (e) {
+                    // ignore analytics errors
+                  }
+                }
+              } catch (e) {
+                // ignore
+              }
+            }}
+          >
+            Limpiar
+          </Button>
+         
+          <Button
+            variant={exporting ? 'primary' : 'outline'}
+            size="sm"
+            disabled={exporting}
+            aria-busy={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const routinesMap = routines.reduce((acc, r) => ({ ...acc, [r.id]: r }), {} as Record<string, any>);
+                const res = await fetch('/api/weekly-export', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ plan, routines: routinesMap })
+                });
+                if (!res.ok) throw new Error('Export failed');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `weekly-plan-${new Date().toISOString().slice(0,10)}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                try { info('PDF descargado desde servidor'); } catch {}
+              } catch (e) {
+                console.error('Server export error', e);
+                try { info('Error al exportar PDF en servidor'); } catch {}
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            {exporting ? 'Exportando...' : 'Exportar PDF'}
+          </Button>
         </div>
       </div>
 
@@ -172,16 +271,20 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
             key={day}
             onDrop={(e) => onDropToDay(e as any, day)}
             onDragOver={onDragOver as any}
-            className={`min-w-[110px] sm:min-w-0 flex-shrink-0 sm:flex-shrink p-3 border border-gray-700 rounded-lg shadow-sm ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-900/10 to-red-900/5 border-red-700/40' : 'bg-gray-900/50 dark:bg-gray-800'}`}
+            className={`min-w-[110px] sm:min-w-0 flex-shrink-0 sm:flex-shrink p-3 rounded-lg shadow-sm ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-900/10 to-red-900/5 border border-red-700/40' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/50 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/50 dark:bg-gray-800')}`}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-sm text-white">{LABELS[day]}</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-800/60 rounded-md">{plan[day]?.routines?.length || 0}</span>
                 <button
-                  title={plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso'}
+                  title={(plan[day]?.routines?.length || 0) > 0
+                    ? 'No puedes bloquear un día que tiene rutinas'
+                    : (plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso')
+                  }
                   onClick={async (e) => {
                     e.stopPropagation();
+                    if ((plan[day]?.routines?.length || 0) > 0) return;
                     if (plan[day]?.blocked) {
                       // desbloquear mediante confirm modal
                       try {
@@ -200,7 +303,8 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                       setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: !prev[day].blocked } }));
                     }
                   }}
-                  className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md border ${plan[day]?.blocked ? 'bg-red-700/10 border-red-700 text-red-300' : 'bg-gray-800/30 border-gray-700 text-gray-200'}`}
+                  disabled={(plan[day]?.routines?.length || 0) > 0}
+                  className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md border ${plan[day]?.blocked ? 'bg-red-700/10 border-red-700 text-red-300' : 'bg-gray-800/30 border-gray-700 text-gray-200'} ${ (plan[day]?.routines?.length || 0) > 0 ? 'opacity-50 cursor-not-allowed' : '' }`}
                 >
                   {plan[day]?.blocked ? '😴 Descanso' : 'Bloquear'}
                 </button>
@@ -303,7 +407,16 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                       className="block w-full px-3 py-2 bg-gray-800 border border-r-0 border-gray-700 text-sm text-gray-200 rounded-l-md focus:outline-none"
                     >
                       <option value="">Seleccionar día...</option>
-                      {DAYS.map(d => (<option key={d} value={d}>{LABELS[d]}</option>))}
+                      {DAYS.map(d => {
+                        const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
+                        if (alreadyAdded) return null;
+                        const isBlocked = !!plan[d]?.blocked;
+                        return (
+                          <option key={d} value={d} disabled={isBlocked}>
+                            {LABELS[d]}{isBlocked ? ' (descanso)' : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                     <button
                       type="button"
