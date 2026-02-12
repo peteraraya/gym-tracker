@@ -313,8 +313,8 @@ export async function rebuildRoutinesFromSessions(): Promise<any> {
         try {
             // Supabase backend doesn't implement a rebuild helper; fallback to local
             const supabaseService = await import('@/lib/supabase/service');
-            if (supabaseService.rebuildRoutinesFromSessions) {
-                const res = await supabaseService.rebuildRoutinesFromSessions();
+            if ((supabaseService as any).rebuildRoutinesFromSessions) {
+                const res = await (supabaseService as any).rebuildRoutinesFromSessions();
                 handleStorageSuccess();
                 return res;
             }
@@ -343,8 +343,8 @@ export async function getRecommendations(): Promise<any[]> {
 
         try {
             const supabaseService = await import('@/lib/supabase/service');
-            if (supabaseService.getRecommendations) {
-                const result = await supabaseService.getRecommendations();
+            if ((supabaseService as any).getRecommendations) {
+                const result = await (supabaseService as any).getRecommendations();
                 handleStorageSuccess();
                 return result;
             }
@@ -370,8 +370,8 @@ export async function saveRecommendations(recommendations: any[]): Promise<void>
 
         try {
             const supabaseService = await import('@/lib/supabase/service');
-            if (supabaseService.saveRecommendations) {
-                await supabaseService.saveRecommendations(recommendations);
+            if ((supabaseService as any).saveRecommendations) {
+                await (supabaseService as any).saveRecommendations(recommendations);
                 handleStorageSuccess();
                 return;
             }

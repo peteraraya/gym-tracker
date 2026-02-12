@@ -158,7 +158,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     setPlan(empty);
   };
 
-  const availableRoutines = routines.filter(r => !Object.values(plan).flat().includes(r.id));
+  const availableRoutines = routines.filter(r => !Object.values(plan).flatMap((d: PlanDay) => d.routines).includes(r.id));
 
   const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | ''>>({});
 
@@ -227,7 +227,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           </Button>
          
           <Button
-            variant={exporting ? 'primary' : 'outline'}
+            variant={exporting ? 'primary' : 'ghost'}
             size="sm"
             disabled={exporting}
             aria-busy={exporting}
