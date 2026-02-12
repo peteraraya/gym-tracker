@@ -66,6 +66,7 @@ export default function FreeWorkoutPage() {
     } catch { /* ignore */ }
     return null;
   });
+  const [collapsedExercises, setCollapsedExercises] = useState<Set<number>>(() => new Set());
   const [currentReps, setCurrentReps] = useState<number | ''>(10);
   const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
@@ -187,7 +188,7 @@ export default function FreeWorkoutPage() {
         const rec = calculateRestBetweenSets(
           template,
           exercise.completedSets.length + 1,
-          currentReps,
+          typeof currentReps === 'number' ? currentReps : undefined,
           'intermediate'
         );
         restTime = rec.recommended;
@@ -450,7 +451,12 @@ export default function FreeWorkoutPage() {
                   {useSmartRest && (() => {
                     const template = EXERCISE_DATABASE.find(e => e.name === activeExercise.name);
                     if (template) {
-                      const rec = calculateRestBetweenSets(template, activeExercise.completedSets.length + 1, currentReps, 'intermediate');
+                      const rec = calculateRestBetweenSets(
+                        template,
+                        activeExercise.completedSets.length + 1,
+                        typeof currentReps === 'number' ? currentReps : undefined,
+                        'intermediate'
+                      );
                       return (
                         <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                           <div className="flex items-center gap-2 mb-1">

@@ -60,7 +60,23 @@ export async function POST(req: NextRequest) {
     const pdf = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' } });
     await browser.close();
 
-    return new Response(pdf, {
+    // Convert Node Buffer (Uint8Array) to ArrayBuffer for Response body to satisfy TypeScript
+    // Ensure we produce a real ArrayBuffer (copy data to avoid SharedArrayBuffer issues)
+    let u8: Uint8Array;
+    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(pdf)) {
+      u8 = new Uint8Array(Buffer.from(pdf));
+    } else if (pdf instanceof Uint8Array) {
+      u8 = pdf;
+    } else {
+      u8 = new Uint8Array(Buffer.from(pdf as any));
+    }
+
+    // Copy into a fresh ArrayBuffer to guarantee it's a plain ArrayBuffer
+    const copied = new Uint8Array(u8.length);
+    copied.set(u8);
+    const pdfArrayBuffer = copied.buffer;
+
+    return new Response(pdfArrayBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

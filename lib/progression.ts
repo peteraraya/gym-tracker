@@ -40,7 +40,8 @@ export function recommendWeightIncrease(exerciseId: string, sessions: WorkoutSes
     if (lastIdx < 0) return;
     const reps = ex.actualReps?.[lastIdx] ?? 0;
     const weight = ex.actualWeight?.[lastIdx] ?? 0;
-    relevant.push({ date: s.date, weight, reps });
+    const dateStr = (s.date && typeof (s.date as any).toISOString === 'function') ? (s.date as any).toISOString() : String(s.date);
+    relevant.push({ date: dateStr, weight, reps });
   });
 
   if (relevant.length < 2) {
