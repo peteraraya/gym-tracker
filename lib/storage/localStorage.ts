@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
     ROUTINES: 'gym_tracker_routines',
     SESSIONS: 'gym_tracker_sessions',
     PROFILE: 'gym_tracker_profile',
+    RECOMMENDATIONS: 'gym_tracker_recommendations',
 } as const;
 
 // Helper to generate unique IDs
@@ -172,10 +173,27 @@ export async function deleteRoutine(id: string): Promise<void> {
     const filtered = routines.filter(r => r.id !== id);
 
     if (filtered.length === routines.length) {
-        throw new Error('Rutina no encontrada');
+        // No se encontró la rutina a eliminar. En lugar de lanzar, registramos una advertencia
+        // y salimos silenciosamente para evitar romper la UI si hay desincronización de ids.
+         
+        console.warn(`deleteRoutine: rutina con id ${id} no encontrada en localStorage`);
+        return;
     }
 
     saveToStorage(STORAGE_KEYS.ROUTINES, filtered);
+}
+
+/**
+ * Delete all sessions associated with a routineId to avoid orphaned sessions
+ */
+export async function deleteSessionsByRoutine(routineId: string): Promise<void> {
+    const sessions = await getSessions();
+    const filtered = sessions.filter(s => s.routineId !== routineId);
+    if (filtered.length === sessions.length) {
+        // nothing to delete
+        return;
+    }
+    saveToStorage(STORAGE_KEYS.SESSIONS, filtered);
 }
 
 // ==================== SESSIONS ====================
@@ -215,6 +233,82 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
     }
 
     saveToStorage(STORAGE_KEYS.SESSIONS, sessions);
+
+    // Marcador adicional para depuración: persistir un resumen ligero indicando
+    // que el guardado local ocurrió y cuántas sesiones hay.
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            const marker = {
+                savedAt: Date.now(),
+                id: sessionId,
+                totalSessions: sessions.length
+            };
+            localStorage.setItem('gym_tracker_last_saved_session_local', JSON.stringify(marker));
+            // También log para consola del navegador
+            // eslint-disable-next-line no-console
+            console.log('[localStorage.saveSession] saved session local marker', marker);
+        }
+    } catch (e) {
+        // ignore marker failures
+    }
+}
+
+/**
+ * Reconstruir rutinas a partir de sesiones huérfanas.
+ * Crea una rutina por cada `routineId` único encontrado en las sesiones
+ * que no exista ya en las rutinas, usando `routineName` o un nombre generado.
+ */
+export async function rebuildRoutinesFromSessions(): Promise<Routine[]> {
+    const sessions = await getSessions();
+    const existingRoutines = await getRoutines();
+
+    const existingIds = new Set(existingRoutines.map(r => r.id));
+
+    // Agrupar sesiones por routineId (usar string 'no-id' para sesiones sin id)
+    const groups: Record<string, WorkoutSession[]> = {};
+    sessions.forEach(s => {
+        const key = s.routineId || `no-id-${(s.date || new Date()).getTime()}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(s);
+    });
+
+    const created: Routine[] = [];
+
+    for (const [key, group] of Object.entries(groups)) {
+        // Si el key ya existe como rutina, saltar
+        if (existingIds.has(key)) continue;
+
+        // Determinar nombre
+        const first = group[0];
+        const name = first.routineName || `Rutina recuperada ${new Date(first.date).toLocaleDateString()}`;
+
+        // Construir ejercicios agregando sets a partir de los datos de la sesión
+        const exercises = (first.exercises || []).map(ex => ({
+            id: ex.exerciseId || generateId(),
+            name: ex.exerciseName || ex.exerciseId || 'Ejercicio recuperado',
+            sets: (Array.isArray(ex.actualReps) ? ex.actualReps.map((r, idx) => ({ reps: typeof r === 'number' ? r : 0, weight: Array.isArray(ex.actualWeight) ? (ex.actualWeight[idx] || 0) : 0 })) : (typeof ex.completedSets === 'number' ? Array.from({ length: ex.completedSets }).map(() => ({ reps: 0 })) : [])),
+        }));
+
+        const newRoutine: Routine = {
+            id: key.startsWith('no-id-') ? generateId() : key,
+            name,
+            description: 'Rutina reconstruida a partir de sesiones huérfanas',
+            exercises,
+            restBetweenSets: 60,
+            restBetweenExercises: 120,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+        existingRoutines.push(newRoutine);
+        created.push(newRoutine);
+    }
+
+    if (created.length > 0) {
+        saveToStorage(STORAGE_KEYS.ROUTINES, existingRoutines);
+    }
+
+    return created;
 }
 
 // ==================== PROFILE ====================
@@ -251,4 +345,37 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
     };
 
     saveToStorage(STORAGE_KEYS.PROFILE, updatedProfile);
+}
+
+// ==================== RECOMMENDATIONS ====================
+
+export interface ProgressRecommendation {
+    exerciseId: string;
+    recommend: boolean;
+    suggestedWeight?: number;
+    reason?: string;
+    createdAt: string;
+    lastWeights?: number[];
+}
+
+export async function getRecommendations(): Promise<ProgressRecommendation[]> {
+    const recs = getFromStorage<ProgressRecommendation[]>(STORAGE_KEYS.RECOMMENDATIONS, []);
+    return Array.isArray(recs) ? recs : [];
+}
+
+export async function saveRecommendations(recommendations: ProgressRecommendation[]): Promise<void> {
+    const current = await getRecommendations();
+    const map = new Map<string, ProgressRecommendation>();
+    current.forEach(r => map.set(r.exerciseId, r));
+    recommendations.forEach(r => map.set(r.exerciseId, r));
+    const merged = Array.from(map.values());
+    saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, merged);
+}
+
+export async function saveRecommendation(recommendation: ProgressRecommendation): Promise<void> {
+    const current = await getRecommendations();
+    const idx = current.findIndex(r => r.exerciseId === recommendation.exerciseId);
+    if (idx >= 0) current[idx] = recommendation;
+    else current.push(recommendation);
+    saveToStorage(STORAGE_KEYS.RECOMMENDATIONS, current);
 }

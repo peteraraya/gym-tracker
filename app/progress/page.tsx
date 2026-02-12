@@ -40,7 +40,18 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
 };
 
 export default function ProgressPage() {
-  const { sessions } = useGym();
+  const { sessions, routines, loading } = useGym();
+
+  // Excluir sesiones cuya `routineId` ya no exista en las rutinas guardadas
+  const validSessions = useMemo(() => {
+    const routineIds = new Set((routines || []).map(r => r.id));
+    return (sessions || []).filter(s => {
+      // Mantener sesiones sin `routineId` (ejercicios libres), pero excluir
+      // aquellas que referencian una rutina eliminada
+      if (!s.routineId) return true;
+      return routineIds.has(s.routineId);
+    });
+  }, [sessions, routines]);
 
   // Calcular volumen total por grupo muscular (series × reps × peso)
   const muscleGroupVolume = useMemo(() => {
@@ -66,7 +77,7 @@ export default function ProgressPage() {
       gemelos: 0
     };
 
-    sessions.forEach(session => {
+    validSessions.forEach(session => {
       if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(sessionExercise => {
         // Encontrar el ejercicio en la base de datos
@@ -90,7 +101,7 @@ export default function ProgressPage() {
     });
 
     return { volume, count };
-  }, [sessions]);
+  }, [validSessions]);
 
   // Calcular el total para obtener porcentajes
   const totalVolume = useMemo(() => {
@@ -123,7 +134,36 @@ export default function ProgressPage() {
     return Math.max(...Object.values(muscleGroupVolume.volume));
   }, [muscleGroupVolume.volume]);
 
-  if (sessions.length === 0) {
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Progreso por Grupo Muscular
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                Analiza tu volumen de entrenamiento por grupo muscular
+              </p>
+            </div>
+
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">⏳</div>
+              <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Cargando progreso...
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Cargando tus sesiones y rutinas, esto puede tardar unos segundos
+              </p>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (validSessions.length === 0) {
     return (
       <ProtectedRoute>
         <div className="container mx-auto px-4 py-8">
@@ -173,7 +213,7 @@ export default function ProgressPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-                  {sessions.length}
+                  {validSessions.length}
                 </p>
               </CardContent>
             </Card>
@@ -202,7 +242,7 @@ export default function ProgressPage() {
           </div>
 
           {/* Gráfica de barras por grupo muscular */}
-          <Card className="mb-8">
+           {/* <Card className="mb-8">
             <CardHeader>
               <CardTitle>Volumen por Grupo Muscular</CardTitle>
             </CardHeader>
@@ -260,9 +300,9 @@ export default function ProgressPage() {
                 })}
               </div>
             </CardContent>
-          </Card>
+          </Card>  */}
 
-          {/* Distribución porcentual */}
+          {/* Distribución porcentual
           <Card>
             <CardHeader>
               <CardTitle>Distribución del Entrenamiento</CardTitle>
@@ -305,7 +345,7 @@ export default function ProgressPage() {
                 })}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </ProtectedRoute>

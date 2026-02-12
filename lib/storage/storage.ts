@@ -130,20 +130,36 @@ export async function deleteRoutine(id: string): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
+            // Also remove local sessions associated with this routine to avoid orphans
+            if (localStorageService.deleteSessionsByRoutine) {
+                await localStorageService.deleteSessionsByRoutine(id);
+            }
             return localStorageService.deleteRoutine(id);
         }
 
         try {
             const supabaseService = await import('@/lib/supabase/service');
+            // Attempt to delete sessions associated with the routine first
+            if (supabaseService.deleteSessionsByRoutine) {
+                await supabaseService.deleteSessionsByRoutine(id);
+            }
             await supabaseService.deleteRoutine(id);
             handleStorageSuccess();
         } catch (err) {
             handleStorageError(err, 'deleteRoutine');
             const localStorageService = await import('@/lib/storage/localStorage');
+            // Ensure local sessions are cleaned up as fallback
+            if (localStorageService.deleteSessionsByRoutine) {
+                await localStorageService.deleteSessionsByRoutine(id);
+            }
             return localStorageService.deleteRoutine(id);
         }
     } else {
         const localStorageService = await import('@/lib/storage/localStorage');
+        // Also remove local sessions associated with this routine to avoid orphans
+        if (localStorageService.deleteSessionsByRoutine) {
+            await localStorageService.deleteSessionsByRoutine(id);
+        }
         return localStorageService.deleteRoutine(id);
     }
 }
@@ -184,14 +200,56 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
             const supabaseService = await import('@/lib/supabase/service');
             await supabaseService.saveSession(session);
             handleStorageSuccess();
+            // Persist a lightweight debug marker so developers can inspect post-save
+            try {
+                if (typeof window !== 'undefined' && window.localStorage) {
+                    const marker = {
+                        savedAt: Date.now(),
+                        id: session.id || null,
+                        routineId: session.routineId || null,
+                    };
+                    localStorage.setItem('gym_tracker_last_saved_session', JSON.stringify(marker));
+                }
+            } catch (e) {
+                // ignore storage debug failures
+            }
         } catch (err) {
             handleStorageError(err, 'saveSession');
             const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveSession(session);
+            const result = await localStorageService.saveSession(session);
+            // also write debug marker when falling back to localStorage
+            try {
+                if (typeof window !== 'undefined' && window.localStorage) {
+                    const marker = {
+                        savedAt: Date.now(),
+                        id: session.id || null,
+                        routineId: session.routineId || null,
+                        fallback: true
+                    };
+                    localStorage.setItem('gym_tracker_last_saved_session', JSON.stringify(marker));
+                }
+            } catch (e) {
+                // ignore
+            }
+            return result;
         }
     } else {
         const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.saveSession(session);
+        const result = await localStorageService.saveSession(session);
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                const marker = {
+                    savedAt: Date.now(),
+                    id: session.id || null,
+                    routineId: session.routineId || null,
+                    fallback: 'local'
+                };
+                localStorage.setItem('gym_tracker_last_saved_session', JSON.stringify(marker));
+            }
+        } catch (e) {
+            // ignore
+        }
+        return result;
     }
 }
 
@@ -239,5 +297,93 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
     } else {
         const localStorageService = await import('@/lib/storage/localStorage');
         return localStorageService.updateProfile(data);
+    }
+}
+
+// ==================== UTILITIES ====================
+
+export async function rebuildRoutinesFromSessions(): Promise<any> {
+    // Prefer database if enabled, otherwise use localStorage implementation
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.rebuildRoutinesFromSessions();
+        }
+
+        try {
+            // Supabase backend doesn't implement a rebuild helper; fallback to local
+            const supabaseService = await import('@/lib/supabase/service');
+            if (supabaseService.rebuildRoutinesFromSessions) {
+                const res = await supabaseService.rebuildRoutinesFromSessions();
+                handleStorageSuccess();
+                return res;
+            }
+            // Fallback
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.rebuildRoutinesFromSessions();
+        } catch (err) {
+            handleStorageError(err, 'rebuildRoutinesFromSessions');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.rebuildRoutinesFromSessions();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.rebuildRoutinesFromSessions();
+    }
+}
+
+// ==================== RECOMMENDATIONS ====================
+
+export async function getRecommendations(): Promise<any[]> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getRecommendations();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if (supabaseService.getRecommendations) {
+                const result = await supabaseService.getRecommendations();
+                handleStorageSuccess();
+                return result;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getRecommendations();
+        } catch (err) {
+            handleStorageError(err, 'getRecommendations');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getRecommendations();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getRecommendations();
+    }
+}
+
+export async function saveRecommendations(recommendations: any[]): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveRecommendations(recommendations);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if (supabaseService.saveRecommendations) {
+                await supabaseService.saveRecommendations(recommendations);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveRecommendations(recommendations);
+        } catch (err) {
+            handleStorageError(err, 'saveRecommendations');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveRecommendations(recommendations);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveRecommendations(recommendations);
     }
 }

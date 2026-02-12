@@ -229,6 +229,46 @@ export async function deleteRoutine(id: string): Promise<void> {
   if (error) throw new Error(`Error al eliminar rutina: ${error.message}`);
 }
 
+/**
+ * Delete all sessions (and their exercises) associated with a routine id
+ */
+export async function deleteSessionsByRoutine(routineId: string): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  // Obtener sesiones asociadas a la rutina
+  const { data: sessions, error: fetchError } = await supabase
+    .from('workout_sessions')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('routine_id', routineId);
+
+  if (fetchError) throw new Error(`Error al buscar sesiones para eliminar: ${fetchError.message}`);
+
+  const sessionIds = (sessions || []).map(s => s.id).filter(Boolean);
+
+  if (sessionIds.length === 0) return;
+
+  // Eliminar ejercicios asociados
+  const { error: exErr } = await supabase
+    .from('session_exercises')
+    .delete()
+    .in('session_id', sessionIds);
+
+  if (exErr) throw new Error(`Error al eliminar ejercicios de sesiones: ${exErr.message}`);
+
+  // Eliminar sesiones
+  const { error: sessErr } = await supabase
+    .from('workout_sessions')
+    .delete()
+    .in('id', sessionIds)
+    .eq('user_id', user.id);
+
+  if (sessErr) throw new Error(`Error al eliminar sesiones: ${sessErr.message}`);
+}
+
 // ==================== SESSIONS ====================
 
 /**
@@ -304,18 +344,25 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
     throw new Error('La sesión debe contener al menos un ejercicio');
   }
 
-  const exercisesData = session.exercises.map(ex => ({
-    session_id: dbSession.id,
-    exercise_name: ex.exerciseName || ex.exerciseId,
-    sets_completed: {
-      reps: ex.actualReps || [],
-      weight: ex.actualWeight || [],
-      count: ex.completedSets || 0
-    },
-    set_durations: ex.setDurations || [],
-    pause_durations: ex.pauseDurations || [],
-    notes: ex.notes
-  }));
+    const exercisesData = session.exercises.map(ex => {
+      const reps = Array.isArray(ex.actualReps) ? ex.actualReps : [];
+      const weights = Array.isArray(ex.actualWeight) ? ex.actualWeight : [];
+
+      // Convertir arrays paralelos a un array de objetos por serie
+      const sets_completed = reps.map((r, idx) => ({
+        reps: typeof r === 'number' ? r : 0,
+        weight: typeof weights[idx] === 'number' ? weights[idx] : 0
+      }));
+
+      return {
+        session_id: dbSession.id,
+        exercise_name: (ex.exerciseName as any) || (ex.exerciseId as any) || null,
+        sets_completed,
+        set_durations: ex.setDurations || [],
+        pause_durations: ex.pauseDurations || [],
+        notes: ex.notes
+      };
+    });
 
   const { error: exercisesError } = await supabase
     .from('session_exercises')

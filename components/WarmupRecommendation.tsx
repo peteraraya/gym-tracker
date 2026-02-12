@@ -243,7 +243,7 @@ export const WarmupRecommendation: React.FC<WarmupRecommendationProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 pt-2 border-t border-amber-200 dark:border-amber-800">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-amber-200 dark:border-amber-800">
             <Button
               type="button"
               variant="ghost"
@@ -252,7 +252,7 @@ export const WarmupRecommendation: React.FC<WarmupRecommendationProps> = ({
                 setIsExpanded(false);
                 setSelectedWarmups(new Set());
               }}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               {t('close')}
             </Button>
@@ -261,7 +261,7 @@ export const WarmupRecommendation: React.FC<WarmupRecommendationProps> = ({
               variant="secondary"
               size="sm"
               onClick={handleAddAll}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               ⚡ {t('addEssentials')}
             </Button>
@@ -271,7 +271,7 @@ export const WarmupRecommendation: React.FC<WarmupRecommendationProps> = ({
               size="sm"
               onClick={handleAddSelected}
               disabled={selectedWarmups.size === 0}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               ➡️ {t('addSelected').replace('{count}', String(selectedWarmups.size))}
             </Button>

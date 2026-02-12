@@ -66,11 +66,12 @@ export default function FreeWorkoutPage() {
     } catch { /* ignore */ }
     return null;
   });
-  const [currentReps, setCurrentReps] = useState(10);
-  const [currentWeight, setCurrentWeight] = useState(0);
+  const [currentReps, setCurrentReps] = useState<number | ''>(10);
+  const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [sessionNotes, setSessionNotes] = useState('');
+  const [proposedDuration, setProposedDuration] = useState<number>(0); // seconds
   const [workoutStartTime] = useState(() => Date.now());
   const [totalPausedTime, setTotalPausedTime] = useState(0);
 
@@ -87,49 +88,13 @@ export default function FreeWorkoutPage() {
       const stored = localStorage.getItem('gym-tracker-free-workout');
       if (stored) {
         const parsed = JSON.parse(stored);
-        return parsed.globalRestTime || 60;
+        return parsed.globalRestTime ?? 60;
       }
-    } catch { /* ignore */ }
+    } catch (e) {
+      // ignore
+    }
     return 60;
   });
-
-  // Collapsed exercises
-  const [collapsedExercises, setCollapsedExercises] = useState<Set<number>>(new Set());
-
-  // Persist state in localStorage
-  const STORAGE_KEY = 'gym-tracker-free-workout';
-
-  useEffect(() => {
-    if (exercises.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        exercises,
-        activeExerciseIndex,
-        globalRestTime,
-        startedAt: workoutStartTime
-      }));
-    }
-  }, [exercises, activeExerciseIndex, globalRestTime, workoutStartTime]);
-
-  const clearStorage = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-  }, []);
-
-  const handleAddExercises = (templates: ExerciseTemplate[]) => {
-    const newExercises: FreeExercise[] = templates.map(t => ({
-      id: `free-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: t.name,
-      equipment: t.equipment,
-      completedSets: [],
-      restBetweenSets: undefined
-    }));
-    setExercises(prev => [...prev, ...newExercises]);
-    setShowExerciseSelector(false);
-
-    // Si no hay ejercicio activo, activar el primero nuevo
-    if (activeExerciseIndex === null) {
-      setActiveExerciseIndex(exercises.length);
-    }
-  };
 
   const handleRemoveExercise = (index: number) => {
     setExercises(prev => prev.filter((_, i) => i !== index));
@@ -140,11 +105,65 @@ export default function FreeWorkoutPage() {
     }
   };
 
+  // Añadir ejercicios seleccionados desde el selector
+  const handleAddExercises = (templates: ExerciseTemplate[]) => {
+    const newItems: FreeExercise[] = templates.map(t => ({
+      id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2,9)}`,
+      name: t.name,
+      equipment: t.equipment,
+      completedSets: [],
+      restBetweenSets: (() => {
+        if (t.restTime) {
+          const m = t.restTime.match(/(\d+)/);
+          if (m) {
+            let v = parseInt(m[1], 10);
+            if (t.restTime.toLowerCase().includes('minuto')) v = v * 60;
+            return v;
+          }
+        }
+        return undefined;
+      })()
+    }));
+
+    setExercises(prev => {
+      const next = [...prev, ...newItems];
+      // Abrir el primer ejercicio agregado
+      setActiveExerciseIndex(next.length - newItems.length);
+      return next;
+    });
+    setShowExerciseSelector(false);
+  };
+
+  // Persistir estado del entrenamiento libre en localStorage
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return;
+      localStorage.setItem('gym-tracker-free-workout', JSON.stringify({
+        exercises,
+        activeExerciseIndex,
+        globalRestTime
+      }));
+    } catch (e) {
+      // ignore
+    }
+  }, [exercises, activeExerciseIndex, globalRestTime]);
+
+  const clearStorage = () => {
+    try {
+      if (typeof window === 'undefined') return;
+      localStorage.removeItem('gym-tracker-free-workout');
+    } catch (e) {}
+  };
+
   const handleCompleteSet = () => {
     if (activeExerciseIndex === null) return;
 
     const exercise = exercises[activeExerciseIndex];
     if (!exercise) return;
+
+    // Add set (normalizar valores vacíos a 0)
+    const repsValue = typeof currentReps === 'number' ? currentReps : 0;
+    const weightValue = typeof currentWeight === 'number' ? currentWeight : 0;
 
     // Add set
     const newExercises = [...exercises];
@@ -152,7 +171,7 @@ export default function FreeWorkoutPage() {
       ...exercise,
       completedSets: [
         ...exercise.completedSets,
-        { reps: currentReps, weight: currentWeight }
+        { reps: repsValue, weight: weightValue }
       ]
     };
     setExercises(newExercises);
@@ -199,11 +218,15 @@ export default function FreeWorkoutPage() {
       error('No hay series completadas para guardar');
       return;
     }
+    const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+    setProposedDuration(Math.max(duration, 60));
     setShowNotesModal(true);
   };
 
   const finishCompleteWorkout = async () => {
-    const totalDuration = Math.floor((Date.now() - workoutStartTime) / 1000);
+    const totalDuration = proposedDuration && proposedDuration > 0
+      ? proposedDuration
+      : Math.floor((Date.now() - workoutStartTime) / 1000);
 
     const sessionExercises = exercises
       .filter(ex => ex.completedSets.length > 0)
@@ -384,14 +407,14 @@ export default function FreeWorkoutPage() {
                       type="number"
                       label="Repeticiones"
                       value={currentReps}
-                      onChange={(e) => setCurrentReps(parseInt(e.target.value) || 0)}
+                      onChange={(e) => setCurrentReps(e.target.value === '' ? '' : parseInt(e.target.value))}
                       min="0"
                     />
                     <Input
                       type="number"
                       label="Peso (kg)"
                       value={currentWeight}
-                      onChange={(e) => setCurrentWeight(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => setCurrentWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       min="0"
                       step="0.5"
                     />

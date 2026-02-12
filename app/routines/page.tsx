@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RoutineForm } from '@/components/RoutineForm';
+import WeeklyPlanner from '@/components/WeeklyPlanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   Plus, 
@@ -36,6 +37,7 @@ export default function RoutinesPage() {
   const t = useTranslations('routines');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
+  const [searchFilter, setSearchFilter] = useState<string>('');
 
   const handleEdit = (id: string) => {
     setEditingRoutine(id);
@@ -55,6 +57,26 @@ export default function RoutinesPage() {
       setIsModalOpen(true);
     }
    
+    // Inicializar filtro desde localStorage (escrito por WeeklyPlanner)
+    try {
+      const stored = localStorage.getItem('weekly_routines_search') || '';
+      setSearchFilter(stored);
+    } catch (e) {}
+  }, []);
+
+  // Escuchar cambios en localStorage para sincronizar el filtro (cuando se modifica desde WeeklyPlanner)
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === 'weekly_routines_search') {
+        setSearchFilter(e.newValue || '');
+      }
+    };
+    if (typeof window !== 'undefined') window.addEventListener('storage', handler);
+    const customHandler = (e: any) => {
+      setSearchFilter(e?.detail || '');
+    };
+    if (typeof window !== 'undefined') window.addEventListener('weekly_routines_search_changed', customHandler as EventListener);
+    return () => { if (typeof window !== 'undefined') window.removeEventListener('storage', handler); };
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -102,7 +124,7 @@ export default function RoutinesPage() {
 
   return (
     <ProtectedRoute>
-    <div className="container mx-auto px-4 py-6 sm:py-8">
+    <div className="container mx-auto px-4 pt-6 pb-24 sm:pt-8 sm:pb-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
@@ -126,26 +148,25 @@ export default function RoutinesPage() {
           </Button>
         </div>
 
-        {/* Botón de entrenamiento libre */}
-        <div className="mb-6">
-          <button
-            onClick={() => router.push('/workout/free')}
-            className="w-full p-4 rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-700 bg-linear-to-r from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 hover:from-orange-100 hover:to-red-100 dark:hover:from-orange-900/20 dark:hover:to-red-900/20 transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-linear-to-br from-orange-500 to-red-600 rounded-xl group-hover:scale-105 transition-transform">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  🏋️ Entrenamiento Libre
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Entrena sin rutina predefinida — agrega ejercicios y registra series sobre la marcha
-                </p>
-              </div>
-            </div>
-          </button>
+        {/* Botón flotante de Entrenamiento Libre (esquina inferior derecha) */}
+
+        <WeeklyPlanner searchQuery={searchFilter} />
+
+        <div className="mb-3 mt-4">
+          <input
+            type="search"
+            placeholder="Buscar rutinas..."
+            value={searchFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSearchFilter(v);
+              try {
+                localStorage.setItem('weekly_routines_search', v);
+                try { window.dispatchEvent(new CustomEvent('weekly_routines_search_changed', { detail: v })); } catch (e) {}
+              } catch (e) {}
+            }}
+            className="w-full h-11 px-3 rounded-lg bg-gray-900/40 border border-gray-700 text-gray-200 placeholder-gray-400"
+          />
         </div>
 
         {loading ? (
@@ -173,8 +194,13 @@ export default function RoutinesPage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {routines.map((routine) => (
-              <Card key={routine.id}>
+            {routines
+              .filter(r => {
+                if (!searchFilter) return true;
+                return (r.name || '').toLowerCase().includes(searchFilter.toLowerCase()) || (r.description || '').toLowerCase().includes(searchFilter.toLowerCase());
+              })
+              .map((routine) => (
+              <Card key={routine.id} className="bg-gradient-to-b from-gray-900/60 to-gray-800/40 border-gray-700 shadow-sm p-4">
                 {routine.image && (
                   <div className="w-full h-48 overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -205,7 +231,7 @@ export default function RoutinesPage() {
                       </span>
                     </div>
 
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                    <div className="border-t border-gray-700/40 pt-3">
                       <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 font-medium">
                         {t('previewLabel')}
                       </p>
@@ -237,7 +263,7 @@ export default function RoutinesPage() {
                       <Button
                         variant="primary"
                         size="sm"
-                        className="w-full"
+                        className="w-full shadow-md"
                         onClick={() => handleStartWorkout(routine.id)}
                       >
                         {activeWorkout?.routineId === routine.id ? (
@@ -280,6 +306,18 @@ export default function RoutinesPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Floating Free Workout button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          onClick={() => router.push('/workout/free')}
+          aria-label="Entrenamiento Libre"
+          title="Entrenamiento Libre"
+          className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+        >
+          <Zap className="w-6 h-6" />
+        </button>
       </div>
 
       <Modal

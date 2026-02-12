@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Imagen no disponible">
+  <rect width="128" height="128" rx="12" fill="#0b1220" />
+  <g transform="translate(14,18)" fill="#ffffff" opacity="0.95">
+    <rect x="0" y="40" width="104" height="12" rx="6" />
+    <rect x="-8" y="26" width="16" height="48" rx="4" />
+    <rect x="96" y="26" width="16" height="48" rx="4" />
+  </g>
+  <text x="64" y="104" text-anchor="middle" font-family="Inter, Roboto, Arial, sans-serif" font-size="10" fill="#e6edf3" font-weight="600">Imagen no disponible</text>
+</svg>

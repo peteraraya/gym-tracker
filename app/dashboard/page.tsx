@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/context/LocaleContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -27,16 +27,29 @@ import {
   Activity,
   BarChart3
 } from 'lucide-react';
+import { useGym } from '@/context/GymContext';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  const [routines, setRoutines] = useState<Routine[]>([]);
+  // const [sessions, setSessions] = useState<WorkoutSession[]>([]);
+  // const [routines, setRoutines] = useState<Routine[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const t = useTranslations('dashboard');
 
+  const { sessions, routines } = useGym();
+  
+    // Excluir sesiones cuya `routineId` ya no exista en las rutinas guardadas
+    const validSessions = useMemo(() => {
+      const routineIds = new Set((routines || []).map(r => r.id));
+      return (sessions || []).filter(s => {
+        // Mantener sesiones sin `routineId` (ejercicios libres), pero excluir
+        // aquellas que referencian una rutina eliminada
+        if (!s.routineId) return true;
+        return routineIds.has(s.routineId);
+      });
+    }, [sessions, routines]);
   useEffect(() => {
     loadData();
   }, []);
@@ -50,7 +63,7 @@ export default function DashboardPage() {
 
       if (sessionsRes.ok) {
         const data = await sessionsRes.json();
-        setSessions(data);
+        // setSessions(data);
       }
 
       if (profileRes.ok) {
@@ -61,7 +74,7 @@ export default function DashboardPage() {
       // Cargar rutinas desde localStorage
       const savedRoutines = localStorage.getItem('gym-routines');
       if (savedRoutines) {
-        setRoutines(JSON.parse(savedRoutines));
+        // setRoutines(JSON.parse(savedRoutines));
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -72,9 +85,9 @@ export default function DashboardPage() {
 
   // Cálculos de estadísticas
   const stats = {
-    totalSessions: sessions.length,
+    totalSessions: validSessions.length,
     
-    totalVolume: sessions.reduce((total, session) => {
+    totalVolume: validSessions.reduce((total, session) => {
       if (!session.exercises || !Array.isArray(session.exercises)) return total;
       return total + session.exercises.reduce((exTotal, ex) => {
         if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
@@ -84,7 +97,7 @@ export default function DashboardPage() {
       }, 0);
     }, 0),
 
-    totalSets: sessions.reduce((total, session) => {
+    totalSets: validSessions.reduce((total, session) => {
       if (!session.exercises || !Array.isArray(session.exercises)) return total;
       return total + session.exercises.reduce((exTotal, ex) => {
         return exTotal + (ex.actualReps?.length || 0);
@@ -92,9 +105,9 @@ export default function DashboardPage() {
     }, 0),
 
     currentStreak: (() => {
-      if (sessions.length === 0) return 0;
+      if (validSessions.length === 0) return 0;
       
-      const sortedDates = sessions
+      const sortedDates = validSessions
         .map(s => new Date(s.date).setHours(0, 0, 0, 0))
         .sort((a, b) => b - a);
 
@@ -122,7 +135,7 @@ export default function DashboardPage() {
 
     thisMonthVolume: (() => {
       const now = new Date();
-      const thisMonth = sessions.filter(s => {
+      const thisMonth = validSessions.filter(s => {
         const date = new Date(s.date);
         return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
       });
@@ -141,7 +154,7 @@ export default function DashboardPage() {
     lastMonthVolume: (() => {
       const now = new Date();
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthSessions = sessions.filter(s => {
+      const lastMonthSessions = validSessions.filter(s => {
         const date = new Date(s.date);
         return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
       });
@@ -160,7 +173,7 @@ export default function DashboardPage() {
     favoriteExercise: (() => {
       const exerciseCounts: Record<string, number> = {};
       
-      sessions.forEach(session => {
+      validSessions.forEach(session => {
         if (!session.exercises || !Array.isArray(session.exercises)) return;
         session.exercises.forEach(ex => {
           // Intentar usar el nombre guardado primero
@@ -206,6 +219,9 @@ export default function DashboardPage() {
     ? ((stats.thisMonthVolume - stats.lastMonthVolume) / stats.lastMonthVolume) * 100
     : 0;
 
+    console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
+
+  // Cargar sesiones desde localStorage para combinarlas con las del servidor
   if (loading) {
     return (
       <div className="p-8 max-w-7xl mx-auto">

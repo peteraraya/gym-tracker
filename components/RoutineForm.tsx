@@ -31,6 +31,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [restBetweenSets, setRestBetweenSets] = useState(60);
   const [restBetweenExercises, setRestBetweenExercises] = useState(120);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Array<{ exerciseIndex: number; setIndex: number; message: string }>>([]);
 
   useEffect(() => {
     if (routineId) {
@@ -157,6 +158,30 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     e.preventDefault();
 
     if (isSubmitting) return; // Prevenir múltiples envíos
+    // Validación: asegurar que todos los pesos sean mayores a 0
+    const errors: Array<{ exerciseIndex: number; setIndex: number; message: string }> = [];
+    exercises.forEach((exercise, ei) => {
+      exercise.sets.forEach((s, si) => {
+        const weight = typeof s.weight === 'number' ? s.weight : parseFloat(String(s.weight || 0));
+        if (!weight || weight <= 0) {
+          errors.push({ exerciseIndex: ei, setIndex: si, message: 'Peso requerido (> 0)' });
+        }
+      });
+    });
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      // Enfocar en el primer campo con error si es posible
+      try {
+        const first = errors[0];
+        const selector = `input[name=weight-${first.exerciseIndex}-${first.setIndex}]`;
+        const el = typeof window !== 'undefined' ? document.querySelector(selector) as HTMLElement | null : null;
+        el?.focus();
+      } catch (e) {}
+      return;
+    }
+
+    setValidationErrors([]);
     setIsSubmitting(true);
 
     const exercisesWithIds: Exercise[] = exercises.map((exercise, index) => ({
@@ -281,7 +306,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <RestTimeSelector
           label={t('restBetweenSets')}
           value={restBetweenSets}
@@ -321,7 +346,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {t('exercisesTitle')}
           </h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button type="button" variant="secondary" size="sm" onClick={handleAddExercise}>
               ➕ {t('fromLibrary')}
             </Button>
@@ -401,13 +426,18 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     />
                     <Input
                       type="number"
+                      name={`weight-${exerciseIndex}-${setIndex}`}
                       placeholder={t('weight')}
-                      value={set.weight || ''}
-                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
+                      value={set.weight ?? ''}
+                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', e.target.value === '' ? NaN : parseFloat(e.target.value))}
                       min="0"
                       step="0.5"
                       className="flex-1"
                     />
+                    {/* Mostrar error de validación para peso si existe */}
+                    {validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex) && (
+                      <div className="text-sm text-red-600 mt-1">Peso requerido</div>
+                    )}
                     <div className="flex gap-1">
                       <button
                         type="button"
@@ -469,14 +499,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         </div>
       </div>
 
-      <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <Button type="button" variant="ghost" onClick={onClose} className="flex-1" disabled={isSubmitting}>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <Button type="button" variant="ghost" onClick={onClose} className="w-full sm:flex-1" disabled={isSubmitting}>
           {tc('cancel')}
         </Button>
         <Button 
           type="submit" 
           variant="primary" 
-          className="flex-1" 
+          className="w-full sm:flex-1" 
           disabled={exercises.length === 0 || isSubmitting}
         >
           {isSubmitting ? t('saving') : routineId ? t('updateRoutineBtn') : t('createRoutineBtn')}

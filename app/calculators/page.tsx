@@ -5,10 +5,11 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import OneRMCalculator from '@/components/OneRMCalculator';
 import PlateCalculator from '@/components/PlateCalculator';
 import UnitConverter from '@/components/UnitConverter';
+import TdeeCalculator from '@/components/TdeeCalculator';
 import { Button } from '@/components/ui/Button';
 import { Calculator, Dumbbell, Circle, Scale, ArrowLeft } from 'lucide-react';
 
-type CalculatorType = '1rm' | 'plates' | 'units' | null;
+type CalculatorType = '1rm' | 'plates' | 'units' | 'tdee' | null;
 
 export default function CalculatorsPage() {
   const [selectedCalculator, setSelectedCalculator] = useState<CalculatorType>(null);
@@ -40,6 +41,15 @@ export default function CalculatorsPage() {
       color: 'from-purple-500 to-purple-600',
       bgColor: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20',
       borderColor: 'border-purple-200 dark:border-purple-800'
+    },
+    {
+      id: 'tdee' as CalculatorType,
+      name: 'Calculadora de TDEE',
+      description: 'Calcula tu TDEE y macros basados en tus datos',
+      icon: Scale,
+      color: 'from-amber-500 to-amber-600',
+      bgColor: 'from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20',
+      borderColor: 'border-amber-200 dark:border-amber-800'
     }
   ];
 
@@ -109,6 +119,7 @@ export default function CalculatorsPage() {
         {selectedCalculator === '1rm' && <OneRMCalculator />}
         {selectedCalculator === 'plates' && <PlateCalculator />}
         {selectedCalculator === 'units' && <UnitConverter />}
+        {selectedCalculator === 'tdee' &&  <TdeeCalculator />}
 
         {/* Información adicional */}
         {!selectedCalculator && (
