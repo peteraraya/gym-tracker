@@ -72,120 +72,136 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       try {
         const stored = await getWeeklyPlan();
         if (!mounted) return;
-        if (!stored) return setIsLoadingPlan(false);
-        // Normalize shape similar to previous logic
-        const parsed = stored as any;
-        if (Array.isArray(parsed) === false && Object.values(parsed).every((v: any) => Array.isArray(v))) {
-          const converted = DAYS.reduce((acc, d) => ({...acc, [d]: { routines: parsed[d] || [] }}), {} as any) as Plan;
-          setPlan(converted);
-        } else {
-          const normalized = DAYS.reduce((acc, d) => ({
-            ...acc,
-            [d]: {
-              routines: (parsed[d]?.routines as string[]) || (parsed[d] as string[]) || [],
-              blocked: parsed[d]?.blocked || false,
-              note: parsed[d]?.note || ''
-            }
-          }), {} as any) as Plan;
-          setPlan(normalized);
-        }
-      } catch (e) {
-        // fallback: keep default plan
-        console.warn('Error loading weekly plan, using local default', e);
-      } finally {
-        if (mounted) setIsLoadingPlan(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+        <div className="mb-2 relative">
+          {(isLoadingPlan || routinesLoading) ? (
+            <div className="flex items-center justify-center p-6 rounded-lg border bg-white dark:bg-gray-800 min-h-[160px]">
+              <div className="text-center">
+                <svg className="animate-spin h-8 w-8 mx-auto text-gray-600 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <div className="mt-2 text-sm text-gray-500">Cargando planificación...</div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div ref={daysRef} onScroll={updateIndicators} className="flex gap-2 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-2 touch-pan-x">
+                {DAYS.map(day => (
+                  <div
+                    key={day}
+                    onDrop={(e) => onDropToDay(e as any, day)}
+                    onDragOver={onDragOver as any}
+                    className={`min-w-[140px] md:min-w-0 flex-shrink-0 md:flex-shrink p-3 rounded-lg shadow-sm min-h-[160px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-900/10 to-red-900/5 border border-red-700/40' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/50 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/50 dark:bg-gray-800')}`}
+                  >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-sm text-white">{LABELS[day]}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 px-2 py-0.5 bg-gray-800/60 rounded-md">{plan[day]?.routines?.length || 0}</span>
+                      <Button
+                        title={(plan[day]?.routines?.length || 0) > 0
+                          ? 'No puedes bloquear un día que tiene rutinas'
+                          : (plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso')
+                        }
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if ((plan[day]?.routines?.length || 0) > 0) return;
+                          if (plan[day]?.blocked) {
+                            // desbloquear mediante confirm modal
+                            try {
+                              const confirmed = await confirm({
+                                title: 'Desbloquear día',
+                                message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
+                                confirmText: 'Desbloquear',
+                                cancelText: 'Cancelar',
+                                variant: 'warning'
+                              });
+                              if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
+                            } catch (e) {
+                              // ignore
+                            }
+                          } else {
+                            setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: !prev[day].blocked } }));
+                          }
+                        }}
+                        disabled={(plan[day]?.routines?.length || 0) > 0}
+                        variant={plan[day]?.blocked ? 'danger' : 'ghost'}
+                        size="sm"
+                        className={`inline-flex items-center gap-2 text-xs px-2 py-1 rounded-md border ${plan[day]?.blocked ? 'bg-red-700/10 border-red-700 text-red-300' : 'bg-gray-800/30 border-gray-700 text-gray-200'} ${ (plan[day]?.routines?.length || 0) > 0 ? 'opacity-50 cursor-not-allowed' : '' }`}
+                      >
+                        {plan[day]?.blocked ? '😴 Descanso' : 'Bloquear'}
+                      </Button>
+                    </div>
+                  </div>
 
-  // Persist to storage when plan changes
-  useEffect(() => {
-    if (isLoadingPlan) return;
-    (async () => {
-      try {
-        await saveWeeklyPlan(plan as any);
-      } catch (e) {
-        // Best-effort: log but don't break UI
-        console.warn('Failed to persist weekly plan', e);
-      }
-    })();
-  }, [plan, isLoadingPlan]);
+                  {plan[day]?.blocked ? (
+                    <div className="space-y-2">
+                      <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20">
+                        <div className="text-sm font-semibold text-red-300">Día de descanso</div>
+                        {plan[day]?.note ? (
+                          <div className="text-xs text-gray-300 mt-1">{plan[day].note}</div>
+                        ) : (
+                          <div className="text-xs text-gray-400 mt-1">Sin nota</div>
+                        )}
+                      </div>
+                      <div className="flex gap-2 flex-col">
+                        <Button
+                          className="text-sm"
+                          variant="info"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingDay(day);
+                            setEditingNote(plan[day]?.note || '');
+                            setIsNoteModalOpen(true);
+                          }}
+                        >Editar nota</Button>
+                        <Button
+                          variant="danger"
+                          block
+                          className="text-sm"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const confirmed = await confirm({
+                                title: 'Desbloquear día',
+                                message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
+                                confirmText: 'Desbloquear',
+                                cancelText: 'Cancelar',
+                                variant: 'warning'
+                              });
+                              if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
+                            } catch (e) {}
+                          }}
+                        >Desbloquear</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(plan[day]?.routines || []).map(rid => {
+                        const r = routines.find(x => x.id === rid);
+                        if (!r) return null;
+                        return (
+                          <div key={rid} className="flex items-center justify-between bg-gray-800/40 p-2 rounded-md border border-gray-700">
+                            <div className="text-sm text-gray-100">{r.name}</div>
+                            <Button variant="ghost" size="sm" onClick={() => removeFromDay(day, rid)} className="text-red-400 text-sm px-2 py-1">✕</Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                ))}
+              </div>
 
-  // const handleExportPDF = () => {
-  //   try {
-  //     const routinesMap = routines.reduce((acc, r) => ({ ...acc, [r.id]: r }), {} as Record<string, any>);
-  //     const content = DAYS.map(d => {
-  //       const day = plan[d];
-  //       const items = (day?.routines || []).map(id => {
-  //         const r = routinesMap[id];
-  //         return `<li><strong>${r?.name || id}</strong> — ${r?.exercises?.length || 0} ejercicios</li>`;
-  //       }).join('');
-  //       return `
-  //         <section style="margin-bottom:14px">
-  //           <h3 style="margin:0 0 6px 0">${LABELS[d]}</h3>
-  //           <div style="font-size:12px;color:#444;margin-bottom:6px">Nota: ${day?.note || ''}</div>
-  //           <ul style="margin:0 0 0 18px">${items || '<li style="color:#888">(sin rutinas)</li>'}</ul>
-  //         </section>`;
-  //     }).join('\n');
-
-  //     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Plan semanal</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;padding:20px;color:#111}h1{font-size:18px;margin-bottom:12px}h3{font-size:14px;margin:6px 0}ul{margin:6px 0 12px 18px;padding:0}@media print{button{display:none}}</style></head><body><h1>Plan semanal — ${new Date().toLocaleString()}</h1>${content}</body><script>window.onload=function(){setTimeout(()=>{window.print();},200);}</script></html>`;
-
-  //     const w = window.open('', '_blank');
-  //     if (!w) {
-  //       try { info('Permite ventanas emergentes para exportar PDF'); } catch {}
-  //       return;
-  //     }
-  //     w.document.write(html);
-  //     w.document.close();
-  //   } catch (e) {
-  //     console.error('Export PDF failed', e);
-  //     try { info('Error al generar PDF'); } catch {}
-  //   }
-  // };
-
-  const onDragStart = (e: DragEvent, routineId: string) => {
-    e.dataTransfer.setData('text/plain', routineId);
-  };
-
-  const onDropToDay = (e: DragEvent, day: DayKey) => {
-    e.preventDefault();
-    const id = e.dataTransfer.getData('text/plain');
-    if (!id) return;
-    // no permitir drop si el día está bloqueado
-    if (plan[day]?.blocked) return;
-
-    setPlan(prev => {
-      const next = { ...prev } as Plan;
-      // remove id from any day
-      for (const d of DAYS) {
-        next[d] = { ...next[d], routines: next[d].routines.filter(x => x !== id) };
-      }
-      // append to target day if not present
-      if (!next[day].routines.includes(id)) next[day].routines = [...next[day].routines, id];
-      return next;
-    });
-  };
-
-  const onDragOver = (e: DragEvent) => { e.preventDefault(); };
-
-  const removeFromDay = (day: DayKey, id: string) => {
-    setPlan(prev => ({ ...prev, [day]: { ...prev[day], routines: prev[day].routines.filter(x => x !== id) } }));
-  };
-
-  const clearPlan = () => {
-    const empty = DAYS.reduce((acc, d) => ({...acc, [d]: { routines: [] }}), {} as any) as Plan;
-    setPlan(empty);
-  };
-
-  const availableRoutines = routines.filter(r => !Object.values(plan).flatMap((d: PlanDay) => d.routines).includes(r.id));
-
-  const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | ''>>({});
-
-  const filteredRoutines = availableRoutines.filter(r => {
-    if (!searchQuery) return true;
-    return r.name.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+              {/* Scroll indicators */}
+              <div className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 flex items-center transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="h-full w-full bg-gradient-to-r from-white/90 to-transparent dark:from-gray-900/80" />
+              </div>
+              <div className={`pointer-events-none absolute right-0 top-0 bottom-0 w-6 flex items-center transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="h-full w-full bg-gradient-to-l from-white/90 to-transparent dark:from-gray-900/80" />
+              </div>
+            </>
+          )}
+        </div>
 
   const addRoutineToDay = (routineId: string, day: DayKey | '') => {
     if (!day) {
