@@ -428,11 +428,10 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                       type="number"
                       name={`weight-${exerciseIndex}-${setIndex}`}
                       placeholder={t('weight')}
-                      value={set.weight || ''}
-                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
-                      min="0.1"
+                      value={set.weight ?? ''}
+                      onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', e.target.value === '' ? NaN : parseFloat(e.target.value))}
+                      min="0"
                       step="0.5"
-                      required
                       className="flex-1"
                     />
                     {/* Mostrar error de validación para peso si existe */}

@@ -37,6 +37,7 @@ export default function RoutinesPage() {
   const t = useTranslations('routines');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
+  const [searchFilter, setSearchFilter] = useState<string>('');
 
   const handleEdit = (id: string) => {
     setEditingRoutine(id);
@@ -56,6 +57,26 @@ export default function RoutinesPage() {
       setIsModalOpen(true);
     }
    
+    // Inicializar filtro desde localStorage (escrito por WeeklyPlanner)
+    try {
+      const stored = localStorage.getItem('weekly_routines_search') || '';
+      setSearchFilter(stored);
+    } catch (e) {}
+  }, []);
+
+  // Escuchar cambios en localStorage para sincronizar el filtro (cuando se modifica desde WeeklyPlanner)
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === 'weekly_routines_search') {
+        setSearchFilter(e.newValue || '');
+      }
+    };
+    if (typeof window !== 'undefined') window.addEventListener('storage', handler);
+    const customHandler = (e: any) => {
+      setSearchFilter(e?.detail || '');
+    };
+    if (typeof window !== 'undefined') window.addEventListener('weekly_routines_search_changed', customHandler as EventListener);
+    return () => { if (typeof window !== 'undefined') window.removeEventListener('storage', handler); };
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -103,7 +124,7 @@ export default function RoutinesPage() {
 
   return (
     <ProtectedRoute>
-    <div className="container mx-auto px-4 py-6 sm:py-8">
+    <div className="container mx-auto px-4 pt-6 pb-24 sm:pt-8 sm:pb-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
@@ -156,7 +177,12 @@ export default function RoutinesPage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {routines.map((routine) => (
+            {routines
+              .filter(r => {
+                if (!searchFilter) return true;
+                return (r.name || '').toLowerCase().includes(searchFilter.toLowerCase()) || (r.description || '').toLowerCase().includes(searchFilter.toLowerCase());
+              })
+              .map((routine) => (
               <Card key={routine.id}>
                 {routine.image && (
                   <div className="w-full h-48 overflow-hidden">
