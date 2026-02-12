@@ -444,6 +444,62 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
     }
 }
 
+// ==================== LAST WEIGHTS ====================
+
+export async function getLastWeights(): Promise<Record<string, number[]>> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getLastWeights();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).getLastWeights) {
+                const res = await (supabaseService as any).getLastWeights();
+                handleStorageSuccess();
+                return res;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getLastWeights();
+        } catch (err) {
+            handleStorageError(err, 'getLastWeights');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getLastWeights();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getLastWeights();
+    }
+}
+
+export async function saveLastWeights(weights: Record<string, number[]>): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveLastWeights(weights);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).saveLastWeights) {
+                await (supabaseService as any).saveLastWeights(weights);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveLastWeights(weights);
+        } catch (err) {
+            handleStorageError(err, 'saveLastWeights');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveLastWeights(weights);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveLastWeights(weights);
+    }
+}
+
 export async function clearActiveWorkout(): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {

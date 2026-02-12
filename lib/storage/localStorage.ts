@@ -15,6 +15,7 @@ const STORAGE_KEYS = {
     WEEKLY_PLAN: 'weekly_routine_plan',
     ACTIVE_WORKOUT: 'gym-tracker-active-workout',
     RECOMMENDATIONS: 'gym_tracker_recommendations',
+    LAST_WEIGHTS: 'gym_tracker_last_weights',
 } as const;
 
 // Helper to generate unique IDs
@@ -401,6 +402,34 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
         localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, JSON.stringify(payload));
     } catch (e) {
         console.warn('saveActiveWorkout local error', e);
+        throw e;
+    }
+}
+
+// ==================== LAST WEIGHTS ====================
+
+/**
+ * Get last weights stored locally
+ */
+export async function getLastWeights(): Promise<Record<string, number[]>> {
+    if (typeof window === 'undefined') return {};
+    try {
+        const raw = localStorage.getItem(STORAGE_KEYS.LAST_WEIGHTS);
+        if (!raw) return {};
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn('getLastWeights local error', e);
+        try { localStorage.removeItem(STORAGE_KEYS.LAST_WEIGHTS); } catch {};
+        return {};
+    }
+}
+
+export async function saveLastWeights(weights: Record<string, number[]>): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(STORAGE_KEYS.LAST_WEIGHTS, JSON.stringify(weights));
+    } catch (e) {
+        console.warn('saveLastWeights local error', e);
         throw e;
     }
 }

@@ -19,6 +19,7 @@ import {
   formatRestTime 
 } from '@/lib/restCalculator';
 import { EXERCISE_DATABASE } from '@/data/exercises';
+import * as storageService from '@/lib/storage/storage';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -53,73 +54,71 @@ export default function WorkoutPage() {
   const [useSmartRest, setUseSmartRest] = useState(true); // Descanso inteligente activado por defecto
 
   useEffect(() => {
-    const foundRoutine = getRoutineById(id);
-    if (!foundRoutine) {
-      router.push('/routines');
-      return;
-    }
-    setRoutine(foundRoutine);
-    
-    // Si hay un workout activo y coincide con esta rutina, restaurar el estado
-    if (activeWorkout && activeWorkout.routineId === id) {
-      setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
-      setCurrentSet(activeWorkout.currentSet);
-      setCompletedSets(activeWorkout.completedSets);
-      setActualReps(activeWorkout.actualReps);
-      setActualWeights(activeWorkout.actualWeights);
-      
-      // Restaurar estado del timer de descanso si estaba descansando
-      if (activeWorkout.isResting && activeWorkout.restTimerDuration && activeWorkout.restTimerStartedAt) {
-        const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
-        const remaining = activeWorkout.restTimerDuration - elapsed;
-        if (remaining > 0) {
-          setShowTimer(true);
-          setTimerDuration(remaining);
-          setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
-          setNextExerciseName(activeWorkout.restTimerNextExercise);
-        }
+    (async () => {
+      const foundRoutine = getRoutineById(id);
+      if (!foundRoutine) {
+        router.push('/routines');
+        return;
       }
-      // Cargar últimos pesos guardados para los ejercicios
-      try {
-        const raw = localStorage.getItem('gym_tracker_last_weights');
-        if (raw) {
-          const parsed = JSON.parse(raw || '{}');
-          setLastWeights(parsed);
-        }
-      } catch (e) {
-        // ignore
-      }
+      setRoutine(foundRoutine);
       
-      const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
-      if (currentExercise) {
-        const currentSetData = currentExercise.sets[activeWorkout.currentSet - 1];
-            if (currentSetData) {
-              setCurrentReps(currentSetData.reps);
-              setCurrentWeight(currentSetData.weight || 0);
+      // Si hay un workout activo y coincide con esta rutina, restaurar el estado
+      if (activeWorkout && activeWorkout.routineId === id) {
+        setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
+        setCurrentSet(activeWorkout.currentSet);
+        setCompletedSets(activeWorkout.completedSets);
+        setActualReps(activeWorkout.actualReps);
+        setActualWeights(activeWorkout.actualWeights);
+        
+        // Restaurar estado del timer de descanso si estaba descansando
+        if (activeWorkout.isResting && activeWorkout.restTimerDuration && activeWorkout.restTimerStartedAt) {
+          const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
+          const remaining = activeWorkout.restTimerDuration - elapsed;
+          if (remaining > 0) {
+            setShowTimer(true);
+            setTimerDuration(remaining);
+            setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
+            setNextExerciseName(activeWorkout.restTimerNextExercise);
+          }
+        }
+        // Cargar últimos pesos guardados para los ejercicios
+        try {
+          const parsed = await storageService.getLastWeights();
+          if (parsed) setLastWeights(parsed as any);
+        } catch (e) {
+          // ignore
+        }
+        
+        const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
+        if (currentExercise) {
+          const currentSetData = currentExercise.sets[activeWorkout.currentSet - 1];
+              if (currentSetData) {
+                setCurrentReps(currentSetData.reps);
+                setCurrentWeight(currentSetData.weight || 0);
+              }
+        }
+      } else if (!activeWorkout) {
+        // Si no hay workout activo, iniciar uno nuevo
+        startWorkout(foundRoutine);
+        
+        // Inicializar valores del primer ejercicio (primera serie)
+        if (foundRoutine.exercises && foundRoutine.exercises.length > 0 && foundRoutine.exercises[0]) {
+          const firstExercise = foundRoutine.exercises[0];
+          const firstSet = firstExercise.sets[0];
+          if (firstSet) {
+            setCurrentReps(firstSet.reps);
+            // Preferir último peso utilizado si existe
+            try {
+              const parsed = await storageService.getLastWeights();
+              const last = parsed[firstExercise.id] && parsed[firstExercise.id][0];
+              setCurrentWeight(typeof last === 'number' ? last : (firstSet.weight || 0));
+            } catch (e) {
+              setCurrentWeight(firstSet.weight || 0);
             }
-      }
-    } else if (!activeWorkout) {
-      // Si no hay workout activo, iniciar uno nuevo
-      startWorkout(foundRoutine);
-      
-      // Inicializar valores del primer ejercicio (primera serie)
-      if (foundRoutine.exercises && foundRoutine.exercises.length > 0 && foundRoutine.exercises[0]) {
-        const firstExercise = foundRoutine.exercises[0];
-        const firstSet = firstExercise.sets[0];
-        if (firstSet) {
-          setCurrentReps(firstSet.reps);
-          // Preferir último peso utilizado si existe
-          try {
-            const raw = localStorage.getItem('gym_tracker_last_weights');
-            const parsed = raw ? JSON.parse(raw) : {};
-            const last = parsed[firstExercise.id] && parsed[firstExercise.id][0];
-            setCurrentWeight(typeof last === 'number' ? last : (firstSet.weight || 0));
-          } catch (e) {
-            setCurrentWeight(firstSet.weight || 0);
           }
         }
       }
-    }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -173,14 +172,16 @@ export default function WorkoutPage() {
 
     setActualReps(newActualReps);
     setActualWeights(newActualWeights);
-    // Persistir último peso para esta serie en localStorage inmediatamente
+    // Persistir último peso para esta serie (guardado en el perfil o fallback local)
     try {
-      const raw = localStorage.getItem('gym_tracker_last_weights');
-      const parsed = raw ? JSON.parse(raw) : {};
+      const parsed = { ...(lastWeights || {}) };
       parsed[exerciseId] = parsed[exerciseId] || [];
       parsed[exerciseId][(newActualWeights[exerciseId] || []).length - 1] = weightValue;
-      localStorage.setItem('gym_tracker_last_weights', JSON.stringify(parsed));
       setLastWeights(parsed);
+      // Fire-and-forget persist
+      try {
+        storageService.saveLastWeights(parsed).catch(() => {});
+      } catch (e) {}
     } catch (e) {
       // ignore
     }
@@ -315,7 +316,9 @@ export default function WorkoutPage() {
       copy[exerciseId] = copy[exerciseId] || [];
       copy[exerciseId][setIndex] = weight;
       setLastWeights(copy);
-      localStorage.setItem('gym_tracker_last_weights', JSON.stringify(copy));
+      try {
+        storageService.saveLastWeights(copy).catch(() => {});
+      } catch (e) {}
     } catch (e) {
       console.warn('Failed to save last weight', e);
     }

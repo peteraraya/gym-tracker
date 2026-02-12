@@ -528,3 +528,43 @@ export async function saveWeeklyPlan(plan: any): Promise<void> {
 
   if (error) throw new Error(`Error al guardar plan semanal: ${error.message}`);
 }
+
+// ==================== LAST WEIGHTS ====================
+
+/**
+ * Obtener los últimos pesos guardados en el perfil del usuario
+ */
+export async function getLastWeights(): Promise<Record<string, number[]>> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return {};
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('last_weights')
+    .eq('id', user.id)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Error al obtener last_weights: ${error.message}`);
+  }
+
+  return data?.last_weights || {};
+}
+
+/**
+ * Guardar los últimos pesos en el perfil del usuario
+ */
+export async function saveLastWeights(weights: Record<string, number[]>): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({ id: user.id, last_weights: weights, updated_at: new Date().toISOString() });
+
+  if (error) throw new Error(`Error al guardar last_weights: ${error.message}`);
+}
