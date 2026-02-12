@@ -112,11 +112,28 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateRoutine = useCallback(async (id: string, updatedData: Partial<Routine>) => {
     try {
-      // Obtener la rutina actual del storage en lugar del estado
-      // Esto evita dependencia de 'routines' y problemas de stale state
-      const currentRoutines = await storageService.getRoutines();
-      const routine = currentRoutines.find(r => r.id === id);
-      if (!routine) throw new Error('Rutina no encontrada');
+      // Preferir obtener la rutina desde el storage para evitar overwrites
+      // pero si por alguna razón el storage no devuelve la rutina (p. ej. modo DB/no autenticado),
+      // hacer fallback al estado en memoria (`routines`). Esto evita errores cuando el backend
+      // responde diferente temporalmente.
+      let currentRoutines = await storageService.getRoutines();
+      let routine = currentRoutines.find(r => r.id === id);
+
+      if (!routine) {
+        // Fallback al estado local como última opción
+        routine = routines.find(r => r.id === id);
+        if (routine) {
+          console.warn('[GymContext] updateRoutine: rutina encontrada en estado local pero no en storage, usando estado local como base');
+        }
+      }
+
+      if (!routine) {
+        // Log detallado para depuración remota
+        try {
+          console.error('[GymContext] updateRoutine - rutina no encontrada. storageIds=', (currentRoutines || []).map(r => r.id), 'stateIds=', routines.map(r => r.id));
+        } catch (e) {}
+        throw new Error('Rutina no encontrada');
+      }
 
       await storageService.updateRoutine(id, {
         ...routine,
@@ -128,7 +145,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Error updating routine:', error);
       throw error;
     }
-  }, [refreshRoutines]); // Removido 'routines' de las dependencias
+  }, [refreshRoutines, routines]);
 
   const deleteRoutine = useCallback(async (id: string) => {
     try {
