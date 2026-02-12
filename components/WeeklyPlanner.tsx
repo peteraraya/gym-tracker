@@ -321,18 +321,21 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     <div className="text-xs text-gray-400 mt-1">Sin nota</div>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    className="text-sm text-blue-400"
+                <div className="flex gap-2 flex-col">
+                  <Button
+                    className="text-sm"
+                    variant="info"
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingDay(day);
                       setEditingNote(plan[day]?.note || '');
                       setIsNoteModalOpen(true);
                     }}
-                  >Editar nota</button>
-                  <button
-                    className="text-sm text-red-400"
+                  >Editar nota</Button>
+                  <Button
+                    variant="danger"
+                    block
+                    className="text-sm"
                     onClick={async (e) => {
                       e.stopPropagation();
                       try {
@@ -346,7 +349,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                         if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
                       } catch (e) {}
                     }}
-                  >Desbloquear</button>
+                  >Desbloquear</Button>
                 </div>
               </div>
             ) : (
@@ -418,11 +421,12 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                         );
                       })}
                     </select>
-                    <button
-                      type="button"
+                    <Button
+                      variant="gradient"
+                      className="ml-1 rounded-4xl"
+                      size="sm"
                       onClick={() => addRoutineToDay(r.id, selectedDayByRoutine[r.id] ?? '')}
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-r-md text-sm"
-                    >Agregar</button>
+                    >+</Button>
                   </div>
                 </div>
               ))}

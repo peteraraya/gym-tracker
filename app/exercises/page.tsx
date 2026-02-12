@@ -14,6 +14,7 @@ import { ExerciseIcon } from '@/components/ExerciseIcon';
 import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { useEquipment } from '@/context/EquipmentContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { Button } from '@/components/ui/Button';
 
 export default function ExercisesPage() {
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | null>(null);
@@ -58,12 +59,14 @@ export default function ExercisesPage() {
             <p className="text-gray-600 dark:text-gray-400 mt-2">Explora ejercicios con técnicas y recomendaciones profesionales</p>
 
             <div className="mt-3">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setDrawerOpen(true)}
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm"
               >
                 ⚙️ Equipamiento
-              </button>
+              </Button>
             </div>
 
             {selectedEquipment.size > 0 && (
@@ -74,30 +77,36 @@ export default function ExercisesPage() {
                     <span className="text-sm text-blue-800 dark:text-blue-300">Filtrando por {selectedEquipment.size} equipamiento{selectedEquipment.size !== 1 ? 's' : ''}</span>
                   </div>
                   <div className="flex gap-2">
-                    <button
+                    <Button
+                      variant="primary"
+                      size="sm"
                       onClick={() => {
                         setEquipment(new Set(EQUIPMENT_LIST.map(e => e.id)));
                         toast.success('Seleccionado todo el equipamiento');
                       }}
-                      className="px-3 py-1 rounded-lg bg-white dark:bg-zinc-800 text-sm border"
+                      className=""
                     >
-                      ✅ Todo
-                    </button>
-                    <button
+                        ✅ Todo
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => {
                         clearEquipment();
                         toast.info('Selección limpiada');
                       }}
-                      className="px-3 py-1 rounded-lg bg-transparent text-sm border"
+                      className=""
                     >
                       🗑️ Limpiar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="info"
+                      size="sm"
                       onClick={() => setDrawerOpen(true)}
-                      className="px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm"
+                      className=""
                     >
                       ⚙️ Editar
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
