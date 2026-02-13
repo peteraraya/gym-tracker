@@ -116,8 +116,8 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     return (r.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (r.description || '').toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  // Routines that are not already assigned to any day
-  const availableRoutines = filteredRoutines.filter(r => !DAYS.some(d => (plan[d]?.routines || []).includes(r.id)));
+  // Todas las rutinas están disponibles para asignar a cualquier día (pueden repetirse)
+  const availableRoutines = filteredRoutines;
 
   const addRoutineToDay = (routineId: string, day: DayKey | '') => {
     if (!day) {
@@ -128,13 +128,17 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       try { info('Ese día está bloqueado (descanso). Desbloquéalo primero para agregar rutinas.'); } catch { };
       return;
     }
+    // Verificar si la rutina ya está asignada a ese día
+    if (plan[day]?.routines?.includes(routineId)) {
+      try { info('Esta rutina ya está asignada a este día'); } catch { };
+      return;
+    }
     setPlan(prev => {
       const next = { ...prev } as Plan;
-      // remove from other days
-      for (const d of DAYS) {
-        next[d] = { ...next[d], routines: next[d].routines.filter(x => x !== routineId) };
+      // Agregar la rutina al día sin eliminarla de otros días (permitir repetición)
+      if (!next[day].routines.includes(routineId)) {
+        next[day].routines = [...next[day].routines, routineId];
       }
-      if (!next[day].routines.includes(routineId)) next[day].routines = [...next[day].routines, routineId];
       return next;
     });
     // clear selection
@@ -355,7 +359,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               <span className="ml-2 text-sm text-gray-500">Cargando rutinas...</span>
             </div>
           ) : availableRoutines.length === 0 ? (
-            <div className="text-sm text-gray-500">{filteredRoutines.length === 0 ? 'No se encontraron rutinas' : 'No hay rutinas disponibles (todas asignadas)'}</div>
+            <div className="text-sm text-gray-500">No se encontraron rutinas</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {availableRoutines.map(r => (
@@ -389,11 +393,10 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                         <option value="">Seleccionar día...</option>
                         {DAYS.map(d => {
                           const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
-                          if (alreadyAdded) return null;
                           const isBlocked = !!plan[d]?.blocked;
                           return (
                             <option key={d} value={d} disabled={isBlocked}>
-                              {LABELS[d]}{isBlocked ? ' (descanso)' : ''}
+                              {LABELS[d]}{alreadyAdded ? ' ✓' : ''}{isBlocked ? ' (descanso)' : ''}
                             </option>
                           );
                         })}

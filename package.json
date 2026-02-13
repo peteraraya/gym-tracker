@@ -21,7 +21,8 @@
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",
     "mobile:build": "npm run build:mobile && cap sync",
-    "mobile:open": "cap open android"
+    "mobile:open": "cap open android",
+    "vercel:deploy": "npx vercel --prod"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
