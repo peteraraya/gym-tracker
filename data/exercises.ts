@@ -3,10 +3,13 @@ export type MuscleGroup =
   | 'espalda'
   | 'piernas'
   | 'hombros'
-  | 'brazos'
+  | 'biceps'
+  | 'triceps'
+  | 'antebrazos'
   | 'core'
   | 'gluteos'
-  | 'gemelos';
+  | 'gemelos'
+  | 'cardio';
 
 export interface ExerciseTemplate {
   id: string;
@@ -1081,11 +1084,11 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '45-60 segundos'
   },
 
-  // BRAZOS
+  // BÍCEPS
   {
     id: 'barbell-curl',
     name: 'Curl con Barra',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
@@ -1103,7 +1106,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'tricep-dips',
     name: 'Fondos en Paralelas',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 12,
@@ -1121,7 +1124,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'hammer-curl',
     name: 'Curl Martillo',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
@@ -1139,7 +1142,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'tricep-extension',
     name: 'Extensión de Tríceps',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Mancuernas/Polea',
     defaultSets: 3,
     defaultReps: 12,
@@ -1157,7 +1160,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'concentration-curl',
     name: 'Curl Concentrado',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 15,
@@ -1175,7 +1178,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'close-grip-bench',
     name: 'Press de Banca Agarre Cerrado',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 10,
@@ -1193,7 +1196,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'preacher-curl',
     name: 'Curl en Banco Scott',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Barra/Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
@@ -1211,7 +1214,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'skull-crushers',
     name: 'Rompecráneos',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
@@ -1229,7 +1232,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'cable-curl',
     name: 'Curl en Polea',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
@@ -1247,7 +1250,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'tricep-pushdown',
     name: 'Extensión de Tríceps en Polea',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
@@ -1265,7 +1268,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'zottman-curl',
     name: 'Curl Zottman',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
@@ -2422,12 +2425,12 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   },
 
   // ============================
-  // BRAZOS - EJERCICIOS ADICIONALES
+  // BÍCEPS - EJERCICIOS ADICIONALES
   // ============================
   {
     id: 'spider-curl',
     name: 'Spider Curl',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
@@ -2445,7 +2448,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'incline-dumbbell-curl',
     name: 'Curl Inclinado con Mancuernas',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
@@ -2463,7 +2466,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'overhead-cable-curl',
     name: 'Curl Alto en Polea',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
@@ -2481,7 +2484,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'dip-machine',
     name: 'Fondos en Máquina',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Máquina',
     defaultSets: 3,
     defaultReps: 12,
@@ -2499,7 +2502,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'cable-overhead-tricep',
     name: 'Extensión de Tríceps sobre Cabeza en Polea',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
@@ -2517,7 +2520,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'reverse-curl',
     name: 'Curl Inverso',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
@@ -2533,27 +2536,9 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '60 segundos'
   },
   {
-    id: 'wrist-curl',
-    name: 'Curl de Muñeca',
-    muscleGroup: 'brazos',
-    equipment: 'Mancuernas',
-    defaultSets: 3,
-    defaultReps: 20,
-    image: URL_STORAGE + 'male-dumbbell-wrist-curl-front.gif',
-    technique: [
-      'Antebrazos apoyados en los muslos o en un banco',
-      'Flexiona las muñecas hacia arriba',
-      'Trabaja los flexores del antebrazo',
-      'Movimiento controlado, sin impulso'
-    ],
-    recommendedSets: '3-4 series',
-    recommendedReps: '15-25 repeticiones',
-    restTime: '30-45 segundos'
-  },
-  {
     id: 'bayesian-curl',
     name: 'Curl Bayesiano en Polea',
-    muscleGroup: 'brazos',
+    muscleGroup: 'biceps',
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
@@ -2569,9 +2554,117 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '45-60 segundos'
   },
   {
+    id: 'drag-curl',
+    name: 'Drag Curl',
+    muscleGroup: 'biceps',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-barbell-drag-curl-front.gif',
+    technique: [
+      'Arrastra la barra pegada al cuerpo mientras subes',
+      'Codos van hacia atrás en lugar de quedarse fijos',
+      'Mayor activación de la cabeza larga del bíceps',
+      'Movimiento único que elimina la tensión del hombro'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: '21s-curl',
+    name: 'Curl 21s',
+    muscleGroup: 'biceps',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 21,
+    image: URL_STORAGE + 'male-barbell-21s-curl-front.gif',
+    technique: [
+      '7 repeticiones de la mitad inferior (abajo a medio)',
+      '7 repeticiones de la mitad superior (medio a arriba)',
+      '7 repeticiones completas',
+      'Técnica avanzada para congestión muscular intensa'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '21 repeticiones (7+7+7)',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'waiter-curl',
+    name: 'Waiter Curl',
+    muscleGroup: 'biceps',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-dumbbell-waiter-curl-front.gif',
+    technique: [
+      'Sostén una mancuerna vertical con ambas manos bajo el disco superior',
+      'Como si llevaras una bandeja de camarero',
+      'Curl manteniendo la mancuerna vertical',
+      'Gran activación del pico del bíceps'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cross-body-hammer-curl',
+    name: 'Curl Martillo Cruzado',
+    muscleGroup: 'biceps',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-dumbbell-cross-body-hammer-curl-front.gif',
+    technique: [
+      'Agarre martillo, lleva la mancuerna hacia el hombro opuesto',
+      'Cruza el cuerpo en diagonal',
+      'Mayor activación del braquial',
+      'Alterna los brazos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por brazo',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'ez-bar-curl',
+    name: 'Curl con Barra Z',
+    muscleGroup: 'biceps',
+    equipment: 'Barra Z',
+    defaultSets: 4,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-ez-bar-curl-front.gif',
+    technique: [
+      'Agarre en la parte angulada de la barra Z',
+      'Menos estrés en las muñecas que la barra recta',
+      'Curl completo con contracción en la parte superior',
+      'Excelente para volumen de bíceps'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-12 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'cable-rope-curl',
+    name: 'Curl con Cuerda en Polea',
+    muscleGroup: 'biceps',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-rope-curl-front.gif',
+    technique: [
+      'Usa cuerda en polea baja',
+      'Agarre neutral, separa las manos al subir',
+      'Tensión constante durante todo el movimiento',
+      'Excelente para el pico del bíceps'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '45-60 segundos'
+  },
+  {
     id: 'kickback-tricep',
     name: 'Patada de Tríceps',
-    muscleGroup: 'brazos',
+    muscleGroup: 'triceps',
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
@@ -2585,6 +2678,424 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '10-15 por brazo',
     restTime: '45-60 segundos'
+  },
+  {
+    id: 'diamond-push-up-tricep',
+    name: 'Flexiones Diamante para Tríceps',
+    muscleGroup: 'triceps',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-bodyweight-diamond-push-up-tricep-front.gif',
+    technique: [
+      'Manos juntas formando un diamante bajo el pecho',
+      'Codos pegados al cuerpo',
+      'Baja hasta que el pecho casi toque las manos',
+      'Uno de los mejores ejercicios de tríceps con peso corporal'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'overhead-dumbbell-extension',
+    name: 'Extensión con Mancuerna sobre Cabeza',
+    muscleGroup: 'triceps',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-dumbbell-overhead-extension-front.gif',
+    technique: [
+      'Sostén una mancuerna con ambas manos sobre la cabeza',
+      'Baja detrás de la cabeza flexionando solo los codos',
+      'Extiende de vuelta arriba',
+      'Gran estiramiento de la cabeza larga del tríceps'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-rope-overhead-extension',
+    name: 'Extensión con Cuerda sobre Cabeza',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-rope-overhead-extension-front.gif',
+    technique: [
+      'Polea baja, cuerda con ambas manos',
+      'De espaldas a la polea, da un paso adelante',
+      'Extiende los brazos sobre la cabeza',
+      'Tensión constante en todo el rango'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'bench-dips',
+    name: 'Fondos en Banco',
+    muscleGroup: 'triceps',
+    equipment: 'Banco',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-bodyweight-bench-dip-side.gif',
+    technique: [
+      'Manos en el borde del banco detrás de ti',
+      'Piernas extendidas o flexionadas según nivel',
+      'Baja hasta que codos formen 90 grados',
+      'Empuja de vuelta arriba'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'tate-press',
+    name: 'Tate Press',
+    muscleGroup: 'triceps',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-dumbbell-tate-press-front.gif',
+    technique: [
+      'Acostado en banco, mancuernas con agarre neutral',
+      'Baja los codos hacia los lados manteniendo mancuernas juntas',
+      'Extiende de vuelta arriba',
+      'Movimiento único para aislar tríceps'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'jm-press',
+    name: 'JM Press',
+    muscleGroup: 'triceps',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-barbell-jm-press-side.gif',
+    technique: [
+      'Acostado en banco, barra sobre el pecho',
+      'Híbrido entre press de banca y skull crusher',
+      'Baja hacia la garganta/cuello con codos hacia adentro',
+      'Excelente para fuerza de tríceps'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-12 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'cable-tricep-extension-single',
+    name: 'Extensión de Tríceps Unilateral en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-single-arm-tricep-extension-front.gif',
+    technique: [
+      'Polea alta, agarre con una mano',
+      'Extiende el brazo completamente hacia abajo',
+      'Corrige desbalances entre brazos',
+      'Mayor rango de movimiento que bilateral'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 por brazo',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'reverse-grip-pushdown',
+    name: 'Extensión en Polea con Agarre Supino',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-reverse-grip-pushdown-front.gif',
+    technique: [
+      'Polea alta, agarre supino (palmas hacia arriba)',
+      'Empuja hacia abajo manteniendo codos fijos',
+      'Mayor activación de la cabeza medial del tríceps',
+      'Excelente para definición'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '45-60 segundos'
+  },
+
+  // ============================
+  // ANTEBRAZOS
+  // ============================
+  {
+    id: 'wrist-curl',
+    name: 'Curl de Muñeca',
+    muscleGroup: 'antebrazos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-dumbbell-wrist-curl-front.gif',
+    technique: [
+      'Antebrazos apoyados en los muslos o en un banco',
+      'Flexiona las muñecas hacia arriba',
+      'Trabaja los flexores del antebrazo',
+      'Movimiento controlado, sin impulso'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-25 repeticiones',
+    restTime: '30-45 segundos'
+  },
+  {
+    id: 'reverse-wrist-curl',
+    name: 'Curl de Muñeca Inverso',
+    muscleGroup: 'antebrazos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-dumbbell-reverse-wrist-curl-front.gif',
+    technique: [
+      'Antebrazos apoyados, palmas hacia abajo',
+      'Extiende las muñecas hacia arriba',
+      'Trabaja los extensores del antebrazo',
+      'Usa menos peso que el curl de muñeca normal'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-25 repeticiones',
+    restTime: '30-45 segundos'
+  },
+  {
+    id: 'barbell-wrist-curl',
+    name: 'Curl de Muñeca con Barra',
+    muscleGroup: 'antebrazos',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-barbell-wrist-curl-front.gif',
+    technique: [
+      'Antebrazos en un banco, barra en las manos',
+      'Deja que la barra ruede hasta los dedos',
+      'Enrolla de vuelta y flexiona las muñecas',
+      'Mayor rango de movimiento que con mancuernas'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-25 repeticiones',
+    restTime: '45 segundos'
+  },
+  {
+    id: 'barbell-reverse-wrist-curl',
+    name: 'Curl de Muñeca Inverso con Barra',
+    muscleGroup: 'antebrazos',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-barbell-reverse-wrist-curl-front.gif',
+    technique: [
+      'Antebrazos en un banco, palmas hacia abajo',
+      'Extiende las muñecas hacia arriba',
+      'Trabaja extensores del antebrazo',
+      'Previene desequilibrios musculares'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-25 repeticiones',
+    restTime: '45 segundos'
+  },
+  {
+    id: 'farmers-walk',
+    name: 'Caminata de Granjero',
+    muscleGroup: 'antebrazos',
+    equipment: 'Mancuernas',
+    defaultSets: 4,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-dumbbell-farmers-walk-side.gif',
+    technique: [
+      'Carga pesada en cada mano',
+      'Camina con postura erguida',
+      'Aprieta fuerte las mancuernas',
+      'Excelente para fuerza de agarre y antebrazos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '30-60 segundos o 20-40 metros',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'plate-pinch',
+    name: 'Pinza con Discos',
+    muscleGroup: 'antebrazos',
+    equipment: 'Discos',
+    defaultSets: 3,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-plate-pinch-hold-side.gif',
+    technique: [
+      'Sostén uno o dos discos con los dedos',
+      'Pinza entre pulgar y dedos',
+      'Mantén el tiempo que puedas',
+      'Desarrolla fuerza de agarre específica'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '20-45 segundos por mano',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'dead-hang',
+    name: 'Colgarse de la Barra',
+    muscleGroup: 'antebrazos',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-bodyweight-dead-hang-back.gif',
+    technique: [
+      'Cuélgate de una barra con brazos extendidos',
+      'Relaja los hombros y respira',
+      'Mantén el tiempo que puedas',
+      'Excelente para fuerza de agarre y descompresión espinal'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '30-60 segundos',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'towel-pull-ups',
+    name: 'Dominadas con Toalla',
+    muscleGroup: 'antebrazos',
+    equipment: 'Toalla',
+    defaultSets: 3,
+    defaultReps: 8,
+    image: URL_STORAGE + 'male-towel-pull-up-back.gif',
+    technique: [
+      'Cuelga una toalla sobre la barra',
+      'Agarra ambos extremos de la toalla',
+      'Haz dominadas sosteniendo la toalla',
+      'Desafío extremo para antebrazos y agarre'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '5-10 repeticiones',
+    restTime: '2-3 minutos'
+  },
+  {
+    id: 'hammer-curl-forearm',
+    name: 'Curl Martillo (Énfasis Antebrazo)',
+    muscleGroup: 'antebrazos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-dumbbell-hammer-curl-forearm-front.gif',
+    technique: [
+      'Agarre neutral durante todo el movimiento',
+      'Enfoca en apretar fuerte las mancuernas',
+      'Trabaja braquiorradial intensamente',
+      'Movimiento lento y controlado'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'reverse-curl-forearm',
+    name: 'Curl Inverso (Énfasis Antebrazo)',
+    muscleGroup: 'antebrazos',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-barbell-reverse-curl-forearm-front.gif',
+    technique: [
+      'Agarre prono (palmas hacia abajo)',
+      'Curl completo enfocando en antebrazos',
+      'Trabaja braquiorradial y extensores',
+      'Excelente para equilibrio muscular'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'wrist-roller',
+    name: 'Rodillo de Muñeca',
+    muscleGroup: 'antebrazos',
+    equipment: 'Rodillo de muñeca',
+    defaultSets: 3,
+    defaultReps: 3,
+    image: URL_STORAGE + 'male-wrist-roller-front.gif',
+    technique: [
+      'Sostén el rodillo con brazos extendidos',
+      'Enrolla la cuerda subiendo el peso',
+      'Luego desenrolla bajando con control',
+      'Quema intensa en antebrazos'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '2-3 subidas y bajadas',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'fat-grip-curl',
+    name: 'Curl con Agarre Grueso',
+    muscleGroup: 'antebrazos',
+    equipment: 'Mancuernas + Fat Grips',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-dumbbell-fat-grip-curl-front.gif',
+    technique: [
+      'Usa adaptadores de agarre grueso o toalla',
+      'Curl normal pero con agarre más ancho',
+      'Mayor activación de antebrazos',
+      'Desarrolla fuerza de agarre funcional'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'finger-curls',
+    name: 'Curl de Dedos',
+    muscleGroup: 'antebrazos',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-barbell-finger-curl-front.gif',
+    technique: [
+      'Barra en las manos con antebrazos apoyados',
+      'Deja que la barra ruede hasta las puntas de los dedos',
+      'Enrolla de vuelta con los dedos',
+      'Fortalece dedos y agarre'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-25 repeticiones',
+    restTime: '45 segundos'
+  },
+  {
+    id: 'gripper-squeeze',
+    name: 'Apretón con Gripper',
+    muscleGroup: 'antebrazos',
+    equipment: 'Hand gripper',
+    defaultSets: 4,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-hand-gripper-squeeze-side.gif',
+    technique: [
+      'Usa un gripper de mano ajustable',
+      'Aprieta completamente cerrando el gripper',
+      'Mantén 1-2 segundos',
+      'Suelta con control'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '10-20 repeticiones por mano',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'radial-deviation',
+    name: 'Desviación Radial',
+    muscleGroup: 'antebrazos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-dumbbell-radial-deviation-side.gif',
+    technique: [
+      'Sostén mancuerna vertical con pulgar arriba',
+      'Antebrazo apoyado, mueve la muñeca hacia el pulgar',
+      'Trabaja los músculos laterales del antebrazo',
+      'Movimiento pequeño pero efectivo'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '12-20 repeticiones por lado',
+    restTime: '30-45 segundos'
   },
 
   // ============================
@@ -2953,6 +3464,550 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '15-25 repeticiones',
     restTime: '30-45 segundos'
+  },
+
+  // ============================
+  // CARDIO
+  // ============================
+  {
+    id: 'treadmill-running',
+    name: 'Correr en Trotadora',
+    muscleGroup: 'cardio',
+    equipment: 'Trotadora',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-treadmill-running-side.gif',
+    description: 'Ejercicio cardiovascular de alto impacto en cinta de correr',
+    technique: [
+      'Mantén una postura erguida con mirada al frente',
+      'Aterriza con la parte media del pie',
+      'Brazos doblados a 90 grados balanceándose naturalmente',
+      'Ajusta velocidad e inclinación según tu nivel',
+      'Hidrátate durante sesiones largas'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '20-45 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'treadmill-walking',
+    name: 'Caminar en Trotadora',
+    muscleGroup: 'cardio',
+    equipment: 'Trotadora',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-treadmill-walking-side.gif',
+    description: 'Ejercicio cardiovascular de bajo impacto ideal para principiantes',
+    technique: [
+      'Mantén la espalda recta y hombros relajados',
+      'Paso natural, talón primero',
+      'Aumenta la inclinación para mayor intensidad',
+      'Ideal para calentamiento o recuperación activa',
+      'Perfecto para quemar calorías sin impacto en articulaciones'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '30-60 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'treadmill-incline-walk',
+    name: 'Caminata Inclinada en Trotadora',
+    muscleGroup: 'cardio',
+    equipment: 'Trotadora',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-treadmill-incline-walk-side.gif',
+    description: 'Caminata con inclinación para mayor activación de glúteos y piernas',
+    technique: [
+      'Ajusta la inclinación entre 10-15%',
+      'Mantén el torso erguido, no te inclines hacia adelante',
+      'Paso firme y controlado',
+      'Excelente para glúteos e isquiotibiales',
+      'Quema más calorías que la caminata plana'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '20-40 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'treadmill-hiit',
+    name: 'HIIT en Trotadora',
+    muscleGroup: 'cardio',
+    equipment: 'Trotadora',
+    defaultSets: 8,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-treadmill-hiit-side.gif',
+    description: 'Entrenamiento de intervalos de alta intensidad',
+    technique: [
+      'Alterna entre sprints de 30-60 segundos y recuperación activa',
+      'Sprint: 80-90% de tu velocidad máxima',
+      'Recuperación: caminar o trotar ligero 1-2 minutos',
+      'Excelente para quemar grasa y mejorar resistencia',
+      'Sesiones cortas pero muy efectivas'
+    ],
+    recommendedSets: '6-10 intervalos',
+    recommendedReps: '30-60 seg sprint + 1-2 min recuperación',
+    restTime: 'Incluido en intervalos'
+  },
+  {
+    id: 'stationary-bike',
+    name: 'Bicicleta Estática',
+    muscleGroup: 'cardio',
+    equipment: 'Bicicleta estática',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-stationary-bike-side.gif',
+    description: 'Ejercicio cardiovascular de bajo impacto para piernas',
+    technique: [
+      'Ajusta el asiento a la altura correcta (rodilla ligeramente flexionada)',
+      'Mantén la espalda recta y core activado',
+      'Pedalea con ritmo constante',
+      'Ajusta la resistencia según tu nivel',
+      'Bajo impacto en rodillas y articulaciones'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '20-45 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'spin-bike',
+    name: 'Bicicleta de Spinning',
+    muscleGroup: 'cardio',
+    equipment: 'Bicicleta de spinning',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-spin-bike-side.gif',
+    description: 'Ciclismo indoor de alta intensidad',
+    technique: [
+      'Posición aerodinámica con manos en el manubrio',
+      'Alterna entre sentado y de pie',
+      'Ajusta resistencia para simular subidas',
+      'Mantén cadencia entre 80-110 RPM',
+      'Excelente para resistencia y quema de calorías'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '30-60 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'recumbent-bike',
+    name: 'Bicicleta Reclinada',
+    muscleGroup: 'cardio',
+    equipment: 'Bicicleta reclinada',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-recumbent-bike-side.gif',
+    description: 'Bicicleta con respaldo, ideal para personas con problemas de espalda',
+    technique: [
+      'Espalda completamente apoyada en el respaldo',
+      'Piernas extendidas al frente',
+      'Menor estrés en espalda baja que bicicleta vertical',
+      'Ideal para rehabilitación o personas mayores',
+      'Mantén un ritmo constante y cómodo'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '25-50 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'elliptical',
+    name: 'Elíptica',
+    muscleGroup: 'cardio',
+    equipment: 'Elíptica',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-elliptical-front.gif',
+    description: 'Ejercicio cardiovascular de cuerpo completo sin impacto',
+    technique: [
+      'Mantén el torso erguido y core activado',
+      'Empuja y tira de las manijas para trabajar brazos',
+      'Movimiento fluido y continuo',
+      'Cero impacto en articulaciones',
+      'Trabaja piernas, glúteos y brazos simultáneamente'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '20-45 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'elliptical-reverse',
+    name: 'Elíptica Reversa',
+    muscleGroup: 'cardio',
+    equipment: 'Elíptica',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-elliptical-reverse-front.gif',
+    description: 'Movimiento inverso en elíptica para mayor activación de glúteos',
+    technique: [
+      'Pedalea hacia atrás en la elíptica',
+      'Mayor activación de glúteos e isquiotibiales',
+      'Mantén postura erguida',
+      'Agarra las manijas fijas para equilibrio',
+      'Alterna con movimiento hacia adelante'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '15-30 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'stair-climber',
+    name: 'Escaladora',
+    muscleGroup: 'cardio',
+    equipment: 'Escaladora',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-stair-climber-side.gif',
+    description: 'Simula subir escaleras, excelente para piernas y glúteos',
+    technique: [
+      'Mantén el torso erguido, no te inclines sobre la consola',
+      'Paso completo en cada escalón',
+      'No te apoyes demasiado en las manijas',
+      'Gran activación de glúteos y cuádriceps',
+      'Quema muchas calorías en poco tiempo'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '15-30 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'stairmaster',
+    name: 'StairMaster',
+    muscleGroup: 'cardio',
+    equipment: 'StairMaster',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-stairmaster-side.gif',
+    description: 'Escaleras rotativas continuas para cardio intenso',
+    technique: [
+      'Postura erguida, manos ligeramente en las barandas',
+      'Paso natural como si subieras escaleras reales',
+      'Ajusta la velocidad según tu nivel',
+      'Uno de los mejores ejercicios para glúteos',
+      'Mantén el core activado durante todo el ejercicio'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '10-25 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'rowing-machine',
+    name: 'Remo en Máquina',
+    muscleGroup: 'cardio',
+    equipment: 'Máquina de remo',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-rowing-machine-side.gif',
+    description: 'Ejercicio cardiovascular de cuerpo completo',
+    technique: [
+      'Secuencia: piernas, core, brazos al tirar',
+      'Secuencia inversa al regresar: brazos, core, piernas',
+      'Mantén la espalda recta durante todo el movimiento',
+      'Trabaja 85% de los músculos del cuerpo',
+      'Excelente para cardio y fuerza simultáneamente'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '15-30 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'rowing-intervals',
+    name: 'Remo por Intervalos',
+    muscleGroup: 'cardio',
+    equipment: 'Máquina de remo',
+    defaultSets: 6,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-rowing-intervals-side.gif',
+    description: 'HIIT en máquina de remo para máxima quema de calorías',
+    technique: [
+      'Alterna entre remadas intensas y recuperación',
+      'Intenso: 30-60 segundos a máxima potencia',
+      'Recuperación: 1-2 minutos a ritmo suave',
+      'Mantén técnica correcta incluso en intervalos intensos',
+      'Excelente para mejorar VO2 max'
+    ],
+    recommendedSets: '6-10 intervalos',
+    recommendedReps: '30-60 seg intenso + 1-2 min recuperación',
+    restTime: 'Incluido en intervalos'
+  },
+  {
+    id: 'assault-bike',
+    name: 'Assault Bike',
+    muscleGroup: 'cardio',
+    equipment: 'Assault bike',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-assault-bike-side.gif',
+    description: 'Bicicleta de aire para cardio de alta intensidad',
+    technique: [
+      'Empuja y tira de las manijas mientras pedaleas',
+      'Cuanto más fuerte, mayor resistencia',
+      'Trabaja todo el cuerpo simultáneamente',
+      'Ideal para HIIT y acondicionamiento',
+      'Muy demandante, comienza con intervalos cortos'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '10-20 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'ski-erg',
+    name: 'Ski Erg',
+    muscleGroup: 'cardio',
+    equipment: 'Ski erg',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-ski-erg-front.gif',
+    description: 'Simula esquí de fondo, excelente para core y brazos',
+    technique: [
+      'Tira de las cuerdas hacia abajo con fuerza',
+      'Usa core y brazos, no solo los brazos',
+      'Inclínate ligeramente hacia adelante',
+      'Movimiento explosivo hacia abajo, controlado hacia arriba',
+      'Gran trabajo de core y parte superior del cuerpo'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '10-20 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'jump-rope',
+    name: 'Saltar la Cuerda',
+    muscleGroup: 'cardio',
+    equipment: 'Cuerda de saltar',
+    defaultSets: 5,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-jump-rope-side.gif',
+    description: 'Ejercicio cardiovascular portátil y efectivo',
+    technique: [
+      'Salta sobre las puntas de los pies',
+      'Gira la cuerda con las muñecas, no los brazos',
+      'Saltos pequeños y rápidos',
+      'Mantén el core activado',
+      'Excelente para coordinación y resistencia'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '1-3 minutos',
+    restTime: '30-60 segundos'
+  },
+  {
+    id: 'battle-ropes',
+    name: 'Cuerdas de Batalla',
+    muscleGroup: 'cardio',
+    equipment: 'Cuerdas de batalla',
+    defaultSets: 5,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-battle-ropes-front.gif',
+    description: 'Ejercicio de alta intensidad para brazos, hombros y core',
+    technique: [
+      'Pies al ancho de hombros, rodillas ligeramente flexionadas',
+      'Alterna brazos creando ondas en las cuerdas',
+      'Mantén el core activado y espalda recta',
+      'Movimiento explosivo y continuo',
+      'Combina cardio con fuerza de agarre'
+    ],
+    recommendedSets: '4-6 series',
+    recommendedReps: '20-45 segundos',
+    restTime: '30-60 segundos'
+  },
+  {
+    id: 'burpees',
+    name: 'Burpees',
+    muscleGroup: 'cardio',
+    equipment: 'Peso corporal',
+    defaultSets: 4,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-bodyweight-burpee-side.gif',
+    description: 'Ejercicio de cuerpo completo que combina fuerza y cardio',
+    technique: [
+      'Desde de pie, baja a posición de plancha',
+      'Haz una flexión (opcional)',
+      'Salta los pies hacia las manos',
+      'Salta verticalmente con brazos arriba',
+      'Uno de los ejercicios más completos que existen'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '10-20 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'high-knees',
+    name: 'Rodillas Altas',
+    muscleGroup: 'cardio',
+    equipment: 'Peso corporal',
+    defaultSets: 4,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-bodyweight-high-knees-front.gif',
+    description: 'Ejercicio cardiovascular que eleva la frecuencia cardíaca rápidamente',
+    technique: [
+      'Corre en el lugar elevando las rodillas al pecho',
+      'Brazos bombeando al ritmo de las piernas',
+      'Mantén el torso erguido',
+      'Aterriza suavemente sobre las puntas de los pies',
+      'Excelente para calentamiento o HIIT'
+    ],
+    recommendedSets: '4-6 series',
+    recommendedReps: '30-60 segundos',
+    restTime: '30-45 segundos'
+  },
+  {
+    id: 'mountain-climbers-cardio',
+    name: 'Escaladores (Cardio)',
+    muscleGroup: 'cardio',
+    equipment: 'Peso corporal',
+    defaultSets: 4,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-bodyweight-mountain-climbers-side.gif',
+    description: 'Ejercicio dinámico que trabaja core y cardio',
+    technique: [
+      'Posición de plancha alta',
+      'Alterna rodillas al pecho rápidamente',
+      'Mantén las caderas bajas y estables',
+      'Movimiento continuo y rápido',
+      'Combina trabajo de core con cardio intenso'
+    ],
+    recommendedSets: '4-6 series',
+    recommendedReps: '30-60 segundos',
+    restTime: '30-45 segundos'
+  },
+  {
+    id: 'box-jumps-cardio',
+    name: 'Saltos al Cajón (Cardio)',
+    muscleGroup: 'cardio',
+    equipment: 'Cajón pliométrico',
+    defaultSets: 4,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-bodyweight-box-jump-side.gif',
+    description: 'Ejercicio pliométrico para potencia y cardio',
+    technique: [
+      'Salta explosivamente sobre el cajón',
+      'Aterriza suavemente con rodillas flexionadas',
+      'Baja con control o salta hacia abajo',
+      'Desarrolla potencia explosiva',
+      'Excelente para atletas y deportes'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '8-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'swimming',
+    name: 'Natación',
+    muscleGroup: 'cardio',
+    equipment: 'Piscina',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-swimming-side.gif',
+    description: 'Ejercicio cardiovascular de cuerpo completo sin impacto',
+    technique: [
+      'Técnica correcta según el estilo (crol, espalda, pecho, mariposa)',
+      'Respiración rítmica y controlada',
+      'Cero impacto en articulaciones',
+      'Trabaja todos los grupos musculares',
+      'Ideal para recuperación o cardio de bajo impacto'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '20-45 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'shadow-boxing',
+    name: 'Boxeo de Sombra',
+    muscleGroup: 'cardio',
+    equipment: 'Peso corporal',
+    defaultSets: 5,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-shadow-boxing-front.gif',
+    description: 'Simula combate de boxeo para cardio y coordinación',
+    technique: [
+      'Posición de guardia, pies en movimiento',
+      'Lanza combinaciones de golpes (jab, cross, hook, uppercut)',
+      'Mantén las manos arriba protegiendo la cara',
+      'Movimiento constante de pies',
+      'Excelente para cardio, coordinación y técnica'
+    ],
+    recommendedSets: '3-5 rounds',
+    recommendedReps: '2-3 minutos',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'heavy-bag',
+    name: 'Saco de Boxeo',
+    muscleGroup: 'cardio',
+    equipment: 'Saco de boxeo',
+    defaultSets: 5,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-heavy-bag-front.gif',
+    description: 'Golpear el saco para cardio intenso y liberación de estrés',
+    technique: [
+      'Usa guantes de boxeo o vendas',
+      'Combina golpes de puño con movimiento de pies',
+      'Mantén la guardia arriba entre combinaciones',
+      'Golpea con técnica correcta para evitar lesiones',
+      'Excelente para cardio, fuerza y coordinación'
+    ],
+    recommendedSets: '3-5 rounds',
+    recommendedReps: '2-3 minutos',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cycling-outdoor',
+    name: 'Ciclismo al Aire Libre',
+    muscleGroup: 'cardio',
+    equipment: 'Bicicleta',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-cycling-outdoor-side.gif',
+    description: 'Ciclismo en exteriores para cardio y exploración',
+    technique: [
+      'Ajusta el asiento a la altura correcta',
+      'Mantén la espalda ligeramente inclinada',
+      'Usa casco y equipo de seguridad',
+      'Varía la intensidad con terreno y velocidad',
+      'Excelente para resistencia cardiovascular'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '30-90 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'running-outdoor',
+    name: 'Correr al Aire Libre',
+    muscleGroup: 'cardio',
+    equipment: 'Peso corporal',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-running-outdoor-side.gif',
+    description: 'Carrera en exteriores para cardio y resistencia',
+    technique: [
+      'Aterriza con la parte media del pie',
+      'Mantén postura erguida y mirada al frente',
+      'Brazos a 90 grados balanceándose naturalmente',
+      'Respira rítmicamente (2-3 pasos inhalar, 2-3 exhalar)',
+      'Usa calzado adecuado para correr'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '20-60 minutos',
+    restTime: 'N/A'
+  },
+  {
+    id: 'hiking',
+    name: 'Senderismo',
+    muscleGroup: 'cardio',
+    equipment: 'Peso corporal',
+    defaultSets: 1,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cardio-hiking-side.gif',
+    description: 'Caminata en terreno irregular para cardio y naturaleza',
+    technique: [
+      'Usa calzado apropiado con buen agarre',
+      'Bastones de trekking para mayor estabilidad (opcional)',
+      'Mantén un ritmo constante y sostenible',
+      'Hidratación constante',
+      'Excelente para cardio de bajo impacto y salud mental'
+    ],
+    recommendedSets: '1 sesión',
+    recommendedReps: '1-4 horas',
+    restTime: 'N/A'
   }
 ];
 
@@ -2962,9 +4017,12 @@ export const MUSCLE_GROUPS: { id: MuscleGroup; name: string }[] = [
   { id: 'piernas', name: 'Piernas' },
   { id: 'gluteos', name: 'Glúteos' },
   { id: 'hombros', name: 'Hombros' },
-  { id: 'brazos', name: 'Brazos' },
+  { id: 'biceps', name: 'Bíceps' },
+  { id: 'triceps', name: 'Tríceps' },
+  { id: 'antebrazos', name: 'Antebrazos' },
   { id: 'core', name: 'Core/Abdomen' },
-  { id: 'gemelos', name: 'Gemelos' }
+  { id: 'gemelos', name: 'Gemelos' },
+  { id: 'cardio', name: 'Cardio' }
 ];
 
 export const getExercisesByMuscleGroup = (muscleGroup: MuscleGroup): ExerciseTemplate[] => {
