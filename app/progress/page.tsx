@@ -5,16 +5,22 @@ import { useGym } from '@/context/GymContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { EXERCISE_DATABASE, type MuscleGroup } from '@/data/exercises';
+import { calculateSessionVolume, calculateTotalSets } from '@/lib/utils/dateUtils';
 
 const MUSCLE_GROUPS: MuscleGroup[] = [
   'pecho',
   'espalda',
   'piernas',
   'hombros',
-  'brazos',
+  'biceps',
+  'triceps',
+  'antebrazos',
+  'trapecio',
+  'cuello',
   'core',
   'gluteos',
-  'gemelos'
+  'gemelos',
+  'cardio'
 ];
 
 const MUSCLE_COLORS: Record<MuscleGroup, string> = {
@@ -23,9 +29,14 @@ const MUSCLE_COLORS: Record<MuscleGroup, string> = {
   piernas: '#10b981',    // green
   gluteos: '#ec4899',    // pink
   hombros: '#8b5cf6',    // purple
-  brazos: '#f97316',     // orange
+  biceps: '#f97316',     // orange
+  triceps: '#fb923c',    // orange-400
+  antebrazos: '#fdba74', // orange-300
+  trapecio: '#a855f7',   // purple-500
+  cuello: '#c084fc',     // purple-400
   core: '#eab308',       // yellow
-  gemelos: '#14b8a6' // teal
+  gemelos: '#14b8a6',    // teal
+  cardio: '#f43f5e'      // rose
 };
 
 const MUSCLE_LABELS: Record<MuscleGroup, string> = {
@@ -34,9 +45,14 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   piernas: 'Piernas',
   gluteos: 'Glúteos',
   hombros: 'Hombros',
-  brazos: 'Brazos',
+  biceps: 'Bíceps',
+  triceps: 'Tríceps',
+  antebrazos: 'Antebrazos',
+  trapecio: 'Trapecio',
+  cuello: 'Cuello',
   core: 'Core',
-  gemelos: 'Gemelos'
+  gemelos: 'Gemelos',
+  cardio: 'Cardio'
 };
 
 export default function ProgressPage() {
@@ -61,9 +77,14 @@ export default function ProgressPage() {
       piernas: 0,
       gluteos: 0,
       hombros: 0,
-      brazos: 0,
+      biceps: 0,
+      triceps: 0,
+      antebrazos: 0,
+      trapecio: 0,
+      cuello: 0,
       core: 0,
-      gemelos: 0
+      gemelos: 0,
+      cardio: 0
     };
 
     const count: Record<MuscleGroup, number> = {
@@ -72,17 +93,33 @@ export default function ProgressPage() {
       piernas: 0,
       gluteos: 0,
       hombros: 0,
-      brazos: 0,
+      biceps: 0,
+      triceps: 0,
+      antebrazos: 0,
+      trapecio: 0,
+      cuello: 0,
       core: 0,
-      gemelos: 0
+      gemelos: 0,
+      cardio: 0
     };
 
     validSessions.forEach(session => {
       if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach(sessionExercise => {
-        // Encontrar el ejercicio en la base de datos
-        const exercise = EXERCISE_DATABASE.find(ex => ex.id === sessionExercise.exerciseId);
-        if (!exercise) return;
+        // Buscar el ejercicio en la base de datos usando exerciseId o exerciseName
+        let exercise = EXERCISE_DATABASE.find(ex => ex.id === sessionExercise.exerciseId);
+        
+        // Si no se encuentra por ID, intentar buscar por nombre
+        if (!exercise && sessionExercise.exerciseName) {
+          exercise = EXERCISE_DATABASE.find(ex => 
+            ex.name.toLowerCase() === sessionExercise.exerciseName?.toLowerCase()
+          );
+        }
+        
+        if (!exercise) {
+          console.log('Ejercicio no encontrado:', sessionExercise.exerciseId, sessionExercise.exerciseName);
+          return;
+        }
 
         const muscleGroup = exercise.muscleGroup;
         
@@ -96,9 +133,12 @@ export default function ProgressPage() {
           volume[muscleGroup] += reps * weight;
         });
 
-        count[muscleGroup] += sessionExercise.completedSets;
+        count[muscleGroup] += sessionExercise.actualReps.length;
       });
     });
+
+    console.log('Volumen por grupo muscular:', volume);
+    console.log('Series por grupo muscular:', count);
 
     return { volume, count };
   }, [validSessions]);
@@ -242,110 +282,134 @@ export default function ProgressPage() {
           </div>
 
           {/* Gráfica de barras por grupo muscular */}
-           {/* <Card className="mb-8">
+          <Card className="mb-8">
             <CardHeader>
               <CardTitle>Volumen por Grupo Muscular</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {sortedMuscleGroups.map(group => {
-                  const volume = muscleGroupVolume.volume[group];
-                  const sets = muscleGroupVolume.count[group];
-                  const percentage = muscleGroupPercentages[group];
-                  const barWidth = maxVolume > 0 ? (volume / maxVolume) * 100 : 0;
+              {totalVolume === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">📊</div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    No hay datos de volumen
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Completa sesiones con ejercicios que tengan peso registrado para ver el análisis por grupo muscular
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sortedMuscleGroups.map(group => {
+                    const volume = muscleGroupVolume.volume[group];
+                    const sets = muscleGroupVolume.count[group];
+                    const percentage = muscleGroupPercentages[group];
+                    const barWidth = maxVolume > 0 ? (volume / maxVolume) * 100 : 0;
 
-                  if (volume === 0) return null;
+                    if (volume === 0) return null;
 
-                  return (
-                    <div key={group}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-4 h-4 rounded"
-                            style={{ backgroundColor: MUSCLE_COLORS[group] }}
-                          />
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">
-                            {MUSCLE_LABELS[group]}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {sets} series
-                          </span>
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">
-                            {volume.toLocaleString()} kg
-                          </span>
-                          <span className="text-gray-500 dark:text-gray-500">
-                            ({percentage.toFixed(1)}%)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500 flex items-center justify-end px-3"
-                          style={{
-                            width: `${barWidth}%`,
-                            backgroundColor: MUSCLE_COLORS[group]
-                          }}
-                        >
-                          {barWidth > 20 && (
-                            <span className="text-white font-semibold text-sm">
+                    return (
+                      <div key={group}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 rounded"
+                              style={{ backgroundColor: MUSCLE_COLORS[group] }}
+                            />
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">
+                              {MUSCLE_LABELS[group]}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {sets} series
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">
                               {volume.toLocaleString()} kg
                             </span>
-                          )}
+                            <span className="text-gray-500 dark:text-gray-500">
+                              ({percentage.toFixed(1)}%)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500 flex items-center justify-end px-3"
+                            style={{
+                              width: `${barWidth}%`,
+                              backgroundColor: MUSCLE_COLORS[group]
+                            }}
+                          >
+                            {barWidth > 20 && (
+                              <span className="text-white font-semibold text-sm">
+                                {volume.toLocaleString()} kg
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
-          </Card>  */}
+          </Card>
 
-          {/* Distribución porcentual
+          {/* Distribución porcentual */}
           <Card>
             <CardHeader>
               <CardTitle>Distribución del Entrenamiento</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {sortedMuscleGroups.map(group => {
-                  const volume = muscleGroupVolume.volume[group];
-                  const sets = muscleGroupVolume.count[group];
-                  const percentage = muscleGroupPercentages[group];
+              {totalVolume === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">📈</div>
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    No hay datos de distribución
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Completa sesiones con ejercicios que tengan peso registrado para ver la distribución
+                  </p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {sortedMuscleGroups.map(group => {
+                    const volume = muscleGroupVolume.volume[group];
+                    const sets = muscleGroupVolume.count[group];
+                    const percentage = muscleGroupPercentages[group];
 
-                  if (volume === 0) return null;
+                    if (volume === 0) return null;
 
-                  return (
-                    <div
-                      key={group}
-                      className="p-4 rounded-lg border-2 transition-all hover:shadow-lg"
-                      style={{ 
-                        borderColor: MUSCLE_COLORS[group],
-                        backgroundColor: `${MUSCLE_COLORS[group]}10`
-                      }}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: MUSCLE_COLORS[group] }}
-                        />
-                        <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                          {MUSCLE_LABELS[group]}
-                        </span>
+                    return (
+                      <div
+                        key={group}
+                        className="p-4 rounded-lg border-2 transition-all hover:shadow-lg"
+                        style={{ 
+                          borderColor: MUSCLE_COLORS[group],
+                          backgroundColor: `${MUSCLE_COLORS[group]}10`
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: MUSCLE_COLORS[group] }}
+                          />
+                          <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                            {MUSCLE_LABELS[group]}
+                          </span>
+                        </div>
+                        <div className="text-2xl font-bold mb-1" style={{ color: MUSCLE_COLORS[group] }}>
+                          {percentage.toFixed(1)}%
+                        </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          {sets} series • {volume.toLocaleString()} kg
+                        </div>
                       </div>
-                      <div className="text-2xl font-bold mb-1" style={{ color: MUSCLE_COLORS[group] }}>
-                        {percentage.toFixed(1)}%
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        {sets} series • {volume.toLocaleString()} kg
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
-          </Card> */}
+          </Card>
         </div>
       </div>
     </ProtectedRoute>

@@ -18,6 +18,11 @@ import type { WorkoutSession, UserProfile, Routine } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { calculateAchievements, getRecentAchievements, calculateStreak } from '@/lib/achievements';
 import { 
+  calculateTotalVolume,
+  calculateTotalSets,
+  filterSessionsByMonth
+} from '@/lib/utils/dateUtils';
+import { 
   Dumbbell, 
   TrendingUp, 
   Calendar, 
@@ -83,137 +88,81 @@ export default function DashboardPage() {
     }
   };
 
-  // Cálculos de estadísticas
-  const stats = {
-    totalSessions: validSessions.length,
-    
-    totalVolume: validSessions.reduce((total, session) => {
-      if (!session.exercises || !Array.isArray(session.exercises)) return total;
-      return total + session.exercises.reduce((exTotal, ex) => {
-        if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
-        return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-          return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
-        }, 0);
-      }, 0);
-    }, 0),
-
-    totalSets: validSessions.reduce((total, session) => {
-      if (!session.exercises || !Array.isArray(session.exercises)) return total;
-      return total + session.exercises.reduce((exTotal, ex) => {
-        return exTotal + (ex.actualReps?.length || 0);
-      }, 0);
-    }, 0),
-
-    currentStreak: (() => {
-      if (validSessions.length === 0) return 0;
+  // Cálculos de estadísticas usando helpers para consistencia
+  const stats = useMemo(() => {
+    return {
+      totalSessions: validSessions.length,
       
-      const sortedDates = validSessions
-        .map(s => new Date(s.date).setHours(0, 0, 0, 0))
-        .sort((a, b) => b - a);
+      totalVolume: calculateTotalVolume(validSessions),
 
-      const uniqueDates = [...new Set(sortedDates)];
-      const today = new Date().setHours(0, 0, 0, 0);
-      
-      if (uniqueDates[0] !== today && uniqueDates[0] !== today - 86400000) {
-        return 0;
-      }
+      totalSets: validSessions.reduce((total, session) => {
+        return total + calculateTotalSets(session.exercises);
+      }, 0),
 
-      let streak = 0;
-      let currentDate = today;
+      currentStreak: calculateStreak(validSessions).current,
 
-      for (const date of uniqueDates) {
-        if (date === currentDate || date === currentDate - 86400000) {
-          streak++;
-          currentDate = date - 86400000;
-        } else {
-          break;
-        }
-      }
+      thisMonthVolume: (() => {
+        const now = new Date();
+        const thisMonth = filterSessionsByMonth(validSessions, now.getMonth(), now.getFullYear());
+        return calculateTotalVolume(thisMonth);
+      })(),
 
-      return streak;
-    })(),
+      lastMonthVolume: (() => {
+        const now = new Date();
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthSessions = filterSessionsByMonth(
+          validSessions,
+          lastMonth.getMonth(),
+          lastMonth.getFullYear()
+        );
+        return calculateTotalVolume(lastMonthSessions);
+      })(),
 
-    thisMonthVolume: (() => {
-      const now = new Date();
-      const thisMonth = validSessions.filter(s => {
-        const date = new Date(s.date);
-        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-      });
-
-      return thisMonth.reduce((total, session) => {
-        if (!session.exercises || !Array.isArray(session.exercises)) return total;
-        return total + session.exercises.reduce((exTotal, ex) => {
-          if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
-          return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-            return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
-          }, 0);
-        }, 0);
-      }, 0);
-    })(),
-
-    lastMonthVolume: (() => {
-      const now = new Date();
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthSessions = validSessions.filter(s => {
-        const date = new Date(s.date);
-        return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
-      });
-
-      return lastMonthSessions.reduce((total, session) => {
-        if (!session.exercises || !Array.isArray(session.exercises)) return total;
-        return total + session.exercises.reduce((exTotal, ex) => {
-          if (!ex.actualReps || !Array.isArray(ex.actualReps)) return exTotal;
-          return exTotal + ex.actualReps.reduce((repTotal, reps, idx) => {
-            return repTotal + (reps * (ex.actualWeight?.[idx] || 0));
-          }, 0);
-        }, 0);
-      }, 0);
-    })(),
-
-    favoriteExercise: (() => {
-      const exerciseCounts: Record<string, number> = {};
-      
-      validSessions.forEach(session => {
-        if (!session.exercises || !Array.isArray(session.exercises)) return;
-        session.exercises.forEach(ex => {
-          // Intentar usar el nombre guardado primero
-          let exerciseName = ex.exerciseName;
-          
-          // Si no hay nombre guardado, buscar usando el exerciseId
-          if (!exerciseName) {
-            // Buscar en las rutinas
-            for (const routine of routines) {
-              const exercise = routine.exercises.find(e => e.id === ex.exerciseId);
-              if (exercise) {
-                exerciseName = exercise.name;
-                break;
+      favoriteExercise: (() => {
+        const exerciseCounts: Record<string, number> = {};
+        
+        validSessions.forEach(session => {
+          if (!session.exercises || !Array.isArray(session.exercises)) return;
+          session.exercises.forEach(ex => {
+            // Intentar usar el nombre guardado primero
+            let exerciseName = ex.exerciseName;
+            
+            // Si no hay nombre guardado, buscar usando el exerciseId
+            if (!exerciseName) {
+              // Buscar en las rutinas
+              for (const routine of routines) {
+                const exercise = routine.exercises.find(e => e.id === ex.exerciseId);
+                if (exercise) {
+                  exerciseName = exercise.name;
+                  break;
+                }
+              }
+              
+              // Si no se encontró en rutinas, buscar en EXERCISE_DATABASE
+              if (!exerciseName) {
+                const exerciseTemplate = EXERCISE_DATABASE.find(e => e.id === ex.exerciseId);
+                if (exerciseTemplate) {
+                  exerciseName = exerciseTemplate.name;
+                }
               }
             }
             
-            // Si no se encontró en rutinas, buscar en EXERCISE_DATABASE
+            // Si aún no tenemos nombre, usar un fallback descriptivo
             if (!exerciseName) {
-              const exerciseTemplate = EXERCISE_DATABASE.find(e => e.id === ex.exerciseId);
-              if (exerciseTemplate) {
-                exerciseName = exerciseTemplate.name;
-              }
+              exerciseName = t('unnamedExercise');
             }
-          }
-          
-          // Si aún no tenemos nombre, usar un fallback descriptivo
-          if (!exerciseName) {
-            exerciseName = t('unnamedExercise');
-          }
-          
-          exerciseCounts[exerciseName] = (exerciseCounts[exerciseName] || 0) + 1;
+            
+            exerciseCounts[exerciseName] = (exerciseCounts[exerciseName] || 0) + 1;
+          });
         });
-      });
 
-      const entries = Object.entries(exerciseCounts);
-      if (entries.length === 0) return t('notApplicable');
-      
-      return entries.sort((a, b) => b[1] - a[1])[0][0];
-    })()
-  };
+        const entries = Object.entries(exerciseCounts);
+        if (entries.length === 0) return t('notApplicable');
+        
+        return entries.sort((a, b) => b[1] - a[1])[0][0];
+      })()
+    };
+  }, [validSessions, routines, t]);
 
   const volumeTrend = stats.lastMonthVolume > 0 
     ? ((stats.thisMonthVolume - stats.lastMonthVolume) / stats.lastMonthVolume) * 100
@@ -432,6 +381,7 @@ export default function DashboardPage() {
             {/* Streak Info */}
             {(() => {
               const streak = calculateStreak(sessions);
+              console.log('Calculated streak:', streak.current, 'Longest:', streak.longest);
               return (
                 <div className="mt-6 pt-6 border-t border-amber-200 dark:border-zinc-700">
                   <div className="grid grid-cols-2 gap-4">
