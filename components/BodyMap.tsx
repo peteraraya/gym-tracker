@@ -13,6 +13,11 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
   const [hovered, setHovered] = useState<MuscleGroup | null>(null);
   const isActive = (muscle: MuscleGroup) => isSelected(muscle) || hovered === muscle;
 
+  // Helper function to handle muscle group clicks
+  const handleMuscleClick = (muscle: MuscleGroup) => {
+    onMuscleClick(muscle);
+  };
+
   return (
     <div className="flex justify-center items-center gap-8">
       {/* Vista Frontal */}
@@ -42,8 +47,28 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           <g>
             <path d="M 110 10 Q 95 10 88 18 Q 84 24 84 32 Q 84 40 88 46 Q 92 50 98 52 L 98 56 Q 98 60 102 60 L 118 60 Q 122 60 122 56 L 122 52 Q 128 50 132 46 Q 136 40 136 32 Q 136 24 132 18 Q 125 10 110 10 Z" 
               fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5" />
-            {/* Neck */}
-            <path d="M 102 60 L 102 78 L 118 78 L 118 60" fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5" />
+          </g>
+
+          {/* Cuello (Neck) - clickeable */}
+          <g
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected('cuello')}
+            onClick={() => handleMuscleClick('cuello')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('cuello'); }}
+            onMouseEnter={() => setHovered('cuello')}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered('cuello')}
+            onBlur={() => setHovered(null)}
+            className="cursor-pointer transition-all"
+            aria-label="Cuello"
+          >
+            <path d="M 102 60 L 102 78 L 118 78 L 118 60" 
+              fill={isActive('cuello') ? 'url(#muscleGrad)' : 'var(--surface)'} 
+              stroke={isActive('cuello') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.5">
+              <title>Cuello</title>
+            </path>
           </g>
 
           {/* Shoulders (anatomical deltoids) */}
@@ -51,8 +76,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('hombros')}
-            onClick={() => onMuscleClick('hombros')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('hombros'); }}
+            onClick={() => handleMuscleClick('hombros')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('hombros'); }}
             onMouseEnter={() => setHovered('hombros')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('hombros')}
@@ -81,8 +106,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('pecho')}
-            onClick={() => onMuscleClick('pecho')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('pecho'); }}
+            onClick={() => handleMuscleClick('pecho')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('pecho'); }}
             onMouseEnter={() => setHovered('pecho')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('pecho')}
@@ -106,40 +131,64 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             </path>
           </g>
 
-          {/* Arms (biceps + forearms with anatomical curves) */}
+          {/* Biceps (upper arms) */}
           <g
             role="button"
             tabIndex={0}
-            aria-pressed={isSelected('brazos')}
-            onClick={() => onMuscleClick('brazos')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('brazos'); }}
-            onMouseEnter={() => setHovered('brazos')}
+            aria-pressed={isSelected('biceps')}
+            onClick={() => handleMuscleClick('biceps')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('biceps'); }}
+            onMouseEnter={() => setHovered('biceps')}
             onMouseLeave={() => setHovered(null)}
-            onFocus={() => setHovered('brazos')}
+            onFocus={() => setHovered('biceps')}
             onBlur={() => setHovered(null)}
-            aria-label="Brazos"
+            aria-label="Bíceps"
             className="cursor-pointer"
           >
-            {/* Left upper arm */}
+            {/* Left bicep */}
             <path className="muscle" d="M 60 112 Q 52 114 48 122 Q 44 132 44 145 Q 46 156 52 162 L 60 160 Q 62 150 62 138 Q 62 124 60 112 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
+              fill={isActive('biceps') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
+              stroke={isActive('biceps') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Bíceps</title>
+            </path>
+            {/* Right bicep */}
+            <path className="muscle" d="M 160 112 Q 168 114 172 122 Q 176 132 176 145 Q 174 156 168 162 L 160 160 Q 158 150 158 138 Q 158 124 160 112 Z" 
+              fill={isActive('biceps') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
+              stroke={isActive('biceps') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Bíceps</title>
+            </path>
+          </g>
+
+          {/* Antebrazos (forearms) */}
+          <g
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected('antebrazos')}
+            onClick={() => handleMuscleClick('antebrazos')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('antebrazos'); }}
+            onMouseEnter={() => setHovered('antebrazos')}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered('antebrazos')}
+            onBlur={() => setHovered(null)}
+            aria-label="Antebrazos"
+            className="cursor-pointer"
+          >
             {/* Left forearm */}
             <path className="muscle" d="M 52 162 Q 48 170 46 182 Q 44 194 44 206 Q 46 214 50 218 L 56 216 Q 58 206 58 194 Q 58 178 56 168 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
-            {/* Right upper arm */}
-            <path className="muscle" d="M 160 112 Q 168 114 172 122 Q 176 132 176 145 Q 174 156 168 162 L 160 160 Q 158 150 158 138 Q 158 124 160 112 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
+              fill={isActive('antebrazos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
+              stroke={isActive('antebrazos') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Antebrazos</title>
+            </path>
             {/* Right forearm */}
             <path className="muscle" d="M 168 162 Q 172 170 174 182 Q 176 194 176 206 Q 174 214 170 218 L 164 216 Q 162 206 162 194 Q 162 178 164 168 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
+              fill={isActive('antebrazos') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
+              stroke={isActive('antebrazos') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Antebrazos</title>
+            </path>
           </g>
 
           {/* Core (abs with anatomical detail) */}
@@ -147,8 +196,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('core')}
-            onClick={() => onMuscleClick('core')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('core'); }}
+            onClick={() => handleMuscleClick('core')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('core'); }}
             onMouseEnter={() => setHovered('core')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('core')}
@@ -169,8 +218,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('piernas')}
-            onClick={() => onMuscleClick('piernas')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('piernas'); }}
+            onClick={() => handleMuscleClick('piernas')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('piernas'); }}
             onMouseEnter={() => setHovered('piernas')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('piernas')}
@@ -195,8 +244,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('gemelos')}
-            onClick={() => onMuscleClick('gemelos')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('gemelos'); }}
+            onClick={() => handleMuscleClick('gemelos')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('gemelos'); }}
             onMouseEnter={() => setHovered('gemelos')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('gemelos')}
@@ -221,8 +270,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('hombros')}
-            onClick={() => onMuscleClick('hombros')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('hombros'); }}
+            onClick={() => handleMuscleClick('hombros')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('hombros'); }}
             onMouseEnter={() => setHovered('hombros')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('hombros')}
@@ -273,8 +322,28 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           <g>
             <path d="M 110 10 Q 95 10 88 18 Q 84 24 84 32 Q 84 40 88 46 Q 92 50 98 52 L 98 56 Q 98 60 102 60 L 118 60 Q 122 60 122 56 L 122 52 Q 128 50 132 46 Q 136 40 136 32 Q 136 24 132 18 Q 125 10 110 10 Z" 
               fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5" />
-            {/* Neck */}
-            <path d="M 102 60 L 102 78 L 118 78 L 118 60" fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5" />
+          </g>
+
+          {/* Cuello (Neck) - back view clickeable */}
+          <g
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected('cuello')}
+            onClick={() => handleMuscleClick('cuello')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('cuello'); }}
+            onMouseEnter={() => setHovered('cuello')}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered('cuello')}
+            onBlur={() => setHovered(null)}
+            className="cursor-pointer transition-all"
+            aria-label="Cuello"
+          >
+            <path d="M 102 60 L 102 78 L 118 78 L 118 60" 
+              fill={isActive('cuello') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('cuello') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.5">
+              <title>Cuello</title>
+            </path>
           </g>
 
           {/* Shoulders (back deltoids) */}
@@ -282,8 +351,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('hombros')}
-            onClick={() => onMuscleClick('hombros')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('hombros'); }}
+            onClick={() => handleMuscleClick('hombros')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('hombros'); }}
             onMouseEnter={() => setHovered('hombros')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('hombros')}
@@ -306,27 +375,42 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             </path>
           </g>
 
-          {/* Back (trapezius + lats) */}
+          {/* Trapecio (upper back trapezius) */}
+          <g
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected('trapecio')}
+            onClick={() => handleMuscleClick('trapecio')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('trapecio'); }}
+            onMouseEnter={() => setHovered('trapecio')}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered('trapecio')}
+            onBlur={() => setHovered(null)}
+            className="cursor-pointer transition-all"
+            aria-label="Trapecio"
+          >
+            <path className="muscle" d="M 84 78 Q 88 80 94 82 L 110 84 L 126 82 Q 132 80 136 78 L 134 96 Q 130 102 124 106 L 116 110 L 110 112 L 104 110 L 96 106 Q 90 102 86 96 Z" 
+              fill={isActive('trapecio') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('trapecio') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.5">
+              <title>Trapecio</title>
+            </path>
+          </g>
+
+          {/* Espalda (mid/lower back lats) */}
           <g
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('espalda')}
-            onClick={() => onMuscleClick('espalda')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('espalda'); }}
+            onClick={() => handleMuscleClick('espalda')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('espalda'); }}
             onMouseEnter={() => setHovered('espalda')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('espalda')}
             onBlur={() => setHovered(null)}
             className="cursor-pointer transition-all"
+            aria-label="Espalda"
           >
-            {/* Upper back trapezius */}
-            <path className="muscle" d="M 84 78 Q 88 80 94 82 L 110 84 L 126 82 Q 132 80 136 78 L 134 96 Q 130 102 124 106 L 116 110 L 110 112 L 104 110 L 96 106 Q 90 102 86 96 Z" 
-              fill={isActive('espalda') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
-              stroke={isActive('espalda') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.5">
-              <title>Espalda superior</title>
-            </path>
-            {/* Mid/lower back lats */}
             <path className="muscle" d="M 86 96 Q 82 104 80 116 Q 78 130 78 144 Q 78 158 80 170 Q 82 180 86 188 L 94 186 Q 98 176 100 164 Q 102 150 102 136 Q 102 122 100 110 Z" 
               fill={isActive('espalda') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
               stroke={isActive('espalda') ? 'var(--primary-dark)' : 'var(--border)'} 
@@ -341,39 +425,64 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             </path>
           </g>
 
-          {/* Arms (triceps + forearms back) */}
+          {/* Triceps (back upper arms) */}
           <g
             role="button"
             tabIndex={0}
-            aria-pressed={isSelected('brazos')}
-            onClick={() => onMuscleClick('brazos')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('brazos'); }}
-            onMouseEnter={() => setHovered('brazos')}
+            aria-pressed={isSelected('triceps')}
+            onClick={() => handleMuscleClick('triceps')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('triceps'); }}
+            onMouseEnter={() => setHovered('triceps')}
             onMouseLeave={() => setHovered(null)}
-            onFocus={() => setHovered('brazos')}
+            onFocus={() => setHovered('triceps')}
             onBlur={() => setHovered(null)}
             className="cursor-pointer transition-all"
+            aria-label="Tríceps"
           >
-            {/* Left upper arm */}
+            {/* Left tricep */}
             <path className="muscle" d="M 60 112 Q 52 114 48 122 Q 44 132 44 145 Q 46 156 52 162 L 60 160 Q 62 150 62 138 Q 62 124 60 112 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
+              fill={isActive('triceps') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('triceps') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Tríceps</title>
+            </path>
+            {/* Right tricep */}
+            <path className="muscle" d="M 160 112 Q 168 114 172 122 Q 176 132 176 145 Q 174 156 168 162 L 160 160 Q 158 150 158 138 Q 158 124 160 112 Z" 
+              fill={isActive('triceps') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('triceps') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Tríceps</title>
+            </path>
+          </g>
+
+          {/* Antebrazos (back forearms) */}
+          <g
+            role="button"
+            tabIndex={0}
+            aria-pressed={isSelected('antebrazos')}
+            onClick={() => handleMuscleClick('antebrazos')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('antebrazos'); }}
+            onMouseEnter={() => setHovered('antebrazos')}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered('antebrazos')}
+            onBlur={() => setHovered(null)}
+            className="cursor-pointer transition-all"
+            aria-label="Antebrazos"
+          >
             {/* Left forearm */}
             <path className="muscle" d="M 52 162 Q 48 170 46 182 Q 44 194 44 206 Q 46 214 50 218 L 56 216 Q 58 206 58 194 Q 58 178 56 168 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
-            {/* Right upper arm */}
-            <path className="muscle" d="M 160 112 Q 168 114 172 122 Q 176 132 176 145 Q 174 156 168 162 L 160 160 Q 158 150 158 138 Q 158 124 160 112 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
+              fill={isActive('antebrazos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('antebrazos') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Antebrazos</title>
+            </path>
             {/* Right forearm */}
             <path className="muscle" d="M 168 162 Q 172 170 174 182 Q 176 194 176 206 Q 174 214 170 218 L 164 216 Q 162 206 162 194 Q 162 178 164 168 Z" 
-              fill={isActive('brazos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
-              stroke={isActive('brazos') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.2" />
+              fill={isActive('antebrazos') ? 'url(#muscleGradBack)' : 'var(--surface)'} 
+              stroke={isActive('antebrazos') ? 'var(--primary-dark)' : 'var(--border)'} 
+              strokeWidth="1.2">
+              <title>Antebrazos</title>
+            </path>
           </g>
 
           {/* Lower back / core */}
@@ -381,8 +490,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('core')}
-            onClick={() => onMuscleClick('core')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('core'); }}
+            onClick={() => handleMuscleClick('core')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('core'); }}
             onMouseEnter={() => setHovered('core')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('core')}
@@ -402,8 +511,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('gluteos')}
-            onClick={() => onMuscleClick('gluteos')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('gluteos'); }}
+            onClick={() => handleMuscleClick('gluteos')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('gluteos'); }}
             onMouseEnter={() => setHovered('gluteos')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('gluteos')}
@@ -431,8 +540,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('piernas')}
-            onClick={() => onMuscleClick('piernas')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('piernas'); }}
+            onClick={() => handleMuscleClick('piernas')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('piernas'); }}
             onMouseEnter={() => setHovered('piernas')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('piernas')}
@@ -456,8 +565,8 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             role="button"
             tabIndex={0}
             aria-pressed={isSelected('gemelos')}
-            onClick={() => onMuscleClick('gemelos')}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMuscleClick('gemelos'); }}
+            onClick={() => handleMuscleClick('gemelos')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleMuscleClick('gemelos'); }}
             onMouseEnter={() => setHovered('gemelos')}
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('gemelos')}
