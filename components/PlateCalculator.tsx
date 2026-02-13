@@ -84,7 +84,7 @@ export default function PlateCalculator() {
       if (weight === 20) return 'bg-blue-500';
       if (weight === 15) return 'bg-yellow-500';
       if (weight === 10) return 'bg-green-500';
-      if (weight === 5) return 'bg-white border-2 border-zinc-400';
+      if (weight === 5) return 'bg-zinc-500';
       if (weight === 2.5) return 'bg-red-400';
       if (weight === 2) return 'bg-blue-400';
       if (weight === 1.25) return 'bg-zinc-400';
@@ -117,9 +117,9 @@ export default function PlateCalculator() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Circle className="w-5 h-5 text-green-600" />
+      <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg p-6">
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Circle className="w-5 h-5" />
           Calculadora de Placas para Barra
         </CardTitle>
       </CardHeader>
@@ -243,7 +243,7 @@ export default function PlateCalculator() {
                           <div
                             key={`left-${index}`}
                             className={`${getPlateSize(plate, unit)} ${getPlateColor(plate, unit)} rounded-sm flex items-center justify-center font-bold text-xs ${
-                              plate === 5 || plate === 10 ? 'text-zinc-900' : 'text-white'
+                              (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
                             } shadow-lg`}
                           >
                             {plate}
@@ -268,7 +268,7 @@ export default function PlateCalculator() {
                           <div
                             key={`right-${index}`}
                             className={`${getPlateSize(plate, unit)} ${getPlateColor(plate, unit)} rounded-sm flex items-center justify-center font-bold text-xs ${
-                              plate === 5 || plate === 10 ? 'text-zinc-900' : 'text-white'
+                              (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
                             } shadow-lg`}
                           >
                             {plate}
@@ -281,7 +281,7 @@ export default function PlateCalculator() {
                   {/* Leyenda de colores */}
                   <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">
                     <p className="font-semibold mb-2">Colores estándar IPF/IWF:</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                       {unit === 'kg' ? (
                         <>
                           <div className="flex items-center gap-2">
@@ -299,6 +299,10 @@ export default function PlateCalculator() {
                           <div className="flex items-center gap-2">
                             <div className="w-4 h-4 bg-green-500 rounded-full" />
                             <span>10 kg - Verde</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 bg-zinc-500 rounded-full" />
+                            <span>5 kg - Gris</span>
                           </div>
                         </>
                       ) : (

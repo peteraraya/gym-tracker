@@ -66,9 +66,9 @@ export default function OneRMCalculator() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Dumbbell className="w-5 h-5 text-blue-600" />
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-6">
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Dumbbell className="w-5 h-5" />
           Calculadora de 1RM (Una Repetición Máxima)
         </CardTitle>
       </CardHeader>
