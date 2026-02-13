@@ -88,7 +88,7 @@ export const SetTimer: React.FC<SetTimerProps> = ({
     <div className="bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-2xl p-6 shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <TimerIcon className={`w-5 h-5 ${isPaused ? 'text-amber-600' : 'text-blue-600'}`} />
+          <Timer className={`w-5 h-5 ${isPaused ? 'text-amber-600' : 'text-blue-600'}`} />
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             {t ? t('title') : 'Cronómetro de Serie'}
           </h3>
