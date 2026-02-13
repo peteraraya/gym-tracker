@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
-import { Trophy, TrendingUp } from 'lucide-react';
+import { Trophy, TrendingUp } from '@/components/icons/lucide';
 import { useTranslations, useLocale } from '@/context/LocaleContext';
 
 interface PersonalRecordsProps {

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Search, Filter, Calendar, X } from 'lucide-react';
+import { Search, Filter, Calendar, X } from '@/components/icons/lucide';
 import type { WorkoutSession, Routine } from '@/types';
 
 interface SessionFiltersProps {

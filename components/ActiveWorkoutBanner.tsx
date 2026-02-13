@@ -3,7 +3,7 @@
 import { useWorkout } from '@/context/WorkoutContext';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useRouter } from 'next/navigation';
-import { Activity, X } from 'lucide-react';
+import { Activity, X } from '@/components/icons/lucide';
 import { Button } from './ui/Button';
 
 export function ActiveWorkoutBanner() {

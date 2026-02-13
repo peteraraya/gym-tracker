@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { ArrowLeftRight, Scale } from 'lucide-react';
+import { ArrowLeftRight, Scale } from '@/components/icons/lucide';
 
 export default function UnitConverter() {
   const [kgValue, setKgValue] = useState<number>(100);

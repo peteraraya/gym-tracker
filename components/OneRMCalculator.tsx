@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell } from '@/components/icons/lucide';
 
 export default function OneRMCalculator() {
   const [weight, setWeight] = useState<number>(100);

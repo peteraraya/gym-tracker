@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, DragEvent, useRef } from 'react';
-import { GripVertical } from 'lucide-react';
+import { GripVertical } from '@/components/icons/lucide';
 import { useGym } from '@/context/GymContext';
 import { Button } from '@/components/ui/Button';
 import { useConfirm } from '@/context/ConfirmContext';

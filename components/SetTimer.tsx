@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Play, Pause, Square, Timer as TimerIcon } from 'lucide-react';
+import { Play, Pause, Square, Timer } from '@/components/icons/lucide';
 import { useTranslations } from '@/context/LocaleContext';
 
 interface SetTimerProps {

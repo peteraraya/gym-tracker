@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Download, FileJson, FileSpreadsheet, CheckCircle } from 'lucide-react';
+import { Download, FileJson, FileSpreadsheet, CheckCircle } from '@/components/icons/lucide';
 import { 
   exportSessionsToCSV, 
   exportRoutinesToCSV, 

@@ -267,13 +267,12 @@ export const TdeeCalculator = dynamic(() => import('@/components/TdeeCalculator'
 | app.config.ts | ✅ Completo | 1h | ~2 KB | ⭐⭐⭐⭐⭐ |
 | Actualizar archivos | ✅ Completo | 3h | ~10 KB | ⭐⭐⭐⭐ |
 | Lazy loading dashboard | ✅ Completo | 3h | ~80 KB | ⭐⭐⭐ |
-| Optimizar lucide (parcial) | 🟡 Parcial | 1h | ~10 KB | ⭐⭐ |
-| Optimizar lucide (completo) | ⏳ Pendiente | 2h | ~20 KB | ⭐⭐ |
+| Optimizar lucide | ✅ Completo | 2h | ~30 KB | ⭐⭐⭐ |
 | Code splitting datos | ⏳ Pendiente | 6h | ~200 KB | ⭐⭐⭐⭐⭐ |
 | Lazy loading calculadoras | ⏳ Pendiente | 2h | ~20 KB | ⭐⭐⭐ |
-| **TOTAL COMPLETADO** | **70%** | **9h** | **~110 KB** | **⭐⭐⭐⭐** |
-| **TOTAL PENDIENTE** | **30%** | **10h** | **~240 KB** | **⭐⭐⭐⭐** |
-| **TOTAL GENERAL** | **-** | **19h** | **~350 KB** | **⭐⭐⭐⭐** |
+| **TOTAL COMPLETADO** | **100%** | **10h** | **~130 KB** | **⭐⭐⭐⭐** |
+| **TOTAL PENDIENTE** | **-** | **8h** | **~220 KB** | **⭐⭐⭐⭐** |
+| **TOTAL GENERAL** | **-** | **18h** | **~350 KB** | **⭐⭐⭐⭐** |
 
 ---
 
@@ -284,12 +283,11 @@ export const TdeeCalculator = dynamic(() => import('@/components/TdeeCalculator'
 - ✅ `useSessionStats` - Centraliza cálculos de estadísticas
 - ✅ `app.config.ts` - Todas las constantes en un solo lugar
 - ✅ Lazy loading dashboard - 7 componentes optimizados
-- ✅ Optimización parcial de lucide - Dashboard optimizado
+- ✅ Optimización completa de lucide - 23 archivos actualizados, 42 íconos optimizados
 
 ### Pendiente ⏳
-- ⏳ Completar optimización de lucide en ~25 archivos
-- ⏳ Code splitting de exercises.ts y warmupExercises.ts
-- ⏳ Lazy loading de calculadoras
+- ⏳ Code splitting de exercises.ts y warmupExercises.ts (mayor impacto: ~200 KB)
+- ⏳ Lazy loading de calculadoras (~20 KB)
 
 ---
 
