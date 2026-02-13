@@ -44,44 +44,28 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const data = await storageService.getSessions();
       setSessions(data);
 
-      // Calcular detalles útiles para depuración: completadas, en progreso, huérfanas
-      try {
-        // Obtener rutinas actuales para detectar sesiones huérfanas
-        const currentRoutines = await storageService.getRoutines();
-        const routineIds = new Set((currentRoutines || []).map(r => r.id));
+      // Log para debugging
+      console.log('[GymContext] refreshSessions -> sessions loaded:', data.length);
 
-        const isSessionCompleted = (s: import('@/types').WorkoutSession) => {
-          if (s.completedAt) return true;
-          if (s.totalDuration && s.totalDuration > 0) return true;
-          if (s.exercises && Array.isArray(s.exercises)) {
-            return s.exercises.some(ex => {
-              const hasReps = Array.isArray(ex.actualReps) && ex.actualReps.some(r => typeof r === 'number' && r > 0);
-              const hasWeight = Array.isArray(ex.actualWeight) && ex.actualWeight.some(w => typeof w === 'number' && w > 0);
-              const hasSets = typeof ex.completedSets === 'number' && ex.completedSets > 0;
-              return hasReps || hasWeight || hasSets;
-            });
+      // Si la base de datos está habilitada, verificar si hay sesiones locales que necesitan sincronización
+      if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true') {
+        try {
+          const storageStatus = storageService.getStorageStatus();
+          
+          // Si estamos en modo localStorage por error, intentar sincronizar
+          if (storageStatus.mode === 'localStorage' && storageStatus.hasError) {
+            console.log('[GymContext] Detected localStorage fallback, attempting sync...');
+            const syncResult = await storageService.syncLocalSessionsToDatabase();
+            if (syncResult.synced > 0) {
+              console.log(`[GymContext] Synced ${syncResult.synced} sessions to database`);
+              // Refrescar de nuevo para obtener datos de la BD
+              const freshData = await storageService.getSessions();
+              setSessions(freshData);
+            }
           }
-          return false;
-        };
-
-        const total = Array.isArray(data) ? data.length : 0;
-        const completed = (data || []).filter(isSessionCompleted).length;
-        const inProgress = (data || []).filter(s => s.startedAt && !isSessionCompleted(s)).length;
-        const orphanList = (data || []).filter(s => s.routineId && !routineIds.has(s.routineId));
-        const orphan = orphanList.length;
-
-        // Logs y exposición temporal en window para inspección
-         
-        console.log('[GymContext] refreshSessions -> sessions loaded:', total, { completed, inProgress, orphan });
-        if (typeof window !== 'undefined') {
-          // @ts-ignore - temporal
-          window.__GYM_SESSIONS__ = data;
-          // @ts-ignore - temporal
-          window.__GYM_SESSIONS_DETAILS__ = { total, completed, inProgress, orphan, orphanIds: orphanList.map(s => s.id || null) };
+        } catch (e) {
+          console.warn('[GymContext] Sync check failed:', e);
         }
-      } catch (e) {
-         
-        console.warn('[GymContext] refreshSessions - debug info error', e);
       }
     } catch (error) {
       console.error('Error fetching sessions:', error);
@@ -93,6 +77,18 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
+      
+      // Primero, migrar sesiones antiguas de localStorage si existen
+      try {
+        const migrationResult = await storageService.migrateLegacySessions();
+        if (migrationResult.migrated > 0) {
+          console.log(`[GymContext] Migrated ${migrationResult.migrated} legacy sessions. Total: ${migrationResult.total}`);
+        }
+      } catch (e) {
+        console.warn('[GymContext] Migration failed:', e);
+      }
+      
+      // Luego cargar datos
       await Promise.all([refreshRoutines(), refreshSessions()]);
       setLoading(false);
     };
@@ -159,70 +155,39 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addSession = useCallback(async (session: Omit<WorkoutSession, 'id'>) => {
     try {
-      // TEMP LOG: depuración - eliminar en producción
-      try {
-        // Mostrar resumen ligero para evitar volcar objetos grandes
-        // Evitar fallos si localStorage no está disponible
-        if (typeof window !== 'undefined') {
-          // Mostrar keys locales relevantes
-           
-          console.log('[GymContext] addSession called, session summary:', {
-            routineId: session.routineId,
-            date: session.date,
-            exercises: session.exercises ? session.exercises.length : 0,
-          });
-          try {
-            // Mostrar localStorage keys que podrían contener sesiones
-             
-            console.log('[GymContext] localStorage workoutSessions length:', (localStorage.getItem('workoutSessions') || '').length);
-             
-            console.log('[GymContext] localStorage gym_tracker_sessions length:', (localStorage.getItem('gym_tracker_sessions') || '').length);
-          } catch (e) {
-            // ignore localStorage read errors
-          }
-        }
-      } catch (e) {
-        // ignore logging errors
-      }
+      console.log('[GymContext] addSession called, session summary:', {
+        routineId: session.routineId,
+        date: session.date,
+        exercises: session.exercises ? session.exercises.length : 0,
+      });
 
+      // Guardar sesión (intentará Supabase primero, luego localStorage como fallback)
       await storageService.saveSession(session as WorkoutSession);
-
-      // TEMP LOG: confirmar que saveSession resolvió
       console.log('[GymContext] storageService.saveSession resolved');
 
-      // Leer marcadores de depuración para confirmar dónde se guardó la sesión
-      try {
-        if (typeof window !== 'undefined') {
-          const markerDb = localStorage.getItem('gym_tracker_last_saved_session');
-          const markerLocal = localStorage.getItem('gym_tracker_last_saved_session_local');
-          console.log('[GymContext] save markers -> db:', markerDb, 'local:', markerLocal);
-        }
-      } catch (e) {
-        // ignore
+      // Verificar el estado del storage para debugging
+      const storageStatus = storageService.getStorageStatus();
+      console.log('[GymContext] Storage status:', storageStatus);
+
+      // Si hay error de storage (cayó a localStorage), intentar sincronizar
+      if (storageStatus.hasError) {
+        console.warn('[GymContext] Storage error detected, will attempt sync on next load');
       }
 
+      // Refrescar sesiones para obtener la lista actualizada
       await refreshSessions();
-
-      // TEMP LOG: confirmar refresh
-       
-      console.log('[GymContext] refreshSessions called (sessions state should update)');
+      console.log('[GymContext] refreshSessions completed');
 
       // Generar recomendaciones de progresión (2-for-2) y persistir mediante storageService
       try {
         const allSessions = await storageService.getSessions();
         const recs = recommendForSession(session as WorkoutSession, allSessions, { repTarget: 8, compound: true });
         if (recs && recs.length > 0) {
-          try {
-            await storageService.saveRecommendations(recs);
-             
-            console.log('[GymContext] Saved progression recommendations via storageService', recs);
-          } catch (e) {
-             
-            console.warn('[GymContext] Failed to save recommendations via storageService, falling back to localStorage', e);
-          }
+          await storageService.saveRecommendations(recs);
+          console.log('[GymContext] Saved progression recommendations', recs.length);
         }
       } catch (e) {
-        // ignore recommendation errors
+        console.warn('[GymContext] Failed to save recommendations:', e);
       }
     } catch (error) {
       console.error('Error adding session:', error);

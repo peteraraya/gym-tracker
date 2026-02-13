@@ -254,7 +254,13 @@ export default function FreeWorkoutPage() {
 
       clearStorage();
       success('¡Sesión de entrenamiento libre guardada!');
+      
+      // Pequeña espera para asegurar que el estado se propague
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Navegar y forzar actualización del router para que los datos se refresquen
       router.push('/sessions');
+      router.refresh();
     } catch (err) {
       console.error('Error saving free training session:', err);
       error('Error al guardar la sesión');

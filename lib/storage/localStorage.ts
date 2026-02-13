@@ -476,3 +476,74 @@ export async function saveWeeklyPlan(plan: Record<string, any>): Promise<void> {
         throw new Error('Error saving weekly plan locally');
     }
 }
+
+// ==================== MIGRATION ====================
+
+/**
+ * Migrar sesiones de la clave antigua 'workoutSessions' a la nueva 'gym_tracker_sessions'
+ * Esta función consolida sesiones que puedan estar en claves antiguas
+ */
+export async function migrateLegacySessions(): Promise<{ migrated: number; total: number }> {
+    if (typeof window === 'undefined') {
+        return { migrated: 0, total: 0 };
+    }
+
+    try {
+        // Claves antiguas que pueden contener sesiones
+        const legacyKeys = ['workoutSessions', 'sessions'];
+        
+        // Obtener sesiones actuales
+        const currentSessions = await getSessions();
+        const currentSessionIds = new Set(currentSessions.map(s => s.id));
+        
+        let migratedCount = 0;
+        const allSessions = [...currentSessions];
+
+        // Revisar cada clave antigua
+        for (const legacyKey of legacyKeys) {
+            try {
+                const legacyData = localStorage.getItem(legacyKey);
+                if (!legacyData) continue;
+
+                const legacySessions = JSON.parse(legacyData);
+                if (!Array.isArray(legacySessions)) continue;
+
+                // Procesar cada sesión antigua
+                for (const session of legacySessions) {
+                    // Convertir fechas
+                    const processedSession: WorkoutSession = {
+                        ...session,
+                        id: session.id || generateId(),
+                        date: new Date(session.date),
+                        startedAt: session.startedAt ? new Date(session.startedAt) : undefined,
+                        completedAt: session.completedAt ? new Date(session.completedAt) : undefined,
+                    };
+
+                    // Solo agregar si no existe ya
+                    if (!currentSessionIds.has(processedSession.id)) {
+                        allSessions.push(processedSession);
+                        currentSessionIds.add(processedSession.id);
+                        migratedCount++;
+                    }
+                }
+
+                // Eliminar la clave antigua después de migrar
+                localStorage.removeItem(legacyKey);
+                console.log(`[Migration] Removed legacy key: ${legacyKey}`);
+            } catch (e) {
+                console.warn(`[Migration] Error processing legacy key ${legacyKey}:`, e);
+            }
+        }
+
+        // Guardar todas las sesiones consolidadas si hubo migración
+        if (migratedCount > 0) {
+            saveToStorage(STORAGE_KEYS.SESSIONS, allSessions);
+            console.log(`[Migration] Migrated ${migratedCount} sessions. Total: ${allSessions.length}`);
+        }
+
+        return { migrated: migratedCount, total: allSessions.length };
+    } catch (error) {
+        console.error('[Migration] Error migrating legacy sessions:', error);
+        return { migrated: 0, total: 0 };
+    }
+}
