@@ -225,6 +225,12 @@ export default function FreeWorkoutPage() {
   };
 
   const finishCompleteWorkout = async () => {
+    // Prevenir guardados duplicados
+    if (showNotesModal === false) {
+      console.warn('[finishCompleteWorkout] Already processing, ignoring duplicate call');
+      return;
+    }
+
     const totalDuration = proposedDuration && proposedDuration > 0
       ? proposedDuration
       : Math.floor((Date.now() - workoutStartTime) / 1000);
@@ -254,7 +260,13 @@ export default function FreeWorkoutPage() {
 
       clearStorage();
       success('¡Sesión de entrenamiento libre guardada!');
-      router.push('/sessions');
+      
+      // Pequeña espera para asegurar que el estado se propague
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Usar replace en lugar de push para prevenir volver atrás
+      router.replace('/sessions');
+      router.refresh();
     } catch (err) {
       console.error('Error saving free training session:', err);
       error('Error al guardar la sesión');

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Modal } from '@/components/ui/Modal';
-import { TrendingUp, TrendingDown, Minus, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, ArrowRight } from '@/components/icons/lucide';
 import type { WorkoutSession, Routine } from '@/types';
 
 interface SessionComparisonProps {

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { Database, Shield, Download, Upload, Info } from 'lucide-react';
+import { Database, Shield, Download, Upload, Info } from '@/components/icons/lucide';
 import ExportData from '@/components/ExportData';
 import ImportData from '@/components/ImportData';
 import { useGym } from '@/context/GymContext';

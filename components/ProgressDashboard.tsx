@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from '@/components/icons/lucide';
 import type { WorkoutSession } from '@/types';
 import { calculateExerciseProgress } from '@/lib/personalRecords';
 import { useTranslations } from '@/context/LocaleContext';

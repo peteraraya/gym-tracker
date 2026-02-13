@@ -3,7 +3,7 @@
 import { Achievement, AchievementCategory } from '@/types';
 import AchievementBadge from './AchievementBadge';
 import { getCategoryProgress } from '@/lib/achievements';
-import { Trophy, Flame, Calendar, Target } from 'lucide-react';
+import { Trophy, Flame, Calendar, Target } from '@/components/icons/lucide';
 
 interface AchievementsGridProps {
   achievements: Achievement[];

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from '@/components/icons/lucide';
 import { Input } from './Input';
 import { useTranslations } from '@/context/LocaleContext';
 

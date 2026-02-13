@@ -582,3 +582,68 @@ export async function saveRecommendations(recommendations: any[]): Promise<void>
         return localStorageService.saveRecommendations(recommendations);
     }
 }
+
+// ==================== MIGRATION ====================
+
+/**
+ * Migrar sesiones de claves antiguas a la clave actual
+ * Útil para consolidar datos después de cambios en el esquema de storage
+ */
+export async function migrateLegacySessions(): Promise<{ migrated: number; total: number }> {
+    // Solo aplica a localStorage, no a Supabase
+    const localStorageService = await import('@/lib/storage/localStorage');
+    return localStorageService.migrateLegacySessions();
+}
+
+/**
+ * Sincronizar sesiones de localStorage a Supabase
+ * Útil cuando hay sesiones guardadas localmente que no están en la BD
+ */
+export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; errors: number }> {
+    if (!isDatabaseEnabled()) {
+        return { synced: 0, errors: 0 };
+    }
+
+    try {
+        // Obtener sesiones de localStorage
+        const localStorageService = await import('@/lib/storage/localStorage');
+        const localSessions = await localStorageService.getSessions();
+
+        // Obtener sesiones de Supabase
+        const supabaseService = await import('@/lib/supabase/service');
+        let dbSessions: any[] = [];
+        try {
+            dbSessions = await supabaseService.getSessions();
+        } catch (e) {
+            console.warn('[syncLocalSessionsToDatabase] Could not fetch DB sessions:', e);
+            return { synced: 0, errors: 0 };
+        }
+
+        const dbSessionIds = new Set(dbSessions.map(s => s.id));
+        let synced = 0;
+        let errors = 0;
+
+        // Sincronizar sesiones que no están en la BD
+        for (const session of localSessions) {
+            if (!dbSessionIds.has(session.id)) {
+                try {
+                    await supabaseService.saveSession(session);
+                    synced++;
+                    console.log(`[syncLocalSessionsToDatabase] Synced session ${session.id} to database`);
+                } catch (e) {
+                    errors++;
+                    console.error(`[syncLocalSessionsToDatabase] Error syncing session ${session.id}:`, e);
+                }
+            }
+        }
+
+        if (synced > 0) {
+            console.log(`[syncLocalSessionsToDatabase] Synced ${synced} sessions to database (${errors} errors)`);
+        }
+
+        return { synced, errors };
+    } catch (error) {
+        console.error('[syncLocalSessionsToDatabase] Error:', error);
+        return { synced: 0, errors: 0 };
+    }
+}

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
-import { Calendar } from 'lucide-react';
+import { Calendar } from '@/components/icons/lucide';
 import { useTranslations } from '@/context/LocaleContext';
 
 interface TrainingFrequencyProps {

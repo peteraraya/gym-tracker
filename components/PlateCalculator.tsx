@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Circle, Minus } from 'lucide-react';
+import { Circle, Minus } from '@/components/icons/lucide';
 
 // Pesos estándar de placas en kg
 const STANDARD_PLATES_KG = [25, 20, 15, 10, 5, 2.5, 2, 1.25, 1, 0.5, 0.25];

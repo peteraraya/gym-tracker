@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useTranslations } from '@/context/LocaleContext';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from '@/components/icons/lucide';
 
 interface ConfirmOptions {
   title?: string;

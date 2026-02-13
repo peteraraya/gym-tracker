@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell } from '@/components/icons/lucide';
 import React from 'react';
 import { useTranslations } from '@/context/LocaleContext';
 

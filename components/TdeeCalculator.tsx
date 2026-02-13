@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Scale } from 'lucide-react';
+import { Scale } from '@/components/icons/lucide';
 import { FitnessGoal, FitnessLevel, UserProfile } from '@/types';
 
 function bmrMifflin(weightKg: number, heightCm: number, age: number, sex: 'male' | 'female') {

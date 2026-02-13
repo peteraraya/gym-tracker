@@ -7,7 +7,7 @@ import PlateCalculator from '@/components/PlateCalculator';
 import UnitConverter from '@/components/UnitConverter';
 import TdeeCalculator from '@/components/TdeeCalculator';
 import { Button } from '@/components/ui/Button';
-import { Calculator, Dumbbell, Circle, Scale, ArrowLeft } from 'lucide-react';
+import { Calculator, Dumbbell, Circle, Scale, ArrowLeft } from '@/components/icons/lucide';
 
 type CalculatorType = '1rm' | 'plates' | 'units' | 'tdee' | null;
 

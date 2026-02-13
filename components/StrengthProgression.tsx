@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import type { WorkoutSession } from '@/types';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown } from '@/components/icons/lucide';
 import { useTranslations } from '@/context/LocaleContext';
 
 interface StrengthProgressionProps {
