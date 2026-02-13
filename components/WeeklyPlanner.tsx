@@ -141,8 +141,8 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       }
       return next;
     });
-    // clear selection
-    setSelectedDayByRoutine(prev => ({ ...prev, [routineId]: '' }));
+    // NO limpiar la selección para permitir agregar a más días
+    // setSelectedDayByRoutine(prev => ({ ...prev, [routineId]: '' }));
   };
 
   return (
@@ -268,41 +268,28 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     >Editar nota</Button>
 
                     <Button
-                      title={(plan[day]?.routines?.length || 0) > 0
-                        ? 'No puedes bloquear un día que tiene rutinas'
-                        : (plan[day]?.blocked ? 'Día bloqueado (descanso). Haz clic para editar nota o desbloquear.' : 'Marcar como día de descanso')
-                      }
                       onClick={async (e) => {
                         e.stopPropagation();
-                        if ((plan[day]?.routines?.length || 0) > 0) return;
-                        if (plan[day]?.blocked) {
-                          // desbloquear mediante confirm modal
-                          try {
-                            const confirmed = await confirm({
-                              title: 'Desbloquear día',
-                              message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
-                              confirmText: 'Desbloquear',
-                              cancelText: 'Cancelar',
-                              variant: 'warning'
-                            });
-                            if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
-                          } catch (e) {
-                            // ignore
-                          }
-                        } else {
-                          setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: !prev[day].blocked } }));
+                        // desbloquear mediante confirm modal
+                        try {
+                          const confirmed = await confirm({
+                            title: 'Desbloquear día',
+                            message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
+                            confirmText: 'Desbloquear',
+                            cancelText: 'Cancelar',
+                            variant: 'warning'
+                          });
+                          if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
+                        } catch (e) {
+                          // ignore
                         }
                       }}
-                      disabled={(plan[day]?.routines?.length || 0) > 0}
-                      variant={plan[day]?.blocked ? "danger" : 'ghost'}
+                      variant="danger"
                       block
                       className="text-sm"
                     >
-                      {plan[day]?.blocked ? 'Desbloquear' : 'Bloquear'}
+                      Desbloquear
                     </Button>
-
-
-
                   </div>
                 </div>
               ) : (
@@ -318,6 +305,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                   </div>
                 ) : (
                   <div className="space-y-2">
+                    {/* Rutinas del día */}
                     {(plan[day]?.routines || []).map(rid => {
                       const r = routines.find(x => x.id === rid);
                       if (!r) return null;
@@ -328,6 +316,22 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                         </div>
                       );
                     })}
+                    
+                    {/* Botón Bloquear - solo visible si el día NO tiene rutinas */}
+                    {(plan[day]?.routines?.length || 0) === 0 && (
+                      <Button
+                        title="Marcar como día de descanso"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: true } }));
+                        }}
+                        variant="ghost"
+                        block
+                        className="text-sm mt-2"
+                      >
+                        Bloquear
+                      </Button>
+                    )}
                   </div>
                 )
               )}
@@ -394,9 +398,11 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                         {DAYS.map(d => {
                           const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
                           const isBlocked = !!plan[d]?.blocked;
+                          // No mostrar días bloqueados en el selector
+                          if (isBlocked) return null;
                           return (
-                            <option key={d} value={d} disabled={isBlocked}>
-                              {LABELS[d]}{alreadyAdded ? ' ✓' : ''}{isBlocked ? ' (descanso)' : ''}
+                            <option key={d} value={d}>
+                              {LABELS[d]}{alreadyAdded ? ' ✓' : ''}
                             </option>
                           );
                         })}
