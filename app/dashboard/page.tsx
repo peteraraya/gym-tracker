@@ -6,15 +6,8 @@ import { useTranslations } from '@/context/LocaleContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatsCard } from '@/components/StatsCard';
-import { ActivityHeatmap } from '@/components/ActivityHeatmap';
-import { VolumeChart } from '@/components/VolumeChart';
-import { MuscleGroupStats } from '@/components/MuscleGroupStats';
-import { PersonalRecords } from '@/components/PersonalRecords';
-import { TrainingFrequency } from '@/components/TrainingFrequency';
-import { StrengthProgression } from '@/components/StrengthProgression';
-import { ProgressDashboard } from '@/components/ProgressDashboard';
 import AchievementBadge from '@/components/AchievementBadge';
-import type { WorkoutSession, UserProfile, Routine } from '@/types';
+import type { UserProfile } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { calculateAchievements, getRecentAchievements, calculateStreak } from '@/lib/achievements';
 import { 
@@ -31,55 +24,42 @@ import {
   Flame,
   Activity,
   BarChart3
-} from 'lucide-react';
+} from '@/components/icons/lucide';
 import { useGym } from '@/context/GymContext';
+import { useValidSessions } from '@/hooks/useValidSessions';
+
+// Lazy loaded components
+import {
+  VolumeChart,
+  ActivityHeatmap,
+  MuscleGroupStats,
+  PersonalRecords,
+  TrainingFrequency,
+  StrengthProgression,
+  ProgressDashboard
+} from './components.lazy';
 
 export default function DashboardPage() {
   const router = useRouter();
-  // const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  // const [routines, setRoutines] = useState<Routine[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const t = useTranslations('dashboard');
 
-  const { sessions, routines } = useGym();
+  const { routines } = useGym();
+  const validSessions = useValidSessions();
   
-    // Excluir sesiones cuya `routineId` ya no exista en las rutinas guardadas
-    const validSessions = useMemo(() => {
-      const routineIds = new Set((routines || []).map(r => r.id));
-      return (sessions || []).filter(s => {
-        // Mantener sesiones sin `routineId` (ejercicios libres), pero excluir
-        // aquellas que referencian una rutina eliminada
-        if (!s.routineId) return true;
-        return routineIds.has(s.routineId);
-      });
-    }, [sessions, routines]);
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
     try {
-      const [sessionsRes, profileRes] = await Promise.all([
-        fetch('/api/sessions'),
-        fetch('/api/profile')
-      ]);
-
-      if (sessionsRes.ok) {
-        const data = await sessionsRes.json();
-        // setSessions(data);
-      }
+      const profileRes = await fetch('/api/profile');
 
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setProfile(profileData);
-      }
-
-      // Cargar rutinas desde localStorage
-      const savedRoutines = localStorage.getItem('gym-routines');
-      if (savedRoutines) {
-        // setRoutines(JSON.parse(savedRoutines));
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -269,7 +249,7 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
-      <VolumeChart sessions={sessions} period={period} />
+      <VolumeChart sessions={validSessions} period={period} />
 
       {/* Activity Heatmap */}
       <div>
@@ -277,7 +257,7 @@ export default function DashboardPage() {
           <TrendingUp className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{t('charts.activityHeatmapTitle')}</h2>
         </div>
-        <ActivityHeatmap sessions={sessions} />
+        <ActivityHeatmap sessions={validSessions} />
       </div>
 
       {/* Additional Stats */}
@@ -323,7 +303,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Advanced Statistics */}
-      {sessions.length > 0 && (
+      {validSessions.length > 0 && (
         <>
           {/* Logros Destacados */}
           <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-amber-200 dark:border-zinc-700">
@@ -351,9 +331,8 @@ export default function DashboardPage() {
             {/* Recent Achievements */}
             <div className="flex gap-6 overflow-x-auto pb-2">
               {(() => {
-                const allAchievements = calculateAchievements(sessions);
+                const allAchievements = calculateAchievements(validSessions);
                 const recentAchievements = getRecentAchievements(allAchievements);
-                const streak = calculateStreak(sessions);
 
                 if (recentAchievements.length === 0) {
                   return (
@@ -380,8 +359,7 @@ export default function DashboardPage() {
 
             {/* Streak Info */}
             {(() => {
-              const streak = calculateStreak(sessions);
-              console.log('Calculated streak:', streak.current, 'Longest:', streak.longest);
+              const streak = calculateStreak(validSessions);
               return (
                 <div className="mt-6 pt-6 border-t border-amber-200 dark:border-zinc-700">
                   <div className="grid grid-cols-2 gap-4">
@@ -411,23 +389,23 @@ export default function DashboardPage() {
 
           {/* Row 1: Muscle Group Stats & Training Frequency */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <MuscleGroupStats sessions={sessions} />
-            <TrainingFrequency sessions={sessions} />
+            <MuscleGroupStats sessions={validSessions} />
+            <TrainingFrequency sessions={validSessions} />
           </div>
 
           {/* Row 2: Personal Records & Strength Progression */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PersonalRecords sessions={sessions} />
-            <StrengthProgression sessions={sessions} />
+            <PersonalRecords sessions={validSessions} />
+            <StrengthProgression sessions={validSessions} />
           </div>
 
           {/* Row 3: Progress Dashboard */}
-          <ProgressDashboard sessions={sessions} />
+          <ProgressDashboard sessions={validSessions} />
         </>
       )}
 
       {/* Quick Actions */}
-      {sessions.length === 0 && (
+      {validSessions.length === 0 && (
         <Card className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 border-blue-200 dark:border-zinc-700">
           <CardContent className="py-8 text-center">
             <Dumbbell className="w-16 h-16 mx-auto mb-4 text-blue-600 dark:text-blue-400" />

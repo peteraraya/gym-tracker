@@ -6,68 +6,17 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { EXERCISE_DATABASE, type MuscleGroup } from '@/data/exercises';
 import { calculateSessionVolume, calculateTotalSets } from '@/lib/utils/dateUtils';
+import { useValidSessions } from '@/hooks/useValidSessions';
+import { APP_CONFIG } from '@/config/app.config';
 
-const MUSCLE_GROUPS: MuscleGroup[] = [
-  'pecho',
-  'espalda',
-  'piernas',
-  'hombros',
-  'biceps',
-  'triceps',
-  'antebrazos',
-  'trapecio',
-  'cuello',
-  'core',
-  'gluteos',
-  'gemelos',
-  'cardio'
-];
-
-const MUSCLE_COLORS: Record<MuscleGroup, string> = {
-  pecho: '#ef4444',      // red
-  espalda: '#3b82f6',    // blue
-  piernas: '#10b981',    // green
-  gluteos: '#ec4899',    // pink
-  hombros: '#8b5cf6',    // purple
-  biceps: '#f97316',     // orange
-  triceps: '#fb923c',    // orange-400
-  antebrazos: '#fdba74', // orange-300
-  trapecio: '#a855f7',   // purple-500
-  cuello: '#c084fc',     // purple-400
-  core: '#eab308',       // yellow
-  gemelos: '#14b8a6',    // teal
-  cardio: '#f43f5e'      // rose
-};
-
-const MUSCLE_LABELS: Record<MuscleGroup, string> = {
-  pecho: 'Pecho',
-  espalda: 'Espalda',
-  piernas: 'Piernas',
-  gluteos: 'Glúteos',
-  hombros: 'Hombros',
-  biceps: 'Bíceps',
-  triceps: 'Tríceps',
-  antebrazos: 'Antebrazos',
-  trapecio: 'Trapecio',
-  cuello: 'Cuello',
-  core: 'Core',
-  gemelos: 'Gemelos',
-  cardio: 'Cardio'
-};
+const MUSCLE_GROUPS = Object.keys(APP_CONFIG.muscleGroupColors) as MuscleGroup[];
+const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
+const MUSCLE_LABELS = APP_CONFIG.muscleGroupLabels;
 
 export default function ProgressPage() {
-  const { sessions, routines, loading } = useGym();
-
-  // Excluir sesiones cuya `routineId` ya no exista en las rutinas guardadas
-  const validSessions = useMemo(() => {
-    const routineIds = new Set((routines || []).map(r => r.id));
-    return (sessions || []).filter(s => {
-      // Mantener sesiones sin `routineId` (ejercicios libres), pero excluir
-      // aquellas que referencian una rutina eliminada
-      if (!s.routineId) return true;
-      return routineIds.has(s.routineId);
-    });
-  }, [sessions, routines]);
+  const { routines } = useGym();
+  const validSessions = useValidSessions();
+  const loading = false; // Loading is handled by useValidSessions
 
   // Calcular volumen total por grupo muscular (series × reps × peso)
   const muscleGroupVolume = useMemo(() => {

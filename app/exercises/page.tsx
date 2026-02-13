@@ -13,8 +13,9 @@ import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { useEquipment } from '@/context/EquipmentContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/Button';
+import { APP_CONFIG } from '@/config/app.config';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = APP_CONFIG.pagination.exercisesPerPage;
 
 export default function ExercisesPage() {
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | null>(null);

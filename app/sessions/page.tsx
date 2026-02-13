@@ -9,6 +9,7 @@ import { SessionFilters } from '@/components/SessionFilters';
 import { SessionComparison } from '@/components/SessionComparison';
 import type { WorkoutSession } from '@/types';
 import * as storageService from '@/lib/storage/storage';
+import { useSessionStats } from '@/hooks/useSessionStats';
 
 export default function SessionsPage() {
   const { sessions: serverSessions, routines, loading } = useGym();
@@ -59,6 +60,9 @@ export default function SessionsPage() {
   }, [serverSessions, localSessions]);
 
   const [filteredSessions, setFilteredSessions] = useState<WorkoutSession[]>(sessions);
+  
+  // Calcular estadísticas usando el hook
+  const stats = useSessionStats(sessions);
 
   function formatDuration(seconds?: number) {
     if (!seconds && seconds !== 0) return '-';
