@@ -405,6 +405,12 @@ export default function WorkoutPage() {
   };
 
   const finishCompleteWorkout = async () => {
+    // Prevenir guardados duplicados
+    if (showNotesModal === false) {
+      console.warn('[finishCompleteWorkout] Already processing, ignoring duplicate call');
+      return;
+    }
+
     // Usar la duración confirmada por el usuario si existe, sino calcular
     const totalDuration = proposedDuration && proposedDuration > 0
       ? proposedDuration
@@ -440,8 +446,8 @@ export default function WorkoutPage() {
       // Pequeña espera para asegurar que el estado se propague
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Navegar y forzar actualización del router para que los datos se refresquen
-      router.push('/sessions');
+      // Usar replace en lugar de push para prevenir volver atrás
+      router.replace('/sessions');
       router.refresh();
     } catch (err) {
       console.error('Error saving session:', err);
