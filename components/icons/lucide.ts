@@ -69,5 +69,11 @@ export {
   Calculator,
   ArrowLeft,
   RefreshCw,
-  Zap
+  Zap,
+  BookOpen,
+  Link,
+  Lightbulb,
+  Home,
+  LayoutDashboard,
+  ClipboardList
 } from 'lucide-react';

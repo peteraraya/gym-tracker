@@ -19,6 +19,10 @@ export type MuscleGroup =
   | 'gemelos'
   | 'cardio';
 
+export type DifficultyLevel = 'principiante' | 'intermedio' | 'avanzado';
+
+export type ExerciseCategory = 'compuesto' | 'aislamiento' | 'cardio' | 'movilidad';
+
 export interface ExerciseTemplate {
   id: string;
   name: string;
@@ -32,6 +36,23 @@ export interface ExerciseTemplate {
   recommendedSets?: string;
   recommendedReps?: string;
   restTime?: string;
+  
+  // Nuevos campos educativos
+  difficulty?: DifficultyLevel;
+  category?: ExerciseCategory;
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  instructions?: string[];
+  commonMistakes?: string[];
+  tips?: string[];
+  benefits?: string[];
+  variations?: {
+    easier?: string[];
+    harder?: string[];
+    alternative?: string[];
+  };
+  safetyNotes?: string[];
+  videoUrl?: string;
 }
 
 export const URL_STORAGE = 'https://hplrrjqgzefkdevbporx.supabase.co/storage/v1/object/public/routine-images/';

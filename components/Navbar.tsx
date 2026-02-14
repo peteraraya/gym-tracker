@@ -23,7 +23,8 @@ import {
   LogOut,
   Menu,
   X,
-  Dumbbell
+  Dumbbell,
+  BookOpen
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -78,6 +79,7 @@ export const Navbar: React.FC = () => {
                 <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" />
                 <NavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} color="amber" />
                 <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" />
+                <NavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} color="indigo" />
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
                 <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
@@ -122,6 +124,7 @@ export const Navbar: React.FC = () => {
                 <MobileNavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} onClick={() => setMobileMenuOpen(false)} />
                 {/* <MobileNavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} onClick={() => setMobileMenuOpen(false)} /> */}
