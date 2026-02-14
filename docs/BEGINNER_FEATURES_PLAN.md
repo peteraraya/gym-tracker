@@ -78,39 +78,113 @@
 
 ---
 
-### 🔄 PASO 3: Onboarding/Tutorial Inicial
-**Estado:** PENDIENTE
+### ✅ PASO 3: Onboarding/Tutorial Inicial
+**Estado:** COMPLETADO
 
-**Diseño propuesto:**
-- Wizard de 4 pasos con diseño profesional
-- Paso 1: Información básica
-  - ¿Cuántos días puedes entrenar? (2-6 días)
-  - ¿Cuánto tiempo por sesión? (30/45/60/90 min)
-  - ¿Cuál es tu nivel? (principiante/intermedio/avanzado)
-- Paso 2: Equipo disponible
-  - Checkboxes con iconos para cada tipo de equipo
-  - Opciones: Barra, Mancuernas, Máquinas, Peso corporal, Poleas, etc.
-- Paso 3: Objetivos
-  - Fuerza máxima
-  - Hipertrofia (ganar músculo)
-  - Pérdida de peso
-  - Resistencia
-  - Fitness general
-- Paso 4: Revisión y generación
-  - Muestra la rutina generada
-  - Permite ajustes manuales
-  - Botón "Crear Rutina"
+**Implementado:**
+- ✅ Context `OnboardingContext.tsx`:
+  - Gestión de estado del tutorial
+  - 9 pasos guiados
+  - Persistencia en localStorage
+  - Auto-inicio para nuevos usuarios (después de 1 segundo)
 
-**Componentes a crear:**
-- `components/RoutineWizard.tsx`
-- `lib/routineGenerator.ts` (lógica de generación)
+- ✅ Componente `Onboarding.tsx`:
+  - Overlay oscuro con backdrop blur
+  - Spotlight animado en elementos objetivo
+  - Tooltip posicionado dinámicamente (top/bottom/left/right)
+  - Barra de progreso visual
+  - Indicadores de puntos (dots)
+  - Navegación entre pasos (anterior/siguiente)
+  - Opción de saltar tutorial
+  - Animaciones suaves (fadeIn, pulse)
+  - Responsive design
+  - Dark mode support
 
-**Algoritmo de generación:**
-- Basado en días disponibles, crear split apropiado
-- Filtrar ejercicios por equipo disponible
-- Seleccionar ejercicios según objetivo y nivel
-- Balancear grupos musculares
-- Ajustar volumen según tiempo disponible
+- ✅ Botón de reinicio `RestartOnboardingButton.tsx`:
+  - Permite ver el tutorial de nuevo
+  - Integrado en página de perfil
+
+- ✅ Integración completa:
+  - OnboardingProvider agregado al layout principal
+  - Componente Onboarding renderizado en layout
+  - Atributos `data-tour` agregados al navbar
+
+**Pasos del tutorial:**
+1. Bienvenida general
+2. Configurar perfil
+3. Crear primera rutina
+4. Explorar ejercicios
+5. Aprender términos (glosario)
+6. Registrar entrenamientos
+7. Visualizar progreso
+8. Usar calculadoras
+9. ¡Listo para empezar!
+
+**Características:**
+- Auto-inicio para nuevos usuarios
+- Scroll automático a elementos destacados
+- Posicionamiento inteligente del tooltip
+- Persistencia del estado (completado/saltado)
+- Diseño profesional con gradientes
+- Botón de reinicio en perfil
+
+---
+
+### ✅ PASO 4: Asistente de Creación de Rutinas Guiado
+**Estado:** COMPLETADO
+
+**Implementado:**
+- ✅ Componente `RoutineWizard.tsx`:
+  - Wizard de 4 pasos con diseño profesional
+  - Paso 1: Información básica
+    - Nombre de la rutina
+    - Días por semana (2-6)
+    - Minutos por sesión (30/45/60/90)
+    - Nivel (principiante/intermedio/avanzado)
+  - Paso 2: Equipo disponible
+    - 8 opciones con iconos: Barra, Mancuernas, Máquinas, Poleas, Peso corporal, Bandas, Kettlebell, TRX
+    - Selección múltiple
+  - Paso 3: Objetivos y enfoque
+    - 5 objetivos: Fuerza, Hipertrofia, Pérdida de peso, Resistencia, Fitness general
+    - 7 áreas de enfoque: Pecho, Espalda, Piernas, Hombros, Brazos, Core, Glúteos
+  - Paso 4: Revisión
+    - Resumen completo de todas las selecciones
+    - Botón "Crear Rutina"
+
+- ✅ Generador inteligente `lib/routineGenerator.ts`:
+  - Determina split según días disponibles:
+    - 2 días: Full Body
+    - 3 días: Push/Pull/Legs o Full Body
+    - 4 días: Upper/Lower
+    - 5 días: Push/Pull/Legs/Upper/Lower
+    - 6 días: PPL x2
+  - Filtra ejercicios por equipo disponible
+  - Ajusta parámetros según objetivo:
+    - Fuerza: 5x5, descanso 180s
+    - Hipertrofia: 4x10, descanso 90s
+    - Pérdida de peso: 3x15, descanso 60s
+    - Resistencia: 3x20, descanso 45s
+    - General: 3x12, descanso 75s
+  - Ajusta volumen según nivel (principiante: -1 serie, avanzado: +1 serie)
+  - Calcula ejercicios según tiempo disponible
+  - Base de datos de ejercicios por grupo muscular
+
+- ✅ Integración en página de rutinas:
+  - Botón "Asistente" junto a "Nueva Rutina"
+  - Generación automática de rutina al completar wizard
+  - Guardado en GymContext
+  - Mensaje de éxito con opción de editar
+
+**Características:**
+- Validación en cada paso
+- Barra de progreso visual
+- Indicadores de puntos (dots)
+- Navegación fluida entre pasos
+- Diseño profesional con gradientes
+- Iconos y emojis para mejor UX
+- Responsive design
+- Dark mode support
+- Animaciones fadeIn
 
 ---
 
