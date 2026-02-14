@@ -263,7 +263,7 @@ export default function ExercisesPage() {
                           </span>
                         ) : (
                           <span className="text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
-                            {total} ej.
+                            {total} ejercicio{total !== 1 ? 's' : ''}
                           </span>
                         )}
                         {warmupCount > 0 && (
@@ -610,45 +610,46 @@ export default function ExercisesPage() {
         {selectedExercise && (
           <ExerciseDetails exercise={selectedExercise} onClose={() => setSelectedExercise(null)} />
         )}
-      </div>
+          </div>
         </div>
       </div>
-      {/* Drawer optimizado para móvil */}
+      {/* Drawer mejorado */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex">
-          <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity" 
-            onClick={() => setDrawerOpen(false)}
-            aria-label="Cerrar panel"
-          />
-          <aside className="ml-auto w-full sm:w-96 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 max-h-screen overflow-y-auto p-4 sm:p-6 z-60 shadow-2xl">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">⚙️ Mi Equipamiento</h3>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity" onClick={() => setDrawerOpen(false)} />
+          <aside className="ml-auto w-full sm:w-96 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 max-h-screen overflow-y-auto p-6 z-60 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">⚙️ Mi Equipamiento</h3>
               <button 
                 onClick={() => setDrawerOpen(false)} 
-                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl leading-none transition-colors active:scale-90"
-                aria-label="Cerrar"
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl leading-none transition-colors"
               >
                 ×
               </button>
             </div>
 
-            <div className="flex gap-2 mb-4 sm:mb-6">
+            <div className="flex gap-2 mb-6">
               <button 
-                onClick={handleEquipmentSelect}
-                className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
+                onClick={() => { 
+                  setEquipment(new Set(EQUIPMENT_LIST.map(e => e.id))); 
+                  toast.success('Seleccionado todo el equipamiento'); 
+                }} 
+                className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all"
               >
-                ✅ Todo
+                ✅ Seleccionar todo
               </button>
               <button 
-                onClick={handleEquipmentClear}
-                className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-500 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold transition-all active:scale-95"
+                onClick={() => { 
+                  clearEquipment(); 
+                  toast.info('Selección limpiada'); 
+                }} 
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-500 text-gray-700 dark:text-gray-300 text-sm font-semibold transition-all"
               >
                 🗑️ Limpiar
               </button>
             </div>
 
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-3">
               {EQUIPMENT_LIST.map((eq) => {
                 const isSelected = selectedEquipment.has(eq.id);
                 return (
@@ -663,21 +664,21 @@ export default function ExercisesPage() {
                       }
                       setDrawerOpen(false);
                     }}
-                    className={`w-full text-left p-3 sm:p-4 rounded-xl border-2 transition-all shadow-sm hover:shadow-md active:scale-[0.98] touch-manipulation ${
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
                       isSelected 
                         ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-400 dark:border-blue-500' 
                         : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                        <div className="text-2xl sm:text-3xl flex-shrink-0">{eq.emoji}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 truncate">{eq.name}</div>
-                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-1">{eq.description}</div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">{eq.emoji}</div>
+                        <div>
+                          <div className="font-semibold text-gray-900 dark:text-gray-100">{eq.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{eq.description}</div>
                         </div>
                       </div>
-                      <div className={`flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center border-2 transition-all text-xs sm:text-sm ${
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all ${
                         isSelected 
                           ? 'bg-blue-600 border-blue-600 text-white' 
                           : 'border-gray-300 dark:border-gray-600'

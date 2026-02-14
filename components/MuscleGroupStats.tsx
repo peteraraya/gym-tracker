@@ -23,10 +23,15 @@ const MUSCLE_GROUP_COLORS: Record<MuscleGroup, string> = {
   espalda: '#10b981',
   piernas: '#f59e0b',
   hombros: '#8b5cf6',
-  brazos: '#ec4899',
+  biceps: '#ec4899',
+  triceps: '#ec4899',
+  antebrazos: '#ec4899',
+  trapecio: '#6366f1',
+  cuello: '#9ca3af',
   core: '#06b6d4',
   gluteos: '#f43f5e',
-  gemelos: '#84cc16'
+  gemelos: '#84cc16',
+  cardio: '#ef4444'
 };
 
 export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) => {

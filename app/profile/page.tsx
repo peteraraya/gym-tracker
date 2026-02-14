@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RestSettings } from '@/components/RestSettings';
+import RestartOnboardingButton from '@/components/RestartOnboardingButton';
 import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
 
 export default function ProfilePage() {
@@ -394,6 +395,19 @@ export default function ProfilePage() {
 
             {/* Configuración de descansos */}
             <RestSettings />
+
+            {/* Tutorial */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tutorial y Ayuda</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  ¿Necesitas un repaso? Vuelve a ver el tutorial interactivo que te guía por todas las funciones de la aplicación.
+                </p>
+                <RestartOnboardingButton />
+              </CardContent>
+            </Card>
 
             {/* Información adicional */}
             <Card>

@@ -13,8 +13,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RoutineForm } from '@/components/RoutineForm';
+import RoutineWizard from '@/components/RoutineWizard';
 import WeeklyPlanner from '@/components/WeeklyPlanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { generateRoutine } from '@/lib/routineGenerator';
 import { 
   Plus, 
   Play, 
@@ -30,12 +32,13 @@ import { useTranslations } from '@/context/LocaleContext';
 
 export default function RoutinesPage() {
   const router = useRouter();
-  const { routines, deleteRoutine, loading } = useGym();
+  const { routines, deleteRoutine, loading, addRoutine } = useGym();
   const { startWorkout, isWorkoutActive, activeWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
   const t = useTranslations('routines');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>('');
 
@@ -47,6 +50,25 @@ export default function RoutinesPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingRoutine(null);
+  };
+
+  const handleWizardComplete = async (data: any) => {
+    try {
+      // Generar rutina usando el generador inteligente
+      const generatedRoutine = await generateRoutine(data);
+      
+      // Remover campos que addRoutine no espera (id, createdAt, updatedAt)
+      const { id, createdAt, updatedAt, ...routineData } = generatedRoutine;
+      
+      // Agregar la rutina al contexto
+      await addRoutine(routineData);
+      
+      setIsWizardOpen(false);
+      success('¡Rutina creada exitosamente! Puedes editarla si lo deseas.');
+    } catch (err) {
+      console.error('Error generating routine:', err);
+      error('Error al generar la rutina. Intenta de nuevo.');
+    }
   };
 
   // Abrir modal si la URL contiene ?create=1 (lee desde window para evitar hooks de navegación en prerender)
@@ -138,14 +160,24 @@ export default function RoutinesPage() {
               {t('subtitle')}
             </p>
           </div>
-          <Button 
-            variant="primary" 
-            onClick={() => setIsModalOpen(true)}
-            className="w-full sm:w-auto"
-          >
-            <Plus className="w-5 h-5" />
-            {t('newRoutine')}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              variant="secondary" 
+              onClick={() => setIsWizardOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              <Zap className="w-5 h-5" />
+              Asistente
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={() => setIsModalOpen(true)}
+              className="w-full sm:w-auto"
+            >
+              <Plus className="w-5 h-5" />
+              {t('newRoutine')}
+            </Button>
+          </div>
         </div>
 
         {/* Botón flotante de Entrenamiento Libre (esquina inferior derecha) */}
@@ -327,6 +359,13 @@ export default function RoutinesPage() {
       >
         <RoutineForm routineId={editingRoutine} onClose={handleCloseModal} />
       </Modal>
+
+      {isWizardOpen && (
+        <RoutineWizard
+          onComplete={handleWizardComplete}
+          onCancel={() => setIsWizardOpen(false)}
+        />
+      )}
     </div>
     </ProtectedRoute>
   );

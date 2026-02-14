@@ -239,9 +239,9 @@ useEffect(() => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Scale className="w-5 h-5 text-amber-600" />
+        <CardHeader className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-t-lg p-6">
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Scale className="w-5 h-5" />
             Calculadora BMR / TDEE + Macros
           </CardTitle>
         </CardHeader>

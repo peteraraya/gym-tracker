@@ -22,12 +22,16 @@ const BAR_WEIGHTS = {
 type BarType = keyof typeof BAR_WEIGHTS;
 
 export default function PlateCalculator() {
+  const [mode, setMode] = useState<'calculate' | 'build'>('calculate');
   const [targetWeight, setTargetWeight] = useState<number>(100);
   const [barType, setBarType] = useState<BarType>('olympic');
   const [unit, setUnit] = useState<'kg' | 'lbs'>('kg');
   const [availablePlates, setAvailablePlates] = useState<number[]>(
     unit === 'kg' ? STANDARD_PLATES_KG : STANDARD_PLATES_LBS
   );
+  
+  // Estado para modo constructor
+  const [selectedPlates, setSelectedPlates] = useState<number[]>([]);
 
   const barWeight = BAR_WEIGHTS[barType][unit];
 
@@ -35,12 +39,31 @@ export default function PlateCalculator() {
   const handleUnitChange = (newUnit: 'kg' | 'lbs') => {
     setUnit(newUnit);
     setAvailablePlates(newUnit === 'kg' ? STANDARD_PLATES_KG : STANDARD_PLATES_LBS);
+    setSelectedPlates([]); // Limpiar placas seleccionadas al cambiar unidad
     // Convertir el peso objetivo
     if (newUnit === 'lbs' && unit === 'kg') {
       setTargetWeight(targetWeight * 2.20462);
     } else if (newUnit === 'kg' && unit === 'lbs') {
       setTargetWeight(targetWeight / 2.20462);
     }
+  };
+
+  // Funciones para modo constructor
+  const addPlate = (weight: number) => {
+    setSelectedPlates([...selectedPlates, weight]);
+  };
+
+  const removePlate = (index: number) => {
+    setSelectedPlates(selectedPlates.filter((_, i) => i !== index));
+  };
+
+  const clearPlates = () => {
+    setSelectedPlates([]);
+  };
+
+  const calculateBuiltWeight = () => {
+    const platesPerSide = selectedPlates.reduce((sum, p) => sum + p, 0);
+    return barWeight + (platesPerSide * 2);
   };
 
   // Calcular placas necesarias
@@ -84,7 +107,7 @@ export default function PlateCalculator() {
       if (weight === 20) return 'bg-blue-500';
       if (weight === 15) return 'bg-yellow-500';
       if (weight === 10) return 'bg-green-500';
-      if (weight === 5) return 'bg-white border-2 border-zinc-400';
+      if (weight === 5) return 'bg-zinc-500';
       if (weight === 2.5) return 'bg-red-400';
       if (weight === 2) return 'bg-blue-400';
       if (weight === 1.25) return 'bg-zinc-400';
@@ -117,14 +140,32 @@ export default function PlateCalculator() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Circle className="w-5 h-5 text-green-600" />
+      <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg p-6">
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Circle className="w-5 h-5" />
           Calculadora de Placas para Barra
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
+          {/* Selector de modo */}
+          <div className="flex gap-2">
+            <Button
+              variant={mode === 'calculate' ? 'primary' : 'secondary'}
+              onClick={() => setMode('calculate')}
+              className="flex-1"
+            >
+              🎯 Calcular Placas
+            </Button>
+            <Button
+              variant={mode === 'build' ? 'primary' : 'secondary'}
+              onClick={() => setMode('build')}
+              className="flex-1"
+            >
+              🔧 Construir Barra
+            </Button>
+          </div>
+
           {/* Selector de unidad */}
           <div className="flex gap-2">
             <Button
@@ -141,18 +182,6 @@ export default function PlateCalculator() {
             >
               Libras (lbs)
             </Button>
-          </div>
-
-          {/* Input de peso objetivo */}
-          <div>
-            <Input
-              type="number"
-              label={`Peso objetivo total (${unit})`}
-              value={targetWeight}
-              onChange={(e) => setTargetWeight(parseFloat(e.target.value) || 0)}
-              min="0"
-              step={unit === 'kg' ? '0.5' : '1'}
-            />
           </div>
 
           {/* Selector de tipo de barra */}
@@ -177,8 +206,105 @@ export default function PlateCalculator() {
             </div>
           </div>
 
-          {/* Resultado */}
-          {targetWeight > 0 && (
+          {/* MODO CALCULAR */}
+          {mode === 'calculate' && (
+            <>
+              {/* Input de peso objetivo */}
+              <div>
+                <Input
+                  type="number"
+                  label={`Peso objetivo total (${unit})`}
+                  value={targetWeight}
+                  onChange={(e) => setTargetWeight(parseFloat(e.target.value) || 0)}
+                  min="0"
+                  step={unit === 'kg' ? '0.5' : '1'}
+                />
+              </div>
+            </>
+          )}
+
+          {/* MODO CONSTRUIR */}
+          {mode === 'build' && (
+            <>
+              {/* Selector de placas */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Selecciona placas por lado
+                  </label>
+                  {selectedPlates.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      onClick={clearPlates}
+                      className="text-xs"
+                    >
+                      Limpiar
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                  {availablePlates.map((plate) => (
+                    <button
+                      key={plate}
+                      onClick={() => addPlate(plate)}
+                      className={`${getPlateColor(plate, unit)} rounded-lg p-3 flex flex-col items-center justify-center font-bold text-sm ${
+                        (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
+                      } shadow-lg hover:scale-105 active:scale-95 transition-transform`}
+                    >
+                      <span>{plate}</span>
+                      <span className="text-xs opacity-75">{unit}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Placas seleccionadas */}
+              {selectedPlates.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    Placas seleccionadas (por lado):
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPlates.map((plate, index) => (
+                      <div
+                        key={index}
+                        onClick={() => removePlate(index)}
+                        className={`${getPlateColor(plate, unit)} rounded-lg px-3 py-2 flex items-center gap-2 font-bold text-sm ${
+                          (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
+                        } shadow-lg cursor-pointer hover:opacity-80 transition-opacity`}
+                      >
+                        <span>{plate} {unit}</span>
+                        <span className="text-xs">✕</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Resultado del constructor */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                      Peso de la barra: {barWeight} {unit}
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Peso por lado: {selectedPlates.reduce((sum, p) => sum + p, 0).toFixed(2)} {unit}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Peso Total</p>
+                    <p className="text-4xl font-bold text-green-600 dark:text-green-400">
+                      {calculateBuiltWeight().toFixed(2)} {unit}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Resultado modo calcular */}
+          {mode === 'calculate' && targetWeight > 0 && (
             <>
               <div className="bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
                 <div className="flex items-center justify-between mb-4">
@@ -243,7 +369,7 @@ export default function PlateCalculator() {
                           <div
                             key={`left-${index}`}
                             className={`${getPlateSize(plate, unit)} ${getPlateColor(plate, unit)} rounded-sm flex items-center justify-center font-bold text-xs ${
-                              plate === 5 || plate === 10 ? 'text-zinc-900' : 'text-white'
+                              (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
                             } shadow-lg`}
                           >
                             {plate}
@@ -268,7 +394,7 @@ export default function PlateCalculator() {
                           <div
                             key={`right-${index}`}
                             className={`${getPlateSize(plate, unit)} ${getPlateColor(plate, unit)} rounded-sm flex items-center justify-center font-bold text-xs ${
-                              plate === 5 || plate === 10 ? 'text-zinc-900' : 'text-white'
+                              (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
                             } shadow-lg`}
                           >
                             {plate}
@@ -281,7 +407,7 @@ export default function PlateCalculator() {
                   {/* Leyenda de colores */}
                   <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">
                     <p className="font-semibold mb-2">Colores estándar IPF/IWF:</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                       {unit === 'kg' ? (
                         <>
                           <div className="flex items-center gap-2">
@@ -299,6 +425,10 @@ export default function PlateCalculator() {
                           <div className="flex items-center gap-2">
                             <div className="w-4 h-4 bg-green-500 rounded-full" />
                             <span>10 kg - Verde</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 bg-zinc-500 rounded-full" />
+                            <span>5 kg - Gris</span>
                           </div>
                         </>
                       ) : (
@@ -334,6 +464,59 @@ export default function PlateCalculator() {
                 </div>
               )}
             </>
+          )}
+
+          {/* Visualización de la barra construida */}
+          {mode === 'build' && selectedPlates.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                Vista de la barra:
+              </h4>
+              
+              {/* Visualización gráfica de la barra */}
+              <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-6 overflow-x-auto">
+                <div className="flex items-center justify-center gap-2 min-w-max">
+                  {/* Lado izquierdo */}
+                  <div className="flex items-center gap-1">
+                    {[...selectedPlates].reverse().map((plate, index) => (
+                      <div
+                        key={`left-${index}`}
+                        className={`${getPlateSize(plate, unit)} ${getPlateColor(plate, unit)} rounded-sm flex items-center justify-center font-bold text-xs ${
+                          (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
+                        } shadow-lg`}
+                      >
+                        {plate}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Barra */}
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-zinc-400 rounded-full" />
+                    <div className="h-3 bg-zinc-400" style={{ width: '120px' }}>
+                      <div className="h-full flex items-center justify-center">
+                        <Minus className="w-16 h-2 text-zinc-600" />
+                      </div>
+                    </div>
+                    <div className="w-3 h-3 bg-zinc-400 rounded-full" />
+                  </div>
+
+                  {/* Lado derecho */}
+                  <div className="flex items-center gap-1">
+                    {selectedPlates.map((plate, index) => (
+                      <div
+                        key={`right-${index}`}
+                        className={`${getPlateSize(plate, unit)} ${getPlateColor(plate, unit)} rounded-sm flex items-center justify-center font-bold text-xs ${
+                          (unit === 'lbs' && plate === 10) ? 'text-zinc-900' : 'text-white'
+                        } shadow-lg`}
+                      >
+                        {plate}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </CardContent>

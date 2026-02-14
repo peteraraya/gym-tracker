@@ -23,7 +23,8 @@ import {
   LogOut,
   Menu,
   X,
-  Dumbbell
+  Dumbbell,
+  BookOpen
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -72,16 +73,17 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center space-x-1 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-1.5">
                 <NavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} color="blue" />
                 <NavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} color="cyan" />
-                <NavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} color="blue" />
+                <NavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} color="blue" data-tour="routines" />
                 <NavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} color="purple" />
-                <NavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} color="emerald" />
+                <NavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} color="emerald" data-tour="progress" />
                 <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" />
                 <NavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} color="amber" />
-                <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" />
+                <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" data-tour="exercises" />
+                <NavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
-                <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" />
+                <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
-                {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" />}
+                {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" data-tour="profile" />}
               </div>
               
               <LanguageSwitcher />
@@ -122,6 +124,7 @@ export const Navbar: React.FC = () => {
                 <MobileNavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} onClick={() => setMobileMenuOpen(false)} />
                 {/* <MobileNavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} onClick={() => setMobileMenuOpen(false)} /> */}
@@ -156,9 +159,10 @@ interface NavLinkProps {
   label: string;
   isActive: boolean;
   color: string;
+  'data-tour'?: string;
 }
 
-const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, color }) => {
+const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, color, 'data-tour': dataTour }) => {
   const colorClasses = {
     blue: 'from-blue-600 to-blue-500 shadow-blue-500/30',
     cyan: 'from-cyan-600 to-cyan-500 shadow-cyan-500/30',
@@ -172,6 +176,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, co
   return (
     <Link
       href={href}
+      data-tour={dataTour}
       className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
         isActive
           ? `bg-linear-to-r ${colorClasses[color as keyof typeof colorClasses]} text-white shadow-lg`

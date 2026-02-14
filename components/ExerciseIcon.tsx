@@ -12,9 +12,14 @@ const MUSCLE_ICONS: Record<MuscleGroup, string> = {
   piernas: '🦵',
   gluteos: '🍑',
   hombros: '🏋️',
-  brazos: '💪',
+  biceps: '💪',
+  triceps: '💪',
+  antebrazos: '💪',
+  trapecio: '🦴',
+  cuello: '🦴',
   core: '🎯',
-  gemelos: '🦶'
+  gemelos: '🦶',
+  cardio: '❤️'
 };
 
 const MUSCLE_COLORS: Record<MuscleGroup, { bg: string; text: string }> = {
@@ -23,9 +28,14 @@ const MUSCLE_COLORS: Record<MuscleGroup, { bg: string; text: string }> = {
   piernas: { bg: 'bg-green-100 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400' },
   gluteos: { bg: 'bg-pink-100 dark:bg-pink-900/20', text: 'text-pink-600 dark:text-pink-400' },
   hombros: { bg: 'bg-purple-100 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' },
-  brazos: { bg: 'bg-orange-100 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
+  biceps: { bg: 'bg-orange-100 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
+  triceps: { bg: 'bg-orange-100 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
+  antebrazos: { bg: 'bg-orange-100 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
+  trapecio: { bg: 'bg-indigo-100 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-400' },
+  cuello: { bg: 'bg-gray-100 dark:bg-gray-900/20', text: 'text-gray-600 dark:text-gray-400' },
   core: { bg: 'bg-yellow-100 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400' },
-  gemelos: { bg: 'bg-teal-100 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' }
+  gemelos: { bg: 'bg-teal-100 dark:bg-teal-900/20', text: 'text-teal-600 dark:text-teal-400' },
+  cardio: { bg: 'bg-rose-100 dark:bg-rose-900/20', text: 'text-rose-600 dark:text-rose-400' }
 };
 
 export function ExerciseIcon({ muscleGroup, className = '' }: ExerciseIconProps) {
