@@ -11,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
 import { SetTimer } from '@/components/SetTimer';
+import SetTypeSelector from '@/components/SetTypeSelector';
 import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
@@ -40,6 +41,7 @@ export default function WorkoutPage() {
   const [completedSets, setCompletedSets] = useState<{[key: string]: number}>({});
   const [actualReps, setActualReps] = useState<{[key: string]: number[]}>({});
   const [actualWeights, setActualWeights] = useState<{[key: string]: number[]}>({});
+  const [setTypes, setSetTypes] = useState<{[key: string]: import('@/types').SetType[]}>({});
   const [lastWeights, setLastWeights] = useState<{[key: string]: number[]}>({});
   const [restOverrides, setRestOverrides] = useState<{[key: string]: number}>({});
   const [actualSetDurations, setActualSetDurations] = useState<{[key: string]: number[]}>({});
@@ -348,6 +350,15 @@ export default function WorkoutPage() {
     }
   };
 
+  const handleEditSetType = (exerciseId: string, setIndex: number, type: import('@/types').SetType) => {
+    setSetTypes(prev => {
+      const copy = { ...prev };
+      copy[exerciseId] = copy[exerciseId] ? [...copy[exerciseId]] : [];
+      copy[exerciseId][setIndex] = type;
+      return copy;
+    });
+  };
+
   const handleEditRestOverride = (exerciseId: string, value: number) => {
     setRestOverrides(prev => {
       const copy = { ...prev, [exerciseId]: value };
@@ -606,43 +617,89 @@ export default function WorkoutPage() {
                         const exerciseId = currentExercise.id;
                         const doneReps = (actualReps[exerciseId] && actualReps[exerciseId][idx]) ?? null;
                         const doneWeight = (actualWeights[exerciseId] && actualWeights[exerciseId][idx]) ?? lastWeights[exerciseId]?.[idx] ?? set.weight ?? '';
+                        const setType = (setTypes[exerciseId] && setTypes[exerciseId][idx]) || set.type || 'normal';
                         const isCompleted = typeof doneReps === 'number' && doneReps > 0;
                         return (
-                          <div key={`${exerciseId}-s-${idx}`} className={`flex items-center gap-3 p-2 rounded-lg ${isCompleted ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-50 dark:bg-gray-800'}`}>
-                            <div className="w-8 text-sm font-medium text-gray-800 dark:text-gray-100">{idx + 1}</div>
-                            <div className="flex-1">
-                              <div className="text-sm text-gray-700 dark:text-gray-200">Reps: <span className="font-semibold">{set.reps}</span></div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">Descanso: {currentExercise.restBetweenSets ?? routine.restBetweenSets ?? 60}s</div>
-                            </div>
-                            <div className="w-28">
-                              <input
-                                type="number"
-                                className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-sm"
-                                value={doneWeight}
-                                onChange={(e) => {
-                                  const v = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                  handleEditWeight(currentExercise.id, idx, v);
-                                }}
-                                step="0.5"
-                                min="0"
+                          <div key={`${exerciseId}-s-${idx}`} className={`p-3 rounded-lg border-2 transition-all ${
+                            isCompleted 
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700' 
+                              : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                          }`}>
+                            {/* Header de la serie */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm">
+                                  {idx + 1}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    Serie {idx + 1}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {set.reps} reps objetivo
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Selector de tipo de serie */}
+                              <SetTypeSelector
+                                value={setType}
+                                onChange={(type) => handleEditSetType(exerciseId, idx, type)}
+                                compact
                               />
-                              <div className="text-xs text-gray-500">kg</div>
                             </div>
-                            <div className="w-28">
-                              <select
-                                className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-sm"
-                                value={restOverrides[currentExercise.id] ?? currentExercise.restBetweenSets ?? routine.restBetweenSets ?? 60}
-                                onChange={(e) => {
-                                  const v = parseInt(e.target.value || '0');
-                                  handleEditRestOverride(currentExercise.id, v);
-                                }}
-                              >
-                                {Array.from({ length: 60 }, (_, i) => (i + 1) * 5).map(sec => (
-                                  <option key={sec} value={sec}>{sec}s</option>
-                                ))}
-                              </select>
-                              <div className="text-xs text-gray-500">Descanso</div>
+
+                            {/* Inputs de peso y descanso */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                  Peso (kg)
+                                </label>
+                                <input
+                                  type="number"
+                                  className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  value={doneWeight === 0 ? '' : doneWeight}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                      handleEditWeight(currentExercise.id, idx, 0);
+                                    } else {
+                                      const num = parseFloat(val);
+                                      handleEditWeight(currentExercise.id, idx, isNaN(num) ? 0 : Math.max(0, num));
+                                    }
+                                  }}
+                                  step="0.5"
+                                  min="0"
+                                  placeholder="Peso en kg"
+                                />
+                              </div>
+                              
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                  Descanso (s)
+                                </label>
+                                <select
+                                  className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  value={restOverrides[currentExercise.id] ?? currentExercise.restBetweenSets ?? routine.restBetweenSets ?? 60}
+                                  onChange={(e) => {
+                                    const v = parseInt(e.target.value || '0');
+                                    handleEditRestOverride(currentExercise.id, v);
+                                  }}
+                                >
+                                  {Array.from({ length: 60 }, (_, i) => (i + 1) * 5).map(sec => (
+                                    <option key={sec} value={sec}>{sec}s</option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
+
+                            {/* Indicador de completado */}
+                            {isCompleted && (
+                              <div className="mt-2 flex items-center gap-2 text-xs text-green-700 dark:text-green-300">
+                                <span>✓</span>
+                                <span>Completada: {doneReps} reps @ {doneWeight}kg</span>
+                              </div>
+                            )}
                           </div>
                         );
                       })}

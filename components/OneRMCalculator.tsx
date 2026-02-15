@@ -80,20 +80,38 @@ export default function OneRMCalculator() {
               <Input
                 type="number"
                 label={`Peso levantado (${unit})`}
-                value={weight}
-                onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+                value={weight === 0 ? '' : weight}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setWeight(0);
+                  } else {
+                    const num = parseFloat(val);
+                    setWeight(isNaN(num) ? 0 : Math.max(0, num));
+                  }
+                }}
                 min="0"
                 step="0.5"
+                placeholder="Peso"
               />
             </div>
             <div>
               <Input
                 type="number"
                 label="Repeticiones realizadas"
-                value={reps}
-                onChange={(e) => setReps(parseInt(e.target.value) || 1)}
+                value={reps === 0 ? '' : reps}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setReps(1);
+                  } else {
+                    const num = parseInt(val);
+                    setReps(isNaN(num) ? 1 : Math.max(1, Math.min(12, num)));
+                  }
+                }}
                 min="1"
                 max="12"
+                placeholder="Reps"
               />
             </div>
           </div>

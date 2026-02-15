@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
 import { EquipmentDropdown } from '@/components/EquipmentDropdown';
 import { RestTimeSelector, RestTimeSelectorCompact } from '@/components/RestTimeSelector';
+import SetTypeSelector from '@/components/SetTypeSelector';
 import { ExerciseTemplate, getExerciseByName, MuscleGroup } from '@/data/exercises';
 import { WarmupExercise } from '@/data/warmupExercises';
 import { WarmupRecommendation } from '@/components/WarmupRecommendation';
@@ -32,6 +33,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [restBetweenExercises, setRestBetweenExercises] = useState(120);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Array<{ exerciseIndex: number; setIndex: number; message: string }>>([]);
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const [currentStep, setCurrentStep] = useState<'basic' | 'exercises' | 'review'>('basic');
 
   useEffect(() => {
@@ -52,7 +54,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               notes: rest.notes,
               sets: Array(oldSets).fill(null).map(() => ({ 
                 reps: oldReps, 
-                weight: oldWeight 
+                weight: oldWeight,
+                type: 'normal' as import('@/types').SetType
               }))
             };
             return newExercise;
@@ -88,7 +91,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         name: template.name,
         sets: Array(template.defaultSets || 3).fill(null).map(() => ({ 
           reps: template.defaultReps || 10, 
-          weight: 0 
+          weight: 0,
+          type: 'normal' as import('@/types').SetType
         })),
         equipment: template.equipment,
         notes: '',
@@ -124,7 +128,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     const lastSet = exercise.sets[exercise.sets.length - 1];
     exercise.sets.push({ 
       reps: lastSet?.reps || 10, 
-      weight: lastSet?.weight || 0 
+      weight: lastSet?.weight || 0,
+      type: 'normal' // Tipo por defecto
     });
     setExercises(newExercises);
   };
@@ -145,19 +150,83 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     setExercises(newExercises);
   };
 
-  const handleSetChange = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight', value: number) => {
+  const handleSetChange = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight' | 'type', value: number | import('@/types').SetType) => {
     const newExercises = [...exercises];
-    newExercises[exerciseIndex].sets[setIndex][field] = value;
+    if (field === 'type') {
+      newExercises[exerciseIndex].sets[setIndex][field] = value as import('@/types').SetType;
+    } else {
+      newExercises[exerciseIndex].sets[setIndex][field] = value as number;
+    }
     setExercises(newExercises);
+    
+    // Marcar campo como tocado
+    const fieldKey = `${exerciseIndex}-${setIndex}-${field}`;
+    setTouchedFields(prev => new Set(prev).add(fieldKey));
+    
+    // Validación en tiempo real solo para campos tocados
+    if (field === 'weight' && typeof value === 'number') {
+      if (value <= 0) {
+        // Agregar error si no existe
+        const errorExists = validationErrors.some(
+          err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')
+        );
+        if (!errorExists) {
+          setValidationErrors(prev => [
+            ...prev,
+            { exerciseIndex, setIndex, message: 'Peso requerido (> 0)' }
+          ]);
+        }
+      } else {
+        // Remover error si existe
+        setValidationErrors(prev => 
+          prev.filter(err => !(err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')))
+        );
+      }
+    }
+    
+    if (field === 'reps' && typeof value === 'number') {
+      if (value <= 0) {
+        // Agregar error de reps si no existe
+        const errorExists = validationErrors.some(
+          err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')
+        );
+        if (!errorExists) {
+          setValidationErrors(prev => [
+            ...prev,
+            { exerciseIndex, setIndex, message: 'Reps requeridas (> 0)' }
+          ]);
+        }
+      } else {
+        // Remover error de reps si existe
+        setValidationErrors(prev => 
+          prev.filter(err => !(err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')))
+        );
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isSubmitting) return;
+    
+    // Marcar todos los campos como tocados al hacer submit
+    const allTouchedFields = new Set<string>();
+    exercises.forEach((exercise, ei) => {
+      exercise.sets.forEach((s, si) => {
+        allTouchedFields.add(`${ei}-${si}-reps`);
+        allTouchedFields.add(`${ei}-${si}-weight`);
+      });
+    });
+    setTouchedFields(allTouchedFields);
+    
     const errors: Array<{ exerciseIndex: number; setIndex: number; message: string }> = [];
     exercises.forEach((exercise, ei) => {
       exercise.sets.forEach((s, si) => {
+        const reps = typeof s.reps === 'number' ? s.reps : parseInt(String(s.reps));
+        if (!reps || reps <= 0) {
+          errors.push({ exerciseIndex: ei, setIndex: si, message: 'Reps requeridas (> 0)' });
+        }
         const weight = typeof s.weight === 'number' ? s.weight : parseFloat(String(s.weight || 0));
         if (!weight || weight <= 0) {
           errors.push({ exerciseIndex: ei, setIndex: si, message: 'Peso requerido (> 0)' });
@@ -415,7 +484,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     name: `🔥 ${w.name}`,
                     sets: Array(w.defaultSets || 2).fill(null).map(() => ({
                       reps: w.defaultReps || 10,
-                      weight: 0
+                      weight: 0,
+                      type: 'warmup' as import('@/types').SetType // Calentamiento por defecto
                     })),
                     equipment: w.equipment,
                     notes: w.duration ? `Duración: ${w.duration}` : ''
@@ -538,68 +608,116 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                       
                       <div className="space-y-2">
                         {exercise.sets.map((set, setIndex) => (
-                          <div key={setIndex} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                              <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
-                                {setIndex + 1}
-                              </span>
+                          <div key={setIndex} className="p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            {/* Header compacto en una línea */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                                  {setIndex + 1}
+                                </span>
+                              </div>
+                              
+                              {/* Selector de tipo compacto */}
+                              <div className="flex-1 min-w-0">
+                                <SetTypeSelector
+                                  value={set.type || 'normal'}
+                                  onChange={(type) => handleSetChange(exerciseIndex, setIndex, 'type', type)}
+                                  compact
+                                />
+                              </div>
+                              
+                              {/* Botones de acción */}
+                              <div className="flex gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopySet(exerciseIndex, setIndex)}
+                                  className="p-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-all active:scale-95"
+                                  title={t('copySetTitle')}
+                                >
+                                  📋
+                                </button>
+                                {exercise.sets.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
+                                    className="p-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95"
+                                    title={t('removeSetTitle')}
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex-1 grid grid-cols-2 gap-2">
+
+                            {/* Inputs de reps y peso en una línea */}
+                            <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-1 block">Reps</label>
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Reps</label>
                                 <Input
                                   type="number"
                                   placeholder={t('reps')}
-                                  value={set.reps}
-                                  onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'reps', parseInt(e.target.value) || 0)}
+                                  value={set.reps || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                      handleSetChange(exerciseIndex, setIndex, 'reps', 0);
+                                    } else {
+                                      const num = parseInt(val);
+                                      handleSetChange(exerciseIndex, setIndex, 'reps', isNaN(num) ? 0 : Math.max(0, num));
+                                    }
+                                  }}
                                   min="1"
                                   required
-                                  className="text-center font-semibold"
+                                  className={`text-center font-semibold h-8 text-sm ${
+                                    touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
+                                    validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps'))
+                                      ? 'border-red-500 dark:border-red-500'
+                                      : ''
+                                  }`}
                                 />
+                                {touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
+                                 validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')) && (
+                                  <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
+                                    Reps requeridas
+                                  </div>
+                                )}
                               </div>
                               <div>
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-1 block">Peso (kg)</label>
+                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Peso (kg)</label>
                                 <Input
                                   type="number"
                                   name={`weight-${exerciseIndex}-${setIndex}`}
                                   placeholder={t('weight')}
-                                  value={set.weight ?? ''}
-                                  onChange={(e) => handleSetChange(exerciseIndex, setIndex, 'weight', e.target.value === '' ? NaN : parseFloat(e.target.value))}
+                                  value={set.weight === 0 ? '' : set.weight ?? ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                      handleSetChange(exerciseIndex, setIndex, 'weight', 0);
+                                    } else {
+                                      const num = parseFloat(val);
+                                      handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
+                                    }
+                                  }}
                                   min="0"
                                   step="0.5"
-                                  className="text-center font-semibold"
+                                  className={`text-center font-semibold h-8 text-sm ${
+                                    touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
+                                    validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso'))
+                                      ? 'border-red-500 dark:border-red-500'
+                                      : ''
+                                  }`}
                                 />
+                                {touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
+                                 validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')) && (
+                                  <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
+                                    Peso requerido
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleCopySet(exerciseIndex, setIndex)}
-                                className="p-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all active:scale-95 shadow-sm"
-                                title={t('copySetTitle')}
-                              >
-                                📋
-                              </button>
-                              {exercise.sets.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
-                                  className="p-1.5 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all active:scale-95 shadow-sm"
-                                  title={t('removeSetTitle')}
-                                >
-                                  ✕
-                                </button>
-                              )}
                             </div>
                           </div>
                         ))}
                       </div>
-                      
-                      {validationErrors.some(err => err.exerciseIndex === exerciseIndex) && (
-                        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg">
-                          ⚠️ Algunos pesos son requeridos
-                        </div>
-                      )}
                     </div>
 
                     <Input

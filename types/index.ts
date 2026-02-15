@@ -1,6 +1,17 @@
+export type SetType = 
+  | 'normal'      // Serie normal
+  | 'warmup'      // Serie de calentamiento
+  | 'dropset'     // Drop set (reducir peso)
+  | 'failure'     // Serie al fallo
+  | 'amrap'       // As Many Reps As Possible
+  | 'rest-pause'  // Rest-pause
+  | 'cluster';    // Cluster set
+
 export interface Set {
   reps: number;
   weight?: number;
+  type?: SetType; // Tipo de serie (por defecto 'normal')
+  notes?: string; // Notas específicas de la serie
 }
 
 export interface Exercise {

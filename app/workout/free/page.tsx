@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
 import { SetTimer } from '@/components/SetTimer';
+import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
 import { Input } from '@/components/ui/Input';
 import { RestTimeSelector } from '@/components/RestTimeSelector';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
@@ -32,7 +33,12 @@ interface FreeExercise {
   id: string;
   name: string;
   equipment?: string;
-  completedSets: { reps: number; weight: number; duration?: number }[];
+  completedSets: { 
+    reps: number; 
+    weight: number; 
+    duration?: number;
+    type?: import('@/types').SetType;
+  }[];
   restBetweenSets?: number;
 }
 
@@ -69,6 +75,7 @@ export default function FreeWorkoutPage() {
   const [collapsedExercises, setCollapsedExercises] = useState<Set<number>>(() => new Set());
   const [currentReps, setCurrentReps] = useState<number | ''>(10);
   const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
+  const [currentSetType, setCurrentSetType] = useState<import('@/types').SetType>('normal');
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [sessionNotes, setSessionNotes] = useState('');
@@ -166,16 +173,23 @@ export default function FreeWorkoutPage() {
     const repsValue = typeof currentReps === 'number' ? currentReps : 0;
     const weightValue = typeof currentWeight === 'number' ? currentWeight : 0;
 
-    // Add set
+    // Add set with type
     const newExercises = [...exercises];
     newExercises[activeExerciseIndex] = {
       ...exercise,
       completedSets: [
         ...exercise.completedSets,
-        { reps: repsValue, weight: weightValue }
+        { 
+          reps: repsValue, 
+          weight: weightValue,
+          type: currentSetType
+        }
       ]
     };
     setExercises(newExercises);
+    
+    // Reset set type to normal for next set
+    setCurrentSetType('normal');
 
     // Calculate rest time
     let restTime: number;
@@ -419,18 +433,47 @@ export default function FreeWorkoutPage() {
                     <Input
                       type="number"
                       label="Repeticiones"
-                      value={currentReps}
-                      onChange={(e) => setCurrentReps(e.target.value === '' ? '' : parseInt(e.target.value))}
+                      value={currentReps === 0 ? '' : currentReps}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setCurrentReps(0);
+                        } else {
+                          const num = parseInt(val);
+                          setCurrentReps(isNaN(num) ? 0 : Math.max(0, num));
+                        }
+                      }}
                       min="0"
+                      placeholder="Número de repeticiones"
                     />
                     <Input
                       type="number"
                       label="Peso (kg)"
-                      value={currentWeight}
-                      onChange={(e) => setCurrentWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      value={currentWeight === 0 ? '' : currentWeight}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setCurrentWeight(0);
+                        } else {
+                          const num = parseFloat(val);
+                          setCurrentWeight(isNaN(num) ? 0 : Math.max(0, num));
+                        }
+                      }}
                       min="0"
                       step="0.5"
+                      placeholder="Peso en kg"
                     />
+                    
+                    {/* Selector de tipo de serie */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Tipo de Serie
+                      </label>
+                      <SetTypeSelector
+                        value={currentSetType}
+                        onChange={setCurrentSetType}
+                      />
+                    </div>
                   </div>
 
                   {/* Complete set button */}
@@ -446,11 +489,16 @@ export default function FreeWorkoutPage() {
                   {activeExercise.completedSets.length > 0 && (
                     <div className="mt-3">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Series completadas:</p>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {activeExercise.completedSets.map((set, i) => (
-                          <div key={i} className="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                            <span className="text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                          <div key={i} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
+                              {set.type && set.type !== 'normal' && (
+                                <SetTypeBadge type={set.type} />
+                              )}
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                               {set.reps} reps × {set.weight}kg
                             </span>
                           </div>
@@ -574,11 +622,16 @@ export default function FreeWorkoutPage() {
 
                       {/* Expanded sets */}
                       {!isCollapsed && exercise.completedSets.length > 0 && (
-                        <div className="mt-2 pl-8 space-y-1">
+                        <div className="mt-2 pl-8 space-y-1.5">
                           {exercise.completedSets.map((set, i) => (
-                            <div key={i} className="text-xs text-gray-600 dark:text-gray-400 flex justify-between">
-                              <span>Serie {i + 1}</span>
-                              <span>{set.reps} reps × {set.weight}kg</span>
+                            <div key={i} className="flex items-center justify-between text-xs p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
+                                {set.type && set.type !== 'normal' && (
+                                  <SetTypeBadge type={set.type} />
+                                )}
+                              </div>
+                              <span className="font-medium">{set.reps} reps × {set.weight}kg</span>
                             </div>
                           ))}
                         </div>
