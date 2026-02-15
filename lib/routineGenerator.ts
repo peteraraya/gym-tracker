@@ -153,7 +153,9 @@ async function generateDayExercises(
       exercisesPerGroup,
       equipment,
       params,
-      currentId
+      currentId,
+      level,
+      goal
     );
     exercises.push(...groupExercises);
     currentId += groupExercises.length;
@@ -187,6 +189,71 @@ function getGoalParameters(goal: string, level: DifficultyLevel) {
 }
 
 /**
+ * Calcula peso inicial recomendado según ejercicio, nivel y objetivo
+ */
+function getRecommendedWeight(
+  exerciseName: string,
+  level: DifficultyLevel,
+  goal: string
+): number {
+  // Pesos base para principiantes (en kg)
+  const baseWeights: Record<string, number> = {
+    // Ejercicios principales compuestos
+    'Press de Banca': 20,
+    'Sentadilla': 30,
+    'Peso Muerto': 40,
+    'Press Militar': 15,
+    'Remo con Barra': 25,
+    
+    // Ejercicios con mancuernas
+    'Press Inclinado': 10,
+    'Aperturas con Mancuernas': 8,
+    'Curl con Barra': 10,
+    'Curl Martillo': 8,
+    'Elevaciones Laterales': 5,
+    'Elevaciones Frontales': 5,
+    
+    // Ejercicios de máquina
+    'Prensa de Piernas': 50,
+    'Extensión de Piernas': 20,
+    'Curl de Piernas': 20,
+    'Jalón al Pecho': 30,
+    'Extensiones de Tríceps': 15,
+    'Patada de Glúteo': 15,
+    
+    // Ejercicios con peso corporal
+    'Dominadas': 0,
+    'Flexiones': 0,
+    'Plancha': 0,
+    'Abdominales': 0,
+    'Russian Twist': 0,
+    
+    // Hip Thrust
+    'Hip Thrust': 30
+  };
+
+  let weight = baseWeights[exerciseName] || 10;
+
+  // Ajustar por nivel
+  const levelMultipliers = {
+    principiante: 1.0,
+    intermedio: 1.5,
+    avanzado: 2.0
+  };
+  weight *= levelMultipliers[level];
+
+  // Ajustar por objetivo
+  if (goal === 'strength') {
+    weight *= 1.2; // Más peso para fuerza
+  } else if (goal === 'endurance' || goal === 'weight_loss') {
+    weight *= 0.7; // Menos peso para resistencia/pérdida de peso
+  }
+
+  // Redondear a múltiplos de 2.5kg (estándar de discos)
+  return Math.round(weight / 2.5) * 2.5;
+}
+
+/**
  * Obtiene ejercicios recomendados para un grupo muscular
  */
 function getExercisesForGroup(
@@ -194,7 +261,9 @@ function getExercisesForGroup(
   count: number,
   equipment: string[],
   params: { sets: number; reps: number; rest: number },
-  startId: number
+  startId: number,
+  level: DifficultyLevel,
+  goal: string
 ): Exercise[] {
   // Mapeo de grupos a ejercicios comunes
   const exerciseDatabase: Record<string, ExerciseRecommendation[]> = {
@@ -252,17 +321,25 @@ function getExercisesForGroup(
   // Seleccionar los primeros N ejercicios
   const selected = filteredExercises.slice(0, count);
 
-  // Convertir a formato Exercise
-  return selected.map((ex, index) => ({
-    id: `${startId + index}`,
-    name: ex.name,
-    sets: Array.from({ length: ex.sets }, () => ({
-      reps: ex.reps,
-      weight: 0
-    })),
-    restTime: `${ex.restTime}`,
-    notes: ''
-  }));
+  // Convertir a formato Exercise con pesos recomendados
+  return selected.map((ex, index) => {
+    const recommendedWeight = getRecommendedWeight(ex.name, level, goal);
+    
+    return {
+      id: `${startId + index}`,
+      name: ex.name,
+      sets: Array.from({ length: ex.sets }, () => ({
+        reps: ex.reps,
+        weight: recommendedWeight,
+        type: 'normal' as const
+      })),
+      equipment: ex.equipment,
+      restBetweenSets: ex.restTime,
+      notes: recommendedWeight > 0 
+        ? `Peso recomendado para nivel ${level}. Ajusta según tu capacidad.`
+        : 'Ejercicio con peso corporal. Ajusta las repeticiones según tu nivel.'
+    };
+  });
 }
 
 /**

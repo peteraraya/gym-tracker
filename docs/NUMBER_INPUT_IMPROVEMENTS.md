@@ -8,6 +8,7 @@ Los inputs numéricos en la aplicación tenían varios problemas:
 2. No había validación en tiempo real
 3. Valores NaN no se manejaban correctamente
 4. Los errores solo aparecían al hacer submit
+5. Rutinas generadas por el asistente tenían peso 0
 
 ## Solución Implementada
 
@@ -19,56 +20,59 @@ Creado un hook reutilizable para manejar inputs numéricos con:
 - Validación de min/max
 - No muestra "0" cuando el campo está vacío
 
-### 2. Validación en Tiempo Real
+### 2. Validación en Tiempo Real con Sistema "Touched"
 
 #### RoutineForm (`components/RoutineForm.tsx`)
-- ✅ Validación en tiempo real de pesos
+- ✅ Validación en tiempo real de pesos y reps
+- ✅ Sistema de campos "tocados" (touched) para no mostrar errores en carga inicial
 - ✅ Errores mostrados debajo de cada campo individual
 - ✅ Campos vacíos no muestran "0"
 - ✅ Valores inválidos se convierten a 0 internamente
 - ✅ Borde rojo en campos con error
 - ✅ Mensaje de error específico por campo
+- ✅ Al hacer submit, marca todos los campos como tocados y valida
 
 **Comportamiento:**
-```typescript
-// Cuando el usuario borra el campo
-value={set.weight === 0 ? '' : set.weight ?? ''}
+- **Carga inicial**: No muestra errores aunque los campos tengan peso 0
+- **Después de interactuar**: Muestra errores en tiempo real
+- **Al hacer submit**: Valida todos los campos y muestra todos los errores
 
-// Al cambiar el valor
-onChange={(e) => {
-  const val = e.target.value;
-  if (val === '') {
-    handleSetChange(exerciseIndex, setIndex, 'weight', 0);
-  } else {
-    const num = parseFloat(val);
-    handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
-  }
-}}
-```
+### 3. Generador de Rutinas con Pesos Inteligentes
 
-#### Workout con Rutina (`app/workout/[id]/page.tsx`)
-- ✅ Input de peso no muestra "0" cuando está vacío
-- ✅ Placeholder descriptivo
-- ✅ Validación de valores mínimos
+#### Routine Generator (`lib/routineGenerator.ts`)
+- ✅ Calcula pesos recomendados según nivel de experiencia
+- ✅ Ajusta pesos según objetivo (fuerza, hipertrofia, resistencia, etc.)
+- ✅ Pesos base realistas para cada ejercicio
+- ✅ Multiplicadores por nivel:
+  - Principiante: 1.0x
+  - Intermedio: 1.5x
+  - Avanzado: 2.0x
+- ✅ Ajustes por objetivo:
+  - Fuerza: +20% peso
+  - Resistencia/Pérdida de peso: -30% peso
+- ✅ Redondeo a múltiplos de 2.5kg (estándar de discos)
+- ✅ Notas automáticas con recomendaciones
 
-#### Workout Libre (`app/workout/free/page.tsx`)
-- ✅ Inputs de reps y peso con manejo correcto de vacío
-- ✅ Placeholders descriptivos
-- ✅ Validación en tiempo real
+**Ejemplos de pesos generados:**
 
-#### Calculadoras
+Principiante - Hipertrofia:
+- Press de Banca: 20kg
+- Sentadilla: 30kg
+- Peso Muerto: 40kg
+- Curl con Barra: 10kg
 
-**BMICalculator (`components/BMICalculator.tsx`)**
-- ✅ Peso, altura, edad con campos vacíos correctos
-- ✅ Medidas corporales (cuello, cintura, cadera)
-- ✅ Placeholders descriptivos
+Intermedio - Hipertrofia:
+- Press de Banca: 30kg
+- Sentadilla: 45kg
+- Peso Muerto: 60kg
+- Curl con Barra: 15kg
 
-**OneRMCalculator (`components/OneRMCalculator.tsx`)**
-- ✅ Peso y repeticiones con validación
-- ✅ Límite máximo de 12 reps
-- ✅ Mínimo de 1 rep
+Avanzado - Fuerza:
+- Press de Banca: 48kg (40kg × 2.0 × 1.2)
+- Sentadilla: 72kg (60kg × 2.0 × 1.2)
+- Peso Muerto: 96kg (80kg × 2.0 × 1.2)
 
-### 3. Patrón de Implementación
+### 4. Patrón de Implementación
 
 Para todos los inputs numéricos se sigue este patrón:
 
@@ -90,19 +94,27 @@ Para todos los inputs numéricos se sigue este patrón:
 />
 ```
 
-### 4. Beneficios
+### 5. Beneficios
 
 1. **UX Mejorada:**
    - No hay "0" molesto cuando el usuario borra el campo
    - Placeholders descriptivos guían al usuario
    - Validación inmediata sin esperar al submit
+   - No muestra errores en carga inicial de rutinas existentes
 
 2. **Validación Robusta:**
-   - Errores mostrados en tiempo real
+   - Errores mostrados en tiempo real después de interactuar
    - Valores inválidos manejados automáticamente
    - Límites min/max respetados
+   - Sistema de "touched" evita errores prematuros
 
-3. **Consistencia:**
+3. **Rutinas Inteligentes:**
+   - Pesos realistas según nivel y objetivo
+   - Notas con recomendaciones automáticas
+   - Ajustes por tipo de ejercicio
+   - Listas para usar sin necesidad de edición
+
+4. **Consistencia:**
    - Mismo comportamiento en toda la app
    - Patrón reutilizable y fácil de mantener
 
@@ -114,6 +126,7 @@ Para todos los inputs numéricos se sigue este patrón:
 - ✅ `app/workout/free/page.tsx`
 - ✅ `components/BMICalculator.tsx`
 - ✅ `components/OneRMCalculator.tsx`
+- ✅ `lib/routineGenerator.ts`
 
 ## Próximos Pasos (Opcional)
 
@@ -129,3 +142,5 @@ Para todos los inputs numéricos se sigue este patrón:
   - UnitConverter
 
 - Considerar usar el hook `useNumberInput` en componentes futuros para mayor consistencia
+- Agregar más ejercicios a la base de datos del generador
+- Permitir personalización de pesos base por usuario
