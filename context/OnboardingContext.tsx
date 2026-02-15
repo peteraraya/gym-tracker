@@ -97,16 +97,33 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
 
   useEffect(() => {
-    // Verificar si el usuario ya completó el onboarding
-    const completed = localStorage.getItem(STORAGE_KEY);
-    if (!completed) {
-      setHasCompletedOnboarding(false);
-      // Auto-iniciar onboarding después de 1 segundo
-      const timer = setTimeout(() => {
-        setIsActive(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
+    // Verificar si hay un usuario logeado
+    const checkAuth = () => {
+      try {
+        // Verificar si hay sesión de Supabase
+        const supabaseSession = localStorage.getItem('supabase.auth.token');
+        if (!supabaseSession) {
+          // No hay usuario logeado, no mostrar onboarding
+          return;
+        }
+      } catch (e) {
+        // Error al verificar sesión, no mostrar onboarding
+        return;
+      }
+
+      // Verificar si el usuario ya completó el onboarding
+      const completed = localStorage.getItem(STORAGE_KEY);
+      if (!completed) {
+        setHasCompletedOnboarding(false);
+        // Auto-iniciar onboarding después de 1 segundo
+        const timer = setTimeout(() => {
+          setIsActive(true);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const startOnboarding = () => {

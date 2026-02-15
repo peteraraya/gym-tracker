@@ -214,10 +214,11 @@ export default function GlossaryPage() {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
           onClick={() => setSelectedTerm(null)}
         >
-          <Card 
-            className="w-full max-w-3xl my-8 shadow-2xl animate-fadeIn"
+          <div 
+            className="w-full max-w-3xl my-8"
             onClick={(e) => e.stopPropagation()}
           >
+            <Card className="shadow-2xl animate-fadeIn">
             <CardHeader className={`bg-gradient-to-r ${GLOSSARY_CATEGORIES[selectedTerm.category].color} text-white rounded-t-lg p-6`}>
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
@@ -290,6 +291,7 @@ export default function GlossaryPage() {
               )}
             </CardContent>
           </Card>
+          </div>
         </div>
       )}
     </div>

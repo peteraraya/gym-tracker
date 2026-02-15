@@ -54,17 +54,18 @@ export default function RoutinesPage() {
 
   const handleWizardComplete = async (data: any) => {
     try {
-      // Generar rutina usando el generador inteligente
-      const generatedRoutine = await generateRoutine(data);
+      // Generar rutinas usando el generador inteligente (ahora retorna array)
+      const generatedRoutines = await generateRoutine(data);
       
-      // Remover campos que addRoutine no espera (id, createdAt, updatedAt)
-      const { id, createdAt, updatedAt, ...routineData } = generatedRoutine;
-      
-      // Agregar la rutina al contexto
-      await addRoutine(routineData);
+      // Agregar todas las rutinas al contexto
+      for (const generatedRoutine of generatedRoutines) {
+        // Remover campos que addRoutine no espera (id, createdAt, updatedAt)
+        const { id, createdAt, updatedAt, ...routineData } = generatedRoutine;
+        await addRoutine(routineData);
+      }
       
       setIsWizardOpen(false);
-      success('¡Rutina creada exitosamente! Puedes editarla si lo deseas.');
+      success(`¡${generatedRoutines.length} rutina(s) creada(s) exitosamente! Puedes editarlas si lo deseas.`);
     } catch (err) {
       console.error('Error generating routine:', err);
       error('Error al generar la rutina. Intenta de nuevo.');
