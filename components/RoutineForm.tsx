@@ -165,19 +165,36 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     
     // Validación en tiempo real solo para campos tocados
     if (field === 'weight' && typeof value === 'number') {
-      if (value <= 0) {
-        // Agregar error si no existe
-        const errorExists = validationErrors.some(
-          err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')
-        );
-        if (!errorExists) {
-          setValidationErrors(prev => [
-            ...prev,
-            { exerciseIndex, setIndex, message: 'Peso requerido (> 0)' }
-          ]);
+      // Verificar si es ejercicio de peso corporal
+      const exercise = newExercises[exerciseIndex];
+      const isBodyweightExercise = exercise.equipment?.toLowerCase().includes('peso corporal') || 
+                                   exercise.equipment?.toLowerCase().includes('bodyweight') ||
+                                   exercise.name?.toLowerCase().includes('plancha') ||
+                                   exercise.name?.toLowerCase().includes('flexion') ||
+                                   exercise.name?.toLowerCase().includes('dominada') ||
+                                   exercise.name?.toLowerCase().includes('abdominal');
+      
+      // Solo validar peso si no es ejercicio de peso corporal
+      if (!isBodyweightExercise) {
+        if (value <= 0) {
+          // Agregar error si no existe
+          const errorExists = validationErrors.some(
+            err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')
+          );
+          if (!errorExists) {
+            setValidationErrors(prev => [
+              ...prev,
+              { exerciseIndex, setIndex, message: 'Peso requerido (> 0)' }
+            ]);
+          }
+        } else {
+          // Remover error si existe
+          setValidationErrors(prev => 
+            prev.filter(err => !(err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')))
+          );
         }
       } else {
-        // Remover error si existe
+        // Si es ejercicio de peso corporal, remover cualquier error de peso
         setValidationErrors(prev => 
           prev.filter(err => !(err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')))
         );
@@ -227,8 +244,17 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         if (!reps || reps <= 0) {
           errors.push({ exerciseIndex: ei, setIndex: si, message: 'Reps requeridas (> 0)' });
         }
+        // Solo validar peso si no es un ejercicio de peso corporal
+        // Los ejercicios de peso corporal pueden tener peso 0
         const weight = typeof s.weight === 'number' ? s.weight : parseFloat(String(s.weight || 0));
-        if (!weight || weight <= 0) {
+        const isBodyweightExercise = exercise.equipment?.toLowerCase().includes('peso corporal') || 
+                                     exercise.equipment?.toLowerCase().includes('bodyweight') ||
+                                     exercise.name?.toLowerCase().includes('plancha') ||
+                                     exercise.name?.toLowerCase().includes('flexion') ||
+                                     exercise.name?.toLowerCase().includes('dominada') ||
+                                     exercise.name?.toLowerCase().includes('abdominal');
+        
+        if (!isBodyweightExercise && (!weight || weight <= 0)) {
           errors.push({ exerciseIndex: ei, setIndex: si, message: 'Peso requerido (> 0)' });
         }
       });

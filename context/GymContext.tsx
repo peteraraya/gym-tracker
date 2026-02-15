@@ -146,6 +146,39 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteRoutine = useCallback(async (id: string) => {
     try {
       await storageService.deleteRoutine(id);
+      
+      // Limpiar la rutina del planificador semanal
+      try {
+        const { getWeeklyPlan, saveWeeklyPlan } = await import('@/lib/storage/storage');
+        const weeklyPlan = await getWeeklyPlan();
+        
+        if (weeklyPlan) {
+          const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+          let planModified = false;
+          
+          const updatedPlan = { ...weeklyPlan };
+          
+          for (const day of days) {
+            if (updatedPlan[day]?.routines) {
+              const originalLength = updatedPlan[day].routines.length;
+              updatedPlan[day].routines = updatedPlan[day].routines.filter((rid: string) => rid !== id);
+              
+              if (updatedPlan[day].routines.length !== originalLength) {
+                planModified = true;
+              }
+            }
+          }
+          
+          if (planModified) {
+            await saveWeeklyPlan(updatedPlan);
+            console.log(`[GymContext] Removed routine ${id} from weekly planner`);
+          }
+        }
+      } catch (planError) {
+        console.warn('Error cleaning routine from weekly planner:', planError);
+        // No lanzar error, la rutina ya fue eliminada
+      }
+      
       await refreshRoutines();
     } catch (error) {
       console.error('Error deleting routine:', error);
