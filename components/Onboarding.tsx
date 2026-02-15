@@ -126,8 +126,7 @@ export default function Onboarding() {
       )}
 
       {/* Tooltip/Card de información */}
-      <Card 
-        className="shadow-2xl animate-fadeIn"
+      <div
         style={currentStepData.target ? tooltipStyle : {
           position: 'fixed',
           top: '50%',
@@ -138,6 +137,7 @@ export default function Onboarding() {
           zIndex: 10000
         }}
       >
+        <Card className="shadow-2xl animate-fadeIn">
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
@@ -237,6 +237,7 @@ export default function Onboarding() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </>
   );
 }

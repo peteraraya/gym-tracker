@@ -24,51 +24,55 @@ interface ExerciseRecommendation {
   equipment: string;
 }
 
+interface DayRoutine {
+  dayName: string;
+  muscleGroups: string[];
+}
+
 /**
- * Genera una rutina personalizada basada en la configuración del usuario
+ * Genera múltiples rutinas personalizadas (una por día de entrenamiento)
  */
-export async function generateRoutine(config: GeneratorConfig): Promise<Routine> {
+export async function generateRoutine(config: GeneratorConfig): Promise<Routine[]> {
   const { daysPerWeek, minutesPerSession, level, goal, focusAreas } = config;
 
   // Determinar split según días disponibles
   const split = determineSplit(daysPerWeek, focusAreas);
   
-  // Generar ejercicios para cada día
-  const exercises: Exercise[] = [];
-  let exerciseId = 1;
-
-  for (const day of split) {
-    const dayExercises = await generateDayExercises(
-      day,
+  // Crear una rutina por cada día
+  const routines: Routine[] = [];
+  
+  for (let dayIndex = 0; dayIndex < split.length; dayIndex++) {
+    const day = split[dayIndex];
+    const exercises = await generateDayExercises(
+      day.muscleGroups,
       config,
-      exerciseId
+      1 // Siempre empezar desde 1 para cada rutina
     );
-    exercises.push(...dayExercises);
-    exerciseId += dayExercises.length;
+
+    const routine: Routine = {
+      id: `generated-${Date.now()}-day${dayIndex + 1}`,
+      name: `${config.name} - ${day.dayName}`,
+      description: generateDayDescription(config, day.dayName, day.muscleGroups),
+      exercises,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    routines.push(routine);
   }
 
-  // Crear rutina
-  const routine: Routine = {
-    id: `generated-${Date.now()}`,
-    name: config.name,
-    description: generateDescription(config),
-    exercises,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  return routine;
+  return routines;
 }
 
 /**
  * Determina el split de entrenamiento según días disponibles
  */
-function determineSplit(daysPerWeek: number, focusAreas: string[]): string[][] {
+function determineSplit(daysPerWeek: number, focusAreas: string[]): DayRoutine[] {
   // 2 días: Full Body
   if (daysPerWeek === 2) {
     return [
-      ['chest', 'back', 'legs', 'shoulders', 'arms', 'core'],
-      ['chest', 'back', 'legs', 'shoulders', 'arms', 'core']
+      { dayName: 'Día 1 - Full Body A', muscleGroups: ['chest', 'back', 'legs', 'shoulders', 'arms', 'core'] },
+      { dayName: 'Día 2 - Full Body B', muscleGroups: ['chest', 'back', 'legs', 'shoulders', 'arms', 'core'] }
     ];
   }
 
@@ -76,47 +80,47 @@ function determineSplit(daysPerWeek: number, focusAreas: string[]): string[][] {
   if (daysPerWeek === 3) {
     if (focusAreas.includes('legs')) {
       return [
-        ['chest', 'shoulders', 'arms'], // Push
-        ['back', 'arms'], // Pull
-        ['legs', 'glutes', 'core'] // Legs
+        { dayName: 'Día 1 - Push (Empuje)', muscleGroups: ['chest', 'shoulders', 'arms'] },
+        { dayName: 'Día 2 - Pull (Tirón)', muscleGroups: ['back', 'arms'] },
+        { dayName: 'Día 3 - Legs (Piernas)', muscleGroups: ['legs', 'glutes', 'core'] }
       ];
     }
     return [
-      ['chest', 'back', 'legs', 'shoulders'],
-      ['chest', 'back', 'legs', 'arms'],
-      ['chest', 'back', 'legs', 'core']
+      { dayName: 'Día 1 - Full Body A', muscleGroups: ['chest', 'back', 'legs', 'shoulders'] },
+      { dayName: 'Día 2 - Full Body B', muscleGroups: ['chest', 'back', 'legs', 'arms'] },
+      { dayName: 'Día 3 - Full Body C', muscleGroups: ['chest', 'back', 'legs', 'core'] }
     ];
   }
 
   // 4 días: Upper/Lower
   if (daysPerWeek === 4) {
     return [
-      ['chest', 'shoulders', 'arms'], // Upper A
-      ['legs', 'glutes', 'core'], // Lower A
-      ['back', 'shoulders', 'arms'], // Upper B
-      ['legs', 'glutes', 'core'] // Lower B
+      { dayName: 'Día 1 - Upper A (Tren Superior)', muscleGroups: ['chest', 'shoulders', 'arms'] },
+      { dayName: 'Día 2 - Lower A (Tren Inferior)', muscleGroups: ['legs', 'glutes', 'core'] },
+      { dayName: 'Día 3 - Upper B (Tren Superior)', muscleGroups: ['back', 'shoulders', 'arms'] },
+      { dayName: 'Día 4 - Lower B (Tren Inferior)', muscleGroups: ['legs', 'glutes', 'core'] }
     ];
   }
 
   // 5 días: Push/Pull/Legs/Upper/Lower
   if (daysPerWeek === 5) {
     return [
-      ['chest', 'shoulders', 'arms'], // Push
-      ['back', 'arms'], // Pull
-      ['legs', 'glutes'], // Legs
-      ['chest', 'back', 'shoulders'], // Upper
-      ['legs', 'core'] // Lower
+      { dayName: 'Día 1 - Push (Empuje)', muscleGroups: ['chest', 'shoulders', 'arms'] },
+      { dayName: 'Día 2 - Pull (Tirón)', muscleGroups: ['back', 'arms'] },
+      { dayName: 'Día 3 - Legs (Piernas)', muscleGroups: ['legs', 'glutes'] },
+      { dayName: 'Día 4 - Upper (Tren Superior)', muscleGroups: ['chest', 'back', 'shoulders'] },
+      { dayName: 'Día 5 - Lower (Tren Inferior)', muscleGroups: ['legs', 'core'] }
     ];
   }
 
   // 6 días: PPL x2
   return [
-    ['chest', 'shoulders', 'arms'], // Push
-    ['back', 'arms'], // Pull
-    ['legs', 'glutes', 'core'], // Legs
-    ['chest', 'shoulders', 'arms'], // Push
-    ['back', 'arms'], // Pull
-    ['legs', 'glutes', 'core'] // Legs
+    { dayName: 'Día 1 - Push A (Empuje)', muscleGroups: ['chest', 'shoulders', 'arms'] },
+    { dayName: 'Día 2 - Pull A (Tirón)', muscleGroups: ['back', 'arms'] },
+    { dayName: 'Día 3 - Legs A (Piernas)', muscleGroups: ['legs', 'glutes', 'core'] },
+    { dayName: 'Día 4 - Push B (Empuje)', muscleGroups: ['chest', 'shoulders', 'arms'] },
+    { dayName: 'Día 5 - Pull B (Tirón)', muscleGroups: ['back', 'arms'] },
+    { dayName: 'Día 6 - Legs B (Piernas)', muscleGroups: ['legs', 'glutes', 'core'] }
   ];
 }
 
@@ -149,7 +153,9 @@ async function generateDayExercises(
       exercisesPerGroup,
       equipment,
       params,
-      currentId
+      currentId,
+      level,
+      goal
     );
     exercises.push(...groupExercises);
     currentId += groupExercises.length;
@@ -183,6 +189,71 @@ function getGoalParameters(goal: string, level: DifficultyLevel) {
 }
 
 /**
+ * Calcula peso inicial recomendado según ejercicio, nivel y objetivo
+ */
+function getRecommendedWeight(
+  exerciseName: string,
+  level: DifficultyLevel,
+  goal: string
+): number {
+  // Pesos base para principiantes (en kg)
+  const baseWeights: Record<string, number> = {
+    // Ejercicios principales compuestos
+    'Press de Banca': 20,
+    'Sentadilla': 30,
+    'Peso Muerto': 40,
+    'Press Militar': 15,
+    'Remo con Barra': 25,
+    
+    // Ejercicios con mancuernas
+    'Press Inclinado': 10,
+    'Aperturas con Mancuernas': 8,
+    'Curl con Barra': 10,
+    'Curl Martillo': 8,
+    'Elevaciones Laterales': 5,
+    'Elevaciones Frontales': 5,
+    
+    // Ejercicios de máquina
+    'Prensa de Piernas': 50,
+    'Extensión de Piernas': 20,
+    'Curl de Piernas': 20,
+    'Jalón al Pecho': 30,
+    'Extensiones de Tríceps': 15,
+    'Patada de Glúteo': 15,
+    
+    // Ejercicios con peso corporal
+    'Dominadas': 0,
+    'Flexiones': 0,
+    'Plancha': 0,
+    'Abdominales': 0,
+    'Russian Twist': 0,
+    
+    // Hip Thrust
+    'Hip Thrust': 30
+  };
+
+  let weight = baseWeights[exerciseName] || 10;
+
+  // Ajustar por nivel
+  const levelMultipliers = {
+    principiante: 1.0,
+    intermedio: 1.5,
+    avanzado: 2.0
+  };
+  weight *= levelMultipliers[level];
+
+  // Ajustar por objetivo
+  if (goal === 'strength') {
+    weight *= 1.2; // Más peso para fuerza
+  } else if (goal === 'endurance' || goal === 'weight_loss') {
+    weight *= 0.7; // Menos peso para resistencia/pérdida de peso
+  }
+
+  // Redondear a múltiplos de 2.5kg (estándar de discos)
+  return Math.round(weight / 2.5) * 2.5;
+}
+
+/**
  * Obtiene ejercicios recomendados para un grupo muscular
  */
 function getExercisesForGroup(
@@ -190,7 +261,9 @@ function getExercisesForGroup(
   count: number,
   equipment: string[],
   params: { sets: number; reps: number; rest: number },
-  startId: number
+  startId: number,
+  level: DifficultyLevel,
+  goal: string
 ): Exercise[] {
   // Mapeo de grupos a ejercicios comunes
   const exerciseDatabase: Record<string, ExerciseRecommendation[]> = {
@@ -248,23 +321,31 @@ function getExercisesForGroup(
   // Seleccionar los primeros N ejercicios
   const selected = filteredExercises.slice(0, count);
 
-  // Convertir a formato Exercise
-  return selected.map((ex, index) => ({
-    id: `${startId + index}`,
-    name: ex.name,
-    sets: Array.from({ length: ex.sets }, () => ({
-      reps: ex.reps,
-      weight: 0
-    })),
-    restTime: `${ex.restTime}`,
-    notes: ''
-  }));
+  // Convertir a formato Exercise con pesos recomendados
+  return selected.map((ex, index) => {
+    const recommendedWeight = getRecommendedWeight(ex.name, level, goal);
+    
+    return {
+      id: `${startId + index}`,
+      name: ex.name,
+      sets: Array.from({ length: ex.sets }, () => ({
+        reps: ex.reps,
+        weight: recommendedWeight,
+        type: 'normal' as const
+      })),
+      equipment: ex.equipment,
+      restBetweenSets: ex.restTime,
+      notes: recommendedWeight > 0 
+        ? `Peso recomendado para nivel ${level}. Ajusta según tu capacidad.`
+        : 'Ejercicio con peso corporal. Ajusta las repeticiones según tu nivel.'
+    };
+  });
 }
 
 /**
- * Genera descripción de la rutina
+ * Genera descripción de la rutina para un día específico
  */
-function generateDescription(config: GeneratorConfig): string {
+function generateDayDescription(config: GeneratorConfig, dayName: string, muscleGroups: string[]): string {
   const goalDescriptions = {
     strength: 'enfocada en fuerza máxima',
     hypertrophy: 'enfocada en hipertrofia muscular',
@@ -279,5 +360,17 @@ function generateDescription(config: GeneratorConfig): string {
     avanzado: 'para nivel avanzado'
   };
 
-  return `Rutina ${goalDescriptions[config.goal]} ${levelDescriptions[config.level]}, ${config.daysPerWeek} días por semana, ${config.minutesPerSession} minutos por sesión.`;
+  const muscleGroupNames: Record<string, string> = {
+    chest: 'Pecho',
+    back: 'Espalda',
+    legs: 'Piernas',
+    shoulders: 'Hombros',
+    arms: 'Brazos',
+    core: 'Core',
+    glutes: 'Glúteos'
+  };
+
+  const groupsText = muscleGroups.map(g => muscleGroupNames[g] || g).join(', ');
+
+  return `Rutina ${goalDescriptions[config.goal]} ${levelDescriptions[config.level]}. Grupos musculares: ${groupsText}. Duración: ${config.minutesPerSession} minutos.`;
 }

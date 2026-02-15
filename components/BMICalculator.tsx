@@ -122,24 +122,51 @@ export default function BMICalculator() {
             <Input
               type="number"
               label="Peso (kg)"
-              value={weight}
-              onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+              value={weight === 0 ? '' : weight}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '') {
+                  setWeight(0);
+                } else {
+                  const num = parseFloat(val);
+                  setWeight(isNaN(num) ? 0 : Math.max(0, num));
+                }
+              }}
               min="0"
               step="0.1"
+              placeholder="Tu peso"
             />
             <Input
               type="number"
               label="Altura (cm)"
-              value={height}
-              onChange={(e) => setHeight(parseFloat(e.target.value) || 0)}
+              value={height === 0 ? '' : height}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '') {
+                  setHeight(0);
+                } else {
+                  const num = parseFloat(val);
+                  setHeight(isNaN(num) ? 0 : Math.max(0, num));
+                }
+              }}
               min="0"
+              placeholder="Tu altura"
             />
             <Input
               type="number"
               label="Edad"
-              value={age}
-              onChange={(e) => setAge(parseInt(e.target.value) || 0)}
+              value={age === 0 ? '' : age}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '') {
+                  setAge(0);
+                } else {
+                  const num = parseInt(val);
+                  setAge(isNaN(num) ? 0 : Math.max(0, num));
+                }
+              }}
               min="0"
+              placeholder="Tu edad"
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -179,27 +206,54 @@ export default function BMICalculator() {
               <Input
                 type="number"
                 label="Cuello (cm)"
-                value={neck}
-                onChange={(e) => setNeck(parseFloat(e.target.value) || 0)}
+                value={neck === 0 ? '' : neck}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setNeck(0);
+                  } else {
+                    const num = parseFloat(val);
+                    setNeck(isNaN(num) ? 0 : Math.max(0, num));
+                  }
+                }}
                 min="0"
                 step="0.1"
+                placeholder="Medida"
               />
               <Input
                 type="number"
                 label="Cintura (cm)"
-                value={waist}
-                onChange={(e) => setWaist(parseFloat(e.target.value) || 0)}
+                value={waist === 0 ? '' : waist}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setWaist(0);
+                  } else {
+                    const num = parseFloat(val);
+                    setWaist(isNaN(num) ? 0 : Math.max(0, num));
+                  }
+                }}
                 min="0"
                 step="0.1"
+                placeholder="Medida"
               />
               {gender === 'female' && (
                 <Input
                   type="number"
                   label="Cadera (cm)"
-                  value={hip}
-                  onChange={(e) => setHip(parseFloat(e.target.value) || 0)}
+                  value={hip === 0 ? '' : hip}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      setHip(0);
+                    } else {
+                      const num = parseFloat(val);
+                      setHip(isNaN(num) ? 0 : Math.max(0, num));
+                    }
+                  }}
                   min="0"
                   step="0.1"
+                  placeholder="Medida"
                 />
               )}
             </div>

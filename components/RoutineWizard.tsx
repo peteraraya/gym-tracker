@@ -111,6 +111,13 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
   const nextStep = async () => {
     if (step < totalSteps) {
       setStep(step + 1);
+      // Scroll al inicio del modal cuando cambia de paso
+      setTimeout(() => {
+        const modal = document.querySelector('.fixed.inset-0');
+        if (modal) {
+          modal.scrollTop = 0;
+        }
+      }, 100);
     } else {
       // Último paso: crear rutina
       if (isCreating) return; // Prevenir múltiples clicks
@@ -129,6 +136,13 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
   const prevStep = () => {
     if (step > 1) {
       setStep(step - 1);
+      // Scroll al inicio del modal cuando cambia de paso
+      setTimeout(() => {
+        const modal = document.querySelector('.fixed.inset-0');
+        if (modal) {
+          modal.scrollTop = 0;
+        }
+      }, 100);
     }
   };
 
@@ -136,7 +150,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="w-full max-w-3xl my-8 shadow-2xl animate-fadeIn">
         {/* Header */}
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6 sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl font-bold text-white mb-2">
@@ -170,7 +184,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
           </div>
         </CardHeader>
 
-        <CardContent className="p-6">
+        <CardContent className="p-6 max-h-[calc(100vh-300px)] overflow-y-auto">
           {/* PASO 1: Información Básica */}
           {step === 1 && (
             <div className="space-y-6 animate-fadeIn">
@@ -227,6 +241,32 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                         <div className="text-xs">min</div>
                       </button>
                     ))}
+                  </div>
+                  
+                  {/* Input personalizado para más de 90 minutos */}
+                  <div className="mt-3">
+                    <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                      O ingresa un tiempo personalizado:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="30"
+                        max="240"
+                        step="15"
+                        value={data.minutesPerSession}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 60;
+                          updateData({ minutesPerSession: Math.min(240, Math.max(30, value)) });
+                        }}
+                        className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="90"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">minutos</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      Entre 30 y 240 minutos
+                    </p>
                   </div>
                 </div>
               </div>
@@ -372,10 +412,10 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                   <Check className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  ¡Rutina Lista para Crear!
+                  ¡Rutinas Listas para Crear!
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Revisa los detalles antes de generar tu rutina personalizada
+                  Se crearán <strong>{data.daysPerWeek} rutinas</strong> (una por día de entrenamiento)
                 </p>
               </div>
 
@@ -432,10 +472,15 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               </div>
 
               <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
+                <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
                   <TrendingUp className="w-4 h-4 inline mr-2" />
-                  Generaremos una rutina optimizada basada en tus preferencias. Podrás editarla después de crearla.
+                  Generaremos <strong>{data.daysPerWeek} rutinas optimizadas</strong> basadas en tus preferencias:
                 </p>
+                <ul className="text-xs text-blue-700 dark:text-blue-300 ml-6 space-y-1">
+                  <li>• Cada rutina corresponde a un día de entrenamiento específico</li>
+                  <li>• Los ejercicios están divididos según el split de entrenamiento</li>
+                  <li>• Podrás editar cada rutina individualmente después de crearlas</li>
+                </ul>
               </div>
             </div>
           )}
@@ -475,12 +520,12 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               {isCreating ? (
                 <>
                   <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Creando...
+                  Creando rutinas...
                 </>
               ) : step === totalSteps ? (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  Crear Rutina
+                  Crear {data.daysPerWeek} Rutinas
                 </>
               ) : (
                 <>
