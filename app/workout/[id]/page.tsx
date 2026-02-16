@@ -23,6 +23,7 @@ import { EXERCISE_DATABASE } from '@/data/exercises';
 import * as storageService from '@/lib/storage/storage';
 import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
 import WorkoutSuggestions from '@/components/WorkoutSuggestions';
+import WorkoutComparison from '@/components/WorkoutComparison';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -133,6 +134,18 @@ export default function WorkoutPage() {
     if (!routine || !routine.exercises || routine.exercises.length === 0) return null;
     return routine.exercises[currentExerciseIndex] || null;
   }, [routine, currentExerciseIndex]);
+
+  // Obtener la última sesión donde se hizo el ejercicio actual
+  const lastSessionForExercise = React.useMemo(() => {
+    if (!currentExercise || sessions.length === 0) return null;
+    
+    // Buscar la sesión más reciente que contenga este ejercicio
+    const relevantSessions = sessions
+      .filter(s => s.exercises.some(e => e.exerciseName === currentExercise.name))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    return relevantSessions[0] || null;
+  }, [currentExercise, sessions]);
 
   // Generar sugerencias cuando cambie el ejercicio, peso o descanso
   useEffect(() => {
@@ -640,6 +653,18 @@ export default function WorkoutPage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400">Reps (Serie {currentSet})</div>
                 </div>
               </div>
+
+              {/* Comparación con última sesión */}
+              {lastSessionForExercise && typeof currentWeight === 'number' && typeof currentReps === 'number' && (
+                <WorkoutComparison
+                  exerciseName={currentExercise.name}
+                  currentSet={currentSet}
+                  currentWeight={currentWeight}
+                  currentReps={currentReps}
+                  lastSession={lastSessionForExercise}
+                  compact
+                />
+              )}
 
               <div className="space-y-3">
                 {/* <Input
