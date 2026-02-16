@@ -1,9 +1,9 @@
 # Implementación del Planificador Mensual
 
-## Estado: ✅ COMPLETADO
+## Estado: ✅ COMPLETADO (incluyendo vista semanal unificada)
 
 ## Objetivo
-Agregar vista mensual al planificador para poder agendar rutinas por fecha específica en un calendario mensual.
+Agregar vista mensual al planificador para poder agendar rutinas por fecha específica en un calendario mensual, y unificar el sistema de gestión de días usando un modal compartido para ambas vistas.
 
 ## Cambios Realizados
 
@@ -27,8 +27,11 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
 - ✅ Click en día abre modal de gestión
 
 #### `components/DayPlanModal.tsx`
-- ✅ Modal para gestionar días específicos
-- ✅ Mostrar fecha formateada (ej: "Lunes, 15 de Enero de 2024")
+- ✅ Modal unificado para gestionar días (semanal y mensual)
+- ✅ Prop `isWeeklyView` para distinguir entre vistas
+- ✅ Título formateado según tipo de vista:
+  - Semanal: "Lunes", "Martes", etc.
+  - Mensual: "Lunes, 15 de Enero de 2024"
 - ✅ Toggle para bloquear/desbloquear día
 - ✅ Lista de rutinas asignadas con botón eliminar
 - ✅ Selector para agregar nuevas rutinas
@@ -42,7 +45,8 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
 - ✅ Tipo `MonthlyPlan` para almacenar rutinas por fecha (YYYY-MM-DD)
 - ✅ Estado `currentDate` para navegación del calendario
 - ✅ Estado `monthlyPlan` para almacenar plan mensual
-- ✅ Estado `selectedMonthDay` para modal de día
+- ✅ Estado `selectedMonthDay` para modal de día mensual
+- ✅ Estado `selectedWeekDay` para modal de día semanal
 
 #### Funciones
 - ✅ `formatDateKey()` - Formatea fecha como YYYY-MM-DD
@@ -51,16 +55,24 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
 - ✅ `goToToday()` - Vuelve al mes actual
 - ✅ `addRoutineToMonthDay()` - Agrega rutina a fecha específica
 - ✅ `removeFromMonthDay()` - Elimina rutina de fecha
-- ✅ `toggleBlockMonthDay()` - Bloquea/desbloquea día
-- ✅ `saveMonthDayNote()` - Guarda nota del día
+- ✅ `toggleBlockMonthDay()` - Bloquea/desbloquea día mensual
+- ✅ `saveMonthDayNote()` - Guarda nota del día mensual
+- ✅ `toggleBlockWeekDay()` - Bloquea/desbloquea día semanal
+- ✅ `saveWeekDayNote()` - Guarda nota del día semanal
 
 #### UI
 - ✅ Botones para alternar entre vista semanal y mensual
 - ✅ Iconos descriptivos (📅 Semanal, 🗓️ Mensual)
 - ✅ Botón "Limpiar" actualizado para ambas vistas
 - ✅ Integración del componente MonthlyCalendar
-- ✅ Integración del componente DayPlanModal
-- ✅ Mantenimiento de vista semanal existente
+- ✅ Integración del componente DayPlanModal para ambas vistas
+- ✅ Vista semanal actualizada:
+  - Cards de días ahora son botones clickeables
+  - Click abre DayPlanModal con `isWeeklyView={true}`
+  - Eliminado modal inline antiguo de notas
+  - Mantiene funcionalidad de drag & drop
+  - Vista previa de rutinas y notas en cards
+  - Hover effect para mejor UX
 
 ### 4. Persistencia de Datos
 - ✅ useEffect para cargar plan mensual al iniciar
@@ -94,8 +106,9 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
    - Responsive en móvil y desktop
 
 ### Gestión de Días
-1. **Modal Completo**
-   - Fecha formateada legible
+1. **Modal Unificado**
+   - Usado tanto en vista semanal como mensual
+   - Fecha formateada según contexto
    - Estado del día (Activo/Descanso)
    - Lista de rutinas asignadas
    - Selector para agregar rutinas
@@ -108,6 +121,13 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
    - Bloquear día como descanso
    - Agregar notas personalizadas
    - Validaciones (no agregar duplicados, etc.)
+
+3. **Vista Semanal Mejorada**
+   - Cards clickeables para abrir modal
+   - Vista previa de rutinas en card
+   - Indicador de nota si existe
+   - Mantiene drag & drop para asignación rápida
+   - Hover effect para mejor feedback visual
 
 ### Alternancia de Vistas
 - Botones toggle con diseño moderno
@@ -132,11 +152,18 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
    - Indicadores visuales claros
    - Navegación intuitiva
    - Responsive en todos los dispositivos
+   - Sistema unificado de gestión de días
+   - Consistencia entre vistas semanal y mensual
 
 4. **Datos Separados**
    - Plan semanal y mensual independientes
    - No interfieren entre sí
    - Permite usar ambos simultáneamente
+
+5. **Código Mantenible**
+   - Modal compartido reduce duplicación
+   - Lógica centralizada
+   - Más fácil agregar funcionalidades futuras
 
 ## Archivos Creados/Modificados
 
@@ -155,7 +182,7 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
 Para verificar:
 1. ✅ Alternar entre vista semanal y mensual
 2. ✅ Navegar entre meses
-3. ✅ Click en día abre modal
+3. ✅ Click en día abre modal (ambas vistas)
 4. ✅ Agregar rutinas a días específicos
 5. ✅ Eliminar rutinas de días
 6. ✅ Bloquear/desbloquear días
@@ -163,6 +190,9 @@ Para verificar:
 8. ✅ Limpiar plan mensual
 9. ✅ Persistencia de datos (recargar página)
 10. ✅ Responsive en móvil
+11. ✅ Drag & drop en vista semanal
+12. ✅ Modal unificado funciona en ambas vistas
+13. ✅ Títulos formateados correctamente según vista
 
 ## Próximos Pasos (Opcional)
 

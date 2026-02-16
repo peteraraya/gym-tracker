@@ -49,9 +49,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   const [monthlyPlan, setMonthlyPlan] = useState<MonthlyPlan>({});
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
   const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | string | ''>>({});
-  const [editingDay, setEditingDay] = useState<DayKey | string | null>(null);
-  const [editingNote, setEditingNote] = useState('');
-  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [selectedWeekDay, setSelectedWeekDay] = useState<DayKey | null>(null);
   const [selectedMonthDay, setSelectedMonthDay] = useState<string | null>(null);
   const daysRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -224,6 +222,27 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         }
       };
     });
+  };
+
+  const toggleBlockWeekDay = (day: DayKey) => {
+    setPlan(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        blocked: !prev[day].blocked,
+        routines: prev[day].blocked ? prev[day].routines : [] // Limpiar rutinas al bloquear
+      }
+    }));
+  };
+
+  const saveWeekDayNote = (day: DayKey, note: string) => {
+    setPlan(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        note
+      }
+    }));
   };
 
   const filteredRoutines = routines.filter(r => {
@@ -402,11 +421,12 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       <div className="mb-2 relative">
         <div ref={daysRef} onScroll={updateIndicators} className="flex gap-3 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-3 touch-pan-x">
           {DAYS.map(day => (
-            <div
+            <button
               key={day}
+              onClick={() => setSelectedWeekDay(day)}
               onDrop={(e) => onDropToDay(e as any, day)}
               onDragOver={onDragOver as any}
-              className={`min-w-[120px] md:min-w-0 flex-shrink-0 md:flex-shrink p-4 rounded-lg shadow-sm min-h-[150px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-800/10 to-red-800/5 border border-red-600/30' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/60 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/60 dark:bg-gray-800')}`}
+              className={`min-w-[120px] md:min-w-0 flex-shrink-0 md:flex-shrink p-4 rounded-lg shadow-sm min-h-[150px] text-left transition-all hover:scale-[1.02] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-800/10 to-red-800/5 border border-red-600/30' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/60 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/60 dark:bg-gray-800')}`}
             >
               <div className="mb-3">
                 <div className="flex items-center justify-between gap-3">
@@ -424,51 +444,13 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               {/* Dia bloqueado */}
               {plan[day]?.blocked ? (
                 <div className="space-y-2">
-
-                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24 min-[320px]:">
-                    <p className="text-sm font-semibold text-red-300">Día de descanso </p>
-
+                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24">
+                    <p className="text-sm font-semibold text-red-300">Día de descanso</p>
                     {plan[day]?.note ? (
-                      <p className="text-xs text-gray-300 mt-1  ">{plan[day].note}</p>
+                      <p className="text-xs text-gray-300 mt-1">{plan[day].note}</p>
                     ) : (
                       <p className="text-xs text-gray-400 mt-1">Sin nota</p>
                     )}
-                  </div>
-                  <div className="flex gap-2 flex-col">
-                    <Button
-                      className="text-sm"
-                      variant="info"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingDay(day);
-                        setEditingNote(plan[day]?.note || '');
-                        setIsNoteModalOpen(true);
-                      }}
-                    >Editar nota</Button>
-
-                    <Button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        // desbloquear mediante confirm modal
-                        try {
-                          const confirmed = await confirm({
-                            title: 'Desbloquear día',
-                            message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
-                            confirmText: 'Desbloquear',
-                            cancelText: 'Cancelar',
-                            variant: 'warning'
-                          });
-                          if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
-                        } catch (e) {
-                          // ignore
-                        }
-                      }}
-                      variant="danger"
-                      block
-                      className="text-sm"
-                    >
-                      Desbloquear
-                    </Button>
                   </div>
                 </div>
               ) : (
@@ -491,30 +473,20 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                       return (
                         <div key={rid} className="flex items-center justify-between bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left overflow-auto max-h-20">
                           <p className="text-xs text-gray-100 ">{r.name}</p>
-                          <Button variant="danger" size="sm" onClick={() => removeFromDay(day, rid)}>x</Button>
                         </div>
                       );
                     })}
                     
-                    {/* Botón Bloquear - solo visible si el día NO tiene rutinas */}
-                    {(plan[day]?.routines?.length || 0) === 0 && (
-                      <Button
-                        title="Marcar como día de descanso"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: true } }));
-                        }}
-                        variant="ghost"
-                        block
-                        className="text-sm mt-2"
-                      >
-                        Bloquear
-                      </Button>
+                    {/* Indicador de nota */}
+                    {plan[day]?.note && (
+                      <div className="text-xs text-gray-400 italic truncate">
+                        📝 {plan[day].note}
+                      </div>
                     )}
                   </div>
                 )
               )}
-            </div>
+            </button>
           ))}
         </div>
 
@@ -605,31 +577,20 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         </div>
       </div>
 
-      {/* Modal simple para editar nota del día */}
-      {isNoteModalOpen && editingDay && typeof editingDay === 'string' && LABELS[editingDay as DayKey] && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setIsNoteModalOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md z-10">
-            <h3 className="text-lg font-semibold mb-3">Nota para {LABELS[editingDay as DayKey]}</h3>
-            <textarea
-              value={editingNote}
-              onChange={(e) => setEditingNote(e.target.value)}
-              rows={5}
-              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            />
-            <div className="mt-4 flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setIsNoteModalOpen(false)}>Cancelar</Button>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  if (!editingDay) return;
-                  setPlan(prev => ({ ...prev, [editingDay as DayKey]: { ...prev[editingDay as DayKey], note: editingNote } }));
-                  setIsNoteModalOpen(false);
-                }}
-              >Guardar</Button>
-            </div>
-          </div>
-        </div>
+      {/* Modal para gestionar día de la semana */}
+      {selectedWeekDay && (
+        <DayPlanModal
+          isOpen={!!selectedWeekDay}
+          onClose={() => setSelectedWeekDay(null)}
+          dateKey={selectedWeekDay}
+          dayPlan={plan[selectedWeekDay]}
+          routines={routines}
+          onAddRoutine={(routineId) => addRoutineToDay(routineId, selectedWeekDay)}
+          onRemoveRoutine={(routineId) => removeFromDay(selectedWeekDay, routineId)}
+          onToggleBlock={() => toggleBlockWeekDay(selectedWeekDay)}
+          onSaveNote={(note) => saveWeekDayNote(selectedWeekDay, note)}
+          isWeeklyView={true}
+        />
       )}
         </>
       )}
