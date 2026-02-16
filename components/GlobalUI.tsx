@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import FloatingCreateRoutine from '@/components/FloatingCreateRoutine';
+import { FloatingAIAssistant } from '@/components/FloatingAIAssistant';
 
 export const GlobalUI: React.FC = () => {
   const pathname = usePathname() || '/';
@@ -16,6 +17,7 @@ export const GlobalUI: React.FC = () => {
     <>
       <Navbar />
       <FloatingCreateRoutine />
+      <FloatingAIAssistant />
     </>
   );
 };

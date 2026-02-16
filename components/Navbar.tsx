@@ -24,7 +24,8 @@ import {
   Menu,
   X,
   Dumbbell,
-  BookOpen
+  BookOpen,
+  Sparkles
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -80,6 +81,7 @@ export const Navbar: React.FC = () => {
                 <NavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} color="amber" />
                 <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" data-tour="exercises" />
                 <NavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
+                <NavLink href="/ai-assistant" icon={Sparkles} label="Asistente IA" isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
                 <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
