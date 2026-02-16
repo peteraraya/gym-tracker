@@ -30,10 +30,12 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Fetch routines from storage (localStorage or Supabase)
   const refreshRoutines = useCallback(async () => {
     try {
+      console.log('[GymContext] refreshRoutines: Starting...');
       const data = await storageService.getRoutines();
+      console.log('[GymContext] refreshRoutines: Loaded', data.length, 'routines');
       setRoutines(data);
     } catch (error) {
-      console.error('Error fetching routines:', error);
+      console.error('[GymContext] Error fetching routines:', error);
       setRoutines([]);
     }
   }, []);
@@ -41,11 +43,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Fetch sessions from storage (localStorage or Supabase)
   const refreshSessions = useCallback(async () => {
     try {
+      console.log('[GymContext] refreshSessions: Starting...');
       const data = await storageService.getSessions();
+      console.log('[GymContext] refreshSessions: Loaded', data.length, 'sessions');
       setSessions(data);
-
-      // Log para debugging
-      console.log('[GymContext] refreshSessions -> sessions loaded:', data.length);
 
       // Si la base de datos está habilitada, verificar si hay sesiones locales que necesitan sincronización
       if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true') {
@@ -68,7 +69,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      console.error('[GymContext] Error fetching sessions:', error);
       setSessions([]);
     }
   }, []);
@@ -76,6 +77,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Load data when user changes
   useEffect(() => {
     const loadData = async () => {
+      console.log('[GymContext] Loading data for user:', user?.id || 'no-user');
       setLoading(true);
       
       // Primero, migrar sesiones antiguas de localStorage si existen
@@ -90,10 +92,20 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       // Luego cargar datos
       await Promise.all([refreshRoutines(), refreshSessions()]);
+      
+      console.log('[GymContext] Data loaded successfully');
       setLoading(false);
     };
 
-    loadData();
+    // Solo cargar si hay usuario o si estamos en modo localStorage
+    if (user || process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
+      loadData();
+    } else {
+      console.log('[GymContext] Skipping data load - no user and database enabled');
+      setLoading(false);
+      setRoutines([]);
+      setSessions([]);
+    }
   }, [user, refreshRoutines, refreshSessions]);
 
   const addRoutine = useCallback(async (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -146,6 +158,39 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteRoutine = useCallback(async (id: string) => {
     try {
       await storageService.deleteRoutine(id);
+      
+      // Limpiar la rutina del planificador semanal
+      try {
+        const { getWeeklyPlan, saveWeeklyPlan } = await import('@/lib/storage/storage');
+        const weeklyPlan = await getWeeklyPlan();
+        
+        if (weeklyPlan) {
+          const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+          let planModified = false;
+          
+          const updatedPlan = { ...weeklyPlan };
+          
+          for (const day of days) {
+            if (updatedPlan[day]?.routines) {
+              const originalLength = updatedPlan[day].routines.length;
+              updatedPlan[day].routines = updatedPlan[day].routines.filter((rid: string) => rid !== id);
+              
+              if (updatedPlan[day].routines.length !== originalLength) {
+                planModified = true;
+              }
+            }
+          }
+          
+          if (planModified) {
+            await saveWeeklyPlan(updatedPlan);
+            console.log(`[GymContext] Removed routine ${id} from weekly planner`);
+          }
+        }
+      } catch (planError) {
+        console.warn('Error cleaning routine from weekly planner:', planError);
+        // No lanzar error, la rutina ya fue eliminada
+      }
+      
       await refreshRoutines();
     } catch (error) {
       console.error('Error deleting routine:', error);

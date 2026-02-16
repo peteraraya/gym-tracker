@@ -150,13 +150,13 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="w-full max-w-3xl my-8 shadow-2xl animate-fadeIn">
         {/* Header */}
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6 sticky top-0 z-10">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-4 sm:p-6 sticky top-0 z-10">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl font-bold text-white mb-2">
-                Asistente de Creación de Rutinas
+            <div className="min-w-0 flex-1 pr-2">
+              <CardTitle className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">
+                Asistente de Rutinas
               </CardTitle>
-              <p className="text-blue-100 text-sm">
+              <p className="text-blue-100 text-xs sm:text-sm">
                 Paso {step} de {totalSteps}: {
                   step === 1 ? 'Información Básica' :
                   step === 2 ? 'Equipo Disponible' :
@@ -167,14 +167,15 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
             </div>
             <button
               onClick={onCancel}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
+              aria-label="Cerrar"
             >
               <span className="text-2xl text-white">×</span>
             </button>
           </div>
           
           {/* Progress bar */}
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-white transition-all duration-300"
@@ -184,7 +185,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
           </div>
         </CardHeader>
 
-        <CardContent className="p-6 max-h-[calc(100vh-300px)] overflow-y-auto">
+        <CardContent className="p-4 sm:p-6 max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-300px)] overflow-y-auto">
           {/* PASO 1: Información Básica */}
           {step === 1 && (
             <div className="space-y-6 animate-fadeIn">
@@ -197,7 +198,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Calendar className="w-4 h-4 inline mr-2" />
@@ -243,30 +244,26 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                     ))}
                   </div>
                   
-                  {/* Input personalizado para más de 90 minutos */}
+                  {/* Selector personalizado */}
                   <div className="mt-3">
                     <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      O ingresa un tiempo personalizado:
+                      O selecciona otro tiempo:
                     </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="30"
-                        max="240"
-                        step="15"
-                        value={data.minutesPerSession}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value) || 60;
-                          updateData({ minutesPerSession: Math.min(240, Math.max(30, value)) });
-                        }}
-                        className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="90"
-                      />
-                      <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">minutos</span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      Entre 30 y 240 minutos
-                    </p>
+                    <select
+                      value={data.minutesPerSession}
+                      onChange={(e) => updateData({ minutesPerSession: parseInt(e.target.value) })}
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value={30}>30 minutos</option>
+                      <option value={45}>45 minutos</option>
+                      <option value={60}>60 minutos</option>
+                      <option value={75}>75 minutos</option>
+                      <option value={90}>90 minutos</option>
+                      <option value={105}>105 minutos</option>
+                      <option value={120}>120 minutos (2 horas)</option>
+                      <option value={150}>150 minutos (2.5 horas)</option>
+                      <option value={180}>180 minutos (3 horas)</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -276,7 +273,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                   <Award className="w-4 h-4 inline mr-2" />
                   ¿Cuál es tu nivel?
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
                     { value: 'principiante', label: 'Principiante', desc: '0-6 meses', color: 'green' },
                     { value: 'intermedio', label: 'Intermedio', desc: '6-24 meses', color: 'yellow' },
@@ -291,7 +288,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      <div className="font-bold">{level.label}</div>
+                      <div className="font-bold text-sm sm:text-base">{level.label}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">{level.desc}</div>
                     </button>
                   ))}
@@ -311,19 +308,19 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Selecciona todo el equipo que puedas usar
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {EQUIPMENT_OPTIONS.map(eq => (
                     <button
                       key={eq.id}
                       onClick={() => toggleEquipment(eq.id)}
-                      className={`p-4 rounded-lg border-2 transition-all ${
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
                         data.equipment.includes(eq.id)
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-105'
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      <div className="text-3xl mb-2">{eq.icon}</div>
-                      <div className="text-sm font-medium">{eq.name}</div>
+                      <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{eq.icon}</div>
+                      <div className="text-xs sm:text-sm font-medium">{eq.name}</div>
                     </button>
                   ))}
                 </div>
@@ -347,7 +344,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                   <Target className="w-4 h-4 inline mr-2" />
                   ¿Cuál es tu objetivo principal?
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   {[
                     { value: 'strength', label: 'Fuerza Máxima', desc: 'Levantar más peso', icon: '🏋️' },
                     { value: 'hypertrophy', label: 'Hipertrofia', desc: 'Ganar músculo', icon: '💪' },
@@ -365,9 +362,9 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-3xl">{goal.icon}</span>
-                        <div>
-                          <div className="font-bold">{goal.label}</div>
+                        <span className="text-2xl sm:text-3xl flex-shrink-0">{goal.icon}</span>
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm sm:text-base">{goal.label}</div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">{goal.desc}</div>
                         </div>
                       </div>
@@ -384,19 +381,19 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Selecciona al menos una área de enfoque
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {FOCUS_AREAS.map(area => (
                     <button
                       key={area.id}
                       onClick={() => toggleFocusArea(area.id)}
-                      className={`p-4 rounded-lg border-2 transition-all ${
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
                         data.focusAreas.includes(area.id)
                           ? 'border-green-500 bg-green-50 dark:bg-green-900/20 scale-105'
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      <div className="text-3xl mb-2">{area.icon}</div>
-                      <div className="text-sm font-medium">{area.name}</div>
+                      <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{area.icon}</div>
+                      <div className="text-xs sm:text-sm font-medium">{area.name}</div>
                     </button>
                   ))}
                 </div>
@@ -486,17 +483,18 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
           )}
 
           {/* Navigation */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
             <Button
               variant="ghost"
               onClick={step === 1 ? onCancel : prevStep}
               disabled={isCreating}
+              className="w-full sm:w-auto order-2 sm:order-1"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               {step === 1 ? 'Cancelar' : 'Anterior'}
             </Button>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 order-1 sm:order-2">
               {Array.from({ length: totalSteps }).map((_, i) => (
                 <div
                   key={i}
@@ -515,12 +513,12 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               variant="primary"
               onClick={nextStep}
               disabled={!canProceed() || isCreating}
-              className={step === totalSteps ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : ''}
+              className={`w-full sm:w-auto order-3 ${step === totalSteps ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : ''}`}
             >
               {isCreating ? (
                 <>
                   <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Creando rutinas...
+                  Creando...
                 </>
               ) : step === totalSteps ? (
                 <>

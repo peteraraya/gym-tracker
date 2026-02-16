@@ -356,6 +356,62 @@ export async function saveWeeklyPlan(plan: any): Promise<void> {
     }
 }
 
+// ==================== MONTHLY PLAN ====================
+
+export async function getMonthlyPlan(): Promise<any> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getMonthlyPlan();
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).getMonthlyPlan) {
+                const res = await (supabaseService as any).getMonthlyPlan();
+                handleStorageSuccess();
+                return res;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getMonthlyPlan();
+        } catch (err) {
+            handleStorageError(err, 'getMonthlyPlan');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getMonthlyPlan();
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.getMonthlyPlan();
+    }
+}
+
+export async function saveMonthlyPlan(plan: any): Promise<void> {
+    if (isDatabaseEnabled()) {
+        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveMonthlyPlan(plan);
+        }
+
+        try {
+            const supabaseService = await import('@/lib/supabase/service');
+            if ((supabaseService as any).saveMonthlyPlan) {
+                await (supabaseService as any).saveMonthlyPlan(plan);
+                handleStorageSuccess();
+                return;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveMonthlyPlan(plan);
+        } catch (err) {
+            handleStorageError(err, 'saveMonthlyPlan');
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.saveMonthlyPlan(plan);
+        }
+    } else {
+        const localStorageService = await import('@/lib/storage/localStorage');
+        return localStorageService.saveMonthlyPlan(plan);
+    }
+}
+
 // ==================== UTILITIES ====================
 
 export async function rebuildRoutinesFromSessions(): Promise<any> {

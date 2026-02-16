@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useEffect, useState, DragEvent, useRef } from 'react';
-import { GripVertical } from '@/components/icons/lucide';
+import { GripVertical, ChevronLeft, ChevronRight } from '@/components/icons/lucide';
 import { useGym } from '@/context/GymContext';
 import { Button } from '@/components/ui/Button';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useToast } from '@/context/ToastContext';
-import { getWeeklyPlan, saveWeeklyPlan } from '@/lib/storage/storage';
+import { getWeeklyPlan, saveWeeklyPlan, getMonthlyPlan, saveMonthlyPlan } from '@/lib/storage/storage';
+import MonthlyCalendar from '@/components/MonthlyCalendar';
+import DayPlanModal from '@/components/DayPlanModal';
 
 type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+type ViewMode = 'weekly' | 'monthly';
 
 const DAYS: DayKey[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -22,30 +25,41 @@ const LABELS: Record<DayKey, string> = {
   sunday: 'Domingo'
 };
 
+const MONTH_NAMES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
 type DayPlan = { routines: string[]; blocked?: boolean; note?: string };
 type Plan = Record<DayKey, DayPlan>;
+type MonthlyPlan = Record<string, DayPlan>; // key: 'YYYY-MM-DD'
 
 export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: string }) {
   const { routines, loading: routinesLoading } = useGym();
   const { confirm } = useConfirm();
   const { info } = useToast();
 
+  const [viewMode, setViewMode] = useState<ViewMode>('weekly');
+  const [currentDate, setCurrentDate] = useState(new Date());
+
   const defaultPlan: Plan = DAYS.reduce((acc, d) => ({ ...acc, [d]: { routines: [], blocked: false, note: '' } }), {} as Plan);
   const [plan, setPlan] = useState<Plan>(defaultPlan);
+  const [monthlyPlan, setMonthlyPlan] = useState<MonthlyPlan>({});
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
-  const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | ''>>({});
-  const [editingDay, setEditingDay] = useState<DayKey | null>(null);
-  const [editingNote, setEditingNote] = useState('');
-  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | string | ''>>({});
+  const [selectedWeekDay, setSelectedWeekDay] = useState<DayKey | null>(null);
+  const [selectedMonthDay, setSelectedMonthDay] = useState<string | null>(null);
   const daysRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
+        // Cargar plan semanal
         const stored = await getWeeklyPlan();
         if (!mounted) return;
         if (!stored) {
@@ -67,8 +81,14 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           }), {} as any) as Plan;
           setPlan(normalized);
         }
+        
+        // Cargar plan mensual
+        const monthlyStored = await getMonthlyPlan();
+        if (mounted && monthlyStored) {
+          setMonthlyPlan(monthlyStored);
+        }
       } catch (e) {
-        console.warn('Error loading weekly plan, using local default', e);
+        console.warn('Error loading plans, using local default', e);
       } finally {
         if (mounted) setIsLoadingPlan(false);
       }
@@ -80,6 +100,11 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     if (isLoadingPlan) return;
     try { saveWeeklyPlan(plan); } catch (e) { /* ignore */ }
   }, [plan, isLoadingPlan]);
+
+  useEffect(() => {
+    if (isLoadingPlan) return;
+    try { saveMonthlyPlan(monthlyPlan); } catch (e) { /* ignore */ }
+  }, [monthlyPlan, isLoadingPlan]);
 
   const updateIndicators = () => {
     const el = daysRef.current;
@@ -109,6 +134,115 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   const clearPlan = () => {
     setPlan(defaultPlan);
     try { saveWeeklyPlan(defaultPlan); } catch (e) { }
+  };
+
+  // Funciones para calendario mensual
+  const formatDateKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const addRoutineToMonthDay = (routineId: string, dateKey: string) => {
+    if (!dateKey) return;
+    
+    setMonthlyPlan(prev => {
+      const dayPlan = prev[dateKey] || { routines: [], blocked: false, note: '' };
+      
+      if (dayPlan.blocked) {
+        try { info('Ese día está bloqueado. Desbloquéalo primero.'); } catch { }
+        return prev;
+      }
+      
+      if (dayPlan.routines.includes(routineId)) {
+        try { info('Esta rutina ya está asignada a este día'); } catch { }
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        [dateKey]: {
+          ...dayPlan,
+          routines: [...dayPlan.routines, routineId]
+        }
+      };
+    });
+  };
+
+  const removeFromMonthDay = (dateKey: string, routineId: string) => {
+    setMonthlyPlan(prev => {
+      const dayPlan = prev[dateKey];
+      if (!dayPlan) return prev;
+      
+      return {
+        ...prev,
+        [dateKey]: {
+          ...dayPlan,
+          routines: dayPlan.routines.filter(id => id !== routineId)
+        }
+      };
+    });
+  };
+
+  const toggleBlockMonthDay = (dateKey: string) => {
+    setMonthlyPlan(prev => {
+      const dayPlan = prev[dateKey] || { routines: [], blocked: false, note: '' };
+      return {
+        ...prev,
+        [dateKey]: {
+          ...dayPlan,
+          blocked: !dayPlan.blocked,
+          routines: dayPlan.blocked ? dayPlan.routines : [] // Limpiar rutinas al bloquear
+        }
+      };
+    });
+  };
+
+  const saveMonthDayNote = (dateKey: string, note: string) => {
+    setMonthlyPlan(prev => {
+      const dayPlan = prev[dateKey] || { routines: [], blocked: false, note: '' };
+      return {
+        ...prev,
+        [dateKey]: {
+          ...dayPlan,
+          note
+        }
+      };
+    });
+  };
+
+  const toggleBlockWeekDay = (day: DayKey) => {
+    setPlan(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        blocked: !prev[day].blocked,
+        routines: prev[day].blocked ? prev[day].routines : [] // Limpiar rutinas al bloquear
+      }
+    }));
+  };
+
+  const saveWeekDayNote = (day: DayKey, note: string) => {
+    setPlan(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        note
+      }
+    }));
   };
 
   const filteredRoutines = routines.filter(r => {
@@ -148,7 +282,34 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold">Planificador semanal</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold">Planificador</h2>
+          
+          {/* Selector de vista */}
+          <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('weekly')}
+              className={`px-3 py-1 rounded text-sm transition-all ${
+                viewMode === 'weekly'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              📅 Semanal
+            </button>
+            <button
+              onClick={() => setViewMode('monthly')}
+              className={`px-3 py-1 rounded text-sm transition-all ${
+                viewMode === 'monthly'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🗓️ Mensual
+            </button>
+          </div>
+        </div>
+        
         <div className="flex gap-2">
           <Button
             variant="ghost"
@@ -157,18 +318,23 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               try {
                 const confirmed = await confirm({
                   title: 'Eliminar planificación',
-                  message: 'Se eliminará toda la planificación semanal. Esto no se puede deshacer. ¿Deseas continuar?',
+                  message: `Se eliminará toda la planificación ${viewMode === 'weekly' ? 'semanal' : 'mensual'}. Esto no se puede deshacer. ¿Deseas continuar?`,
                   confirmText: 'Eliminar definitivamente',
                   cancelText: 'Cancelar',
                   variant: 'warning'
                 });
                 if (confirmed) {
-                  clearPlan();
+                  if (viewMode === 'weekly') {
+                    clearPlan();
+                  } else {
+                    setMonthlyPlan({});
+                    try { saveMonthlyPlan({}); } catch (e) { }
+                  }
                   try { info('Planificación eliminada'); } catch { }
-                  try { console.log('Weekly plan cleared'); } catch { }
+                  try { console.log(`${viewMode} plan cleared`); } catch { }
                   try {
                     if (typeof window !== 'undefined' && (window as any).gtag) {
-                      (window as any).gtag('event', 'weekly_plan_cleared', { method: 'manual' });
+                      (window as any).gtag('event', `${viewMode}_plan_cleared`, { method: 'manual' });
                     }
                   } catch (e) {
                     // ignore analytics errors
@@ -220,14 +386,47 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         </div>
       </div>
 
+      {/* Vista Mensual */}
+      {viewMode === 'monthly' ? (
+        <>
+          <MonthlyCalendar
+            currentDate={currentDate}
+            monthlyPlan={monthlyPlan}
+            routines={routines}
+            onPreviousMonth={goToPreviousMonth}
+            onNextMonth={goToNextMonth}
+            onToday={goToToday}
+            onDayClick={(dateKey) => setSelectedMonthDay(dateKey)}
+            isLoading={isLoadingPlan || routinesLoading}
+          />
+
+          {/* Modal para gestionar día del mes */}
+          {selectedMonthDay && (
+            <DayPlanModal
+              isOpen={!!selectedMonthDay}
+              onClose={() => setSelectedMonthDay(null)}
+              dateKey={selectedMonthDay}
+              dayPlan={monthlyPlan[selectedMonthDay] || { routines: [], blocked: false, note: '' }}
+              routines={routines}
+              onAddRoutine={(routineId) => addRoutineToMonthDay(routineId, selectedMonthDay)}
+              onRemoveRoutine={(routineId) => removeFromMonthDay(selectedMonthDay, routineId)}
+              onToggleBlock={() => toggleBlockMonthDay(selectedMonthDay)}
+              onSaveNote={(note) => saveMonthDayNote(selectedMonthDay, note)}
+            />
+          )}
+        </>
+      ) : (
+        /* Vista Semanal */
+        <>
       <div className="mb-2 relative">
         <div ref={daysRef} onScroll={updateIndicators} className="flex gap-3 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-3 touch-pan-x">
           {DAYS.map(day => (
-            <div
+            <button
               key={day}
+              onClick={() => setSelectedWeekDay(day)}
               onDrop={(e) => onDropToDay(e as any, day)}
               onDragOver={onDragOver as any}
-              className={`min-w-[120px] md:min-w-0 flex-shrink-0 md:flex-shrink p-4 rounded-lg shadow-sm min-h-[150px] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-800/10 to-red-800/5 border border-red-600/30' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/60 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/60 dark:bg-gray-800')}`}
+              className={`min-w-[120px] md:min-w-0 flex-shrink-0 md:flex-shrink p-4 rounded-lg shadow-sm min-h-[150px] text-left transition-all hover:scale-[1.02] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-800/10 to-red-800/5 border border-red-600/30' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/60 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/60 dark:bg-gray-800')}`}
             >
               <div className="mb-3">
                 <div className="flex items-center justify-between gap-3">
@@ -245,51 +444,13 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               {/* Dia bloqueado */}
               {plan[day]?.blocked ? (
                 <div className="space-y-2">
-
-                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24 min-[320px]:">
-                    <p className="text-sm font-semibold text-red-300">Día de descanso </p>
-
+                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24">
+                    <p className="text-sm font-semibold text-red-300">Día de descanso</p>
                     {plan[day]?.note ? (
-                      <p className="text-xs text-gray-300 mt-1  ">{plan[day].note}</p>
+                      <p className="text-xs text-gray-300 mt-1">{plan[day].note}</p>
                     ) : (
                       <p className="text-xs text-gray-400 mt-1">Sin nota</p>
                     )}
-                  </div>
-                  <div className="flex gap-2 flex-col">
-                    <Button
-                      className="text-sm"
-                      variant="info"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingDay(day);
-                        setEditingNote(plan[day]?.note || '');
-                        setIsNoteModalOpen(true);
-                      }}
-                    >Editar nota</Button>
-
-                    <Button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        // desbloquear mediante confirm modal
-                        try {
-                          const confirmed = await confirm({
-                            title: 'Desbloquear día',
-                            message: 'Desbloquear día de descanso? Se perderá la nota asociada.',
-                            confirmText: 'Desbloquear',
-                            cancelText: 'Cancelar',
-                            variant: 'warning'
-                          });
-                          if (confirmed) setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: false, note: '' } }));
-                        } catch (e) {
-                          // ignore
-                        }
-                      }}
-                      variant="danger"
-                      block
-                      className="text-sm"
-                    >
-                      Desbloquear
-                    </Button>
                   </div>
                 </div>
               ) : (
@@ -312,30 +473,20 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                       return (
                         <div key={rid} className="flex items-center justify-between bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left overflow-auto max-h-20">
                           <p className="text-xs text-gray-100 ">{r.name}</p>
-                          <Button variant="danger" size="sm" onClick={() => removeFromDay(day, rid)}>x</Button>
                         </div>
                       );
                     })}
                     
-                    {/* Botón Bloquear - solo visible si el día NO tiene rutinas */}
-                    {(plan[day]?.routines?.length || 0) === 0 && (
-                      <Button
-                        title="Marcar como día de descanso"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPlan(prev => ({ ...prev, [day]: { ...prev[day], blocked: true } }));
-                        }}
-                        variant="ghost"
-                        block
-                        className="text-sm mt-2"
-                      >
-                        Bloquear
-                      </Button>
+                    {/* Indicador de nota */}
+                    {plan[day]?.note && (
+                      <div className="text-xs text-gray-400 italic truncate">
+                        📝 {plan[day].note}
+                      </div>
                     )}
                   </div>
                 )
               )}
-            </div>
+            </button>
           ))}
         </div>
 
@@ -426,31 +577,22 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         </div>
       </div>
 
-      {/* Modal simple para editar nota del día */}
-      {isNoteModalOpen && editingDay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setIsNoteModalOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md z-10">
-            <h3 className="text-lg font-semibold mb-3">Nota para {LABELS[editingDay]}</h3>
-            <textarea
-              value={editingNote}
-              onChange={(e) => setEditingNote(e.target.value)}
-              rows={5}
-              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            />
-            <div className="mt-4 flex gap-2 justify-end">
-              <Button variant="ghost" onClick={() => setIsNoteModalOpen(false)}>Cancelar</Button>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  if (!editingDay) return;
-                  setPlan(prev => ({ ...prev, [editingDay]: { ...prev[editingDay], note: editingNote } }));
-                  setIsNoteModalOpen(false);
-                }}
-              >Guardar</Button>
-            </div>
-          </div>
-        </div>
+      {/* Modal para gestionar día de la semana */}
+      {selectedWeekDay && (
+        <DayPlanModal
+          isOpen={!!selectedWeekDay}
+          onClose={() => setSelectedWeekDay(null)}
+          dateKey={selectedWeekDay}
+          dayPlan={plan[selectedWeekDay]}
+          routines={routines}
+          onAddRoutine={(routineId) => addRoutineToDay(routineId, selectedWeekDay)}
+          onRemoveRoutine={(routineId) => removeFromDay(selectedWeekDay, routineId)}
+          onToggleBlock={() => toggleBlockWeekDay(selectedWeekDay)}
+          onSaveNote={(note) => saveWeekDayNote(selectedWeekDay, note)}
+          isWeeklyView={true}
+        />
+      )}
+        </>
       )}
     </div>
   );

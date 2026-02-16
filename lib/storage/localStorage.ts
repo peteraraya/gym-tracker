@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
     SESSIONS: 'gym_tracker_sessions',
     PROFILE: 'gym_tracker_profile',
     WEEKLY_PLAN: 'weekly_routine_plan',
+    MONTHLY_PLAN: 'monthly_routine_plan',
     ACTIVE_WORKOUT: 'gym-tracker-active-workout',
     RECOMMENDATIONS: 'gym_tracker_recommendations',
     LAST_WEIGHTS: 'gym_tracker_last_weights',
@@ -474,6 +475,28 @@ export async function saveWeeklyPlan(plan: Record<string, any>): Promise<void> {
         saveToStorage(STORAGE_KEYS.WEEKLY_PLAN, plan);
     } catch (e) {
         throw new Error('Error saving weekly plan locally');
+    }
+}
+
+/**
+ * Get monthly plan from localStorage
+ */
+export async function getMonthlyPlan(): Promise<Record<string, any>> {
+    const raw = getFromStorage<Record<string, any> | null>(STORAGE_KEYS.MONTHLY_PLAN, null);
+    if (!raw) {
+        return {};
+    }
+    return raw;
+}
+
+/**
+ * Save monthly plan to localStorage
+ */
+export async function saveMonthlyPlan(plan: Record<string, any>): Promise<void> {
+    try {
+        saveToStorage(STORAGE_KEYS.MONTHLY_PLAN, plan);
+    } catch (e) {
+        throw new Error('Error saving monthly plan locally');
     }
 }
 

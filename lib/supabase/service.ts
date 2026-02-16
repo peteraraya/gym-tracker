@@ -451,7 +451,11 @@ export async function getActiveWorkout(): Promise<any | null> {
     .eq('user_id', user.id)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
+  // Si la tabla no existe, retornar null (el sistema usará localStorage)
+  if (error) {
+    if (error.code === 'PGRST116' || error.message.includes('Could not find the table')) {
+      return null;
+    }
     throw new Error(`Error al obtener active workout: ${error.message}`);
   }
 
@@ -471,7 +475,10 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
     .from('active_workouts')
     .upsert({ user_id: user.id, data: payload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
 
-  if (error) throw new Error(`Error al guardar active workout: ${error.message}`);
+  // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
+  if (error && !error.message.includes('Could not find the table')) {
+    throw new Error(`Error al guardar active workout: ${error.message}`);
+  }
 }
 
 /**
@@ -488,7 +495,10 @@ export async function clearActiveWorkout(): Promise<void> {
     .delete()
     .eq('user_id', user.id);
 
-  if (error) throw new Error(`Error al eliminar active workout: ${error.message}`);
+  // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
+  if (error && !error.message.includes('Could not find the table')) {
+    throw new Error(`Error al eliminar active workout: ${error.message}`);
+  }
 }
 
 /**

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { RestSettings } from '@/components/RestSettings';
+import { ThemeSettings } from '@/components/ThemeSettings';
 import RestartOnboardingButton from '@/components/RestartOnboardingButton';
 import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
 
@@ -395,6 +396,9 @@ export default function ProfilePage() {
 
             {/* Configuración de descansos */}
             <RestSettings />
+
+            {/* Configuración de tema */}
+            <ThemeSettings />
 
             {/* Tutorial */}
             <Card>

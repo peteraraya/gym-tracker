@@ -87,6 +87,7 @@ export default function FreeWorkoutPage() {
   const [showTimer, setShowTimer] = useState(false);
   const [timerDuration, setTimerDuration] = useState(60);
   const [timerTitle, setTimerTitle] = useState('');
+  const [actualRestTimes, setActualRestTimes] = useState<{[key: string]: number[]}>({});
 
   // Smart rest
   const [useSmartRest, setUseSmartRest] = useState(true);
@@ -224,6 +225,20 @@ export default function FreeWorkoutPage() {
     handleCompleteSet();
   };
 
+  const handleActualRestDuration = (actualDuration: number) => {
+    if (activeExerciseIndex === null) return;
+    const exercise = exercises[activeExerciseIndex];
+    if (!exercise) return;
+    
+    // Guardar el tiempo real de descanso para este ejercicio
+    const newActualRestTimes = {
+      ...actualRestTimes,
+      [exercise.id]: [...(actualRestTimes[exercise.id] || []), actualDuration]
+    };
+    
+    setActualRestTimes(newActualRestTimes);
+  };
+
   const handleTimerComplete = () => {
     setShowTimer(false);
   };
@@ -258,7 +273,8 @@ export default function FreeWorkoutPage() {
         actualReps: ex.completedSets.map(s => s.reps),
         actualWeight: ex.completedSets.map(s => s.weight),
         setDurations: ex.completedSets.map(s => s.duration || 0),
-        pauseDurations: []
+        pauseDurations: [],
+        actualRestTimes: actualRestTimes[ex.id] || []
       }));
 
     try {
@@ -327,6 +343,7 @@ export default function FreeWorkoutPage() {
             autoStart={true}
             title={timerTitle}
             showMotivation={true}
+            onActualDurationChange={handleActualRestDuration}
           />
           <div className="mt-6 text-center space-y-3">
             <Button variant="ghost" onClick={handleTimerComplete} className="w-full">

@@ -25,6 +25,7 @@ export {
   // Fitness
   Dumbbell,
   Flame,
+  Sparkles,
   
   // Actions
   Plus,
@@ -34,6 +35,8 @@ export {
   Save,
   Copy,
   Check,
+  Bot,
+  Send,
   
   // Alerts
   CheckCircle,
@@ -75,5 +78,10 @@ export {
   Lightbulb,
   Home,
   LayoutDashboard,
-  ClipboardList
+  ClipboardList,
+  Sun,
+  Moon,
+  Minimize2,
+  Maximize2,
+  WifiOff
 } from 'lucide-react';

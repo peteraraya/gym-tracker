@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from '@/context/LocaleContext';
 import { Button } from '@/components/ui/Button';
+import { Plus, Minus } from '@/components/icons/lucide';
 import { 
   getRestMessage, 
   showRestCompleteNotification, 
@@ -18,6 +19,7 @@ interface TimerProps {
   title?: string;
   nextExerciseName?: string; // Para mostrar en la notificación
   showMotivation?: boolean; // Mostrar mensajes motivacionales
+  onActualDurationChange?: (actualDuration: number) => void; // Callback con duración real
 }
 
 export const Timer: React.FC<TimerProps> = ({ 
@@ -26,14 +28,19 @@ export const Timer: React.FC<TimerProps> = ({
   autoStart = false,
   title = undefined,
   nextExerciseName,
-  showMotivation = true
+  showMotivation = true,
+  onActualDurationChange
 }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(autoStart);
   const [isCompleted, setIsCompleted] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(false);
+  const [plannedDuration] = useState(duration); // Guardar duración planificada original
+  const [actualDuration, setActualDuration] = useState(0); // Tiempo real transcurrido
+  const [hasAdjusted, setHasAdjusted] = useState(false); // Si el usuario ajustó el tiempo
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const onCompleteCalledRef = useRef(false);
+  const startTimeRef = useRef<number>(Date.now());
 
   // Cargar preferencias del usuario
   const soundEnabled = typeof window !== 'undefined' 
@@ -48,7 +55,9 @@ export const Timer: React.FC<TimerProps> = ({
   useEffect(() => {
     setTimeLeft(duration);
     setIsCompleted(false);
-    onCompleteCalledRef.current = false; // Reset al cambiar duración
+    setHasAdjusted(false);
+    onCompleteCalledRef.current = false;
+    startTimeRef.current = Date.now();
     if (autoStart) {
       setIsRunning(true);
     }
@@ -62,6 +71,12 @@ export const Timer: React.FC<TimerProps> = ({
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
+            // Calcular duración real
+            const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+            setActualDuration(realDuration);
+            if (onActualDurationChange) {
+              onActualDurationChange(realDuration);
+            }
             return 0;
           }
           return prev - 1;
@@ -74,7 +89,7 @@ export const Timer: React.FC<TimerProps> = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning]);
+  }, [isRunning, onActualDurationChange]);
 
   // Efecto separado para notificaciones al completar
   useEffect(() => {
@@ -88,26 +103,40 @@ export const Timer: React.FC<TimerProps> = ({
     }
   }, [isCompleted, notificationPermission, nextExerciseName, soundEnabled]);
 
-  // Efecto separado para llamar a onComplete cuando se completa el timer
-  // Ya NO se llama automáticamente - el usuario debe presionar "Continuar" o "Saltar"
-  // Esto evita que el timer avance sin que el usuario esté listo
-  // onComplete se llama desde handleSkip o desde el botón "Continuar" del padre
-
   const handleStartPause = () => {
+    if (!isRunning) {
+      startTimeRef.current = Date.now() - (plannedDuration - timeLeft) * 1000;
+    }
     setIsRunning(!isRunning);
   };
 
   const handleReset = () => {
     setIsRunning(false);
-    setTimeLeft(duration);
+    setTimeLeft(plannedDuration);
     setIsCompleted(false);
+    setHasAdjusted(false);
+    startTimeRef.current = Date.now();
   };
 
   const handleSkip = () => {
     setIsRunning(false);
+    const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    setActualDuration(realDuration);
     setTimeLeft(0);
     setIsCompleted(true);
+    if (onActualDurationChange) {
+      onActualDurationChange(realDuration);
+    }
     if (onComplete) onComplete();
+  };
+
+  // Ajuste rápido de tiempo
+  const handleAdjustTime = (seconds: number) => {
+    setTimeLeft(prev => {
+      const newTime = Math.max(0, prev + seconds);
+      setHasAdjusted(true);
+      return newTime;
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -116,16 +145,19 @@ export const Timer: React.FC<TimerProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const percentage = ((duration - timeLeft) / duration) * 100;
-  const motivationMessage = showMotivation ? getRestMessage(timeLeft, duration) : '';
+  const percentage = ((plannedDuration - timeLeft) / plannedDuration) * 100;
+  const motivationMessage = showMotivation ? getRestMessage(timeLeft, plannedDuration) : '';
   const t = useTranslations('timer');
 
   const resolvedTitle = title ?? (t ? t('rest') : 'Descanso');
 
+  // Calcular diferencia entre planificado y real
+  const timeDifference = isCompleted ? actualDuration - plannedDuration : 0;
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div className="text-center mb-4 sm:mb-6">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {resolvedTitle}
         </h3>
         {nextExerciseName && (
@@ -141,7 +173,7 @@ export const Timer: React.FC<TimerProps> = ({
       </div>
         
       <div className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-4">
-        {/* Círculo de progreso (usar viewBox para escalar correctamente) */}
+        {/* Círculo de progreso */}
         <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" className="w-full h-full transform -rotate-90">
           <circle
             cx="100"
@@ -186,21 +218,91 @@ export const Timer: React.FC<TimerProps> = ({
         </div>
       </div>
 
-      {isCompleted && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-500 dark:border-green-400">
-          <div className="text-green-600 dark:text-green-400 text-xl font-bold text-center mb-2 animate-bounce">
-            {t ? t('restCompleted') : '✓ ¡Descanso Completado!'}
+      {/* Ajustes rápidos de tiempo */}
+      {!isCompleted && (
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAdjustTime(-15)}
+            className="flex items-center gap-1"
+            disabled={timeLeft <= 15}
+          >
+            <Minus className="w-4 h-4" />
+            <span className="text-xs">15s</span>
+          </Button>
+          <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
+            Ajustar tiempo
           </div>
-          <p className="text-green-700 dark:text-green-300 text-sm text-center">
-            {nextExerciseName ? (t ? t('readyFor').replace('{0}', nextExerciseName) : `Listo para ${nextExerciseName}`) : (t ? t('cheer') : '¡Vamos con todo! 💪')}
-          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAdjustTime(15)}
+            className="flex items-center gap-1"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-xs">15s</span>
+          </Button>
+        </div>
+      )}
+
+      {isCompleted && (
+        <div className="mb-4 sm:mb-6">
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-500 dark:border-green-400 mb-3">
+            <div className="text-green-600 dark:text-green-400 text-lg sm:text-xl font-bold text-center mb-2 animate-bounce">
+              {t ? t('restCompleted') : '✓ ¡Descanso Completado!'}
+            </div>
+            <p className="text-green-700 dark:text-green-300 text-sm text-center">
+              {nextExerciseName ? (t ? t('readyFor').replace('{0}', nextExerciseName) : `Listo para ${nextExerciseName}`) : (t ? t('cheer') : '¡Vamos con todo! 💪')}
+            </p>
+          </div>
+
+          {/* Comparación de tiempo planificado vs real */}
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 text-center">
+              Tiempo de descanso
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-center">
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Planificado</div>
+                <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                  {formatTime(plannedDuration)}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Real</div>
+                <div className={`text-lg font-bold ${
+                  timeDifference > 5 ? 'text-orange-600 dark:text-orange-400' :
+                  timeDifference < -5 ? 'text-blue-600 dark:text-blue-400' :
+                  'text-green-600 dark:text-green-400'
+                }`}>
+                  {formatTime(actualDuration)}
+                  {timeDifference !== 0 && (
+                    <span className="text-xs ml-1">
+                      ({timeDifference > 0 ? '+' : ''}{timeDifference}s)
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            {hasAdjusted && (
+              <div className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
+                ⚙️ Tiempo ajustado manualmente
+              </div>
+            )}
+          </div>
         </div>
       )}
       
       {/* Información adicional */}
       {!isCompleted && timeLeft > 0 && (
         <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>Tiempo total: {formatRestTime(duration)}</p>
+          <p>Tiempo planificado: {formatRestTime(plannedDuration)}</p>
+          {hasAdjusted && (
+            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+              ⚙️ Ajustado manualmente
+            </p>
+          )}
         </div>
       )}
 
@@ -211,21 +313,21 @@ export const Timer: React.FC<TimerProps> = ({
               variant={isRunning ? 'secondary' : 'primary'}
               onClick={handleStartPause}
               size="lg"
-              className="relative z-10"
+              className="relative z-10 flex-1 sm:flex-none"
             >
               {isRunning ? `⏸️ ${t ? t('pause') : 'Pausar'}` : `▶️ ${t ? t('start') : 'Iniciar'}`}
             </Button>
             <Button variant="ghost" onClick={handleReset} size="lg" className="relative z-10">
-              🔄 {t ? t('restart') : 'Reiniciar'}
+              🔄
             </Button>
             <Button variant="ghost" onClick={handleSkip} size="lg" className="relative z-10">
-              ⏭️ {t ? t('skip') : 'Saltar'}
+              ⏭️
             </Button>
           </>
         ) : (
           <div className="flex flex-col gap-2 w-full">
             <Button variant="primary" onClick={() => { if (onComplete) onComplete(); }} size="lg" className="w-full relative z-10">
-              ✅ Continuar con la siguiente serie
+              ✅ Continuar
             </Button>
             <Button variant="ghost" onClick={handleReset} size="lg" className="w-full relative z-10">
               🔄 Más descanso

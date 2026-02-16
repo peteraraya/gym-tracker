@@ -54,6 +54,7 @@ export interface WorkoutSession {
     actualWeight: number[];
     setDurations?: number[]; // Duración de cada serie en segundos
     pauseDurations?: number[]; // Tiempo total pausado en cada serie en segundos
+    actualRestTimes?: number[]; // Tiempo real de descanso después de cada serie (vs planificado)
     notes?: string;
   }[];
   notes?: string;
