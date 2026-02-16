@@ -48,7 +48,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   const [plan, setPlan] = useState<Plan>(defaultPlan);
   const [monthlyPlan, setMonthlyPlan] = useState<MonthlyPlan>({});
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
-  const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | string | ''>>({});
+  const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | ''>>({});
   const [selectedWeekDay, setSelectedWeekDay] = useState<DayKey | null>(null);
   const [selectedMonthDay, setSelectedMonthDay] = useState<string | null>(null);
   const daysRef = useRef<HTMLDivElement | null>(null);
@@ -540,7 +540,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     <div className="w-full">
                       <select
                         value={selectedDayByRoutine[r.id] ?? ''}
-                        onChange={(e) => setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: e.target.value as DayKey }))}
+                        onChange={(e) => setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: e.target.value as DayKey | '' }))}
                         className="block w-full px-3 py-2 bg-gray-800 border border-gray-700 text-sm text-gray-200 rounded-md focus:outline-none"
                         aria-label={`Seleccionar día para ${r.name}`}
                         title={`Seleccionar día para ${r.name}`}
@@ -565,7 +565,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                       className="rounded-full p-0 w-9 h-9 flex items-center justify-center"
                       size="sm"
                       aria-label={`Agregar ${r.name} al día seleccionado`}
-                      onClick={() => addRoutineToDay(r.id, selectedDayByRoutine[r.id] ?? '')}
+                      onClick={() => addRoutineToDay(r.id, (selectedDayByRoutine[r.id] ?? '') as DayKey | '')}
                     >
                       +
                     </Button>

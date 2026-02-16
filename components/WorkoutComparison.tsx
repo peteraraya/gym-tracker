@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { Session } from '@/types';
+import type { WorkoutSession } from '@/types';
 import { TrendingUp, TrendingDown, Minus } from '@/components/icons/lucide';
 
 interface WorkoutComparisonProps {
@@ -9,7 +9,7 @@ interface WorkoutComparisonProps {
   currentSet: number;
   currentWeight: number;
   currentReps: number;
-  lastSession: Session | null;
+  lastSession: WorkoutSession | null;
   compact?: boolean;
 }
 
@@ -25,7 +25,7 @@ interface ComparisonData {
 function calculateComparison(
   currentWeight: number,
   currentReps: number,
-  lastSession: Session | null,
+  lastSession: WorkoutSession | null,
   exerciseName: string,
   currentSet: number
 ): ComparisonData | null {
