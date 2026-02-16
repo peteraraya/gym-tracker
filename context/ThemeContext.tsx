@@ -56,7 +56,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === 'undefined') return;
     
     const savedTheme = localStorage.getItem('gym-tracker-theme') as ThemeMode | null;
-    const initialTheme = savedTheme || 'auto';
+    const initialTheme = savedTheme || 'dark'; // Modo oscuro por defecto
     setThemeState(initialTheme);
     
     const resolved = resolveTheme(initialTheme);

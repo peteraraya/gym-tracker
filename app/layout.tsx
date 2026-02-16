@@ -11,6 +11,8 @@ import { ConfirmProvider } from "@/context/ConfirmContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ClientOnly } from "@/components/ClientOnly";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { PWAInstaller } from "@/components/PWAInstaller";
 import GlobalUI from '@/components/GlobalUI';
 import Onboarding from '@/components/Onboarding';
 
@@ -27,6 +29,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Gym Tracker - Registra tus rutinas de gimnasio",
   description: "Aplicación para registrar y seguir tus rutinas de gimnasio",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Gym Tracker",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  themeColor: "#3b82f6",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({
@@ -42,7 +60,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  const theme = localStorage.getItem('gym-tracker-theme') || 'auto';
+                  const theme = localStorage.getItem('gym-tracker-theme') || 'dark';
                   const getTimeBasedTheme = () => {
                     const hour = new Date().getHours();
                     return (hour >= 20 || hour < 7) ? 'dark' : 'light';
@@ -76,6 +94,8 @@ export default function RootLayout({
                         <OnboardingProvider>
                           {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
                           <ClientOnly>
+                            <ServiceWorkerRegistration />
+                            <PWAInstaller />
                             <GlobalUI />
                             <Onboarding />
                           </ClientOnly>

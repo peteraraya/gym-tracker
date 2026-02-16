@@ -82,5 +82,6 @@ export {
   Sun,
   Moon,
   Minimize2,
-  Maximize2
+  Maximize2,
+  WifiOff
 } from 'lucide-react';
