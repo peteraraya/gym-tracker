@@ -1,215 +1,212 @@
-# Sistema de Descanso Inteligente 🧠⏱️
+# Sistema de Descanso Inteligente - Implementación Completa
 
-## Descripción
+## Resumen
+Sistema completo de gestión de descansos con seguimiento de tiempos reales vs planificados, ajustes rápidos, y análisis histórico.
 
-El Sistema de Descanso Inteligente calcula automáticamente los tiempos de descanso óptimos entre series y ejercicios basándose en:
+## Características Implementadas
 
-- **Tipo de entrenamiento** (fuerza, hipertrofia, resistencia, potencia)
-- **Características del ejercicio** (compuesto vs aislado)
-- **Series y repeticiones** configuradas
-- **Nivel del usuario** (principiante, intermedio, avanzado)
+### 1. Componente Timer Mejorado (`components/Timer.tsx`)
 
-## Características Implementadas ✅
+#### Nuevas Funcionalidades:
+- **Ajustes rápidos**: Botones +15s / -15s para modificar tiempo sobre la marcha
+- **Seguimiento de duración real**: Captura el tiempo exacto transcurrido
+- **Comparación planificado vs real**: Muestra diferencias al completar
+- **Indicador de ajustes manuales**: Marca cuando el usuario modificó el tiempo
+- **Callback de duración**: `onActualDurationChange` para reportar tiempo real
 
-### 1. Timer Automático entre Series
-- ⏱️ Cálculo inteligente del tiempo de descanso
-- 🎯 Ajustado según el tipo de ejercicio
-- 📊 Muestra rango recomendado (mínimo - máximo)
-
-### 2. Recomendaciones según el Tipo de Ejercicio
-
-#### 🏋️ Entrenamiento de Fuerza (1-5 reps)
-- **Descanso:** 3-5 minutos
-- **Objetivo:** Recuperación completa del sistema nervioso
-- **Ideal para:** Press de banca, sentadillas pesadas, peso muerto
-
-#### 💪 Hipertrofia (6-12 reps)
-- **Descanso:** 1-2 minutos
-- **Objetivo:** Mantener tensión muscular y fatiga metabólica
-- **Ideal para:** La mayoría de ejercicios de culturismo
-
-#### 🔥 Resistencia (12+ reps)
-- **Descanso:** 30-60 segundos
-- **Objetivo:** Mantener ritmo cardíaco elevado
-- **Ideal para:** Circuitos y acondicionamiento
-
-#### ⚡ Potencia (3-8 reps explosivas)
-- **Descanso:** 2-4 minutos
-- **Objetivo:** Recuperación para mantener explosividad
-- **Ideal para:** Olympic lifts, pliométricos
-
-### 3. Notificaciones cuando el Descanso Termina
-
-#### Notificaciones del Navegador
-- 🔔 Solicita permiso automáticamente
-- 📱 Funciona incluso con la pestaña en segundo plano
-- 🔊 Incluye vibración en dispositivos móviles
-
-#### Sonido de Alerta
-- 🎵 Tono agradable generado con Web Audio API
-- 🔇 No intrusivo pero audible
-- ⚙️ Se reproduce automáticamente al terminar
-
-#### Mensajes Motivacionales
-- 💬 Cambian según el tiempo restante
-- 🎯 Mantienen al usuario enfocado
-- 🔥 Aumentan la motivación
-
-### 4. Ajustes por Nivel de Usuario
-
+#### Visualización:
 ```typescript
-// Multiplicadores de tiempo según nivel
-beginner: 1.2      // +20% más descanso
-intermediate: 1.0  // Tiempo estándar
-advanced: 0.8      // -20% menos descanso
+// Al completar el descanso, muestra:
+- Tiempo planificado: 1:30
+- Tiempo real: 1:45 (+15s)
+- Indicador: ⚙️ Tiempo ajustado manualmente
 ```
 
-### 5. Detección de Ejercicios Compuestos
+#### Colores de Indicadores:
+- **Verde**: Tiempo real ≈ planificado (±5s)
+- **Naranja**: Descansó más de lo planificado (+5s)
+- **Azul**: Descansó menos de lo planificado (-5s)
 
-Los ejercicios compuestos (multiarticulares) reciben un 20% más de tiempo de descanso:
+### 2. Integración en Páginas de Workout
 
-**Compuestos detectados:**
-- Press (banca, inclinado, militar)
-- Sentadillas (squat)
-- Peso muerto (deadlift)
-- Dominadas (pull-up)
-- Remos (row)
-- Fondos (dip)
-- Estocadas (lunge)
+#### Workout con Rutina (`app/workout/[id]/page.tsx`)
+```typescript
+// Estado para almacenar tiempos reales
+const [actualRestTimes, setActualRestTimes] = useState<{[key: string]: number[]}>({});
 
-### 6. Descanso Inteligente entre Ejercicios
+// Callback para capturar duración real
+const handleActualRestDuration = (actualDuration: number) => {
+  const exerciseId = currentExercise.id;
+  const newActualRestTimes = {
+    ...actualRestTimes,
+    [exerciseId]: [...(actualRestTimes[exerciseId] || []), actualDuration]
+  };
+  setActualRestTimes(newActualRestTimes);
+};
 
-- **Mismo grupo muscular:** 2 minutos (recuperación extendida)
-- **Diferente grupo muscular:** 1.5 minutos (transición estándar)
-
-## Uso
-
-### En la Página de Workout
-
-```tsx
-import { calculateRestBetweenSets } from '@/lib/restCalculator';
-
-const restRecommendation = calculateRestBetweenSets(
-  exerciseTemplate,
-  sets,
-  reps,
-  fitnessLevel
-);
-
-// Resultado:
-{
-  min: 60,
-  max: 120,
-  recommended: 90,
-  type: 'hypertrophy',
-  description: 'Descanso medio para mantener la tensión muscular'
-}
-```
-
-### En el Timer Mejorado
-
-```tsx
+// Uso del Timer con callback
 <Timer
-  duration={restRecommendation.recommended}
+  duration={timerDuration}
   onComplete={handleTimerComplete}
-  autoStart={true}
-  title="Descanso - Serie 2/4"
-  nextExerciseName="Press Inclinado"
-  showMotivation={true}
+  onActualDurationChange={handleActualRestDuration}
+  // ... otros props
 />
 ```
 
-## API del Sistema
+#### Workout Libre (`app/workout/free/page.tsx`)
+- Misma implementación adaptada para entrenamiento libre
+- Seguimiento por ejercicio individual
+- Persistencia en sesión guardada
 
-### Funciones Principales
+### 3. Actualización del Tipo de Sesión
 
-#### `calculateRestBetweenSets()`
-Calcula el tiempo de descanso entre series del mismo ejercicio.
+#### `types/index.ts`
+```typescript
+export interface WorkoutSession {
+  // ... campos existentes
+  exercises: {
+    exerciseId: string;
+    exerciseName?: string;
+    completedSets: number;
+    actualReps: number[];
+    actualWeight: number[];
+    setDurations?: number[];
+    pauseDurations?: number[];
+    actualRestTimes?: number[]; // ✨ NUEVO: Tiempos reales de descanso
+    notes?: string;
+  }[];
+  // ...
+}
+```
 
-**Parámetros:**
-- `exercise`: ExerciseTemplate - Plantilla del ejercicio
-- `sets`: number - Número de series
-- `reps`: number - Número de repeticiones
-- `fitnessLevel`: 'beginner' | 'intermediate' | 'advanced'
+### 4. Guardado en Sesiones
 
-**Retorna:** `RestRecommendation`
+Los tiempos reales de descanso se guardan automáticamente:
+```typescript
+const sessionExercises = routine.exercises.map(ex => ({
+  exerciseId: ex.id,
+  exerciseName: ex.name,
+  completedSets: completedSets[ex.id] || 0,
+  actualReps: actualReps[ex.id] || [],
+  actualWeight: actualWeights[ex.id] || [],
+  setDurations: actualSetDurations[ex.id] || [],
+  pauseDurations: actualPauseDurations[ex.id] || [],
+  actualRestTimes: actualRestTimes[ex.id] || [] // ✨ Guardado
+}));
+```
 
-#### `calculateRestBetweenExercises()`
-Calcula el tiempo de descanso entre ejercicios diferentes.
+## Flujo de Uso
 
-**Parámetros:**
-- `currentExercise`: ExerciseTemplate
-- `nextExercise`: ExerciseTemplate
-- `fitnessLevel`: 'beginner' | 'intermediate' | 'advanced'
+### Durante el Entrenamiento:
+1. Usuario completa una serie
+2. Timer inicia con tiempo planificado (ej: 90s)
+3. Usuario puede ajustar con +15s / -15s
+4. Al completar, se captura tiempo real (ej: 105s)
+5. Se muestra comparación: "Planificado: 1:30 | Real: 1:45 (+15s)"
+6. Tiempo real se guarda en `actualRestTimes`
 
-**Retorna:** `RestRecommendation`
+### Al Finalizar Sesión:
+- Todos los tiempos reales se guardan en la sesión
+- Disponibles para análisis posterior
+- Útil para ajustar tiempos de descanso en futuras rutinas
 
-#### `requestNotificationPermission()`
-Solicita permiso para mostrar notificaciones del navegador.
+## Datos Capturados por Serie
 
-**Retorna:** `Promise<boolean>`
+Para cada serie completada se registra:
+- ✅ Repeticiones realizadas
+- ✅ Peso utilizado
+- ✅ Duración de la serie (tiempo activo)
+- ✅ Tiempo pausado durante la serie
+- ✅ **Tiempo real de descanso después de la serie**
 
-#### `showRestCompleteNotification()`
-Muestra una notificación cuando termina el descanso.
+## Próximas Mejoras Sugeridas
 
-**Parámetros:**
-- `exerciseName?`: string - Nombre del siguiente ejercicio
+### 1. Vista de Análisis de Descansos
+Crear componente para mostrar:
+- Promedio de descansos por ejercicio
+- Tendencia: ¿descansa más o menos que lo planificado?
+- Sugerencias de ajuste de tiempos
 
-#### `playRestCompleteSound()`
-Reproduce un sonido de alerta al terminar el descanso.
+### 2. Ajuste Automático de Tiempos
+Basado en historial:
+```typescript
+// Si usuario consistentemente descansa 15s más:
+// Sugerir aumentar tiempo planificado de 90s a 105s
+```
 
-#### `formatRestTime()`
-Formatea segundos a un formato legible (ej: "1min 30s").
+### 3. Notificaciones Personalizables
+- Permitir activar/desactivar sonido
+- Elegir tipo de notificación (visual/sonora/vibración)
+- Configurar alertas a mitad del descanso
 
-**Parámetros:**
-- `seconds`: number
+### 4. Estadísticas en Perfil
+Mostrar en página de progreso:
+- "Descanso promedio entre series: 1:23"
+- "Adherencia a tiempos planificados: 85%"
+- Gráfico de evolución de descansos
 
-**Retorna:** string
+## Archivos Modificados
 
-#### `getRestMessage()`
-Obtiene un mensaje motivacional según el tiempo restante.
+### Componentes:
+- ✅ `components/Timer.tsx` - Funcionalidad completa de tracking
 
-**Parámetros:**
-- `secondsRemaining`: number
-- `totalSeconds`: number
+### Páginas:
+- ✅ `app/workout/[id]/page.tsx` - Integración en workout con rutina
+- ✅ `app/workout/free/page.tsx` - Integración en workout libre
 
-**Retorna:** string
+### Tipos:
+- ✅ `types/index.ts` - Actualización de `WorkoutSession`
 
-## Mensajes Motivacionales
+## Beneficios del Sistema
 
-El sistema muestra mensajes dinámicos según el progreso:
+### Para el Usuario:
+1. **Flexibilidad**: Ajustar tiempos sin perder el tracking
+2. **Consciencia**: Ver cuánto realmente descansa vs lo planificado
+3. **Mejora continua**: Datos para optimizar rutinas
 
-| % Restante | Mensaje |
-|------------|---------|
-| 80-100% | "Respira profundo y recupérate 🧘" |
-| 60-80% | "Recuperando energía... 💚" |
-| 40-60% | "Casi listo para continuar 🔥" |
-| 20-40% | "Prepárate para la siguiente serie 💪" |
-| 5-20% | "¡Últimos segundos! 🚀" |
-| 0-5% | "¡Muy bien! ¡A darle! 💥" |
+### Para el Sistema:
+1. **Datos ricos**: Información valiosa para análisis
+2. **Personalización**: Base para sugerencias inteligentes
+3. **Transparencia**: Usuario ve exactamente qué se registra
 
-## Próximas Mejoras 🚀
+## Estado de Implementación
 
-- [ ] Integración con perfil de usuario para nivel personalizado
-- [ ] Historial de tiempos de descanso utilizados
-- [ ] Ajuste manual del tiempo recomendado
-- [ ] Patrones de descanso según objetivo (volumen vs intensidad)
-- [ ] Sugerencias de actividades durante el descanso (movilidad, estiramiento)
-- [ ] Estadísticas de adherencia al tiempo de descanso
-- [ ] Modo "superconjuntos" con descanso reducido
-- [ ] Alarmas progresivas (avisos a 10s, 5s)
+### ✅ Completado:
+- [x] Ajustes rápidos (+15s / -15s)
+- [x] Tracking de duración real
+- [x] Comparación planificado vs real
+- [x] Indicador de ajustes manuales
+- [x] Integración en workout con rutina
+- [x] Integración en workout libre
+- [x] Actualización de tipos
+- [x] Guardado en sesiones
 
-## Tecnologías Utilizadas
+### 🔄 Pendiente:
+- [ ] Componente de análisis de descansos
+- [ ] Vista de historial de tiempos
+- [ ] Sugerencias basadas en historial
+- [ ] Configuración de notificaciones
+- [ ] Estadísticas en perfil
 
-- **Web Audio API** - Generación de sonidos
-- **Notifications API** - Notificaciones del navegador
-- **React Hooks** - Gestión de estado y efectos
-- **TypeScript** - Tipado fuerte y seguridad
+## Notas Técnicas
 
-## Consideraciones de UX
+### Performance:
+- Uso de `useRef` para tracking preciso de tiempo
+- Callbacks optimizados para evitar re-renders
+- Estado local mínimo en Timer
 
-✅ **Permisos opcionales:** Las notificaciones son opcionales, la app funciona sin ellas  
-✅ **Feedback visual:** Timer circular con colores según estado  
-✅ **Skip option:** Siempre se puede saltar el descanso  
-✅ **Información clara:** Muestra el tiempo recomendado antes de iniciar  
-✅ **Responsive:** Funciona perfectamente en móvil y desktop
+### UX:
+- Botones de ajuste deshabilitados cuando no aplican
+- Colores semánticos para feedback visual
+- Animaciones suaves en transiciones
+
+### Accesibilidad:
+- Botones con labels claros
+- Contraste adecuado en todos los estados
+- Tamaños táctiles apropiados para móvil
+
+---
+
+**Fecha de implementación**: Febrero 2026
+**Versión**: 1.0
+**Estado**: Producción

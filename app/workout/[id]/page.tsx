@@ -49,6 +49,7 @@ export default function WorkoutPage() {
   const [restOverrides, setRestOverrides] = useState<{[key: string]: number}>({});
   const [actualSetDurations, setActualSetDurations] = useState<{[key: string]: number[]}>({});
   const [actualPauseDurations, setActualPauseDurations] = useState<{[key: string]: number[]}>({});
+  const [actualRestTimes, setActualRestTimes] = useState<{[key: string]: number[]}>({});
   const [currentReps, setCurrentReps] = useState<number | ''>(0);
   const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
   const [sessionNotes, setSessionNotes] = useState('');
@@ -417,6 +418,18 @@ export default function WorkoutPage() {
     });
   };
 
+  const handleActualRestDuration = (actualDuration: number) => {
+    const exerciseId = currentExercise.id;
+    
+    // Guardar el tiempo real de descanso para esta serie
+    const newActualRestTimes = {
+      ...actualRestTimes,
+      [exerciseId]: [...(actualRestTimes[exerciseId] || []), actualDuration]
+    };
+    
+    setActualRestTimes(newActualRestTimes);
+  };
+
   const handleTimerComplete = () => {
     setShowTimer(false);
     clearRestState(); // Limpiar estado de descanso persistido
@@ -487,7 +500,8 @@ export default function WorkoutPage() {
       // Preferir los pesos registrados en la sesión; si no hay, usar los últimos pesos guardados
       actualWeight: (actualWeights[ex.id] && actualWeights[ex.id].length) ? actualWeights[ex.id] : (lastWeights[ex.id] || []),
       setDurations: actualSetDurations[ex.id] || [],
-      pauseDurations: actualPauseDurations[ex.id] || []
+      pauseDurations: actualPauseDurations[ex.id] || [],
+      actualRestTimes: actualRestTimes[ex.id] || []
     }));
 
     try {
@@ -563,6 +577,7 @@ export default function WorkoutPage() {
             title={timerTitle}
             nextExerciseName={nextExerciseName}
             showMotivation={true}
+            onActualDurationChange={handleActualRestDuration}
           />
           <div className="mt-6 text-center space-y-3">
             <Button variant="ghost" onClick={skipTimer} className="w-full">
