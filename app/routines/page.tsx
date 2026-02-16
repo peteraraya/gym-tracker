@@ -393,7 +393,7 @@ export default function RoutinesPage() {
       </div>
 
       {/* Floating Free Workout button */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-24 left-6 z-40">
         <button
           onClick={() => router.push('/workout/free')}
           aria-label="Entrenamiento Libre"
