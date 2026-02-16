@@ -75,5 +75,7 @@ export {
   Lightbulb,
   Home,
   LayoutDashboard,
-  ClipboardList
+  ClipboardList,
+  Sun,
+  Moon
 } from 'lucide-react';

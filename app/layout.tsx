@@ -9,6 +9,7 @@ import { WorkoutProvider } from "@/context/WorkoutContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { ConfirmProvider } from "@/context/ConfirmContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { ClientOnly } from "@/components/ClientOnly";
 import GlobalUI from '@/components/GlobalUI';
 import Onboarding from '@/components/Onboarding';
@@ -35,34 +36,61 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('gym-tracker-theme') || 'auto';
+                  const getTimeBasedTheme = () => {
+                    const hour = new Date().getHours();
+                    return (hour >= 20 || hour < 7) ? 'dark' : 'light';
+                  };
+                  const resolvedTheme = theme === 'auto' ? getTimeBasedTheme() : theme;
+                  if (resolvedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                  } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <AuthProvider>
-          <LocaleProvider>
-            <EquipmentProvider>
-              <GymProvider>
-                <WorkoutProvider>
-                  <ToastProvider>
-                    <ConfirmProvider>
-                      <OnboardingProvider>
-                        {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
-                        <ClientOnly>
-                          <GlobalUI />
-                          <Onboarding />
-                        </ClientOnly>
-                        <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-                          {children}
-                        </main>
-                      </OnboardingProvider>
-                    </ConfirmProvider>
-                  </ToastProvider>
-                </WorkoutProvider>
-              </GymProvider>
-            </EquipmentProvider>
-          </LocaleProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <LocaleProvider>
+              <EquipmentProvider>
+                <GymProvider>
+                  <WorkoutProvider>
+                    <ToastProvider>
+                      <ConfirmProvider>
+                        <OnboardingProvider>
+                          {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
+                          <ClientOnly>
+                            <GlobalUI />
+                            <Onboarding />
+                          </ClientOnly>
+                          <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+                            {children}
+                          </main>
+                        </OnboardingProvider>
+                      </ConfirmProvider>
+                    </ToastProvider>
+                  </WorkoutProvider>
+                </GymProvider>
+              </EquipmentProvider>
+            </LocaleProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

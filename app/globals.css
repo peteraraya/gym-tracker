@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configuración de dark mode por clase */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Colores principales - Tema profesional moderno */
   --background: #fafafa;
@@ -43,29 +46,28 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b;
-    --foreground: #fafafa;
-    
-    --primary: #3b82f6;
-    --primary-dark: #2563eb;
-    --primary-light: #60a5fa;
-    --secondary: #a78bfa;
-    --accent: #22d3ee;
-    
-    --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --info: #3b82f6;
-    
-    --surface: #18181b;
-    --surface-alt: #27272a;
-    --surface-hover: #3f3f46;
-    
-    --border: #3f3f46;
-    --border-light: #27272a;
-  }
+/* Dark mode - controlado por clase .dark en el elemento raíz */
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
+  --secondary: #a78bfa;
+  --accent: #22d3ee;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  
+  --surface: #18181b;
+  --surface-alt: #27272a;
+  --surface-hover: #3f3f46;
+  
+  --border: #3f3f46;
+  --border-light: #27272a;
 }
 
 body {
