@@ -1,0 +1,68 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo con gradiente -->
+  <rect width="512" height="512" rx="115" fill="url(#gradient)"/>
+  
+  <!-- Definición del gradiente -->
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    
+    <!-- Sombra para profundidad -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Mancuerna estilizada con sombra -->
+  <g transform="translate(256, 256)" filter="url(#shadow)">
+    <!-- Barra central -->
+    <rect x="-130" y="-18" width="260" height="36" rx="18" fill="white"/>
+    
+    <!-- Disco izquierdo exterior -->
+    <circle cx="-155" cy="0" r="55" fill="white" opacity="0.95"/>
+    <circle cx="-155" cy="0" r="48" fill="#E0E7FF"/>
+    <circle cx="-155" cy="0" r="42" fill="#3B82F6"/>
+    
+    <!-- Disco izquierdo interior -->
+    <circle cx="-130" cy="0" r="50" fill="white" opacity="0.98"/>
+    <circle cx="-130" cy="0" r="43" fill="#DBEAFE"/>
+    <circle cx="-130" cy="0" r="38" fill="#60A5FA"/>
+    
+    <!-- Disco derecho interior -->
+    <circle cx="130" cy="0" r="50" fill="white" opacity="0.98"/>
+    <circle cx="130" cy="0" r="43" fill="#DBEAFE"/>
+    <circle cx="130" cy="0" r="38" fill="#60A5FA"/>
+    
+    <!-- Disco derecho exterior -->
+    <circle cx="155" cy="0" r="55" fill="white" opacity="0.95"/>
+    <circle cx="155" cy="0" r="48" fill="#E0E7FF"/>
+    <circle cx="155" cy="0" r="42" fill="#3B82F6"/>
+    
+    <!-- Detalles de agarre en la barra -->
+    <g opacity="0.25">
+      <rect x="-40" y="-15" width="4" height="30" rx="2" fill="#3B82F6"/>
+      <rect x="-25" y="-15" width="4" height="30" rx="2" fill="#3B82F6"/>
+      <rect x="-10" y="-15" width="4" height="30" rx="2" fill="#3B82F6"/>
+      <rect x="5" y="-15" width="4" height="30" rx="2" fill="#3B82F6"/>
+      <rect x="20" y="-15" width="4" height="30" rx="2" fill="#3B82F6"/>
+      <rect x="35" y="-15" width="4" height="30" rx="2" fill="#3B82F6"/>
+    </g>
+    
+    <!-- Brillo en los discos para dar efecto 3D -->
+    <ellipse cx="-155" cy="-15" rx="20" ry="15" fill="white" opacity="0.4"/>
+    <ellipse cx="-130" cy="-12" rx="18" ry="13" fill="white" opacity="0.4"/>
+    <ellipse cx="130" cy="-12" rx="18" ry="13" fill="white" opacity="0.4"/>
+    <ellipse cx="155" cy="-15" rx="20" ry="15" fill="white" opacity="0.4"/>
+  </g>
+</svg>
