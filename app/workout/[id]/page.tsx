@@ -21,12 +21,14 @@ import {
 } from '@/lib/restCalculator';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import * as storageService from '@/lib/storage/storage';
+import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
+import WorkoutSuggestions from '@/components/WorkoutSuggestions';
 
 export default function WorkoutPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { getRoutineById, addSession } = useGym();
+  const { getRoutineById, addSession, sessions } = useGym();
   const { activeWorkout, startWorkout, updateWorkoutProgress, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
@@ -54,6 +56,8 @@ export default function WorkoutPage() {
   const [workoutStartTime] = useState(Date.now());
   const [totalPausedTime, setTotalPausedTime] = useState(0);
   const [useSmartRest, setUseSmartRest] = useState(true); // Descanso inteligente activado por defecto
+  const [suggestions, setSuggestions] = useState<WorkoutSuggestion[]>([]);
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     (async () => {
@@ -124,6 +128,42 @@ export default function WorkoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Calcular ejercicio actual usando useMemo para evitar problemas de inicialización
+  const currentExercise = React.useMemo(() => {
+    if (!routine || !routine.exercises || routine.exercises.length === 0) return null;
+    return routine.exercises[currentExerciseIndex] || null;
+  }, [routine, currentExerciseIndex]);
+
+  // Generar sugerencias cuando cambie el ejercicio, peso o descanso
+  useEffect(() => {
+    if (!routine || !currentExercise) return;
+
+    const currentRestTime = restOverrides[currentExercise.id] ?? 
+                           currentExercise.restBetweenSets ?? 
+                           routine.restBetweenSets ?? 
+                           60;
+
+    // Sugerencias generales
+    const generalSuggestions = generateWorkoutSuggestions(
+      sessions,
+      currentExercise.name,
+      typeof currentWeight === 'number' ? currentWeight : undefined,
+      currentRestTime
+    );
+
+    // Sugerencias en vivo para el ejercicio actual
+    const liveSuggestions = generateLiveSuggestions(
+      currentExercise.name,
+      currentSet,
+      currentExercise.sets.length,
+      typeof currentWeight === 'number' ? currentWeight : 0,
+      sessions
+    );
+
+    setSuggestions([...generalSuggestions, ...liveSuggestions]);
+    setDismissedSuggestions(new Set()); // Reset dismissed cuando cambia el ejercicio
+  }, [currentExerciseIndex, currentSet, currentWeight, currentExercise, routine, sessions, restOverrides]);
+
   if (!routine || !routine.exercises || routine.exercises.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -140,8 +180,6 @@ export default function WorkoutPage() {
       </div>
     );
   }
-
-  const currentExercise = routine.exercises[currentExerciseIndex];
   
   if (!currentExercise) {
     return null;
@@ -556,6 +594,17 @@ export default function WorkoutPage() {
             />
           </div>
         </div>
+
+        {/* Sugerencias Inteligentes */}
+        {suggestions.length > 0 && (
+          <WorkoutSuggestions
+            suggestions={suggestions.filter((_, i) => !dismissedSuggestions.has(i))}
+            onDismiss={(index) => {
+              setDismissedSuggestions(prev => new Set([...prev, index]));
+            }}
+            compact
+          />
+        )}
 
         {/* Ejercicio actual */}
         <Card className="mb-6">
