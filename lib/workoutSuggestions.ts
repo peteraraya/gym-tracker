@@ -1,4 +1,4 @@
-import type { Session } from '@/types';
+import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 
 export type SuggestionType = 'weight_increase' | 'rest_warning' | 'overtraining' | 'deload' | 'consistency' | 'volume';
@@ -17,7 +17,7 @@ export interface WorkoutSuggestion {
  * Analiza el historial de sesiones y genera sugerencias inteligentes
  */
 export function generateWorkoutSuggestions(
-  sessions: Session[],
+  sessions: WorkoutSession[],
   currentExerciseName?: string,
   currentWeight?: number,
   currentRestTime?: number
@@ -60,7 +60,7 @@ export function generateWorkoutSuggestions(
  * Verifica si el usuario ha usado el mismo peso por varias sesiones
  */
 function checkWeightProgression(
-  sessions: Session[],
+  sessions: WorkoutSession[],
   exerciseName: string,
   currentWeight: number
 ): WorkoutSuggestion | null {
@@ -114,9 +114,11 @@ function checkRestTime(
   const exercise = EXERCISE_DATABASE.find(e => e.name === exerciseName);
   if (!exercise) return null;
 
-  // Ejercicios compuestos requieren más descanso
-  const isCompound = exercise.type === 'compound';
-  const isHeavy = exercise.difficulty === 'avanzado';
+    // Ejercicios compuestos requieren más descanso
+    const exAny = exercise as any;
+    const equipment = exercise.equipment ?? '';
+    const isCompound = exAny.type === 'compound' || ['Barra', 'Barra/Mancuernas', 'Peso corporal', 'Máquina', 'Poleas'].includes(equipment);
+    const isHeavy = exAny.difficulty === 'avanzado';
 
   if (isCompound && restTime < 90) {
     return {
@@ -156,7 +158,7 @@ function checkRestTime(
 /**
  * Detecta si el usuario está entrenando demasiados días consecutivos
  */
-function checkOvertraining(sessions: Session[]): WorkoutSuggestion | null {
+function checkOvertraining(sessions: WorkoutSession[]): WorkoutSuggestion | null {
   if (sessions.length < 5) return null;
 
   // Obtener las últimas 7 sesiones
@@ -203,7 +205,7 @@ function checkOvertraining(sessions: Session[]): WorkoutSuggestion | null {
 /**
  * Sugiere una semana de deload si ha estado entrenando intensamente
  */
-function checkDeloadNeeded(sessions: Session[]): WorkoutSuggestion | null {
+function checkDeloadNeeded(sessions: WorkoutSession[]): WorkoutSuggestion | null {
   if (sessions.length < 12) return null;
 
   // Verificar las últimas 4 semanas (12-16 sesiones)
@@ -242,7 +244,7 @@ function checkDeloadNeeded(sessions: Session[]): WorkoutSuggestion | null {
 /**
  * Felicita al usuario por mantener consistencia
  */
-function checkConsistency(sessions: Session[]): WorkoutSuggestion | null {
+function checkConsistency(sessions: WorkoutSession[]): WorkoutSuggestion | null {
   if (sessions.length < 3) return null;
 
   // Verificar las últimas 2 semanas
@@ -274,7 +276,7 @@ export function generateLiveSuggestions(
   currentSet: number,
   totalSets: number,
   currentWeight: number,
-  sessions: Session[]
+  sessions: WorkoutSession[]
 ): WorkoutSuggestion[] {
   const suggestions: WorkoutSuggestion[] = [];
 
