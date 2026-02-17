@@ -81,12 +81,12 @@ export const Navbar: React.FC = () => {
                 <DropdownNav
                   label={t('dashboard')}
                   icon={LayoutDashboard}
-                  parentActive={isActive('/dashboard') || isActive('/recommended') || isActive('/progress')}
+                  parentActive={isActive('/dashboard') || isActive('/progress') || isActive('/achievements') || isActive('/sessions')}
                   items={[
                     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard, dataTour: undefined },
                     { href: '/progress', label: t('progress'), icon: TrendingUp, dataTour: 'progress' },
                     { href: '/achievements', label: t('achievements'), icon: Trophy, dataTour: 'achievements' },
-                    { href: '/sesions', label: t('sessions'), icon: Calendar, dataTour: 'sessions' },
+                    { href: '/sessions', label: t('sessions'), icon: Calendar, dataTour: 'sessions' },
                   ]}
                 />
               </div>
