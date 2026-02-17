@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from '@/context/LocaleContext';
 import { useAuth } from '@/context/AuthContext';
 import React, { useState } from 'react';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
 import { Button } from '@/components/ui/Button';
 import { 
@@ -90,8 +89,6 @@ export const Navbar: React.FC = () => {
                 {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" data-tour="profile" />}
               </div>
               
-              <LanguageSwitcher />
-              
               {user && (
                 <Button
                   variant="ghost"
@@ -106,7 +103,6 @@ export const Navbar: React.FC = () => {
 
             {/* Mobile menu button */}
             <div className="flex items-center space-x-2 lg:hidden">
-              <LanguageSwitcher />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
