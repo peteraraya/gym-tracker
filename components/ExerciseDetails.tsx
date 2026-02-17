@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import * as storageService from '@/lib/storage/storage';
 import { ExerciseTemplate } from '@/data/exercises';
+import type { ProgressRecommendation } from '@/lib/storage/localStorage';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
 
 interface ExerciseDetailsProps {
@@ -11,16 +12,16 @@ interface ExerciseDetailsProps {
 }
 
 export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
-  const [recommendation, setRecommendation] = useState<any | null>(null);
+  const [recommendation, setRecommendation] = useState<ProgressRecommendation | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const recs = await storageService.getRecommendations();
-        const rec = (recs || []).find((r: any) => r.exerciseId === exercise.id || r.exerciseId === exercise.name);
+        const recs = (await storageService.getRecommendations()) as ProgressRecommendation[];
+        const rec = (recs || []).find((r) => r.exerciseId === exercise.id || r.exerciseId === exercise.name);
         if (mounted && rec) setRecommendation(rec);
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
@@ -149,14 +150,13 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                   <button
                     className="px-3 py-2 bg-indigo-600 text-white rounded-md"
                     onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(String(recommendation.suggestedWeight));
-                        // eslint-disable-next-line no-console
-                        console.log('Copied suggested weight to clipboard');
-                      } catch (e) {
-                        // ignore
-                      }
-                    }}
+                        try {
+                          await navigator.clipboard.writeText(String(recommendation.suggestedWeight));
+                          console.log('Copied suggested weight to clipboard');
+                        } catch {
+                          // ignore
+                        }
+                      }}
                   >
                     Copiar
                   </button>
@@ -164,11 +164,11 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                     className="px-3 py-2 border rounded-md"
                     onClick={async () => {
                       try {
-                        const recs = await storageService.getRecommendations();
-                        const updated = (recs || []).filter((r: any) => r.exerciseId !== recommendation.exerciseId);
+                        const recs = (await storageService.getRecommendations()) as ProgressRecommendation[];
+                        const updated = (recs || []).filter((r) => r.exerciseId !== recommendation.exerciseId);
                         await storageService.saveRecommendations(updated);
                         setRecommendation(null);
-                      } catch (e) {
+                      } catch {
                         // ignore
                       }
                     }}

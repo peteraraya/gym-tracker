@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { WorkoutSession } from '@/types';
 import { useGym } from '@/context/GymContext';
 import { Button } from '@/components/ui/Button';
 import { Bot, X, Send, Sparkles, Minimize2, Maximize2 } from '@/components/icons/lucide';
@@ -129,10 +130,11 @@ export function FloatingAIAssistant() {
 
   const handleWarmup = () => {
     let target = 'full body';
-    const last = sessions && sessions.length > 0 ? sessions[sessions.length - 1] : null;
-    if (last && (last as any).exercises && (last as any).exercises.length > 0) {
-      const firstEx = (last as any).exercises[0];
-      if (firstEx && firstEx.muscleGroup) target = firstEx.muscleGroup;
+    const last: WorkoutSession | undefined = sessions && sessions.length > 0 ? sessions[sessions.length - 1] : undefined;
+    if (last && Array.isArray(last.exercises) && last.exercises.length > 0) {
+      const firstEx = last.exercises[0];
+      const exFromDb = EXERCISE_DATABASE.find(e => e.id === firstEx.exerciseId || e.name === firstEx.exerciseName);
+      if (exFromDb && exFromDb.muscleGroup) target = exFromDb.muscleGroup;
     }
     const candidates = EXERCISE_DATABASE.filter(e => (e.muscleGroup || '').toLowerCase().includes((target || '').toLowerCase())).slice(0, 3);
     if (candidates.length === 0) {
@@ -455,7 +457,7 @@ export function FloatingAIAssistant() {
                         <p className="text-sm text-gray-700">Configura tu rutina personalizada:</p>
                         <div className="flex items-center gap-2">
                           <label className="text-sm">Split:</label>
-                          <select value={customSplit} onChange={(e) => setCustomSplit(e.target.value as any)} className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 border">
+                          <select value={customSplit} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCustomSplit(e.target.value as 'fullbody' | 'upper_lower' | 'ppl')} className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 border">
                             <option value="fullbody">Full-body</option>
                             <option value="upper_lower">Upper/Lower</option>
                             <option value="ppl">Push/Pull/Legs</option>
@@ -471,7 +473,7 @@ export function FloatingAIAssistant() {
                         </div>
                         <div className="flex items-center gap-2">
                           <label className="text-sm">Enfoque:</label>
-                          <select value={customEmphasis} onChange={(e) => setCustomEmphasis(e.target.value as any)} className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 border">
+                          <select value={customEmphasis} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCustomEmphasis(e.target.value as 'fuerza' | 'hipertrofia' | 'resistencia')} className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 border">
                             <option value="fuerza">Fuerza</option>
                             <option value="hipertrofia">Hipertrofia</option>
                             <option value="resistencia">Resistencia</option>

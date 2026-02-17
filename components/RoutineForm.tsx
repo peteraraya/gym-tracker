@@ -43,24 +43,27 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         setName(routine.name);
         setDescription(routine.description || '');
         setImage(routine.image || '');
-        const migratedExercises = routine.exercises.map(({ id, ...rest }) => {
-          if (typeof (rest as any).sets === 'number') {
-            const oldSets = (rest as any).sets;
-            const oldReps = (rest as any).reps || 10;
-            const oldWeight = (rest as any).weight || 0;
+        type StoredExercise = typeof routine.exercises[number];
+        const migratedExercises = routine.exercises.map((r: StoredExercise) => {
+          const { id, ...rest } = r;
+          const restMaybe = rest as unknown as { sets?: unknown; reps?: unknown; weight?: unknown };
+          if (typeof restMaybe.sets === 'number') {
+            const oldSets = restMaybe.sets as number;
+            const oldReps = (restMaybe.reps as number) || 10;
+            const oldWeight = (restMaybe.weight as number) || 0;
             const newExercise = {
-              name: rest.name,
-              equipment: rest.equipment,
-              notes: rest.notes,
+              name: (rest as Omit<Exercise, 'id'>).name,
+              equipment: (rest as Omit<Exercise, 'id'>).equipment,
+              notes: (rest as Omit<Exercise, 'id'>).notes,
               sets: Array(oldSets).fill(null).map(() => ({ 
                 reps: oldReps, 
                 weight: oldWeight,
                 type: 'normal' as import('@/types').SetType
               }))
-            };
+            } as Omit<Exercise, 'id'>;
             return newExercise;
           }
-          return rest;
+          return rest as Omit<Exercise, 'id'>;
         });
         setExercises(migratedExercises);
         setRestBetweenSets(routine.restBetweenSets || 60);
@@ -116,9 +119,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     setExercises(exercises.filter((_, i) => i !== index));
   };
 
-  const handleExerciseChange = (index: number, field: keyof Exercise, value: string) => {
+  const handleExerciseChange = (index: number, field: 'name' | 'equipment' | 'notes', value: string) => {
     const newExercises = [...exercises];
-    (newExercises[index] as any)[field] = value;
+    newExercises[index][field] = value;
     setExercises(newExercises);
   };
 
@@ -344,17 +347,17 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
       {/* Progress Steps */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between mb-4">
-          {[
+          {([
             { key: 'basic', label: 'Información', icon: '📝' },
             { key: 'exercises', label: 'Ejercicios', icon: '💪' },
             { key: 'review', label: 'Revisar', icon: '✓' }
-          ].map((step, index) => (
+          ] as Array<{ key: 'basic' | 'exercises' | 'review'; label: string; icon: string }>).map((step, index) => (
             <React.Fragment key={step.key}>
               <button
                 type="button"
                 onClick={() => {
                   if (step.key === 'basic' || (step.key === 'exercises' && canProceedToExercises) || (step.key === 'review' && canProceedToReview)) {
-                    setCurrentStep(step.key as any);
+                    setCurrentStep(step.key);
                   }
                 }}
                 className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:p-4 rounded-xl transition-all ${
@@ -757,16 +760,16 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                       <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                         Descanso entre series:
                       </label>
-                      <RestTimeSelectorCompact
-                        value={exercise.restBetweenSets}
-                        onChange={(v) => {
-                          const newExercises = [...exercises];
-                          (newExercises[exerciseIndex] as any).restBetweenSets = v;
-                          setExercises(newExercises);
-                        }}
-                        placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
-                        className="flex-1"
-                      />
+                              <RestTimeSelectorCompact
+                                value={exercise.restBetweenSets}
+                                onChange={(v) => {
+                                  const newExercises = [...exercises];
+                                  newExercises[exerciseIndex].restBetweenSets = v;
+                                  setExercises(newExercises);
+                                }}
+                                placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
+                                className="flex-1"
+                              />
                     </div>
                   </div>
                 ))}

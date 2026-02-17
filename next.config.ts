@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+let bundleAnalyzer = (c: NextConfig) => c;
+try {
+   
+  const withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' });
+  bundleAnalyzer = withBundleAnalyzer;
+} catch (e) {
+  // bundle analyzer not installed — skip
+}
+
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
@@ -11,4 +20,4 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
 };
 
-export default nextConfig;
+export default bundleAnalyzer(nextConfig);

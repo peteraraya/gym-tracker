@@ -1,10 +1,16 @@
-'use client';
+
+"use client";
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import FloatingCreateRoutine from '@/components/FloatingCreateRoutine';
-import { FloatingAIAssistant } from '@/components/FloatingAIAssistant';
+import dynamic from 'next/dynamic';
+
+const FloatingAIAssistant = dynamic(
+  () => import('@/components/FloatingAIAssistant').then((mod) => mod.FloatingAIAssistant),
+  { ssr: false, loading: () => null }
+);
 
 export const GlobalUI: React.FC = () => {
   const pathname = usePathname() || '/';

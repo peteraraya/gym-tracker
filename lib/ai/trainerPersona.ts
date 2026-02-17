@@ -71,7 +71,7 @@ export function getTrainerReply(message: string, level: TrainerLevel, sessions: 
   for (const ex of EXERCISE_DATABASE) {
     if (!ex?.name) continue;
     if (lower.includes(ex.name.toLowerCase())) {
-      const cues = ex.cues || ex.description || 'Mantén control del movimiento, respira y evita rebotes.';
+      const cues = (ex as any).cues || ex.description || 'Mantén control del movimiento, respira y evita rebotes.';
       return `Técnica - ${ex.name}: ${cues}`;
     }
   }
