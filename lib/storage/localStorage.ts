@@ -362,6 +362,11 @@ export interface ProgressRecommendation {
     lastWeights?: number[];
 }
 
+// Lightweight types for local-only structures
+export type ActiveWorkout = Record<string, unknown>;
+export type WeeklyPlan = Record<string, { routines: string[] }>;
+export type MonthlyPlan = Record<string, unknown>;
+
 export async function getRecommendations(): Promise<ProgressRecommendation[]> {
     const recs = getFromStorage<ProgressRecommendation[]>(STORAGE_KEYS.RECOMMENDATIONS, []);
     return Array.isArray(recs) ? recs : [];
@@ -381,7 +386,7 @@ export async function saveRecommendations(recommendations: ProgressRecommendatio
 /**
  * Get active workout from localStorage
  */
-export async function getActiveWorkout(): Promise<any | null> {
+export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
     if (typeof window === 'undefined') return null;
     try {
         const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT);
@@ -397,7 +402,7 @@ export async function getActiveWorkout(): Promise<any | null> {
 /**
  * Save active workout to localStorage
  */
-export async function saveActiveWorkout(payload: any): Promise<void> {
+export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
     if (typeof window === 'undefined') return;
     try {
         localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, JSON.stringify(payload));
@@ -456,8 +461,8 @@ export async function saveRecommendation(recommendation: ProgressRecommendation)
 /**
  * Get weekly plan from localStorage
  */
-export async function getWeeklyPlan(): Promise<Record<string, any>> {
-    const raw = getFromStorage<Record<string, any> | null>(STORAGE_KEYS.WEEKLY_PLAN, null);
+export async function getWeeklyPlan(): Promise<WeeklyPlan> {
+    const raw = getFromStorage<WeeklyPlan | null>(STORAGE_KEYS.WEEKLY_PLAN, null);
     if (!raw) {
         // Default empty plan structure
         const defaultPlan = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
@@ -470,7 +475,7 @@ export async function getWeeklyPlan(): Promise<Record<string, any>> {
 /**
  * Save weekly plan to localStorage
  */
-export async function saveWeeklyPlan(plan: Record<string, any>): Promise<void> {
+export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
     try {
         saveToStorage(STORAGE_KEYS.WEEKLY_PLAN, plan);
     } catch (e) {
@@ -481,8 +486,8 @@ export async function saveWeeklyPlan(plan: Record<string, any>): Promise<void> {
 /**
  * Get monthly plan from localStorage
  */
-export async function getMonthlyPlan(): Promise<Record<string, any>> {
-    const raw = getFromStorage<Record<string, any> | null>(STORAGE_KEYS.MONTHLY_PLAN, null);
+export async function getMonthlyPlan(): Promise<MonthlyPlan> {
+    const raw = getFromStorage<MonthlyPlan | null>(STORAGE_KEYS.MONTHLY_PLAN, null);
     if (!raw) {
         return {};
     }
@@ -492,7 +497,7 @@ export async function getMonthlyPlan(): Promise<Record<string, any>> {
 /**
  * Save monthly plan to localStorage
  */
-export async function saveMonthlyPlan(plan: Record<string, any>): Promise<void> {
+export async function saveMonthlyPlan(plan: MonthlyPlan): Promise<void> {
     try {
         saveToStorage(STORAGE_KEYS.MONTHLY_PLAN, plan);
     } catch (e) {

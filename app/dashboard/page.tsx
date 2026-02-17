@@ -148,7 +148,7 @@ export default function DashboardPage() {
     ? ((stats.thisMonthVolume - stats.lastMonthVolume) / stats.lastMonthVolume) * 100
     : 0;
 
-    console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
+    // console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
 
   // Cargar sesiones desde localStorage para combinarlas con las del servidor
   if (loading) {

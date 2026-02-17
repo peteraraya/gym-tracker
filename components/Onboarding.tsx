@@ -33,77 +33,82 @@ export default function Onboarding() {
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   useEffect(() => {
+    // schedule updates to avoid calling setState synchronously inside effect
     if (!isActive || !currentStepData.target) {
-      setTargetElement(null);
-      return;
+      const t = setTimeout(() => setTargetElement(null), 0);
+      return () => clearTimeout(t);
     }
 
     // Buscar el elemento objetivo
     const element = document.querySelector(currentStepData.target) as HTMLElement;
     if (element) {
-      setTargetElement(element);
-      
-      // Calcular posición del spotlight
-      const rect = element.getBoundingClientRect();
-      const padding = 8;
-      
-      setSpotlightStyle({
-        position: 'fixed',
-        top: `${rect.top - padding}px`,
-        left: `${rect.left - padding}px`,
-        width: `${rect.width + padding * 2}px`,
-        height: `${rect.height + padding * 2}px`,
-        borderRadius: '12px',
-        pointerEvents: 'none',
-        zIndex: 9999,
-        transition: 'all 0.3s ease'
-      });
+      const t = setTimeout(() => {
+        setTargetElement(element);
 
-      // Calcular posición del tooltip
-      const tooltipWidth = 400;
-      const tooltipHeight = 200;
-      let top = rect.bottom + 20;
-      let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+        // Calcular posición del spotlight
+        const rect = element.getBoundingClientRect();
+        const padding = 8;
 
-      // Ajustar según la posición especificada
-      switch (currentStepData.position) {
-        case 'top':
-          top = rect.top - tooltipHeight - 20;
-          break;
-        case 'left':
-          top = rect.top + rect.height / 2 - tooltipHeight / 2;
-          left = rect.left - tooltipWidth - 20;
-          break;
-        case 'right':
-          top = rect.top + rect.height / 2 - tooltipHeight / 2;
-          left = rect.right + 20;
-          break;
-        case 'bottom':
-        default:
-          top = rect.bottom + 20;
-          break;
-      }
+        setSpotlightStyle({
+          position: 'fixed',
+          top: `${rect.top - padding}px`,
+          left: `${rect.left - padding}px`,
+          width: `${rect.width + padding * 2}px`,
+          height: `${rect.height + padding * 2}px`,
+          borderRadius: '12px',
+          pointerEvents: 'none',
+          zIndex: 9999,
+          transition: 'all 0.3s ease'
+        });
 
-      // Asegurar que el tooltip esté dentro de la ventana
-      if (left < 20) left = 20;
-      if (left + tooltipWidth > window.innerWidth - 20) {
-        left = window.innerWidth - tooltipWidth - 20;
-      }
-      if (top < 20) top = 20;
-      if (top + tooltipHeight > window.innerHeight - 20) {
-        top = window.innerHeight - tooltipHeight - 20;
-      }
+        // Calcular posición del tooltip
+        const tooltipWidth = 400;
+        const tooltipHeight = 200;
+        let top = rect.bottom + 20;
+        let left = rect.left + rect.width / 2 - tooltipWidth / 2;
 
-      setTooltipStyle({
-        position: 'fixed',
-        top: `${top}px`,
-        left: `${left}px`,
-        width: `${tooltipWidth}px`,
-        zIndex: 10000
-      });
+        // Ajustar según la posición especificada
+        switch (currentStepData.position) {
+          case 'top':
+            top = rect.top - tooltipHeight - 20;
+            break;
+          case 'left':
+            top = rect.top + rect.height / 2 - tooltipHeight / 2;
+            left = rect.left - tooltipWidth - 20;
+            break;
+          case 'right':
+            top = rect.top + rect.height / 2 - tooltipHeight / 2;
+            left = rect.right + 20;
+            break;
+          case 'bottom':
+          default:
+            top = rect.bottom + 20;
+            break;
+        }
 
-      // Scroll al elemento
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Asegurar que el tooltip esté dentro de la ventana
+        if (left < 20) left = 20;
+        if (left + tooltipWidth > window.innerWidth - 20) {
+          left = window.innerWidth - tooltipWidth - 20;
+        }
+        if (top < 20) top = 20;
+        if (top + tooltipHeight > window.innerHeight - 20) {
+          top = window.innerHeight - tooltipHeight - 20;
+        }
+
+        setTooltipStyle({
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${tooltipWidth}px`,
+          zIndex: 10000
+        });
+
+        // Scroll al elemento
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 0);
+
+      return () => clearTimeout(t);
     }
   }, [isActive, currentStep, currentStepData]);
 

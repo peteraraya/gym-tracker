@@ -14,29 +14,29 @@ interface EquipmentContextType {
 const EquipmentContext = createContext<EquipmentContextType | undefined>(undefined);
 
 export function EquipmentProvider({ children }: { children: React.ReactNode }) {
-  const [selectedEquipment, setSelectedEquipment] = useState<Set<EquipmentType>>(new Set());
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isInitialized) {
+  const [selectedEquipment, setSelectedEquipment] = useState<Set<EquipmentType>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
       const stored = localStorage.getItem('selectedEquipment');
       if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as EquipmentType[];
-          setSelectedEquipment(new Set(parsed));
-        } catch (error) {
-          console.error('Error loading equipment:', error);
-        }
+        const parsed = JSON.parse(stored) as EquipmentType[];
+        return new Set(parsed);
       }
-      setIsInitialized(true);
+    } catch (error) {
+      console.error('Error loading equipment from localStorage:', error);
     }
-  }, [isInitialized]);
+    return new Set();
+  });
 
   useEffect(() => {
-    if (isInitialized && typeof window !== 'undefined') {
-      localStorage.setItem('selectedEquipment', JSON.stringify(Array.from(selectedEquipment)));
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('selectedEquipment', JSON.stringify(Array.from(selectedEquipment)));
+      } catch (e) {
+        console.error('Error saving selectedEquipment:', e);
+      }
     }
-  }, [selectedEquipment, isInitialized]);
+  }, [selectedEquipment]);
 
   const toggleEquipment = useCallback((equipment: EquipmentType) => {
     setSelectedEquipment(prev => {
@@ -48,7 +48,7 @@ export function EquipmentProvider({ children }: { children: React.ReactNode }) {
       }
       // debug log to trace selection changes
       try {
-        // eslint-disable-next-line no-console
+         
         console.debug('[EquipmentContext] toggleEquipment ->', equipment, Array.from(newSet));
       } catch (e) {
         // noop

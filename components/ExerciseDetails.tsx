@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import * as storageService from '@/lib/storage/storage';
 import { ExerciseTemplate } from '@/data/exercises';
+import type { ProgressRecommendation } from '@/lib/storage/localStorage';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
 
 interface ExerciseDetailsProps {
@@ -10,22 +11,37 @@ interface ExerciseDetailsProps {
   onClose: () => void;
 }
 
-export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
-  const [recommendation, setRecommendation] = useState<any | null>(null);
+export const ExerciseDetails: React.FC<ExerciseDetailsProps> = React.memo(({ exercise, onClose }: ExerciseDetailsProps) => {
+  const [recommendation, setRecommendation] = useState<ProgressRecommendation | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const recs = await storageService.getRecommendations();
-        const rec = (recs || []).find((r: any) => r.exerciseId === exercise.id || r.exerciseId === exercise.name);
+        const recs = (await storageService.getRecommendations()) as ProgressRecommendation[];
+        const rec = (recs || []).find((r) => r.exerciseId === exercise.id || r.exerciseId === exercise.name);
         if (mounted && rec) setRecommendation(rec);
-      } catch (e) {
+      } catch {
         // ignore
       }
     })();
     return () => { mounted = false; };
   }, [exercise.id, exercise.name]);
+
+  const techniqueItems = React.useMemo(() => {
+    return exercise.technique?.map((tip, index) => (
+      <li
+        key={index}
+        className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
+      >
+        <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold mt-0.5">
+          {index + 1}
+        </span>
+        <span className="flex-1">{tip}</span>
+      </li>
+    ));
+  }, [exercise.technique]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -149,14 +165,13 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                   <button
                     className="px-3 py-2 bg-indigo-600 text-white rounded-md"
                     onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(String(recommendation.suggestedWeight));
-                        // eslint-disable-next-line no-console
-                        console.log('Copied suggested weight to clipboard');
-                      } catch (e) {
-                        // ignore
-                      }
-                    }}
+                        try {
+                          await navigator.clipboard.writeText(String(recommendation.suggestedWeight));
+                          console.log('Copied suggested weight to clipboard');
+                        } catch {
+                          // ignore
+                        }
+                      }}
                   >
                     Copiar
                   </button>
@@ -164,11 +179,11 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                     className="px-3 py-2 border rounded-md"
                     onClick={async () => {
                       try {
-                        const recs = await storageService.getRecommendations();
-                        const updated = (recs || []).filter((r: any) => r.exerciseId !== recommendation.exerciseId);
+                        const recs = (await storageService.getRecommendations()) as ProgressRecommendation[];
+                        const updated = (recs || []).filter((r) => r.exerciseId !== recommendation.exerciseId);
                         await storageService.saveRecommendations(updated);
                         setRecommendation(null);
-                      } catch (e) {
+                      } catch {
                         // ignore
                       }
                     }}
@@ -187,17 +202,7 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                 💡 Consejos de Técnica
               </h3>
               <ul className="space-y-2">
-                {exercise.technique.map((tip, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
-                  >
-                    <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold mt-0.5">
-                      {index + 1}
-                    </span>
-                    <span className="flex-1">{tip}</span>
-                  </li>
-                ))}
+                {techniqueItems}
               </ul>
             </div>
           )}
@@ -231,4 +236,6 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
       </div>
     </div>
   );
-}
+}, (prev, next) => prev.exercise.id === next.exercise.id && prev.exercise.name === next.exercise.name && prev.onClose === next.onClose);
+
+ExerciseDetails.displayName = 'ExerciseDetails';

@@ -11,30 +11,34 @@ import { requestNotificationPermission } from '@/lib/restCalculator';
  */
 export const RestSettings: React.FC = () => {
   // Initialize with neutral defaults to keep server and client HTML identical
-  const [notificationStatus, setNotificationStatus] = useState<NotificationPermission>('default');
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [motivationEnabled, setMotivationEnabled] = useState<boolean>(true);
-
-  // Populate values after mount to avoid hydration mismatches
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if ('Notification' in window) {
-        setNotificationStatus(Notification.permission);
-      }
-
-      try {
-        const savedSound = localStorage.getItem('restSoundEnabled');
-        if (savedSound !== null) setSoundEnabled(savedSound === 'true');
-
-        const savedMotivation = localStorage.getItem('restMotivationEnabled');
-        if (savedMotivation !== null) setMotivationEnabled(savedMotivation === 'true');
-      } catch (err) {
-        // ignore localStorage errors
-        // eslint-disable-next-line no-console
-        console.warn('RestSettings: unable to read localStorage', err);
-      }
+  const [notificationStatus, setNotificationStatus] = useState<NotificationPermission>(() => {
+    if (typeof window === 'undefined') return 'default';
+    try {
+      return 'Notification' in window ? Notification.permission : 'default';
+    } catch {
+      return 'default';
     }
-  }, []);
+  });
+
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      const savedSound = localStorage.getItem('restSoundEnabled');
+      return savedSound === null ? true : savedSound === 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  const [motivationEnabled, setMotivationEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      const savedMotivation = localStorage.getItem('restMotivationEnabled');
+      return savedMotivation === null ? true : savedMotivation === 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const handleRequestNotifications = async () => {
     const granted = await requestNotificationPermission();

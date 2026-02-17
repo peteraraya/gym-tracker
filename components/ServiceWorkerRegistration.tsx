@@ -1,8 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { Modal } from '@/components/ui/Modal';
 
 export function ServiceWorkerRegistration() {
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const newWorkerRef = useRef<ServiceWorker | null>(null);
+
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return;
@@ -26,12 +30,10 @@ export function ServiceWorkerRegistration() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // Hay una nueva versión disponible
               console.log('[PWA] New version available');
-              
-              // Mostrar notificación al usuario
-              if (confirm('Hay una nueva versión disponible. ¿Actualizar ahora?')) {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-                window.location.reload();
-              }
+
+              // Guardar referencia al nuevo worker y mostrar modal para actualizar
+              newWorkerRef.current = newWorker;
+              setShowUpdateModal(true);
             }
           });
         });
@@ -66,15 +68,20 @@ export function ServiceWorkerRegistration() {
 
     registerServiceWorker();
 
-    // Detectar cuando vuelve la conexión
+      // Detectar cuando vuelve la conexión
     window.addEventListener('online', () => {
       console.log('[PWA] Back online');
-      // Intentar sincronizar datos pendientes
-      if ('serviceWorker' in navigator && 'sync' in (ServiceWorkerRegistration.prototype as any)) {
-        navigator.serviceWorker.ready.then((registration: any) => {
-          return registration.sync.register('sync-workouts');
+      // Intentar sincronizar datos pendientes (si background sync está disponible)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          const regWithSync = registration as ServiceWorkerRegistration & { sync?: { register: (tag: string) => Promise<void> } };
+          if (regWithSync.sync && typeof regWithSync.sync.register === 'function') {
+            regWithSync.sync.register('sync-workouts').catch((error) => {
+              console.error('[PWA] Background sync registration failed:', error);
+            });
+          }
         }).catch((error) => {
-          console.error('[PWA] Background sync registration failed:', error);
+          console.error('[PWA] Error waiting for service worker ready:', error);
         });
       }
     });
@@ -83,9 +90,53 @@ export function ServiceWorkerRegistration() {
       console.log('[PWA] Gone offline');
     });
 
+
+    return () => {
+      // cleanup listeners (if any were added globally earlier)
+    };
   }, []);
 
-  return null;
+  const applyUpdate = () => {
+    const newWorker = newWorkerRef.current;
+    if (!newWorker) return;
+    try {
+      // ServiceWorker.postMessage acepta cualquier dato; no necesitamos cast
+      newWorker.postMessage({ type: 'SKIP_WAITING' });
+    } catch (e) {
+      console.error('[PWA] Error sending SKIP_WAITING message:', e);
+    }
+    setShowUpdateModal(false);
+    // Al esperar a que el nuevo SW tome control, forzamos recarga.
+    window.location.reload();
+  };
+
+  const cancelUpdate = () => {
+    // Simplemente cerrar modal y mantener la versión actual
+    newWorkerRef.current = null;
+    setShowUpdateModal(false);
+  };
+
+  return (
+    <>
+      <Modal isOpen={showUpdateModal} onClose={cancelUpdate} title="Nueva versión disponible">
+        <p>Hay una nueva versión de la aplicación. ¿Deseas actualizar ahora para usarla?</p>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={cancelUpdate}
+            className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={applyUpdate}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+          >
+            Actualizar
+          </button>
+        </div>
+      </Modal>
+    </>
+  );
 }
 
 async function subscribeToPushNotifications(registration: ServiceWorkerRegistration) {
@@ -116,9 +167,10 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     }
     
     // Suscribirse con VAPID key
+    const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as any
+      applicationServerKey
     });
 
     console.log('[PWA] Push subscription created:', subscription);
@@ -153,7 +205,11 @@ async function sendSubscriptionToServer(subscription: PushSubscription) {
 
 async function showWelcomeNotification(registration: ServiceWorkerRegistration) {
   try {
-    await registration.showNotification('¡Bienvenido a Gym Tracker! 💪', {
+    const options: NotificationOptions & {
+      vibrate?: number[];
+      actions?: { action: string; title: string; icon?: string }[];
+      requireInteraction?: boolean;
+    } = {
       body: 'Las notificaciones están activadas. Te avisaremos sobre tus entrenamientos.',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/badge-72x72.png',
@@ -166,7 +222,9 @@ async function showWelcomeNotification(registration: ServiceWorkerRegistration) 
           title: 'Comenzar'
         }
       ]
-    });
+    };
+
+    await registration.showNotification('¡Bienvenido a Gym Tracker! 💪', options);
   } catch (error) {
     console.error('[PWA] Error showing welcome notification:', error);
   }

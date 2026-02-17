@@ -12,20 +12,21 @@ interface BeforeInstallPromptEvent extends Event {
 export function PWAInstaller() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [isInstalled, setIsInstalled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.matchMedia('(display-mode: standalone)').matches;
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
-    // Verificar si ya está instalada
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      return;
-    }
-
     // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
+
       // Mostrar el prompt después de un delay
       setTimeout(() => {
         const dismissed = localStorage.getItem('pwa-install-dismissed');
@@ -38,14 +39,16 @@ export function PWAInstaller() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // Detectar cuando se instala
-    window.addEventListener('appinstalled', () => {
+    const handleAppInstalled = () => {
       setIsInstalled(true);
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
-    });
+    };
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 

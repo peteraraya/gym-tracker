@@ -22,6 +22,7 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronDown,
   Dumbbell,
   BookOpen,
   Sparkles,
@@ -59,36 +60,36 @@ export const Navbar: React.FC = () => {
       <nav className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg">
-                <Dumbbell className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:block">
-                {t('appName')}
-              </span>
-            </Link>
-
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
-              <div className="flex items-center space-x-1 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-1.5">
+            <div className="hidden lg:flex items-center space-x-1 flex-1 min-w-0">
+              <div className="flex items-center space-x-1 flex-nowrap bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-1.5 min-w-0 overflow-x-auto">
                 <NavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} color="blue" />
-                <NavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} color="cyan" />
                 <NavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} color="blue" data-tour="routines" />
-                <NavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} color="purple" />
-                <NavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} color="emerald" data-tour="progress" />
-                <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" />
-                <NavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} color="amber" />
                 <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" data-tour="exercises" />
-                <NavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
-                <NavLink href="/ai-assistant" icon={Sparkles} label="Asistente IA" isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
+                <NavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} color="emerald" data-tour="recommended" />
+                {/* <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" /> */}
+                <NavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
                 <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
+                <NavLink href="/ai-assistant" icon={Sparkles} label="Asistente IA" isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
                 <NavLink href="/settings" icon={Settings} label="Ajustes" isActive={isActive('/settings')} color="zinc" />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
                 {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" data-tour="profile" />}
               </div>
-              
+              {/* Dropdown fuera del contenedor scrollable para evitar recortes */}
+              <div className="ml-2">
+                <DropdownNav
+                  label={t('dashboard')}
+                  icon={LayoutDashboard}
+                  parentActive={isActive('/dashboard') || isActive('/progress') || isActive('/achievements') || isActive('/sessions')}
+                  items={[
+                    { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard, dataTour: undefined },
+                    { href: '/progress', label: t('progress'), icon: TrendingUp, dataTour: 'progress' },
+                    { href: '/achievements', label: t('achievements'), icon: Trophy, dataTour: 'achievements' },
+                    { href: '/sessions', label: t('sessions'), icon: Calendar, dataTour: 'sessions' },
+                  ]}
+                />
+              </div>
               {user && (
                 <Button
                   variant="ghost"
@@ -117,8 +118,8 @@ export const Navbar: React.FC = () => {
             <div className="lg:hidden pb-4 border-t border-zinc-200 dark:border-zinc-800 mt-2 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <MobileNavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} onClick={() => setMobileMenuOpen(false)} />
@@ -192,6 +193,69 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, co
   );
 };
 
+// Dropdown para agrupar submenus en desktop
+interface DropdownItem {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  dataTour?: string | undefined;
+}
+
+interface DropdownNavProps {
+  label: string;
+  icon: React.ElementType;
+  items: DropdownItem[];
+  parentActive: boolean;
+}
+
+const DropdownNav: React.FC<DropdownNavProps> = ({ label, icon: Icon, items, parentActive }) => {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const [selectedLabel, setSelectedLabel] = useState(label);
+
+  React.useEffect(() => {
+    if (!pathname) return;
+    const match = items.find((it) => it.href === pathname || pathname.startsWith(`${it.href}/`));
+    if (match) setSelectedLabel(match.label);
+    else setSelectedLabel(label);
+  }, [pathname, items, label]);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center gap-2 ${{
+          true: 'bg-linear-to-r from-cyan-600 to-cyan-500 text-white shadow-lg',
+        }[String(parentActive)] || 'text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50'}`}
+        aria-expanded={open}
+      >
+        <Icon className="w-4 h-4" />
+        <span className="hidden xl:inline">{selectedLabel}</span>
+        <ChevronDown className="w-3 h-3 ml-1" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 mt-2 w-44 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 py-1 overflow-hidden">
+          {items.map((it) => (
+            <Link
+              key={it.href}
+              href={it.href}
+              data-tour={it.dataTour}
+              onClick={() => {
+                setSelectedLabel(it.label);
+                setOpen(false);
+              }}
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300`}
+            >
+              <it.icon className="w-4 h-4" />
+              <span>{it.label}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 // Componente de enlace para mobile
 interface MobileNavLinkProps {
   href: string;

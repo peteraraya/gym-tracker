@@ -265,7 +265,7 @@ export function showRestCompleteNotification(exerciseName?: string): void {
     }
   } catch (err) {
     // Evitar que errores en entornos limitados (webviews móviles) rompan la app
-    // eslint-disable-next-line no-console
+     
     console.warn('showRestCompleteNotification failed:', err);
   }
 }

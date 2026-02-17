@@ -21,22 +21,33 @@ export const RestNotification: React.FC<RestNotificationProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(show);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
+    let mountTimer: ReturnType<typeof setTimeout> | undefined;
+    let afterHideTimer: ReturnType<typeof setTimeout> | undefined;
+
     if (show) {
-      setIsVisible(true);
-      
+      // schedule state update to avoid synchronous setState inside effect
+      mountTimer = setTimeout(() => setIsVisible(true), 0);
+
       const timer = setTimeout(() => {
         setIsVisible(false);
-        setTimeout(() => {
+        afterHideTimer = setTimeout(() => {
           onCloseRef.current?.();
         }, 300); // Esperar a que termine la animación
       }, duration);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(mountTimer);
+        clearTimeout(timer);
+        clearTimeout(afterHideTimer);
+      };
     } else {
-      setIsVisible(false);
+      const t = setTimeout(() => setIsVisible(false), 0);
+      return () => clearTimeout(t);
     }
   }, [show, duration]);
 
