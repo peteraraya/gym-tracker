@@ -168,9 +168,10 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     
     // Suscribirse con VAPID key
     const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+    // Cast a Uint8Array to ArrayBuffer to satisfy TypeScript's DOM types (BufferSource)
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey
+      applicationServerKey: applicationServerKey as unknown as ArrayBuffer
     });
 
     console.log('[PWA] Push subscription created:', subscription);

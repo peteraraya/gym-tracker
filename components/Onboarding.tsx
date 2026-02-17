@@ -56,14 +56,14 @@ export default function Onboarding() {
           width: `${rect.width + padding * 2}px`,
           height: `${rect.height + padding * 2}px`,
           borderRadius: '12px',
-          pointerEvents: 'none',
+          pointerEvents: 'auto',
           zIndex: 9999,
           transition: 'all 0.3s ease'
         });
 
-        // Calcular posición del tooltip
-        const tooltipWidth = 400;
-        const tooltipHeight = 200;
+        // Calcular posición del tooltip (ajustable según ancho de ventana)
+        const tooltipWidth = Math.min(450, window.innerWidth - 40);
+        const tooltipHeight = 220;
         let top = rect.bottom + 20;
         let left = rect.left + rect.width / 2 - tooltipWidth / 2;
 
@@ -101,7 +101,9 @@ export default function Onboarding() {
           top: `${top}px`,
           left: `${left}px`,
           width: `${tooltipWidth}px`,
-          zIndex: 10000
+          zIndex: 10000,
+          maxHeight: `${Math.min(window.innerHeight - 40, 600)}px`,
+          overflowY: 'auto'
         });
 
         // Scroll al elemento
@@ -118,7 +120,7 @@ export default function Onboarding() {
     <>
       {/* Overlay oscuro */}
       <div 
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9998] animate-fadeIn"
+        className="fixed inset-0 bg-black/70 z-[9998] animate-fadeIn"
         onClick={skipOnboarding}
       />
 
@@ -126,7 +128,7 @@ export default function Onboarding() {
       {targetElement && (
         <div
           style={spotlightStyle}
-          className="border-4 border-blue-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] animate-pulse"
+          className="border-4 border-blue-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] animate-pulse bg-transparent"
         />
       )}
 
@@ -183,7 +185,7 @@ export default function Onboarding() {
           </p>
 
           {/* Actions */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button
               variant="ghost"
               onClick={skipOnboarding}
@@ -197,6 +199,7 @@ export default function Onboarding() {
                 <Button
                   variant="secondary"
                   onClick={prevStep}
+                  size="sm"
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Anterior
@@ -217,6 +220,7 @@ export default function Onboarding() {
                   variant="primary"
                   onClick={nextStep}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  size="sm"
                 >
                   Siguiente
                   <ChevronRight className="w-4 h-4 ml-1" />

@@ -82,10 +82,29 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           setPlan(normalized);
         }
         
-        // Cargar plan mensual
+        // Cargar plan mensual (normalizar estructura porque el storage puede devolver tipos flexibles)
         const monthlyStored = await getMonthlyPlan();
         if (mounted && monthlyStored) {
-          setMonthlyPlan(monthlyStored);
+          try {
+            const raw = monthlyStored as Record<string, any>;
+            const normalized = Object.keys(raw).reduce((acc, k) => {
+              const v = raw[k];
+              if (v && typeof v === 'object') {
+                acc[k] = {
+                  routines: Array.isArray(v.routines) ? v.routines : (Array.isArray(v) ? v : []),
+                  blocked: !!v.blocked,
+                  note: typeof v.note === 'string' ? v.note : ''
+                };
+              } else {
+                acc[k] = { routines: [], blocked: false, note: '' };
+              }
+              return acc;
+            }, {} as MonthlyPlan);
+            setMonthlyPlan(normalized);
+          } catch (e) {
+            // Si falla la normalización, castear como respaldo
+            setMonthlyPlan(monthlyStored as unknown as MonthlyPlan);
+          }
         }
       } catch (e) {
         console.warn('Error loading plans, using local default', e);
