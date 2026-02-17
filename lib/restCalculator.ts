@@ -226,41 +226,60 @@ export function showRestCompleteNotification(exerciseName?: string): void {
 
   try {
     if (Notification.permission === 'granted') {
-      const notification = new Notification('⏰ Descanso Terminado', {
-        body: exerciseName 
+      const title = '⏰ Descanso Terminado';
+      const options: NotificationOptions & { vibrate?: number[]; data?: any } = {
+        body: exerciseName
           ? `Es hora de continuar con ${exerciseName}!`
           : '¡Es hora de la siguiente serie!',
-        icon: '/icon-192x192.png', // Puedes crear un ícono para la app
-        badge: '/icon-192x192.png',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
         tag: 'rest-timer',
-        requireInteraction: false
-      });
+        requireInteraction: false,
+        vibrate: [200, 100, 200],
+        data: { url: '/' }
+      };
 
-      // Auto-cerrar después de 5 segundos si el método está disponible
+      // Preferir mostrar la notificación desde el Service Worker (funciona en background y cuando la app está cerrada)
       try {
-        setTimeout(() => {
-          if (typeof notification.close === 'function') notification.close();
-        }, 5000);
+        if ('serviceWorker' in navigator && navigator.serviceWorker && navigator.serviceWorker.ready) {
+          navigator.serviceWorker.ready.then((registration) => {
+            try {
+              (registration as ServiceWorkerRegistration).showNotification(title, options);
+            } catch (swErr) {
+              // Si falla el SW, fallback a la API de Notification en página
+              try {
+                const notification = new Notification(title, options);
+                setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
+                notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
+              } catch (nErr) {
+                console.warn('showRestCompleteNotification fallback failed:', nErr);
+              }
+            }
+          }).catch((readyErr) => {
+            // Fallback si navigator.serviceWorker.ready rechaza
+            try {
+              const notification = new Notification(title, options);
+              setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
+              notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
+            } catch (nErr) {
+              console.warn('showRestCompleteNotification fallback after ready failed:', nErr);
+            }
+          });
+        } else {
+          // Si no hay Service Worker, usar la API de Notification en página
+          const notification = new Notification(title, options);
+          setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
+          notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
+        }
       } catch (e) {
-        // ignore
-      }
-
-      // Click en la notificación enfoca la ventana (proteger por si onclick falla)
-      try {
-        notification.onclick = () => {
-          try {
-            window.focus();
-          } catch (e) {
-            // ignore
-          }
-          try {
-            if (typeof notification.close === 'function') notification.close();
-          } catch (e) {
-            // ignore
-          }
-        };
-      } catch (e) {
-        // ignore
+        // En entornos restringidos, intentar fallback simple
+        try {
+          const notification = new Notification(title, options);
+          setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
+          notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
+        } catch (err) {
+          console.warn('showRestCompleteNotification failed:', err);
+        }
       }
     }
   } catch (err) {

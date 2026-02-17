@@ -41,6 +41,7 @@ export const Timer: React.FC<TimerProps> = ({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const onCompleteCalledRef = useRef(false);
   const startTimeRef = useRef<number>(Date.now());
+  const onActualDurationRef = useRef<typeof onActualDurationChange | null>(null);
 
   // Cargar preferencias del usuario
   const soundEnabled = typeof window !== 'undefined' 
@@ -90,10 +91,20 @@ export const Timer: React.FC<TimerProps> = ({
 
   // Efecto separado para notificar cambios en la duración real
   useEffect(() => {
-    if (isCompleted && actualDuration > 0 && onActualDurationChange) {
-      onActualDurationChange(actualDuration);
+    // Mantener referencia actualizada sin provocar re-ejecución del efecto
+    onActualDurationRef.current = onActualDurationChange;
+  }, [onActualDurationChange]);
+
+  useEffect(() => {
+    if (isCompleted && actualDuration > 0) {
+      try {
+        onActualDurationRef.current?.(actualDuration);
+      } catch (e) {
+        // evitar que errores en el handler rompan el timer
+        // el error se ignora intencionalmente
+      }
     }
-  }, [isCompleted, actualDuration, onActualDurationChange]);
+  }, [isCompleted, actualDuration]);
 
   // Efecto separado para notificaciones al completar
   useEffect(() => {

@@ -387,13 +387,23 @@ export async function saveRecommendations(recommendations: ProgressRecommendatio
  * Get active workout from localStorage
  */
 export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
-    if (typeof window === 'undefined') return null;
+    console.log('[localStorage] getActiveWorkout llamado');
+    if (typeof window === 'undefined') {
+        console.log('[localStorage] window undefined, retornando null');
+        return null;
+    }
     try {
         const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT);
-        if (!raw) return null;
-        return JSON.parse(raw);
+        console.log('[localStorage] Raw value from storage:', raw);
+        if (!raw) {
+            console.log('[localStorage] No hay active workout en storage');
+            return null;
+        }
+        const parsed = JSON.parse(raw);
+        console.log('[localStorage] Active workout parseado:', parsed);
+        return parsed;
     } catch (e) {
-        console.warn('getActiveWorkout local error', e);
+        console.error('[localStorage] Error en getActiveWorkout:', e);
         try { localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT); } catch {};
         return null;
     }
@@ -403,11 +413,22 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
  * Save active workout to localStorage
  */
 export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
-    if (typeof window === 'undefined') return;
+    console.log('[localStorage] saveActiveWorkout llamado con:', payload);
+    if (typeof window === 'undefined') {
+        console.log('[localStorage] window undefined, no guardando');
+        return;
+    }
     try {
-        localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, JSON.stringify(payload));
+        const stringified = JSON.stringify(payload);
+        console.log('[localStorage] Guardando en key:', STORAGE_KEYS.ACTIVE_WORKOUT);
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT, stringified);
+        console.log('[localStorage] Active workout guardado exitosamente');
+        
+        // Verificar que se guardó correctamente
+        const verification = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+        console.log('[localStorage] Verificación - valor guardado:', verification ? 'presente' : 'null');
     } catch (e) {
-        console.warn('saveActiveWorkout local error', e);
+        console.error('[localStorage] Error en saveActiveWorkout:', e);
         throw e;
     }
 }
@@ -444,8 +465,17 @@ export async function saveLastWeights(weights: Record<string, number[]>): Promis
  * Clear active workout from localStorage
  */
 export async function clearActiveWorkout(): Promise<void> {
-    if (typeof window === 'undefined') return;
-    try { localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT); } catch (e) { /* ignore */ }
+    console.log('[localStorage] clearActiveWorkout llamado');
+    if (typeof window === 'undefined') {
+        console.log('[localStorage] window undefined, no limpiando');
+        return;
+    }
+    try { 
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+        console.log('[localStorage] Active workout eliminado del storage');
+    } catch (e) { 
+        console.error('[localStorage] Error limpiando active workout:', e);
+    }
 }
 
 export async function saveRecommendation(recommendation: ProgressRecommendation): Promise<void> {
