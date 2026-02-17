@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { Bell, Send, CheckCircle, XCircle } from '@/components/icons/lucide';
 
+// Definición local para evitar dependencia de tipos de DOM ausentes
+type PushNotificationAction = { action: string; title: string; icon?: string };
+
 export function PushNotificationTester() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -50,7 +53,7 @@ export function PushNotificationTester() {
     try {
       const registration = await navigator.serviceWorker.ready;
       
-      await registration.showNotification('Notificación de Prueba 🔔', {
+      const options: NotificationOptions & { vibrate?: number[]; actions?: PushNotificationAction[] } = {
         body: 'Esta es una notificación de prueba desde Gym Tracker',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/badge-72x72.png',
@@ -61,7 +64,9 @@ export function PushNotificationTester() {
           { action: 'open', title: 'Abrir' },
           { action: 'close', title: 'Cerrar' }
         ]
-      });
+      };
+
+      await registration.showNotification('Notificación de Prueba 🔔', options);
 
       setMessage('✓ Notificación local enviada');
       setStatus('success');
