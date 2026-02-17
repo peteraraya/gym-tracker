@@ -25,7 +25,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   // Fetch routines from storage (localStorage or Supabase)
   const refreshRoutines = useCallback(async () => {
@@ -36,7 +36,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setRoutines(data);
     } catch (error) {
       console.error('[GymContext] Error fetching routines:', error);
-      setRoutines([]);
+      // No overwriting existing routines on transient errors — mantener el estado previo
     }
   }, []);
 
@@ -70,7 +70,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch (error) {
       console.error('[GymContext] Error fetching sessions:', error);
-      setSessions([]);
+      // Mantener sesiones previas en caso de error transitorio
     }
   }, []);
 
@@ -97,14 +97,26 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setLoading(false);
     };
 
-    // Solo cargar si hay usuario o si estamos en modo localStorage
-    if (user || process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
-      loadData();
+    // Si la autenticación aún se inicializa, esperar
+    if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true') {
+      if (authLoading) {
+        // Mantener loading hasta que Auth termine de inicializar
+        return;
+      }
+
+      // Con DB habilitada: solo cargar si hay usuario autenticado
+      if (user) {
+        loadData();
+      } else {
+        // No hay usuario -> no cargar datos remotos. Mantener estado vacío pero marcar como no loading.
+        // console.log('[GymContext] Skipping data load - no user and database enabled');
+        setLoading(false);
+        setRoutines([]);
+        setSessions([]);
+      }
     } else {
-      // console.log('[GymContext] Skipping data load - no user and database enabled');
-      setLoading(false);
-      setRoutines([]);
-      setSessions([]);
+      // Modo localStorage (DB deshabilitada): siempre cargar datos locales
+      loadData();
     }
   }, [user, refreshRoutines, refreshSessions]);
 
