@@ -445,21 +445,31 @@ export async function getActiveWorkout(): Promise<any | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data, error } = await supabase
-    .from('active_workouts')
-    .select('data')
-    .eq('user_id', user.id)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('active_workouts')
+      .select('data')
+      .eq('user_id', user.id)
+      .single();
 
-  // Si la tabla no existe, retornar null (el sistema usará localStorage)
-  if (error) {
-    if (error.code === 'PGRST116' || error.message.includes('Could not find the table')) {
+    // Si la tabla no existe o no hay datos, retornar null (el sistema usará localStorage)
+    if (error) {
+      if (error.code === 'PGRST116' || 
+          error.code === '42P01' || 
+          error.message.includes('Could not find') ||
+          error.message.includes('does not exist')) {
+        // console.log('[Storage] active_workouts table not found, using localStorage');
+        return null;
+      }
+      // console.warn('[Storage] Error getting active workout:', error.message);
       return null;
     }
-    throw new Error(`Error al obtener active workout: ${error.message}`);
-  }
 
-  return data?.data || null;
+    return data?.data || null;
+  } catch (error: any) {
+    console.warn('[Storage] Failed to get active workout:', error.message);
+    return null;
+  }
 }
 
 /**
@@ -471,13 +481,23 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
-  const { error } = await supabase
-    .from('active_workouts')
-    .upsert({ user_id: user.id, data: payload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  try {
+    const { error } = await supabase
+      .from('active_workouts')
+      .upsert({ user_id: user.id, data: payload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
 
-  // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
-  if (error && !error.message.includes('Could not find the table')) {
-    throw new Error(`Error al guardar active workout: ${error.message}`);
+    // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
+    if (error) {
+      if (error.code === '42P01' || 
+          error.message.includes('Could not find') ||
+          error.message.includes('does not exist')) {
+        // console.log('[Storage] active_workouts table not found, using localStorage');
+        return;
+      }
+      console.warn('[Storage] Error saving active workout:', error.message);
+    }
+  } catch (error: any) {
+    console.warn('[Storage] Failed to save active workout:', error.message);
   }
 }
 
@@ -490,14 +510,24 @@ export async function clearActiveWorkout(): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
-  const { error } = await supabase
-    .from('active_workouts')
-    .delete()
-    .eq('user_id', user.id);
+  try {
+    const { error } = await supabase
+      .from('active_workouts')
+      .delete()
+      .eq('user_id', user.id);
 
-  // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
-  if (error && !error.message.includes('Could not find the table')) {
-    throw new Error(`Error al eliminar active workout: ${error.message}`);
+    // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
+    if (error) {
+      if (error.code === '42P01' || 
+          error.message.includes('Could not find') ||
+          error.message.includes('does not exist')) {
+        // console.log('[Storage] active_workouts table not found, using localStorage');
+        return;
+      }
+      console.warn('[Storage] Error clearing active workout:', error.message);
+    }
+  } catch (error: any) {
+    console.warn('[Storage] Failed to clear active workout:', error.message);
   }
 }
 

@@ -38,14 +38,20 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  themeColor: "#3b82f6",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+  // `themeColor` and `viewport` moved to `generateViewport` below
 };
+
+export function generateViewport() {
+  return {
+    viewport: {
+      width: "device-width",
+      initialScale: 1,
+      maximumScale: 1,
+      userScalable: false,
+    },
+    themeColor: "#3b82f6",
+  };
+}
 
 export default function RootLayout({
   children,
@@ -55,6 +61,11 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/icons/icon-192x192.png" sizes="192x192" type="image/png" />
+        <link rel="icon" href="/icons/icon-512x512.png" sizes="512x512" type="image/png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -30,9 +30,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Fetch routines from storage (localStorage or Supabase)
   const refreshRoutines = useCallback(async () => {
     try {
-      console.log('[GymContext] refreshRoutines: Starting...');
+      // console.log('[GymContext] refreshRoutines: Starting...');
       const data = await storageService.getRoutines();
-      console.log('[GymContext] refreshRoutines: Loaded', data.length, 'routines');
+      // console.log('[GymContext] refreshRoutines: Loaded', data.length, 'routines');
       setRoutines(data);
     } catch (error) {
       console.error('[GymContext] Error fetching routines:', error);
@@ -43,9 +43,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Fetch sessions from storage (localStorage or Supabase)
   const refreshSessions = useCallback(async () => {
     try {
-      console.log('[GymContext] refreshSessions: Starting...');
+      // console.log('[GymContext] refreshSessions: Starting...');
       const data = await storageService.getSessions();
-      console.log('[GymContext] refreshSessions: Loaded', data.length, 'sessions');
+      // console.log('[GymContext] refreshSessions: Loaded', data.length, 'sessions');
       setSessions(data);
 
       // Si la base de datos está habilitada, verificar si hay sesiones locales que necesitan sincronización
@@ -55,10 +55,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           
           // Si estamos en modo localStorage por error, intentar sincronizar
           if (storageStatus.mode === 'localStorage' && storageStatus.hasError) {
-            console.log('[GymContext] Detected localStorage fallback, attempting sync...');
+            // console.log('[GymContext] Detected localStorage fallback, attempting sync...');
             const syncResult = await storageService.syncLocalSessionsToDatabase();
             if (syncResult.synced > 0) {
-              console.log(`[GymContext] Synced ${syncResult.synced} sessions to database`);
+              // console.log(`[GymContext] Synced ${syncResult.synced} sessions to database`);
               // Refrescar de nuevo para obtener datos de la BD
               const freshData = await storageService.getSessions();
               setSessions(freshData);
@@ -77,14 +77,14 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Load data when user changes
   useEffect(() => {
     const loadData = async () => {
-      console.log('[GymContext] Loading data for user:', user?.id || 'no-user');
+      // console.log('[GymContext] Loading data for user:', user?.id || 'no-user');
       setLoading(true);
       
       // Primero, migrar sesiones antiguas de localStorage si existen
       try {
         const migrationResult = await storageService.migrateLegacySessions();
         if (migrationResult.migrated > 0) {
-          console.log(`[GymContext] Migrated ${migrationResult.migrated} legacy sessions. Total: ${migrationResult.total}`);
+          // console.log(`[GymContext] Migrated ${migrationResult.migrated} legacy sessions. Total: ${migrationResult.total}`);
         }
       } catch (e) {
         console.warn('[GymContext] Migration failed:', e);
@@ -93,7 +93,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Luego cargar datos
       await Promise.all([refreshRoutines(), refreshSessions()]);
       
-      console.log('[GymContext] Data loaded successfully');
+      // console.log('[GymContext] Data loaded successfully');
       setLoading(false);
     };
 
@@ -101,7 +101,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (user || process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
       loadData();
     } else {
-      console.log('[GymContext] Skipping data load - no user and database enabled');
+      // console.log('[GymContext] Skipping data load - no user and database enabled');
       setLoading(false);
       setRoutines([]);
       setSessions([]);
@@ -124,7 +124,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // pero si por alguna razón el storage no devuelve la rutina (p. ej. modo DB/no autenticado),
       // hacer fallback al estado en memoria (`routines`). Esto evita errores cuando el backend
       // responde diferente temporalmente.
-      let currentRoutines = await storageService.getRoutines();
+      const currentRoutines = await storageService.getRoutines();
       let routine = currentRoutines.find(r => r.id === id);
 
       if (!routine) {
@@ -183,7 +183,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           
           if (planModified) {
             await saveWeeklyPlan(updatedPlan);
-            console.log(`[GymContext] Removed routine ${id} from weekly planner`);
+            // console.log(`[GymContext] Removed routine ${id} from weekly planner`);
           }
         }
       } catch (planError) {
@@ -200,28 +200,28 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addSession = useCallback(async (session: Omit<WorkoutSession, 'id'>) => {
     try {
-      console.log('[GymContext] addSession called, session summary:', {
-        routineId: session.routineId,
-        date: session.date,
-        exercises: session.exercises ? session.exercises.length : 0,
-      });
+      // console.log('[GymContext] addSession called, session summary:', {
+      //   routineId: session.routineId,
+      //   date: session.date,
+      //   exercises: session.exercises ? session.exercises.length : 0,
+      // });
 
       // Guardar sesión (intentará Supabase primero, luego localStorage como fallback)
       await storageService.saveSession(session as WorkoutSession);
-      console.log('[GymContext] storageService.saveSession resolved');
+      // console.log('[GymContext] storageService.saveSession resolved');
 
       // Verificar el estado del storage para debugging
       const storageStatus = storageService.getStorageStatus();
-      console.log('[GymContext] Storage status:', storageStatus);
+      // console.log('[GymContext] Storage status:', storageStatus);
 
       // Si hay error de storage (cayó a localStorage), intentar sincronizar
       if (storageStatus.hasError) {
-        console.warn('[GymContext] Storage error detected, will attempt sync on next load');
+        // console.warn('[GymContext] Storage error detected, will attempt sync on next load');
       }
 
       // Refrescar sesiones para obtener la lista actualizada
       await refreshSessions();
-      console.log('[GymContext] refreshSessions completed');
+      // console.log('[GymContext] refreshSessions completed');
 
       // Generar recomendaciones de progresión (2-for-2) y persistir mediante storageService
       try {
@@ -229,7 +229,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const recs = recommendForSession(session as WorkoutSession, allSessions, { repTarget: 8, compound: true });
         if (recs && recs.length > 0) {
           await storageService.saveRecommendations(recs);
-          console.log('[GymContext] Saved progression recommendations', recs.length);
+          // console.log('[GymContext] Saved progression recommendations', recs.length);
         }
       } catch (e) {
         console.warn('[GymContext] Failed to save recommendations:', e);
@@ -264,12 +264,12 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.__rebuildRoutinesFromSessions = async () => {
         try {
            
-          console.log('[GymContext] Rebuilding routines from sessions...');
+          // console.log('[GymContext] Rebuilding routines from sessions...');
           const created = await storageService.rebuildRoutinesFromSessions();
           await refreshRoutines();
           await refreshSessions();
            
-          console.log('[GymContext] Rebuild finished, created:', created?.length || 0);
+          // console.log('[GymContext] Rebuild finished, created:', created?.length || 0);
           return created;
         } catch (e) {
            

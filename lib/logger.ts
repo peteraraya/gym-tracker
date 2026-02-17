@@ -10,7 +10,7 @@ type LogArgs = unknown[];
 export const logger = {
   log: (...args: LogArgs) => {
     if (isDevelopment || isTest) {
-      console.log('[LOG]', ...args);
+      // console.log('[LOG]', ...args);
     }
   },
 

@@ -34,6 +34,22 @@ const MUSCLE_GROUP_COLORS: Record<MuscleGroup, string> = {
   cardio: '#ef4444'
 };
 
+const MUSCLE_GROUP_NAMES: Record<MuscleGroup, string> = {
+  pecho: 'Pecho',
+  espalda: 'Espalda',
+  piernas: 'Piernas',
+  hombros: 'Hombros',
+  biceps: 'Bíceps',
+  triceps: 'Tríceps',
+  antebrazos: 'Antebrazos',
+  trapecio: 'Trapecio',
+  cuello: 'Cuello',
+  core: 'Core',
+  gluteos: 'Glúteos',
+  gemelos: 'Gemelos',
+  cardio: 'Cardio'
+};
+
 export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) => {
   const t = useTranslations('dashboard.muscleGroupStats');
   const tMuscles = useTranslations('muscleGroups');
@@ -116,7 +132,7 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
                       size={24}
                     />
                     <span className="font-semibold capitalize text-gray-900 dark:text-gray-100">
-                      {tMuscles(stat.muscleGroup)}
+                      {MUSCLE_GROUP_NAMES[stat.muscleGroup] || stat.muscleGroup}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
