@@ -11,7 +11,7 @@ interface ExerciseDetailsProps {
   onClose: () => void;
 }
 
-export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
+export const ExerciseDetails: React.FC<ExerciseDetailsProps> = React.memo(({ exercise, onClose }: ExerciseDetailsProps) => {
   const [recommendation, setRecommendation] = useState<ProgressRecommendation | null>(null);
 
   useEffect(() => {
@@ -27,6 +27,21 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
     })();
     return () => { mounted = false; };
   }, [exercise.id, exercise.name]);
+
+  const techniqueItems = React.useMemo(() => {
+    return exercise.technique?.map((tip, index) => (
+      <li
+        key={index}
+        className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
+      >
+        <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold mt-0.5">
+          {index + 1}
+        </span>
+        <span className="flex-1">{tip}</span>
+      </li>
+    ));
+  }, [exercise.technique]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -187,17 +202,7 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
                 💡 Consejos de Técnica
               </h3>
               <ul className="space-y-2">
-                {exercise.technique.map((tip, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
-                  >
-                    <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold mt-0.5">
-                      {index + 1}
-                    </span>
-                    <span className="flex-1">{tip}</span>
-                  </li>
-                ))}
+                {techniqueItems}
               </ul>
             </div>
           )}
@@ -231,4 +236,6 @@ export function ExerciseDetails({ exercise, onClose }: ExerciseDetailsProps) {
       </div>
     </div>
   );
-}
+}, (prev, next) => prev.exercise.id === next.exercise.id && prev.exercise.name === next.exercise.name && prev.onClose === next.onClose);
+
+ExerciseDetails.displayName = 'ExerciseDetails';

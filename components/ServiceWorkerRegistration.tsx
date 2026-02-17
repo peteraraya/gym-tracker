@@ -68,15 +68,20 @@ export function ServiceWorkerRegistration() {
 
     registerServiceWorker();
 
-    // Detectar cuando vuelve la conexión
+      // Detectar cuando vuelve la conexión
     window.addEventListener('online', () => {
       console.log('[PWA] Back online');
-      // Intentar sincronizar datos pendientes
-      if ('serviceWorker' in navigator && 'sync' in (ServiceWorkerRegistration.prototype as any)) {
-        navigator.serviceWorker.ready.then((registration: any) => {
-          return registration.sync.register('sync-workouts');
+      // Intentar sincronizar datos pendientes (si background sync está disponible)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          const regWithSync = registration as ServiceWorkerRegistration & { sync?: { register: (tag: string) => Promise<void> } };
+          if (regWithSync.sync && typeof regWithSync.sync.register === 'function') {
+            regWithSync.sync.register('sync-workouts').catch((error) => {
+              console.error('[PWA] Background sync registration failed:', error);
+            });
+          }
         }).catch((error) => {
-          console.error('[PWA] Background sync registration failed:', error);
+          console.error('[PWA] Error waiting for service worker ready:', error);
         });
       }
     });
@@ -92,9 +97,10 @@ export function ServiceWorkerRegistration() {
   }, []);
 
   const applyUpdate = () => {
-    const newWorker = newWorkerRef.current as any;
+    const newWorker = newWorkerRef.current;
     if (!newWorker) return;
     try {
+      // ServiceWorker.postMessage acepta cualquier dato; no necesitamos cast
       newWorker.postMessage({ type: 'SKIP_WAITING' });
     } catch (e) {
       console.error('[PWA] Error sending SKIP_WAITING message:', e);
@@ -161,9 +167,10 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     }
     
     // Suscribirse con VAPID key
+    const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as any
+      applicationServerKey
     });
 
     console.log('[PWA] Push subscription created:', subscription);

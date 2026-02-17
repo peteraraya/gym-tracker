@@ -8,10 +8,48 @@
  */
 
 import type { Routine, WorkoutSession } from '@/types';
-import type { CreateRoutineData, UserProfile } from '@/lib/storage/localStorage';
+import type { CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';
 
 // Re-export types for convenience
-export type { SetData, RoutineExercise, CreateRoutineData, UserProfile } from '@/lib/storage/localStorage';
+export type { SetData, RoutineExercise, CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';
+
+// Partial interface describing optional supabase storage helpers we may call
+type SupabaseServicePartial = Partial<{
+    // Core routines CRUD
+    getRoutines(): Promise<Routine[]>;
+    createRoutine(data: CreateRoutineData): Promise<Routine>;
+    updateRoutine(id: string, data: CreateRoutineData): Promise<Routine>;
+    deleteRoutine(id: string): Promise<void>;
+    deleteSessionsByRoutine?(id: string): Promise<void>;
+
+    // Sessions
+    getSessions(): Promise<WorkoutSession[]>;
+    saveSession(session: WorkoutSession): Promise<void>;
+
+    // Profile
+    getProfile(): Promise<UserProfile>;
+    updateProfile(data: Partial<UserProfile>): Promise<void>;
+
+    // Plans
+    getWeeklyPlan(): Promise<WeeklyPlan>;
+    saveWeeklyPlan(plan: WeeklyPlan): Promise<void>;
+    getMonthlyPlan(): Promise<MonthlyPlan>;
+    saveMonthlyPlan(plan: MonthlyPlan): Promise<void>;
+
+    // Recommendations & weights
+    getRecommendations(): Promise<ProgressRecommendation[]>;
+    saveRecommendations(recs: ProgressRecommendation[]): Promise<void>;
+    getLastWeights(): Promise<Record<string, number[]>>;
+    saveLastWeights(w: Record<string, number[]>): Promise<void>;
+
+    // Active workout
+    getActiveWorkout(): Promise<ActiveWorkout | null>;
+    saveActiveWorkout(payload: ActiveWorkout): Promise<void>;
+    clearActiveWorkout(): Promise<void>;
+
+    // Utilities
+    rebuildRoutinesFromSessions(): Promise<Routine[]>;
+}>;
 
 // Check if database is enabled
 const isDatabaseEnabled = (): boolean => {
@@ -65,10 +103,15 @@ export async function getRoutines(): Promise<Routine[]> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            const result = await supabaseService.getRoutines();
-            handleStorageSuccess();
-            return result;
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.getRoutines) {
+                const result = await supabaseService.getRoutines();
+                handleStorageSuccess();
+                return result;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.getRoutines();
         } catch (err) {
             handleStorageError(err, 'getRoutines');
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -88,10 +131,15 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            const result = await supabaseService.createRoutine(data);
-            handleStorageSuccess();
-            return result;
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.createRoutine) {
+                const result = await supabaseService.createRoutine(data);
+                handleStorageSuccess();
+                return result;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.createRoutine(data);
         } catch (err) {
             handleStorageError(err, 'createRoutine');
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -111,10 +159,15 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            const result = await supabaseService.updateRoutine(id, data);
-            handleStorageSuccess();
-            return result;
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.updateRoutine) {
+                const result = await supabaseService.updateRoutine(id, data);
+                handleStorageSuccess();
+                return result;
+            }
+            const localStorageService = await import('@/lib/storage/localStorage');
+            return localStorageService.updateRoutine(id, data);
         } catch (err) {
             handleStorageError(err, 'updateRoutine');
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -174,8 +227,9 @@ export async function getSessions(): Promise<WorkoutSession[]> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            const result = await supabaseService.getSessions();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            const result = await (supabaseService.getSessions ? supabaseService.getSessions() : Promise.resolve([] as WorkoutSession[]));
             handleStorageSuccess();
             return result;
         } catch (err) {
@@ -197,8 +251,9 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            await supabaseService.saveSession(session);
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { saveSession?: (s: WorkoutSession) => Promise<void> };
+            if (supabaseService.saveSession) await supabaseService.saveSession(session);
             handleStorageSuccess();
             // Persist a lightweight debug marker so developers can inspect post-save
             try {
@@ -263,8 +318,9 @@ export async function getProfile(): Promise<UserProfile> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            const result = await supabaseService.getProfile();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { getProfile?: () => Promise<UserProfile> };
+            const result = supabaseService.getProfile ? await supabaseService.getProfile() : (null as unknown as UserProfile);
             handleStorageSuccess();
             return result;
         } catch (err) {
@@ -286,8 +342,9 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            await supabaseService.updateProfile(data);
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { updateProfile?: (d: Partial<UserProfile>) => Promise<void> };
+            if (supabaseService.updateProfile) await supabaseService.updateProfile(data);
             handleStorageSuccess();
         } catch (err) {
             handleStorageError(err, 'updateProfile');
@@ -302,7 +359,7 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
 
 // ==================== WEEKLY PLAN ====================
 
-export async function getWeeklyPlan(): Promise<any> {
+export async function getWeeklyPlan(): Promise<WeeklyPlan> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -310,9 +367,10 @@ export async function getWeeklyPlan(): Promise<any> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).getWeeklyPlan) {
-                const res = await (supabaseService as any).getWeeklyPlan();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.getWeeklyPlan) {
+                const res = await supabaseService.getWeeklyPlan();
                 handleStorageSuccess();
                 return res;
             }
@@ -329,7 +387,7 @@ export async function getWeeklyPlan(): Promise<any> {
     }
 }
 
-export async function saveWeeklyPlan(plan: any): Promise<void> {
+export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -337,9 +395,10 @@ export async function saveWeeklyPlan(plan: any): Promise<void> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).saveWeeklyPlan) {
-                await (supabaseService as any).saveWeeklyPlan(plan);
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.saveWeeklyPlan) {
+                await supabaseService.saveWeeklyPlan(plan);
                 handleStorageSuccess();
                 return;
             }
@@ -358,7 +417,7 @@ export async function saveWeeklyPlan(plan: any): Promise<void> {
 
 // ==================== MONTHLY PLAN ====================
 
-export async function getMonthlyPlan(): Promise<any> {
+export async function getMonthlyPlan(): Promise<MonthlyPlan> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -366,9 +425,10 @@ export async function getMonthlyPlan(): Promise<any> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).getMonthlyPlan) {
-                const res = await (supabaseService as any).getMonthlyPlan();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.getMonthlyPlan) {
+                const res = await supabaseService.getMonthlyPlan();
                 handleStorageSuccess();
                 return res;
             }
@@ -385,7 +445,7 @@ export async function getMonthlyPlan(): Promise<any> {
     }
 }
 
-export async function saveMonthlyPlan(plan: any): Promise<void> {
+export async function saveMonthlyPlan(plan: MonthlyPlan): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -393,9 +453,10 @@ export async function saveMonthlyPlan(plan: any): Promise<void> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).saveMonthlyPlan) {
-                await (supabaseService as any).saveMonthlyPlan(plan);
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.saveMonthlyPlan) {
+                await supabaseService.saveMonthlyPlan(plan);
                 handleStorageSuccess();
                 return;
             }
@@ -414,7 +475,7 @@ export async function saveMonthlyPlan(plan: any): Promise<void> {
 
 // ==================== UTILITIES ====================
 
-export async function rebuildRoutinesFromSessions(): Promise<any> {
+export async function rebuildRoutinesFromSessions(): Promise<Routine[]> {
     // Prefer database if enabled, otherwise use localStorage implementation
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
@@ -424,9 +485,10 @@ export async function rebuildRoutinesFromSessions(): Promise<any> {
 
         try {
             // Supabase backend doesn't implement a rebuild helper; fallback to local
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).rebuildRoutinesFromSessions) {
-                const res = await (supabaseService as any).rebuildRoutinesFromSessions();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.rebuildRoutinesFromSessions) {
+                const res = await supabaseService.rebuildRoutinesFromSessions();
                 handleStorageSuccess();
                 return res;
             }
@@ -446,7 +508,7 @@ export async function rebuildRoutinesFromSessions(): Promise<any> {
 
 // ==================== ACTIVE WORKOUT ====================
 
-export async function getActiveWorkout(): Promise<any | null> {
+export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -454,9 +516,10 @@ export async function getActiveWorkout(): Promise<any | null> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).getActiveWorkout) {
-                const res = await (supabaseService as any).getActiveWorkout();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.getActiveWorkout) {
+                const res = await supabaseService.getActiveWorkout();
                 handleStorageSuccess();
                 return res;
             }
@@ -473,7 +536,7 @@ export async function getActiveWorkout(): Promise<any | null> {
     }
 }
 
-export async function saveActiveWorkout(payload: any): Promise<void> {
+export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -481,9 +544,10 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).saveActiveWorkout) {
-                await (supabaseService as any).saveActiveWorkout(payload);
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.saveActiveWorkout) {
+                await supabaseService.saveActiveWorkout(payload);
                 handleStorageSuccess();
                 return;
             }
@@ -510,9 +574,10 @@ export async function getLastWeights(): Promise<Record<string, number[]>> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).getLastWeights) {
-                const res = await (supabaseService as any).getLastWeights();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { getLastWeights?: () => Promise<Record<string, number[]>> };
+            if (supabaseService.getLastWeights) {
+                const res = await supabaseService.getLastWeights();
                 handleStorageSuccess();
                 return res;
             }
@@ -537,9 +602,10 @@ export async function saveLastWeights(weights: Record<string, number[]>): Promis
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).saveLastWeights) {
-                await (supabaseService as any).saveLastWeights(weights);
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { saveLastWeights?: (w: Record<string, number[]>) => Promise<void> };
+            if (supabaseService.saveLastWeights) {
+                await supabaseService.saveLastWeights(weights);
                 handleStorageSuccess();
                 return;
             }
@@ -564,9 +630,10 @@ export async function clearActiveWorkout(): Promise<void> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).clearActiveWorkout) {
-                await (supabaseService as any).clearActiveWorkout();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { clearActiveWorkout?: () => Promise<void> };
+            if (supabaseService.clearActiveWorkout) {
+                await supabaseService.clearActiveWorkout();
                 handleStorageSuccess();
                 return;
             }
@@ -585,7 +652,7 @@ export async function clearActiveWorkout(): Promise<void> {
 
 // ==================== RECOMMENDATIONS ====================
 
-export async function getRecommendations(): Promise<any[]> {
+export async function getRecommendations(): Promise<ProgressRecommendation[]> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -593,9 +660,10 @@ export async function getRecommendations(): Promise<any[]> {
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).getRecommendations) {
-                const result = await (supabaseService as any).getRecommendations();
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.getRecommendations) {
+                const result = await supabaseService.getRecommendations();
                 handleStorageSuccess();
                 return result;
             }
@@ -612,7 +680,7 @@ export async function getRecommendations(): Promise<any[]> {
     }
 }
 
-export async function saveRecommendations(recommendations: any[]): Promise<void> {
+export async function saveRecommendations(recommendations: ProgressRecommendation[]): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
             const localStorageService = await import('@/lib/storage/localStorage');
@@ -620,9 +688,10 @@ export async function saveRecommendations(recommendations: any[]): Promise<void>
         }
 
         try {
-            const supabaseService = await import('@/lib/supabase/service');
-            if ((supabaseService as any).saveRecommendations) {
-                await (supabaseService as any).saveRecommendations(recommendations);
+            const supabaseModule = await import('@/lib/supabase/service');
+            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            if (supabaseService.saveRecommendations) {
+                await supabaseService.saveRecommendations(recommendations);
                 handleStorageSuccess();
                 return;
             }
@@ -666,10 +735,11 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
         const localSessions = await localStorageService.getSessions();
 
         // Obtener sesiones de Supabase
-        const supabaseService = await import('@/lib/supabase/service');
-        let dbSessions: any[] = [];
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { getSessions?: () => Promise<WorkoutSession[]>; saveSession?: (s: WorkoutSession) => Promise<void> };
+        let dbSessions: WorkoutSession[] = [];
         try {
-            dbSessions = await supabaseService.getSessions();
+            dbSessions = supabaseService.getSessions ? await supabaseService.getSessions() : [];
         } catch (e) {
             console.warn('[syncLocalSessionsToDatabase] Could not fetch DB sessions:', e);
             return { synced: 0, errors: 0 };
@@ -683,7 +753,7 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
         for (const session of localSessions) {
             if (!dbSessionIds.has(session.id)) {
                 try {
-                    await supabaseService.saveSession(session);
+                    if (supabaseService.saveSession) await supabaseService.saveSession(session);
                     synced++;
                     // console.log(`[syncLocalSessionsToDatabase] Synced session ${session.id} to database`);
                 } catch (e) {

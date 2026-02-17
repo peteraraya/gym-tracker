@@ -29,6 +29,8 @@ export const ExerciseListWithDetails: React.FC<ExerciseListWithDetailsProps> = R
       }
     }, [detailsSet]);
 
+    const handleCloseDetails = useCallback(() => setDetailsExercise(null), []);
+
     const currentExerciseTemplate = useMemo(() => {
       return detailsExercise ? getExerciseByName(detailsExercise) : null;
     }, [detailsExercise]);
@@ -36,7 +38,7 @@ export const ExerciseListWithDetails: React.FC<ExerciseListWithDetailsProps> = R
     return (
       <>
         <div className="space-y-2">
-          {exercises.map((exercise, index) => {
+          {useMemo(() => exercises.map((exercise, index) => {
             const hasDetails = detailsSet.has(exercise.name);
 
             return (
@@ -73,13 +75,13 @@ export const ExerciseListWithDetails: React.FC<ExerciseListWithDetailsProps> = R
                 </div>
               </div>
             );
-          })}
+          }), [exercises, detailsSet, showDetailsButton, handleShowDetails])}
         </div>
 
         {detailsExercise && currentExerciseTemplate && (
           <ExerciseDetails
             exercise={currentExerciseTemplate}
-            onClose={() => setDetailsExercise(null)}
+            onClose={handleCloseDetails}
           />
         )}
       </>

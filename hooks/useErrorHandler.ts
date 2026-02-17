@@ -3,7 +3,7 @@
  */
 
 import { useToast } from '@/context/ToastContext';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 
 interface UseErrorHandlerOptions {
   showToast?: boolean;
@@ -72,7 +72,10 @@ export function useAsyncAction<T extends (...args: any[]) => Promise<any>>(
   const { handleError } = useErrorHandler();
   const toast = useToast();
   const optionsRef = useRef(options);
-  optionsRef.current = options;
+  // Keep a mutable ref to the latest options without updating it during render
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
 
   const execute = useCallback(async (...args: Parameters<T>) => {
     try {
