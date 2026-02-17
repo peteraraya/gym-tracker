@@ -25,7 +25,8 @@ import {
   X,
   Dumbbell,
   BookOpen,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -84,6 +85,7 @@ export const Navbar: React.FC = () => {
                 <NavLink href="/ai-assistant" icon={Sparkles} label="Asistente IA" isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
                 <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
+                <NavLink href="/settings" icon={Settings} label="Ajustes" isActive={isActive('/settings')} color="zinc" />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
                 {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" data-tour="profile" />}
               </div>
@@ -129,6 +131,7 @@ export const Navbar: React.FC = () => {
                 <MobileNavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/settings" icon={Settings} label="Ajustes" isActive={isActive('/settings')} onClick={() => setMobileMenuOpen(false)} />
                 {/* <MobileNavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} onClick={() => setMobileMenuOpen(false)} /> */}
                 {user && <MobileNavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} onClick={() => setMobileMenuOpen(false)} />}
               </div>

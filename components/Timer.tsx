@@ -74,9 +74,6 @@ export const Timer: React.FC<TimerProps> = ({
             // Calcular duración real
             const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
             setActualDuration(realDuration);
-            if (onActualDurationChange) {
-              onActualDurationChange(realDuration);
-            }
             return 0;
           }
           return prev - 1;
@@ -89,7 +86,14 @@ export const Timer: React.FC<TimerProps> = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, onActualDurationChange]);
+  }, [isRunning]);
+
+  // Efecto separado para notificar cambios en la duración real
+  useEffect(() => {
+    if (isCompleted && actualDuration > 0 && onActualDurationChange) {
+      onActualDurationChange(actualDuration);
+    }
+  }, [isCompleted, actualDuration, onActualDurationChange]);
 
   // Efecto separado para notificaciones al completar
   useEffect(() => {
@@ -124,9 +128,6 @@ export const Timer: React.FC<TimerProps> = ({
     setActualDuration(realDuration);
     setTimeLeft(0);
     setIsCompleted(true);
-    if (onActualDurationChange) {
-      onActualDurationChange(realDuration);
-    }
     if (onComplete) onComplete();
   };
 
