@@ -1,8 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { Modal } from '@/components/ui/Modal';
 
 export function ServiceWorkerRegistration() {
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const newWorkerRef = useRef<ServiceWorker | null>(null);
+
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return;
@@ -26,12 +30,10 @@ export function ServiceWorkerRegistration() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // Hay una nueva versión disponible
               console.log('[PWA] New version available');
-              
-              // Mostrar notificación al usuario
-              if (confirm('Hay una nueva versión disponible. ¿Actualizar ahora?')) {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-                window.location.reload();
-              }
+
+              // Guardar referencia al nuevo worker y mostrar modal para actualizar
+              newWorkerRef.current = newWorker;
+              setShowUpdateModal(true);
             }
           });
         });
@@ -83,9 +85,52 @@ export function ServiceWorkerRegistration() {
       console.log('[PWA] Gone offline');
     });
 
+
+    return () => {
+      // cleanup listeners (if any were added globally earlier)
+    };
   }, []);
 
-  return null;
+  const applyUpdate = () => {
+    const newWorker = newWorkerRef.current as any;
+    if (!newWorker) return;
+    try {
+      newWorker.postMessage({ type: 'SKIP_WAITING' });
+    } catch (e) {
+      console.error('[PWA] Error sending SKIP_WAITING message:', e);
+    }
+    setShowUpdateModal(false);
+    // Al esperar a que el nuevo SW tome control, forzamos recarga.
+    window.location.reload();
+  };
+
+  const cancelUpdate = () => {
+    // Simplemente cerrar modal y mantener la versión actual
+    newWorkerRef.current = null;
+    setShowUpdateModal(false);
+  };
+
+  return (
+    <>
+      <Modal isOpen={showUpdateModal} onClose={cancelUpdate} title="Nueva versión disponible">
+        <p>Hay una nueva versión de la aplicación. ¿Deseas actualizar ahora para usarla?</p>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={cancelUpdate}
+            className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={applyUpdate}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+          >
+            Actualizar
+          </button>
+        </div>
+      </Modal>
+    </>
+  );
 }
 
 async function subscribeToPushNotifications(registration: ServiceWorkerRegistration) {
