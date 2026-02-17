@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     });
 
-    console.log('[API] Push subscription saved:', subscriptionId);
-    console.log('[API] Total subscriptions:', subscriptions.size);
+    // console.log('[API] Push subscription saved:', subscriptionId);
+    // console.log('[API] Total subscriptions:', subscriptions.size);
 
     return NextResponse.json({
       success: true,

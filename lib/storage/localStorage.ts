@@ -249,8 +249,8 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
             };
             localStorage.setItem('gym_tracker_last_saved_session_local', JSON.stringify(marker));
             // También log para consola del navegador
-            // eslint-disable-next-line no-console
-            console.log('[localStorage.saveSession] saved session local marker', marker);
+             
+            // console.log('[localStorage.saveSession] saved session local marker', marker);
         }
     } catch (e) {
         // ignore marker failures
@@ -552,7 +552,7 @@ export async function migrateLegacySessions(): Promise<{ migrated: number; total
 
                 // Eliminar la clave antigua después de migrar
                 localStorage.removeItem(legacyKey);
-                console.log(`[Migration] Removed legacy key: ${legacyKey}`);
+                // console.log(`[Migration] Removed legacy key: ${legacyKey}`);
             } catch (e) {
                 console.warn(`[Migration] Error processing legacy key ${legacyKey}:`, e);
             }
@@ -561,7 +561,7 @@ export async function migrateLegacySessions(): Promise<{ migrated: number; total
         // Guardar todas las sesiones consolidadas si hubo migración
         if (migratedCount > 0) {
             saveToStorage(STORAGE_KEYS.SESSIONS, allSessions);
-            console.log(`[Migration] Migrated ${migratedCount} sessions. Total: ${allSessions.length}`);
+            // console.log(`[Migration] Migrated ${migratedCount} sessions. Total: ${allSessions.length}`);
         }
 
         return { migrated: migratedCount, total: allSessions.length };

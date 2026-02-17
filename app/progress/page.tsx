@@ -86,8 +86,8 @@ export default function ProgressPage() {
       });
     });
 
-    console.log('Volumen por grupo muscular:', volume);
-    console.log('Series por grupo muscular:', count);
+    // console.log('Volumen por grupo muscular:', volume);
+    // console.log('Series por grupo muscular:', count);
 
     return { volume, count };
   }, [validSessions]);
