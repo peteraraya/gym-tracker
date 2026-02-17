@@ -458,10 +458,10 @@ export async function getActiveWorkout(): Promise<any | null> {
           error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        console.log('[Storage] active_workouts table not found, using localStorage');
+        // console.log('[Storage] active_workouts table not found, using localStorage');
         return null;
       }
-      console.warn('[Storage] Error getting active workout:', error.message);
+      // console.warn('[Storage] Error getting active workout:', error.message);
       return null;
     }
 
@@ -491,7 +491,7 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
       if (error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        console.log('[Storage] active_workouts table not found, using localStorage');
+        // console.log('[Storage] active_workouts table not found, using localStorage');
         return;
       }
       console.warn('[Storage] Error saving active workout:', error.message);
@@ -521,7 +521,7 @@ export async function clearActiveWorkout(): Promise<void> {
       if (error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        console.log('[Storage] active_workouts table not found, using localStorage');
+        // console.log('[Storage] active_workouts table not found, using localStorage');
         return;
       }
       console.warn('[Storage] Error clearing active workout:', error.message);

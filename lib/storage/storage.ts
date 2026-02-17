@@ -685,7 +685,7 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
                 try {
                     await supabaseService.saveSession(session);
                     synced++;
-                    console.log(`[syncLocalSessionsToDatabase] Synced session ${session.id} to database`);
+                    // console.log(`[syncLocalSessionsToDatabase] Synced session ${session.id} to database`);
                 } catch (e) {
                     errors++;
                     console.error(`[syncLocalSessionsToDatabase] Error syncing session ${session.id}:`, e);
@@ -694,7 +694,7 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
         }
 
         if (synced > 0) {
-            console.log(`[syncLocalSessionsToDatabase] Synced ${synced} sessions to database (${errors} errors)`);
+            // console.log(`[syncLocalSessionsToDatabase] Synced ${synced} sessions to database (${errors} errors)`);
         }
 
         return { synced, errors };

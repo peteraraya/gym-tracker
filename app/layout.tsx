@@ -38,14 +38,20 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  themeColor: "#3b82f6",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+  // `themeColor` and `viewport` moved to `generateViewport` below
 };
+
+export function generateViewport() {
+  return {
+    viewport: {
+      width: "device-width",
+      initialScale: 1,
+      maximumScale: 1,
+      userScalable: false,
+    },
+    themeColor: "#3b82f6",
+  };
+}
 
 export default function RootLayout({
   children,
