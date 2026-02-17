@@ -34,7 +34,7 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 }
-global.localStorage = localStorageMock as Storage
+global.localStorage = localStorageMock
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({

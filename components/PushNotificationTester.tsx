@@ -120,7 +120,12 @@ export function PushNotificationTester() {
         setStatus('success');
       } else {
         const error = await response.json();
-        setMessage(`✗ Error: ${error.error}`);
+          // Mostrar mensaje más amigable si faltan las VAPID keys
+          if (error && typeof error.error === 'string' && error.error.includes('VAPID keys')) {
+            setMessage('✗ Error: claves VAPID no configuradas. Genera claves con `npx web-push generate-vapid-keys --json` y añade `NEXT_PUBLIC_VAPID_PUBLIC_KEY` y `VAPID_PRIVATE_KEY` en tu `.env.local` o en las variables de entorno de Vercel.');
+          } else {
+            setMessage(`✗ Error: ${error.error}`);
+          }
         setStatus('error');
       }
     } catch (error) {
@@ -221,14 +226,14 @@ export function PushNotificationTester() {
           Enviar Notificación Local
         </button>
 
-        <button
+        {/* <button
           onClick={sendPushNotification}
           disabled={permission !== 'granted' || status === 'sending'}
           className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
         >
           <Send className="w-4 h-4" />
           {status === 'sending' ? 'Enviando...' : 'Enviar Push desde Servidor'}
-        </button>
+        </button> */}
       </div>
 
       {/* Mensaje de estado */}

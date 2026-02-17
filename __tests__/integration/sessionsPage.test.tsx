@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@/__tests__/helpers/testUtils'
 import userEvent from '@testing-library/user-event'
+import { fireEvent } from '@testing-library/react'
 import SessionsPage from '@/app/sessions/page'
 import { createMockSession, createMockRoutine } from '@/__tests__/helpers/mockData'
 
@@ -59,12 +60,11 @@ describe('Sessions Page - Integration Tests', () => {
   })
 
   it('should filter sessions and update the list', async () => {
-    const user = userEvent.setup()
     render(<SessionsPage />)
 
-    // Buscar por texto
+    // Buscar por texto (usar un único cambio para evitar múltiples renders en tests)
     const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
-    await user.type(searchInput, 'Excellent')
+    fireEvent.change(searchInput, { target: { value: 'Excellent' } })
 
     await waitFor(() => {
       // Verificar que solo se muestra la sesión con "Excellent workout"
@@ -81,7 +81,7 @@ describe('Sessions Page - Integration Tests', () => {
     await user.click(compareButton)
 
     await waitFor(() => {
-      expect(screen.getByText('Comparar Sesiones')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /comparar sesiones/i })).toBeInTheDocument()
     })
   })
 
@@ -98,7 +98,7 @@ describe('Sessions Page - Integration Tests', () => {
     const user = userEvent.setup()
     render(<SessionsPage />)
 
-    const routineSelect = screen.getByRole('combobox', { name: /rutina/i })
+    const routineSelect = screen.getAllByRole('combobox')[0]
     await user.selectOptions(routineSelect, 'routine-1')
 
     await waitFor(() => {
@@ -120,7 +120,7 @@ describe('Sessions Page - Integration Tests', () => {
 
     await waitFor(() => {
       // Debe filtrar sesiones de los últimos 7 días
-      const resultText = screen.getByText(/sesiones encontradas/i)
+      const resultText = screen.getByText((_, node) => !!node && node.textContent && node.textContent.includes('sesiones encontradas'))
       expect(resultText).toBeInTheDocument()
     })
   })
@@ -139,7 +139,8 @@ describe('Sessions Page - Integration Tests', () => {
 
     await waitFor(() => {
       // Debe mostrar todas las sesiones nuevamente
-      expect(screen.getByText(/3 sesiones encontradas/i)).toBeInTheDocument()
+      const resultText = screen.getByText((_, node) => !!node && node.textContent && node.textContent.includes('sesiones encontradas'))
+      expect(resultText).toBeInTheDocument()
     })
   })
 

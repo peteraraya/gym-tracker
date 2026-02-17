@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import * as storageService from '@/lib/storage/storage';
+import type { ActiveWorkout } from '@/lib/storage/storage';
 import type { Routine } from '@/types';
 
 interface WorkoutState {
@@ -58,11 +59,35 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         const stored = await storageService.getActiveWorkout();
         if (!mounted) return;
         if (stored) {
-          // Ensure Date objects where expected
+          // Ensure Date objects where expected (safe guard + type narrowing)
           try {
-            if (stored.startedAt) stored.startedAt = new Date(stored.startedAt);
+            if ('startedAt' in stored && (stored as any).startedAt) {
+              const val = (stored as any).startedAt;
+              if (typeof val === 'string' || typeof val === 'number' || val instanceof Date) {
+                (stored as any).startedAt = new Date(val as string | number | Date);
+              }
+            }
           } catch (e) { /* ignore */ }
-          setActiveWorkout(stored as WorkoutState);
+
+          // Convert the loosely-typed ActiveWorkout into a proper WorkoutState
+          const s = stored as any;
+          const parsed: WorkoutState = {
+            routineId: String(s.routineId ?? ''),
+            routineName: String(s.routineName ?? ''),
+            currentExerciseIndex: Number(s.currentExerciseIndex ?? 0),
+            currentSet: Number(s.currentSet ?? 1),
+            completedSets: (s.completedSets && typeof s.completedSets === 'object') ? s.completedSets as { [key: string]: number } : {},
+            actualReps: (s.actualReps && typeof s.actualReps === 'object') ? s.actualReps as { [key: string]: number[] } : {},
+            actualWeights: (s.actualWeights && typeof s.actualWeights === 'object') ? s.actualWeights as { [key: string]: number[] } : {},
+            startedAt: s.startedAt instanceof Date ? s.startedAt : new Date(s.startedAt ?? Date.now()),
+            isResting: typeof s.isResting === 'boolean' ? s.isResting : false,
+            restTimerDuration: typeof s.restTimerDuration === 'number' ? s.restTimerDuration : undefined,
+            restTimerTitle: typeof s.restTimerTitle === 'string' ? s.restTimerTitle : undefined,
+            restTimerNextExercise: typeof s.restTimerNextExercise === 'string' ? s.restTimerNextExercise : undefined,
+            restTimerStartedAt: typeof s.restTimerStartedAt === 'number' ? s.restTimerStartedAt : undefined,
+          };
+
+          setActiveWorkout(parsed);
         }
       } catch (e) {
         console.warn('Failed to load active workout from storage', e);
@@ -76,10 +101,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   // Persistir cambios del activeWorkout en storage unificado
   useEffect(() => {
     if (isLoadingActiveWorkout) return;
-    (async () => {
+        (async () => {
       try {
         if (activeWorkout) {
-          await storageService.saveActiveWorkout(activeWorkout);
+          await storageService.saveActiveWorkout(activeWorkout as unknown as ActiveWorkout);
         } else {
           await storageService.clearActiveWorkout();
         }
