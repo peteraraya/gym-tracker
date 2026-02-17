@@ -6,11 +6,12 @@
  */
 
 import { useMemo } from 'react';
-import { useGym } from '@/context/GymContext';
+import { useSessions, useRoutines } from '@/context/GymContext';
 import type { WorkoutSession } from '@/types';
 
 export function useValidSessions(): WorkoutSession[] {
-  const { sessions, routines } = useGym();
+  const { sessions } = useSessions();
+  const { routines } = useRoutines();
 
   return useMemo(() => {
     const routineIds = new Set(routines.map(r => r.id));

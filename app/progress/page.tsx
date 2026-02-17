@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useGym } from '@/context/GymContext';
+import { useRoutines } from '@/context/GymContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { EXERCISE_DATABASE, type MuscleGroup } from '@/data/exercises';
@@ -14,7 +14,7 @@ const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
 const MUSCLE_LABELS = APP_CONFIG.muscleGroupLabels;
 
 export default function ProgressPage() {
-  const { routines } = useGym();
+  const { routines } = useRoutines();
   const validSessions = useValidSessions();
   const loading = false; // Loading is handled by useValidSessions
 

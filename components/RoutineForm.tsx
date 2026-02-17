@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useGym } from '@/context/GymContext';
+import { useRoutines } from '@/context/GymContext';
 import { useToast } from '@/context/ToastContext';
 import { Exercise } from '@/types';
 import { Input, TextArea } from '@/components/ui/Input';
@@ -22,7 +22,7 @@ interface RoutineFormProps {
 }
 
 export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) => {
-  const { addRoutine, updateRoutine, getRoutineById } = useGym();
+  const { addRoutine, updateRoutine, getRoutineById } = useRoutines();
   const { success, error } = useToast();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');

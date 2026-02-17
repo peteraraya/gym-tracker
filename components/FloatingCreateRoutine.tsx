@@ -4,12 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import { Plus } from '@/components/icons/lucide';
 import { usePathname } from 'next/navigation';
-import { useGym } from '@/context/GymContext';
+import { useRoutines } from '@/context/GymContext';
 import { useTranslations } from '@/context/LocaleContext';
 
 export const FloatingCreateRoutine: React.FC = () => {
   const pathname = usePathname();
-  const { routines } = useGym();
+  const { routines } = useRoutines();
   const t = useTranslations('home');
 
   const hasRoutines = (routines && routines.length > 0);

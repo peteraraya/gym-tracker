@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, DragEvent, useRef } from 'react';
 import { GripVertical, ChevronLeft, ChevronRight } from '@/components/icons/lucide';
-import { useGym } from '@/context/GymContext';
+import { useRoutines } from '@/context/GymContext';
 import { Button } from '@/components/ui/Button';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useToast } from '@/context/ToastContext';
@@ -37,7 +37,7 @@ type Plan = Record<DayKey, DayPlan>;
 type MonthlyPlan = Record<string, DayPlan>; // key: 'YYYY-MM-DD'
 
 export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: string }) {
-  const { routines, loading: routinesLoading } = useGym();
+  const { routines, loading: routinesLoading } = useRoutines();
   const { confirm } = useConfirm();
   const { info } = useToast();
 

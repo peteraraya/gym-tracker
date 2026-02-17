@@ -6,19 +6,27 @@ import { useAuth } from './AuthContext';
 import * as storageService from '@/lib/storage/storage';
 import { recommendForSession } from '@/lib/progression';
 
-interface GymContextType {
+interface RoutinesContextType {
   routines: Routine[];
-  sessions: WorkoutSession[];
   loading: boolean;
   addRoutine: (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateRoutine: (id: string, routine: Partial<Routine>) => Promise<void>;
   deleteRoutine: (id: string) => Promise<void>;
-  addSession: (session: Omit<WorkoutSession, 'id'>) => Promise<void>;
   getRoutineById: (id: string) => Routine | undefined;
   refreshRoutines: () => Promise<void>;
+}
+
+interface SessionsContextType {
+  sessions: WorkoutSession[];
+  loading: boolean;
+  addSession: (session: Omit<WorkoutSession, 'id'>) => Promise<void>;
   refreshSessions: () => Promise<void>;
 }
 
+interface GymContextType extends RoutinesContextType, SessionsContextType {}
+
+const RoutinesContext = createContext<RoutinesContextType | undefined>(undefined);
+const SessionsContext = createContext<SessionsContextType | undefined>(undefined);
 const GymContext = createContext<GymContextType | undefined>(undefined);
 
 export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -256,18 +264,27 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return routines.find(routine => routine.id === id);
   }, [routines]);
 
-  const value = useMemo(() => ({
+  const routinesValue = useMemo<RoutinesContextType>(() => ({
     routines,
-    sessions,
     loading,
     addRoutine,
     updateRoutine,
     deleteRoutine,
-    addSession,
     getRoutineById,
     refreshRoutines,
+  }), [routines, loading, addRoutine, updateRoutine, deleteRoutine, getRoutineById, refreshRoutines]);
+
+  const sessionsValue = useMemo<SessionsContextType>(() => ({
+    sessions,
+    loading,
+    addSession,
     refreshSessions,
-  }), [routines, sessions, loading, addRoutine, updateRoutine, deleteRoutine, addSession, getRoutineById, refreshRoutines, refreshSessions]);
+  }), [sessions, loading, addSession, refreshSessions]);
+
+  const value = useMemo<GymContextType>(() => ({
+    ...routinesValue,
+    ...sessionsValue,
+  }), [routinesValue, sessionsValue]);
 
   // Exponer helper temporal para reconstruir rutinas desde sesiones (invocar desde consola)
   React.useEffect(() => {
@@ -294,9 +311,13 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [refreshRoutines, refreshSessions]);
 
   return (
-    <GymContext.Provider value={value}>
-      {children}
-    </GymContext.Provider>
+    <RoutinesContext.Provider value={routinesValue}>
+      <SessionsContext.Provider value={sessionsValue}>
+        <GymContext.Provider value={value}>
+          {children}
+        </GymContext.Provider>
+      </SessionsContext.Provider>
+    </RoutinesContext.Provider>
   );
 };
 
@@ -306,4 +327,16 @@ export const useGym = () => {
     throw new Error('useGym must be used within a GymProvider');
   }
   return context;
+};
+
+export const useRoutines = () => {
+  const ctx = useContext(RoutinesContext);
+  if (ctx === undefined) throw new Error('useRoutines must be used within a GymProvider');
+  return ctx;
+};
+
+export const useSessions = () => {
+  const ctx = useContext(SessionsContext);
+  if (ctx === undefined) throw new Error('useSessions must be used within a GymProvider');
+  return ctx;
 };
