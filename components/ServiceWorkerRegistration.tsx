@@ -36,9 +36,9 @@ export function ServiceWorkerRegistration() {
           });
         });
 
-        // Solicitar permiso para notificaciones
-        if ('Notification' in window && Notification.permission === 'default') {
-          // Esperar un poco antes de pedir permiso
+        // Solicitar permiso para notificaciones automáticamente
+        if ('Notification' in window) {
+          // Intentar activar notificaciones automáticamente después de 3 segundos
           setTimeout(async () => {
             try {
               const permission = await Notification.requestPermission();
@@ -47,11 +47,16 @@ export function ServiceWorkerRegistration() {
               if (permission === 'granted') {
                 // Suscribirse a push notifications
                 await subscribeToPushNotifications(registration);
+                
+                // Mostrar notificación de bienvenida
+                await showWelcomeNotification(registration);
+              } else if (permission === 'denied') {
+                console.log('[PWA] Notification permission denied by user');
               }
             } catch (error) {
               console.error('[PWA] Error requesting notification permission:', error);
             }
-          }, 5000);
+          }, 3000);
         }
 
       } catch (error) {
@@ -89,27 +94,46 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     const existingSubscription = await registration.pushManager.getSubscription();
     if (existingSubscription) {
       console.log('[PWA] Already subscribed to push notifications');
+      // Enviar suscripción existente al servidor
+      await sendSubscriptionToServer(existingSubscription);
       return;
     }
 
-    // VAPID public key (debes generar tu propia clave)
-    // Genera con: npx web-push generate-vapid-keys
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+    // VAPID public key
+    // En producción, genera tu propia clave con: npx web-push generate-vapid-keys
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     
     if (!vapidPublicKey) {
-      console.warn('[PWA] VAPID public key not configured');
+      console.warn('[PWA] VAPID public key not configured. Push notifications will use browser default.');
+      // Suscribirse sin VAPID key (funciona para notificaciones locales)
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true
+      });
+      
+      console.log('[PWA] Push subscription created (without VAPID):', subscription);
+      await sendSubscriptionToServer(subscription);
       return;
     }
-
+    
+    // Suscribirse con VAPID key
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as any
     });
 
-    console.log('[PWA] Push subscription:', subscription);
+    console.log('[PWA] Push subscription created:', subscription);
 
     // Enviar la suscripción al servidor
-    await fetch('/api/push-subscribe', {
+    await sendSubscriptionToServer(subscription);
+
+  } catch (error) {
+    console.error('[PWA] Error subscribing to push notifications:', error);
+  }
+}
+
+async function sendSubscriptionToServer(subscription: PushSubscription) {
+  try {
+    const response = await fetch('/api/push-subscribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -117,8 +141,34 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
       body: JSON.stringify(subscription)
     });
 
+    if (response.ok) {
+      console.log('[PWA] Subscription sent to server successfully');
+    } else {
+      console.error('[PWA] Failed to send subscription to server');
+    }
   } catch (error) {
-    console.error('[PWA] Error subscribing to push notifications:', error);
+    console.error('[PWA] Error sending subscription to server:', error);
+  }
+}
+
+async function showWelcomeNotification(registration: ServiceWorkerRegistration) {
+  try {
+    await registration.showNotification('¡Bienvenido a Gym Tracker! 💪', {
+      body: 'Las notificaciones están activadas. Te avisaremos sobre tus entrenamientos.',
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/badge-72x72.png',
+      vibrate: [200, 100, 200],
+      tag: 'welcome',
+      requireInteraction: false,
+      actions: [
+        {
+          action: 'start',
+          title: 'Comenzar'
+        }
+      ]
+    });
+  } catch (error) {
+    console.error('[PWA] Error showing welcome notification:', error);
   }
 }
 

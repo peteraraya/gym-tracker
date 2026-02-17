@@ -37,9 +37,11 @@ export {
   Check,
   Bot,
   Send,
+  Bell,
   
   // Alerts
   CheckCircle,
+  XCircle,
   AlertCircle,
   AlertTriangle,
   Info,
