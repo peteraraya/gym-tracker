@@ -24,14 +24,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Cache node modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -41,10 +33,15 @@ jobs:
         run: npm ci --prefer-offline --no-audit --progress=false
 
       - name: Validate required secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
           missing=0
           for s in VERCEL_TOKEN NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY; do
-            if [ -z "${{ secrets[$s] }}" ]; then
+            # use indirect expansion to read env var by name
+            if [ -z "${!s}" ]; then
               echo "ERROR: Secret $s is not set"
               missing=1
             fi
