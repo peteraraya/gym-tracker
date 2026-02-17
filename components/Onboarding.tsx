@@ -26,6 +26,7 @@ export default function Onboarding() {
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const [spotlightStyle, setSpotlightStyle] = useState<React.CSSProperties>({});
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [isDark, setIsDark] = useState(false);
 
   const currentStepData = steps[currentStep];
   const isFirstStep = currentStep === 0;
@@ -33,6 +34,13 @@ export default function Onboarding() {
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   useEffect(() => {
+    // Detect theme (light/dark) on client to tweak spotlight halo
+    try {
+      if (typeof document !== 'undefined') {
+        setIsDark(document.documentElement.classList.contains('dark'));
+      }
+    } catch (e) { /* ignore */ }
+
     // schedule updates to avoid calling setState synchronously inside effect
     if (!isActive || !currentStepData.target) {
       const t = setTimeout(() => setTargetElement(null), 0);
@@ -126,10 +134,21 @@ export default function Onboarding() {
 
       {/* Spotlight (resaltado del elemento) */}
       {targetElement && (
-        <div
-          style={spotlightStyle}
-          className="border-4 border-blue-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] animate-pulse bg-transparent"
-        />
+        (() => {
+          const haloLight = '0 8px 24px rgba(59,130,246,0.18), 0 0 48px rgba(59,130,246,0.08)';
+          const haloDark = '0 8px 24px rgba(99,102,241,0.18), 0 0 48px rgba(99,102,241,0.08)';
+          const combinedStyle = {
+            ...spotlightStyle,
+            boxShadow: isDark ? haloDark : haloLight
+          } as React.CSSProperties;
+
+          return (
+            <div
+              style={combinedStyle}
+              className="border-4 border-blue-600 dark:border-blue-300 halo-pulse animate-fadeIn bg-transparent"
+            />
+          );
+        })()
       )}
 
       {/* Tooltip/Card de información */}

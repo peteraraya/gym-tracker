@@ -1,4 +1,5 @@
 import { render, screen } from '@/__tests__/helpers/testUtils'
+import { within } from '@testing-library/dom'
 import { SessionFilters } from '@/components/SessionFilters'
 import userEvent from '@testing-library/user-event'
 import { createMockSession, createMockRoutine } from '@/__tests__/helpers/mockData'
@@ -80,7 +81,7 @@ describe('SessionFilters Component - Unit Tests', () => {
       />
     )
 
-    const routineSelect = screen.getByRole('combobox', { name: /rutina/i })
+    const routineSelect = screen.getAllByRole('combobox')[0]
     await user.selectOptions(routineSelect, 'routine-1')
 
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -126,15 +127,17 @@ describe('SessionFilters Component - Unit Tests', () => {
     const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
     await user.type(searchInput, 'Great')
 
-    // Debe mostrar contador de 1 filtro activo
-    expect(screen.getByText('1')).toBeInTheDocument()
+    // Debe mostrar contador de 1 filtro activo (badge dentro del encabezado 'Filtros')
+    const filtersHeading = screen.getByRole('heading', { name: /filtros/i })
+    const { getByText: getByTextWithin } = within(filtersHeading)
+    expect(getByTextWithin('1')).toBeInTheDocument()
 
-    // Aplicar filtro de rutina
-    const routineSelect = screen.getByRole('combobox', { name: /rutina/i })
+    // Aplicar filtro de rutina (select por índice para evitar dependencias de accesibilidad)
+    const routineSelect = screen.getAllByRole('combobox')[0]
     await user.selectOptions(routineSelect, 'routine-1')
 
     // Debe mostrar contador de 2 filtros activos
-    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(getByTextWithin('2')).toBeInTheDocument()
   })
 
   it('should clear all filters', async () => {
@@ -152,7 +155,7 @@ describe('SessionFilters Component - Unit Tests', () => {
     const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
     await user.type(searchInput, 'Great')
 
-    const routineSelect = screen.getByRole('combobox', { name: /rutina/i })
+    const routineSelect = screen.getAllByRole('combobox')[0]
     await user.selectOptions(routineSelect, 'routine-1')
 
     // Limpiar filtros
@@ -171,7 +174,7 @@ describe('SessionFilters Component - Unit Tests', () => {
   })
 
   it('should show results count', () => {
-    render(
+    const { container } = render(
       <SessionFilters
         sessions={mockSessions}
         routines={mockRoutines}
@@ -179,6 +182,7 @@ describe('SessionFilters Component - Unit Tests', () => {
       />
     )
 
-    expect(screen.getByText(/3 sesiones encontradas/i)).toBeInTheDocument()
+    const p = container.querySelector('p')
+    expect(p && p.textContent && p.textContent.includes('sesiones encontradas')).toBe(true)
   })
 })

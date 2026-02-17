@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Search, Filter, Calendar, X } from '@/components/icons/lucide';
 import type { WorkoutSession, Routine } from '@/types';
@@ -67,9 +67,19 @@ export function SessionFilters({ sessions, routines, onFilteredSessionsChange }:
   }, [sessions, searchTerm, selectedRoutine, dateRange, routines]);
 
   // Actualizar cuando cambian los filtros usando useEffect
+  // Llamar al callback solo si el resultado cambió para evitar loops de render
+  const prevSerializedRef = useRef<string>('')
   useEffect(() => {
-    onFilteredSessionsChange(filteredSessions);
-  }, [filteredSessions, onFilteredSessionsChange]);
+    try {
+      const serialized = JSON.stringify(filteredSessions)
+      if (prevSerializedRef.current === serialized) return
+      prevSerializedRef.current = serialized
+      onFilteredSessionsChange(filteredSessions)
+    } catch (e) {
+      // Fallback: si falla la serialización, llamar al callback una vez
+      onFilteredSessionsChange(filteredSessions)
+    }
+  }, [filteredSessions, onFilteredSessionsChange])
 
   const clearFilters = () => {
     setSearchTerm('');

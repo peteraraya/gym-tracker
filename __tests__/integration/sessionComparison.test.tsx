@@ -50,7 +50,7 @@ describe('Session Comparison - Integration Tests', () => {
     const compareButton = screen.getByRole('button', { name: /comparar sesiones/i })
     await user.click(compareButton)
 
-    expect(screen.getByText('Comparar Sesiones')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /comparar sesiones/i })).toBeInTheDocument()
   })
 
   it('should allow selecting two sessions', async () => {
@@ -180,19 +180,15 @@ describe('Session Comparison - Integration Tests', () => {
     const compareButton = screen.getByRole('button', { name: /comparar sesiones/i })
     await user.click(compareButton)
 
-    expect(screen.getByText('Comparar Sesiones')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /comparar sesiones/i })).toBeInTheDocument()
 
-    // Buscar botón de cerrar (X)
-    const closeButtons = screen.getAllByRole('button')
-    const closeButton = closeButtons.find(btn => btn.textContent === '×')
-    
-    if (closeButton) {
-      await user.click(closeButton)
+    // Buscar botón de cerrar (X) por su nombre accesible
+    const closeButton = screen.getByRole('button', { name: '×' })
+    await user.click(closeButton)
 
-      await waitFor(() => {
-        expect(screen.queryByText('Comparar Sesiones')).not.toBeInTheDocument()
-      })
-    }
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /comparar sesiones/i })).not.toBeInTheDocument()
+    })
   })
 
   it('should format dates correctly', async () => {
@@ -213,8 +209,8 @@ describe('Session Comparison - Integration Tests', () => {
     await user.selectOptions(selects[1], 'session-2')
 
     await waitFor(() => {
-      // Verificar que las fechas están formateadas
-      expect(screen.getByText(/2025/)).toBeInTheDocument()
+      // Verificar que las fechas están formateadas (hay múltiples apariciones)
+      expect(screen.getAllByText(/2025/).length).toBeGreaterThan(0)
     })
   })
 })

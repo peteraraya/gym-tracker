@@ -231,3 +231,27 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* Halo pulse for onboarding spotlight */
+@keyframes haloPulse {
+  0% {
+    box-shadow: 0 6px 18px rgba(59,130,246,0.12), 0 0 36px rgba(59,130,246,0.04);
+  }
+  50% {
+    box-shadow: 0 10px 30px rgba(59,130,246,0.18), 0 0 56px rgba(59,130,246,0.06);
+  }
+  100% {
+    box-shadow: 0 6px 18px rgba(59,130,246,0.12), 0 0 36px rgba(59,130,246,0.04);
+  }
+}
+
+.halo-pulse {
+  animation: haloPulse 3s ease-in-out infinite;
+}
+
+/* Dark mode variant: softer, slightly purple halo */
+.dark .halo-pulse {
+  --halo-1: rgba(99,102,241,0.10);
+  --halo-2: rgba(99,102,241,0.05);
+  animation: haloPulse 3s ease-in-out infinite;
+}
