@@ -67,7 +67,8 @@ export const Navbar: React.FC = () => {
                 <NavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} color="blue" data-tour="routines" />
                 <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" data-tour="exercises" />
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
-                <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" />
+                <NavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} color="emerald" data-tour="recommended" />
+                {/* <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" /> */}
                 <NavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
                 <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
                 <NavLink href="/ai-assistant" icon={Sparkles} label="Asistente IA" isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
@@ -83,9 +84,9 @@ export const Navbar: React.FC = () => {
                   parentActive={isActive('/dashboard') || isActive('/recommended') || isActive('/progress')}
                   items={[
                     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard, dataTour: undefined },
-                    { href: '/recommended', label: t('recommended'), icon: Target, dataTour: 'recommended' },
                     { href: '/progress', label: t('progress'), icon: TrendingUp, dataTour: 'progress' },
                     { href: '/achievements', label: t('achievements'), icon: Trophy, dataTour: 'achievements' },
+                    { href: '/sesions', label: t('sessions'), icon: Calendar, dataTour: 'sessions' },
                   ]}
                 />
               </div>
@@ -209,6 +210,15 @@ interface DropdownNavProps {
 
 const DropdownNav: React.FC<DropdownNavProps> = ({ label, icon: Icon, items, parentActive }) => {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const [selectedLabel, setSelectedLabel] = useState(label);
+
+  React.useEffect(() => {
+    if (!pathname) return;
+    const match = items.find((it) => it.href === pathname || pathname.startsWith(`${it.href}/`));
+    if (match) setSelectedLabel(match.label);
+    else setSelectedLabel(label);
+  }, [pathname, items, label]);
 
   return (
     <div className="relative">
@@ -220,7 +230,7 @@ const DropdownNav: React.FC<DropdownNavProps> = ({ label, icon: Icon, items, par
         aria-expanded={open}
       >
         <Icon className="w-4 h-4" />
-        <span className="hidden xl:inline">{label}</span>
+        <span className="hidden xl:inline">{selectedLabel}</span>
         <ChevronDown className="w-3 h-3 ml-1" />
       </button>
 
@@ -231,7 +241,10 @@ const DropdownNav: React.FC<DropdownNavProps> = ({ label, icon: Icon, items, par
               key={it.href}
               href={it.href}
               data-tour={it.dataTour}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setSelectedLabel(it.label);
+                setOpen(false);
+              }}
               className={`flex items-center gap-2 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300`}
             >
               <it.icon className="w-4 h-4" />
