@@ -516,40 +516,39 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           ) : availableRoutines.length === 0 ? (
             <div className="text-sm text-gray-500">No se encontraron rutinas</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {availableRoutines.map(r => (
                 <div
                   key={r.id}
                   draggable
                   onDragStart={(e) => onDragStart(e, r.id)}
-                  className="p-3 border rounded-lg bg-gray-900/60 border-gray-700 flex items-center gap-3 w-full hover:shadow-md hover:scale-[1.01] transition-transform"
+                  className="p-2 border rounded-md bg-gray-900/60 border-gray-700 flex items-center gap-2 w-full hover:shadow-sm hover:scale-[1.006] transition-transform text-sm"
                 >
                   <div className="text-gray-400 flex-shrink-0 mr-1">
-                    <GripVertical className="w-5 h-5 cursor-grab opacity-80 hover:opacity-100" />
+                    <GripVertical className="w-4 h-4 cursor-grab opacity-80 hover:opacity-100" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-semibold text-sm text-white truncate">{r.name}</div>
-                      <div className="text-xs text-gray-400 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length} ejercicios</div>
+                      <div className="font-medium text-sm text-white truncate">{r.name}</div>
+                      <div className="text-xs text-gray-400 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length}</div>
                     </div>
                     {r.description ? <div className="text-xs text-gray-500 truncate mt-1">{r.description}</div> : null}
                   </div>
 
-                  <div className="flex items-center gap-2 w-44 sm:w-48">
+                  <div className="flex items-center gap-2 w-36 sm:w-40">
                     <div className="w-full">
                       <select
                         value={selectedDayByRoutine[r.id] ?? ''}
                         onChange={(e) => setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: e.target.value as DayKey | '' }))}
-                        className="block w-full px-3 py-2 bg-gray-800 border border-gray-700 text-sm text-gray-200 rounded-md focus:outline-none"
+                        className="block w-full px-2 py-1 bg-gray-800 border border-gray-700 text-sm text-gray-200 rounded-md focus:outline-none"
                         aria-label={`Seleccionar día para ${r.name}`}
                         title={`Seleccionar día para ${r.name}`}
                       >
-                        <option value="">Seleccionar día...</option>
+                        <option value="">Seleccionar...</option>
                         {DAYS.map(d => {
                           const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
                           const isBlocked = !!plan[d]?.blocked;
-                          // No mostrar días bloqueados en el selector
                           if (isBlocked) return null;
                           return (
                             <option key={d} value={d}>
@@ -562,10 +561,11 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
 
                     <Button
                       variant="gradient"
-                      className="rounded-full p-0 w-9 h-9 flex items-center justify-center"
+                      className="rounded-full p-0 w-8 h-8 flex items-center justify-center"
                       size="sm"
                       aria-label={`Agregar ${r.name} al día seleccionado`}
                       onClick={() => addRoutineToDay(r.id, (selectedDayByRoutine[r.id] ?? '') as DayKey | '')}
+                      disabled={!(selectedDayByRoutine[r.id])}
                     >
                       +
                     </Button>

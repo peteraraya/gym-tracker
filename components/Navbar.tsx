@@ -69,8 +69,8 @@ export const Navbar: React.FC = () => {
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
                 <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" />
                 <NavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
-                <NavLink href="/ai-assistant" icon={Sparkles} label="Asistente IA" isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
                 <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
+                <NavLink href="/ai-assistant" icon={Sparkles} label="Asistente IA" isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
                 <NavLink href="/settings" icon={Settings} label="Ajustes" isActive={isActive('/settings')} color="zinc" />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
                 {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" data-tour="profile" />}
@@ -117,8 +117,8 @@ export const Navbar: React.FC = () => {
             <div className="lg:hidden pb-4 border-t border-zinc-200 dark:border-zinc-800 mt-2 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <MobileNavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} onClick={() => setMobileMenuOpen(false)} />
                 <MobileNavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} onClick={() => setMobileMenuOpen(false)} />
