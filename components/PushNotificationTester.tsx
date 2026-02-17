@@ -50,7 +50,11 @@ export function PushNotificationTester() {
     try {
       const registration = await navigator.serviceWorker.ready;
       
-      await registration.showNotification('Notificación de Prueba 🔔', {
+      const options: NotificationOptions & {
+        vibrate?: number[];
+        actions?: { action: string; title: string; icon?: string }[];
+        requireInteraction?: boolean;
+      } = {
         body: 'Esta es una notificación de prueba desde Gym Tracker',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/badge-72x72.png',
@@ -61,7 +65,9 @@ export function PushNotificationTester() {
           { action: 'open', title: 'Abrir' },
           { action: 'close', title: 'Cerrar' }
         ]
-      });
+      };
+
+      await registration.showNotification('Notificación de Prueba 🔔', options);
 
       setMessage('✓ Notificación local enviada');
       setStatus('success');

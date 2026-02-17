@@ -153,7 +153,11 @@ async function sendSubscriptionToServer(subscription: PushSubscription) {
 
 async function showWelcomeNotification(registration: ServiceWorkerRegistration) {
   try {
-    await registration.showNotification('¡Bienvenido a Gym Tracker! 💪', {
+    const options: NotificationOptions & {
+      vibrate?: number[];
+      actions?: { action: string; title: string; icon?: string }[];
+      requireInteraction?: boolean;
+    } = {
       body: 'Las notificaciones están activadas. Te avisaremos sobre tus entrenamientos.',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/badge-72x72.png',
@@ -166,7 +170,9 @@ async function showWelcomeNotification(registration: ServiceWorkerRegistration) 
           title: 'Comenzar'
         }
       ]
-    });
+    };
+
+    await registration.showNotification('¡Bienvenido a Gym Tracker! 💪', options);
   } catch (error) {
     console.error('[PWA] Error showing welcome notification:', error);
   }

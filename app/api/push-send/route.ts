@@ -7,21 +7,27 @@ const vapidKeys = {
   privateKey: process.env.VAPID_PRIVATE_KEY || ''
 };
 
-// Solo configurar si las claves están disponibles
+// Intentar configurar VAPID keys de forma segura (capturando errores)
+let vapidConfigured = false;
 if (vapidKeys.publicKey && vapidKeys.privateKey) {
-  webpush.setVapidDetails(
-    'mailto:support@gymtracker.app',
-    vapidKeys.publicKey,
-    vapidKeys.privateKey
-  );
+  try {
+    webpush.setVapidDetails(
+      'mailto:support@gymtracker.app',
+      vapidKeys.publicKey,
+      vapidKeys.privateKey
+    );
+    vapidConfigured = true;
+  } catch (err) {
+    console.error('[API] Invalid VAPID keys, skipping configuration:', err);
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar que las claves estén configuradas
-    if (!vapidKeys.publicKey || !vapidKeys.privateKey) {
+    // Verificar que las claves estén configuradas y válidas
+    if (!vapidConfigured) {
       return NextResponse.json(
-        { error: 'VAPID keys not configured. Please set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in .env.local' },
+        { error: 'VAPID keys not configured or invalid. Please set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in your environment' },
         { status: 500 }
       );
     }
