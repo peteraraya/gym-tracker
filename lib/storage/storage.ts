@@ -626,10 +626,13 @@ export async function saveLastWeights(weights: Record<string, number[]>): Promis
 }
 
 export async function clearActiveWorkout(): Promise<void> {
+    // SIEMPRE limpiar localStorage primero para evitar que el workout reaparezca
+    const localStorageService = await import('@/lib/storage/localStorage');
+    await localStorageService.clearActiveWorkout();
+
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.clearActiveWorkout();
+            return; // Ya limpiamos localStorage arriba
         }
 
         try {
@@ -638,18 +641,11 @@ export async function clearActiveWorkout(): Promise<void> {
             if (supabaseService.clearActiveWorkout) {
                 await supabaseService.clearActiveWorkout();
                 handleStorageSuccess();
-                return;
             }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.clearActiveWorkout();
         } catch (err) {
             handleStorageError(err, 'clearActiveWorkout');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.clearActiveWorkout();
+            // No importa si Supabase falla, ya limpiamos localStorage
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.clearActiveWorkout();
     }
 }
 
