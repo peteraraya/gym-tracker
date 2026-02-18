@@ -54,11 +54,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   // Cargar active workout desde storage unificado (DB o local)
   useEffect(() => {
     let mounted = true;
-    console.log('[WorkoutContext] Iniciando carga de active workout...');
     (async () => {
       try {
         const stored = await storageService.getActiveWorkout();
-        console.log('[WorkoutContext] Active workout cargado desde storage:', stored);
         if (!mounted) return;
         if (stored) {
           // Ensure Date objects where expected (safe guard + type narrowing)
@@ -89,16 +87,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             restTimerStartedAt: typeof s.restTimerStartedAt === 'number' ? s.restTimerStartedAt : undefined,
           };
 
-          console.log('[WorkoutContext] Active workout parseado:', parsed);
           setActiveWorkout(parsed);
-        } else {
-          console.log('[WorkoutContext] No hay active workout en storage');
         }
       } catch (e) {
         console.error('[WorkoutContext] Error cargando active workout:', e);
       } finally {
         if (mounted) {
-          console.log('[WorkoutContext] Finalizando carga, isLoadingActiveWorkout = false');
           setIsLoadingActiveWorkout(false);
         }
       }
@@ -109,21 +103,16 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   // Persistir cambios del activeWorkout en storage unificado
   // SOLO cuando hay un workout activo (no limpiar automáticamente)
   useEffect(() => {
-    console.log('[WorkoutContext] useEffect persistencia - isLoading:', isLoadingActiveWorkout, 'activeWorkout:', activeWorkout ? 'presente' : 'null');
     if (isLoadingActiveWorkout) {
-      console.log('[WorkoutContext] Saltando persistencia - aún cargando');
       return;
     }
     if (!activeWorkout) {
-      console.log('[WorkoutContext] Saltando persistencia - no hay workout activo');
       return; // No hacer nada si no hay workout activo
     }
     
-    console.log('[WorkoutContext] Guardando active workout en storage...');
     (async () => {
       try {
         await storageService.saveActiveWorkout(activeWorkout as unknown as ActiveWorkout);
-        console.log('[WorkoutContext] Active workout guardado exitosamente');
       } catch (e) {
         console.error('[WorkoutContext] Error guardando active workout:', e);
       }
@@ -131,7 +120,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }, [activeWorkout, isLoadingActiveWorkout]);
 
   const startWorkout = useCallback((routine: Routine) => {
-    console.log('[WorkoutContext] Iniciando workout para rutina:', routine.name);
     const newWorkout: WorkoutState = {
       routineId: routine.id,
       routineName: routine.name,
@@ -142,14 +130,11 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       actualWeights: {},
       startedAt: new Date()
     };
-    console.log('[WorkoutContext] Nuevo workout creado:', newWorkout);
     setActiveWorkout(newWorkout);
     // Persist immediately to avoid losing state if the page reloads quickly
     (async () => {
       try {
-        console.log('[WorkoutContext] Guardando workout inmediatamente...');
         await storageService.saveActiveWorkout(newWorkout as unknown as ActiveWorkout);
-        console.log('[WorkoutContext] Workout guardado inmediatamente');
       } catch (e) {
         console.error('[WorkoutContext] Error guardando workout en start:', e);
       }
@@ -222,13 +207,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const finishWorkout = useCallback(() => {
-    console.log('[WorkoutContext] Finalizando workout');
     setActiveWorkout(null);
     (async () => {
       try {
-        console.log('[WorkoutContext] Limpiando active workout del storage');
         await storageService.clearActiveWorkout();
-        console.log('[WorkoutContext] Active workout limpiado');
       } catch (e) {
         console.error('[WorkoutContext] Error limpiando active workout:', e);
       }
@@ -236,13 +218,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const cancelWorkout = useCallback(() => {
-    console.log('[WorkoutContext] Cancelando workout');
     setActiveWorkout(null);
     (async () => {
       try {
-        console.log('[WorkoutContext] Limpiando active workout del storage');
         await storageService.clearActiveWorkout();
-        console.log('[WorkoutContext] Active workout limpiado');
       } catch (e) {
         console.error('[WorkoutContext] Error limpiando active workout:', e);
       }

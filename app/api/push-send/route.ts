@@ -17,6 +17,14 @@ if (vapidKeys.publicKey && vapidKeys.privateKey) {
       vapidKeys.privateKey
     );
     vapidConfigured = true;
+    // Log seguro: confirmar que la clave pública está presente (mostrar versión truncada)
+    try {
+      const pub = String(vapidKeys.publicKey);
+      const visible = pub.length > 20 ? `${pub.slice(0,10)}...${pub.slice(-10)}` : pub;
+      console.log('[API] VAPID configured using NEXT_PUBLIC_VAPID_PUBLIC_KEY:', visible);
+    } catch (e) {
+      console.log('[API] VAPID configured (could not display public key)');
+    }
   } catch (err) {
     console.error('[API] Invalid VAPID keys, skipping configuration:', err);
   }

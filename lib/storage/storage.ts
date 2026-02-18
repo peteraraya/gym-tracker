@@ -509,76 +509,59 @@ export async function rebuildRoutinesFromSessions(): Promise<Routine[]> {
 // ==================== ACTIVE WORKOUT ====================
 
 export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
-    console.log('[storage] getActiveWorkout - isDatabaseEnabled:', isDatabaseEnabled());
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            console.log('[storage] Usando localStorage (modo fallback permanente)');
             const localStorageService = await import('@/lib/storage/localStorage');
             return localStorageService.getActiveWorkout();
         }
 
         try {
-            console.log('[storage] Intentando Supabase...');
             const supabaseModule = await import('@/lib/supabase/service');
             const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
             if (supabaseService.getActiveWorkout) {
                 const res = await supabaseService.getActiveWorkout();
-                console.log('[storage] Supabase retornó:', res);
                 
                 // Si Supabase retorna null, intentar con localStorage como fallback
                 if (res === null) {
-                    console.log('[storage] Supabase retornó null, intentando localStorage...');
                     const localStorageService = await import('@/lib/storage/localStorage');
                     const localRes = await localStorageService.getActiveWorkout();
-                    console.log('[storage] localStorage retornó:', localRes);
                     return localRes;
                 }
                 
                 handleStorageSuccess();
                 return res;
             }
-            console.log('[storage] Supabase no tiene getActiveWorkout, usando localStorage');
             const localStorageService = await import('@/lib/storage/localStorage');
             return localStorageService.getActiveWorkout();
         } catch (err) {
-            console.error('[storage] Error en Supabase, fallback a localStorage:', err);
             handleStorageError(err, 'getActiveWorkout');
             const localStorageService = await import('@/lib/storage/localStorage');
             return localStorageService.getActiveWorkout();
         }
     } else {
-        console.log('[storage] Database deshabilitada, usando localStorage');
         const localStorageService = await import('@/lib/storage/localStorage');
         return localStorageService.getActiveWorkout();
     }
 }
 
 export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
-    console.log('[storage] saveActiveWorkout - isDatabaseEnabled:', isDatabaseEnabled());
-    
     // SIEMPRE guardar en localStorage como backup
-    console.log('[storage] Guardando en localStorage como backup...');
     const localStorageService = await import('@/lib/storage/localStorage');
     await localStorageService.saveActiveWorkout(payload);
-    console.log('[storage] Guardado en localStorage exitosamente');
     
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            console.log('[storage] Modo fallback permanente, solo localStorage');
             return;
         }
 
         try {
-            console.log('[storage] Intentando guardar en Supabase también...');
             const supabaseModule = await import('@/lib/supabase/service');
             const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
             if (supabaseService.saveActiveWorkout) {
                 await supabaseService.saveActiveWorkout(payload);
-                console.log('[storage] Guardado en Supabase exitosamente');
                 handleStorageSuccess();
             }
         } catch (err) {
-            console.warn('[storage] Error en Supabase (no crítico, ya está en localStorage):', err);
             handleStorageError(err, 'saveActiveWorkout');
         }
     }
