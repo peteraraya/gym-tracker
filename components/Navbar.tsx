@@ -44,6 +44,24 @@ export const Navbar: React.FC = () => {
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
+  // Mobile items: include all nav links and dashboard subitems
+  const mobileItems = [
+    { href: '/', icon: Home, label: t('home') },
+    { href: '/routines', icon: ClipboardList, label: t('routines') },
+    { href: '/exercises', icon: Lightbulb, label: t('exercises') },
+    { href: '/equipment', icon: Dumbbell, label: t('equipment') || 'Equipamiento' },
+    { href: '/recommended', icon: Target, label: t('recommended') },
+    { href: '/glossary', icon: BookOpen, label: 'Glosario' },
+    { href: '/calculators', icon: Calculator, label: t('calculators') },
+    { href: '/ai-assistant', icon: Sparkles, label: 'Asistente IA' },
+    { href: '/settings', icon: Settings, label: 'Ajustes' },
+    // Dashboard group
+    { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
+    { href: '/progress', icon: TrendingUp, label: t('progress') },
+    { href: '/achievements', icon: Trophy, label: t('achievements') },
+    { href: '/sessions', icon: Calendar, label: t('sessions') },
+  ];
+
   const handleSignOut = async () => {
     await signOut();
     router.push('/auth');
@@ -117,21 +135,23 @@ export const Navbar: React.FC = () => {
           {mobileMenuOpen && (
             <div className="lg:hidden pb-4 border-t border-zinc-200 dark:border-zinc-800 mt-2 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <MobileNavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/dashboard" icon={LayoutDashboard} label={t('dashboard')} isActive={isActive('/dashboard')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/progress" icon={TrendingUp} label={t('progress')} isActive={isActive('/progress')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/achievements" icon={Trophy} label={t('achievements')} isActive={isActive('/achievements')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/glossary" icon={BookOpen} label="Glosario" isActive={isActive('/glossary')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} onClick={() => setMobileMenuOpen(false)} />
-                <MobileNavLink href="/settings" icon={Settings} label="Ajustes" isActive={isActive('/settings')} onClick={() => setMobileMenuOpen(false)} />
-                {/* <MobileNavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} onClick={() => setMobileMenuOpen(false)} /> */}
-                {user && <MobileNavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} onClick={() => setMobileMenuOpen(false)} />}
+                {mobileItems.map((it) => (
+                  <MobileNavLink
+                    key={it.href}
+                    href={it.href}
+                    icon={it.icon}
+                    label={it.label}
+                    isActive={isActive(it.href)}
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
+                ))}
+
+                {/* Profile link shown only when user is authenticated */}
+                {user && (
+                  <MobileNavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} onClick={() => setMobileMenuOpen(false)} />
+                )}
               </div>
+
               {user && (
                 <Button
                   variant="danger"
