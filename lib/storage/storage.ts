@@ -520,6 +520,14 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
             const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
             if (supabaseService.getActiveWorkout) {
                 const res = await supabaseService.getActiveWorkout();
+                
+                // Si Supabase retorna null, intentar con localStorage como fallback
+                if (res === null) {
+                    const localStorageService = await import('@/lib/storage/localStorage');
+                    const localRes = await localStorageService.getActiveWorkout();
+                    return localRes;
+                }
+                
                 handleStorageSuccess();
                 return res;
             }
@@ -537,10 +545,13 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
 }
 
 export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
+    // SIEMPRE guardar en localStorage como backup
+    const localStorageService = await import('@/lib/storage/localStorage');
+    await localStorageService.saveActiveWorkout(payload);
+    
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveActiveWorkout(payload);
+            return;
         }
 
         try {
@@ -549,18 +560,10 @@ export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
             if (supabaseService.saveActiveWorkout) {
                 await supabaseService.saveActiveWorkout(payload);
                 handleStorageSuccess();
-                return;
             }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveActiveWorkout(payload);
         } catch (err) {
             handleStorageError(err, 'saveActiveWorkout');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveActiveWorkout(payload);
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.saveActiveWorkout(payload);
     }
 }
 

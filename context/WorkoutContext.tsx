@@ -90,26 +90,31 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           setActiveWorkout(parsed);
         }
       } catch (e) {
-        console.warn('Failed to load active workout from storage', e);
+        console.error('[WorkoutContext] Error cargando active workout:', e);
       } finally {
-        if (mounted) setIsLoadingActiveWorkout(false);
+        if (mounted) {
+          setIsLoadingActiveWorkout(false);
+        }
       }
     })();
     return () => { mounted = false; };
   }, []);
 
   // Persistir cambios del activeWorkout en storage unificado
+  // SOLO cuando hay un workout activo (no limpiar automáticamente)
   useEffect(() => {
-    if (isLoadingActiveWorkout) return;
-        (async () => {
+    if (isLoadingActiveWorkout) {
+      return;
+    }
+    if (!activeWorkout) {
+      return; // No hacer nada si no hay workout activo
+    }
+    
+    (async () => {
       try {
-        if (activeWorkout) {
-          await storageService.saveActiveWorkout(activeWorkout as unknown as ActiveWorkout);
-        } else {
-          await storageService.clearActiveWorkout();
-        }
+        await storageService.saveActiveWorkout(activeWorkout as unknown as ActiveWorkout);
       } catch (e) {
-        console.warn('Failed to persist active workout', e);
+        console.error('[WorkoutContext] Error guardando active workout:', e);
       }
     })();
   }, [activeWorkout, isLoadingActiveWorkout]);
@@ -126,8 +131,15 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       startedAt: new Date()
     };
     setActiveWorkout(newWorkout);
+    // Persist immediately to avoid losing state if the page reloads quickly
+    (async () => {
+      try {
+        await storageService.saveActiveWorkout(newWorkout as unknown as ActiveWorkout);
+      } catch (e) {
+        console.error('[WorkoutContext] Error guardando workout en start:', e);
+      }
+    })();
   }, []);
-
   const updateWorkoutProgress = useCallback((
     exerciseIndex: number,
     set: number,
@@ -144,7 +156,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   ) => {
     setActiveWorkout(prev => {
       if (!prev) return null;
-      return {
+      const newState: WorkoutState = {
         ...prev,
         currentExerciseIndex: exerciseIndex,
         currentSet: set,
@@ -158,13 +170,24 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         restTimerNextExercise: restState?.restTimerNextExercise,
         restTimerStartedAt: restState?.restTimerStartedAt
       };
+
+      // Guardar inmediatamente en storage unificado
+      (async () => {
+        try {
+          await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
+        } catch (e) {
+          console.warn('[Workout] Failed to persist active workout on update:', e);
+        }
+      })();
+
+      return newState;
     });
   }, []);
 
   const clearRestState = useCallback(() => {
     setActiveWorkout(prev => {
       if (!prev) return null;
-      return {
+      const newState = {
         ...prev,
         isResting: false,
         restTimerDuration: undefined,
@@ -172,15 +195,37 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         restTimerNextExercise: undefined,
         restTimerStartedAt: undefined
       };
+      (async () => {
+        try {
+          await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
+        } catch (e) {
+          console.warn('[Workout] Failed to persist active workout on clearRestState:', e);
+        }
+      })();
+      return newState;
     });
   }, []);
 
   const finishWorkout = useCallback(() => {
     setActiveWorkout(null);
+    (async () => {
+      try {
+        await storageService.clearActiveWorkout();
+      } catch (e) {
+        console.error('[WorkoutContext] Error limpiando active workout:', e);
+      }
+    })();
   }, []);
 
   const cancelWorkout = useCallback(() => {
     setActiveWorkout(null);
+    (async () => {
+      try {
+        await storageService.clearActiveWorkout();
+      } catch (e) {
+        console.error('[WorkoutContext] Error limpiando active workout:', e);
+      }
+    })();
   }, []);
 
   const value = useMemo(() => ({
