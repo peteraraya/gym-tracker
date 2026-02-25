@@ -241,11 +241,15 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       // Cuando la app se pone en segundo plano, forzar guardado del workout
       const currentWorkout = activeWorkoutRef.current;
       if (currentWorkout) {
-        console.log('[WorkoutContext] App paused, persisting workout...');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[WorkoutContext] App paused, persisting workout...');
+        }
         (async () => {
           try {
             await storageService.saveActiveWorkout(currentWorkout as unknown as ActiveWorkout);
-            console.log('[WorkoutContext] Workout persisted successfully on pause');
+            if (process.env.NODE_ENV === 'development') {
+              console.debug('[WorkoutContext] Workout persisted successfully on pause');
+            }
           } catch (e) {
             console.error('[WorkoutContext] Error persisting workout on pause:', e);
           }
@@ -254,12 +258,16 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     }, []),
     onResume: useCallback(() => {
       // Cuando la app vuelve a primer plano, recargar workout si es necesario
-      console.log('[WorkoutContext] App resumed, checking workout state...');
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('[WorkoutContext] App resumed, checking workout state...');
+      }
       (async () => {
         try {
           const stored = await storageService.getActiveWorkout();
           if (stored && !activeWorkoutRef.current) {
-            console.log('[WorkoutContext] Restoring workout from storage');
+            if (process.env.NODE_ENV === 'development') {
+              console.debug('[WorkoutContext] Restoring workout from storage');
+            }
             const s = stored as any;
             const parsed: WorkoutState = {
               routineId: String(s.routineId ?? ''),

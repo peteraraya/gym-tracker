@@ -25,22 +25,30 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks) {
 
         // Listener para cuando la app se pone en segundo plano
         const pauseListener = await App.addListener('pause', () => {
-          console.log('[AppLifecycle] App paused (background)');
+          if (process.env.NODE_ENV === 'development') {
+            console.debug('[AppLifecycle] App paused (background)');
+          }
           callbacks.onPause?.();
           callbacks.onAppStateChange?.(false);
         });
 
         // Listener para cuando la app vuelve a primer plano
         const resumeListener = await App.addListener('resume', () => {
-          console.log('[AppLifecycle] App resumed (foreground)');
+          if (process.env.NODE_ENV === 'development') {
+            console.debug('[AppLifecycle] App resumed (foreground)');
+          }
           callbacks.onResume?.();
           callbacks.onAppStateChange?.(true);
         });
 
         listeners = [pauseListener, resumeListener];
-        console.log('[AppLifecycle] Capacitor listeners registered');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[AppLifecycle] Capacitor listeners registered');
+        }
       } catch (error) {
-        console.log('[AppLifecycle] Capacitor not available, using web APIs');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[AppLifecycle] Capacitor not available, using web APIs');
+        }
         setupWebListeners();
       }
     };
@@ -49,7 +57,9 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks) {
     const setupWebListeners = () => {
       const handleVisibilityChange = () => {
         const isActive = !document.hidden;
-        console.log('[AppLifecycle] Visibility changed:', isActive ? 'visible' : 'hidden');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[AppLifecycle] Visibility changed:', isActive ? 'visible' : 'hidden');
+        }
         
         if (isActive) {
           callbacks.onResume?.();
@@ -63,7 +73,9 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks) {
 
       // También escuchar beforeunload para guardar antes de cerrar
       const handleBeforeUnload = () => {
-        console.log('[AppLifecycle] Page unloading');
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[AppLifecycle] Page unloading');
+        }
         callbacks.onPause?.();
       };
 
