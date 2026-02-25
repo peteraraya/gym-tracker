@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode, useRef } from 'react';
 import * as storageService from '@/lib/storage/storage';
 import type { ActiveWorkout } from '@/lib/storage/storage';
 import type { Routine } from '@/types';
+import { useAppLifecycle } from '@/hooks/useAppLifecycle';
 
 interface WorkoutState {
   routineId: string;
@@ -50,6 +51,12 @@ const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 export function WorkoutProvider({ children }: { children: ReactNode }) {
   const [activeWorkout, setActiveWorkout] = useState<WorkoutState | null>(null);
   const [isLoadingActiveWorkout, setIsLoadingActiveWorkout] = useState(true);
+  const activeWorkoutRef = useRef<WorkoutState | null>(null);
+
+  // Mantener ref actualizada para acceso en callbacks
+  useEffect(() => {
+    activeWorkoutRef.current = activeWorkout;
+  }, [activeWorkout]);
 
   // Cargar active workout desde storage unificado (DB o local)
   useEffect(() => {
@@ -227,6 +234,56 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       }
     })();
   }, []);
+
+  // Manejar ciclo de vida de la app para persistir workout
+  useAppLifecycle({
+    onPause: useCallback(() => {
+      // Cuando la app se pone en segundo plano, forzar guardado del workout
+      const currentWorkout = activeWorkoutRef.current;
+      if (currentWorkout) {
+        console.log('[WorkoutContext] App paused, persisting workout...');
+        (async () => {
+          try {
+            await storageService.saveActiveWorkout(currentWorkout as unknown as ActiveWorkout);
+            console.log('[WorkoutContext] Workout persisted successfully on pause');
+          } catch (e) {
+            console.error('[WorkoutContext] Error persisting workout on pause:', e);
+          }
+        })();
+      }
+    }, []),
+    onResume: useCallback(() => {
+      // Cuando la app vuelve a primer plano, recargar workout si es necesario
+      console.log('[WorkoutContext] App resumed, checking workout state...');
+      (async () => {
+        try {
+          const stored = await storageService.getActiveWorkout();
+          if (stored && !activeWorkoutRef.current) {
+            console.log('[WorkoutContext] Restoring workout from storage');
+            const s = stored as any;
+            const parsed: WorkoutState = {
+              routineId: String(s.routineId ?? ''),
+              routineName: String(s.routineName ?? ''),
+              currentExerciseIndex: Number(s.currentExerciseIndex ?? 0),
+              currentSet: Number(s.currentSet ?? 1),
+              completedSets: (s.completedSets && typeof s.completedSets === 'object') ? s.completedSets as { [key: string]: number } : {},
+              actualReps: (s.actualReps && typeof s.actualReps === 'object') ? s.actualReps as { [key: string]: number[] } : {},
+              actualWeights: (s.actualWeights && typeof s.actualWeights === 'object') ? s.actualWeights as { [key: string]: number[] } : {},
+              startedAt: s.startedAt instanceof Date ? s.startedAt : new Date(s.startedAt ?? Date.now()),
+              isResting: typeof s.isResting === 'boolean' ? s.isResting : false,
+              restTimerDuration: typeof s.restTimerDuration === 'number' ? s.restTimerDuration : undefined,
+              restTimerTitle: typeof s.restTimerTitle === 'string' ? s.restTimerTitle : undefined,
+              restTimerNextExercise: typeof s.restTimerNextExercise === 'string' ? s.restTimerNextExercise : undefined,
+              restTimerStartedAt: typeof s.restTimerStartedAt === 'number' ? s.restTimerStartedAt : undefined,
+            };
+            setActiveWorkout(parsed);
+          }
+        } catch (e) {
+          console.error('[WorkoutContext] Error restoring workout on resume:', e);
+        }
+      })();
+    }, [])
+  });
 
   const value = useMemo(() => ({
     activeWorkout,
