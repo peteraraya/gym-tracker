@@ -14,6 +14,7 @@ import { SetTimer } from '@/components/SetTimer';
 import { WorkoutGlobalTimer } from '@/components/WorkoutGlobalTimer';
 import { PreparationCountdown } from '@/components/PreparationCountdown';
 import SetTypeSelector from '@/components/SetTypeSelector';
+import { WeightSelector } from '@/components/WeightSelector';
 import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
@@ -184,6 +185,65 @@ export default function WorkoutPage() {
     setSuggestions([...generalSuggestions, ...liveSuggestions]);
     setDismissedSuggestions(new Set()); // Reset dismissed cuando cambia el ejercicio
   }, [currentExerciseIndex, currentSet, currentWeight, currentExercise, routine, sessions, restOverrides]);
+
+  // Detectar cuando todas las series están completadas y avanzar automáticamente
+  useEffect(() => {
+    if (!currentExercise || !routine) return;
+    
+    const exerciseId = currentExercise.id;
+    const totalSets = currentExercise.sets.length;
+    const completedCount = completedSets[exerciseId] || 0;
+    const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
+    
+    // Si todas las series están completadas
+    if (completedCount === totalSets && completedCount > 0) {
+      // Verificar que realmente todas las series tienen datos
+      const allSetsHaveData = currentExercise.sets.every((_, idx) => {
+        const hasReps = actualReps[exerciseId] && typeof actualReps[exerciseId][idx] === 'number' && actualReps[exerciseId][idx] > 0;
+        return hasReps;
+      });
+      
+      if (allSetsHaveData && !showTimer && !isExecutingSet && !showPreparation) {
+        // Todas las series completadas, avanzar al siguiente ejercicio o finalizar
+        if (isLastExercise) {
+          // Último ejercicio, mostrar modal de finalización
+          const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+          setProposedDuration(Math.max(duration, 60));
+          setShowNotesModal(true);
+        } else {
+          // Pasar al siguiente ejercicio con descanso
+          const nextExercise = routine.exercises[currentExerciseIndex + 1];
+          const nextExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
+          const currentExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+          
+          let restTime = restOverrides[currentExercise.id] || routine.restBetweenExercises || 120;
+          
+          if (useSmartRest && currentExerciseTemplate && nextExerciseTemplate) {
+            const restRecommendation = calculateRestBetweenExercises(
+              currentExerciseTemplate,
+              nextExerciseTemplate,
+              'intermediate'
+            );
+            restTime = restRecommendation.recommended;
+          }
+          
+          setShowTimer(true);
+          setTimerDuration(restTime);
+          setTimerTitle('Descanso entre ejercicios');
+          setNextExerciseName(nextExercise.name);
+          
+          updateWorkoutProgress(
+            currentExerciseIndex,
+            currentSet,
+            completedSets,
+            actualReps,
+            actualWeights,
+            { isResting: true, restTimerDuration: restTime, restTimerTitle: 'Descanso entre ejercicios', restTimerNextExercise: nextExercise.name, restTimerStartedAt: Date.now() }
+          );
+        }
+      }
+    }
+  }, [completedSets, actualReps, currentExercise, routine, currentExerciseIndex, showTimer, isExecutingSet, showPreparation, workoutStartTime, restOverrides, useSmartRest, actualWeights, currentSet, updateWorkoutProgress]);
 
   if (!routine || !routine.exercises || routine.exercises.length === 0) {
     return (
@@ -382,14 +442,6 @@ export default function WorkoutPage() {
       const copy = { ...prev };
       copy[exerciseId] = copy[exerciseId] ? [...copy[exerciseId]] : [];
       copy[exerciseId][setIndex] = value;
-      // Persistir en contexto
-      updateWorkoutProgress(
-        currentExerciseIndex,
-        currentSet,
-        completedSets,
-        actualReps,
-        copy
-      );
       return copy;
     });
     // guardar como último peso
@@ -399,6 +451,22 @@ export default function WorkoutPage() {
       setCurrentWeight(value);
     }
   };
+
+  // Sincronizar cambios de actualWeights con el contexto
+  const prevActualWeightsRef = React.useRef(actualWeights);
+  useEffect(() => {
+    // Solo actualizar si realmente cambió
+    if (prevActualWeightsRef.current !== actualWeights && Object.keys(actualWeights).length > 0) {
+      updateWorkoutProgress(
+        currentExerciseIndex,
+        currentSet,
+        completedSets,
+        actualReps,
+        actualWeights
+      );
+      prevActualWeightsRef.current = actualWeights;
+    }
+  }, [actualWeights, currentExerciseIndex, currentSet, completedSets, actualReps, updateWorkoutProgress]);
 
   const handleEditSetType = (exerciseId: string, setIndex: number, type: import('@/types').SetType) => {
     setSetTypes(prev => {
@@ -790,10 +858,17 @@ export default function WorkoutPage() {
                                         return copy;
                                       });
                                       
-                                      setCompletedSets(prev => ({
-                                        ...prev,
-                                        [exerciseId]: (prev[exerciseId] || 0) + 1
-                                      }));
+                                      setCompletedSets(prev => {
+                                        const newCount = (prev[exerciseId] || 0) + 1;
+                                        // Si completamos una serie, avanzar currentSet si es necesario
+                                        if (idx + 1 === currentSet) {
+                                          setCurrentSet(Math.min(currentSet + 1, currentExercise.sets.length));
+                                        }
+                                        return {
+                                          ...prev,
+                                          [exerciseId]: newCount
+                                        };
+                                      });
                                     } else {
                                       setActualReps(prev => {
                                         const copy = { ...prev };
@@ -861,23 +936,11 @@ export default function WorkoutPage() {
                               </div>
                               
                               <div>
-                                <input
-                                  type="number"
-                                  className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                <WeightSelector
                                   value={doneWeight === 0 ? '' : doneWeight}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === '') {
-                                      handleEditWeight(currentExercise.id, idx, 0);
-                                    } else {
-                                      const num = parseFloat(val);
-                                      handleEditWeight(currentExercise.id, idx, isNaN(num) ? 0 : Math.max(0, num));
-                                    }
-                                  }}
-                                  step="0.5"
-                                  min="0"
+                                  onChange={(weight) => handleEditWeight(currentExercise.id, idx, weight)}
+                                  exerciseId={currentExercise.id}
                                   placeholder={(set.weight || 0).toString()}
-                                  aria-label="Peso"
                                 />
                                 <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">kg</div>
                               </div>

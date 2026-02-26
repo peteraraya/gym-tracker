@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
 import { SetTimer } from '@/components/SetTimer';
 import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
+import { WeightSelector } from '@/components/WeightSelector';
 import { Input } from '@/components/ui/Input';
 import { RestTimeSelector } from '@/components/RestTimeSelector';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
@@ -464,23 +465,17 @@ export default function FreeWorkoutPage() {
                       min="0"
                       placeholder="Número de repeticiones"
                     />
-                    <Input
-                      type="number"
-                      label="Peso (kg)"
-                      value={currentWeight === 0 ? '' : currentWeight}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === '') {
-                          setCurrentWeight(0);
-                        } else {
-                          const num = parseFloat(val);
-                          setCurrentWeight(isNaN(num) ? 0 : Math.max(0, num));
-                        }
-                      }}
-                      min="0"
-                      step="0.5"
-                      placeholder="Peso en kg"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Peso (kg)
+                      </label>
+                      <WeightSelector
+                        value={currentWeight === 0 ? '' : currentWeight}
+                        onChange={(weight) => setCurrentWeight(weight)}
+                        exerciseId={activeExercise.id}
+                        placeholder="Peso en kg"
+                      />
+                    </div>
                     
                     {/* Selector de tipo de serie */}
                     <div>
@@ -581,24 +576,20 @@ export default function FreeWorkoutPage() {
                                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                   Peso (kg)
                                 </label>
-                                <input
-                                  type="number"
-                                  className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                <WeightSelector
                                   value={set.weight}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    const num = val === '' ? 0 : parseFloat(val);
+                                  onChange={(weight) => {
                                     const newExercises = [...exercises];
                                     const updatedSets = [...activeExercise.completedSets];
-                                    updatedSets[i] = { ...updatedSets[i], weight: isNaN(num) ? 0 : Math.max(0, num) };
+                                    updatedSets[i] = { ...updatedSets[i], weight };
                                     newExercises[activeExerciseIndex!] = {
                                       ...activeExercise,
                                       completedSets: updatedSets
                                     };
                                     setExercises(newExercises);
                                   }}
-                                  step="0.5"
-                                  min="0"
+                                  exerciseId={activeExercise.id}
+                                  placeholder="0"
                                 />
                               </div>
                             </div>
@@ -796,25 +787,21 @@ export default function FreeWorkoutPage() {
                                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                     Peso (kg)
                                   </label>
-                                  <input
-                                    type="number"
-                                    className="w-full p-1.5 border rounded bg-white dark:bg-gray-700 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  <WeightSelector
                                     value={set.weight}
-                                    onChange={(e) => {
-                                      e.stopPropagation();
-                                      const val = e.target.value;
-                                      const num = val === '' ? 0 : parseFloat(val);
+                                    onChange={(weight) => {
                                       const newExercises = [...exercises];
                                       const updatedSets = [...exercise.completedSets];
-                                      updatedSets[i] = { ...updatedSets[i], weight: isNaN(num) ? 0 : Math.max(0, num) };
+                                      updatedSets[i] = { ...updatedSets[i], weight };
                                       newExercises[index] = {
                                         ...exercise,
                                         completedSets: updatedSets
                                       };
                                       setExercises(newExercises);
                                     }}
-                                    step="0.5"
-                                    min="0"
+                                    exerciseId={exercise.id}
+                                    placeholder="0"
+                                    className="p-1.5 text-xs"
                                   />
                                 </div>
                               </div>
