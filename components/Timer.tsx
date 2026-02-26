@@ -321,6 +321,36 @@ export const Timer: React.FC<TimerProps> = ({
       <div className="flex flex-wrap gap-2 justify-center">
         {!isCompleted ? (
           <>
+            {/* Botones de ajuste rápido */}
+            <div className="flex gap-2 w-full justify-center mb-2">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setTimeLeft(prev => Math.max(0, prev - 30));
+                  setHasAdjusted(true);
+                }}
+                size="sm"
+                className="relative z-10 flex items-center gap-1"
+                disabled={timeLeft <= 30}
+              >
+                <Minus className="w-4 h-4" />
+                30s
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setTimeLeft(prev => prev + 30);
+                  setHasAdjusted(true);
+                }}
+                size="sm"
+                className="relative z-10 flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                30s
+              </Button>
+            </div>
+
+            {/* Botones principales */}
             <Button
               variant={isRunning ? 'secondary' : 'primary'}
               onClick={handleStartPause}
@@ -332,8 +362,8 @@ export const Timer: React.FC<TimerProps> = ({
             <Button variant="ghost" onClick={handleReset} size="lg" className="relative z-10">
               🔄
             </Button>
-            <Button variant="ghost" onClick={handleSkip} size="lg" className="relative z-10">
-              ⏭️
+            <Button variant="primary" onClick={handleSkip} size="lg" className="relative z-10 bg-orange-600 hover:bg-orange-700">
+              ⏭️ Saltar
             </Button>
           </>
         ) : (

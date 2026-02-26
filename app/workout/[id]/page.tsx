@@ -969,18 +969,25 @@ export default function WorkoutPage() {
                                                         60;
                                     const standardOptions = Array.from({ length: 60 }, (_, i) => (i + 1) * 5);
                                     
+                                    const formatTime = (sec: number) => {
+                                      if (sec < 60) return `${sec}s`;
+                                      const mins = Math.floor(sec / 60);
+                                      const secs = sec % 60;
+                                      return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+                                    };
+                                    
                                     if (!standardOptions.includes(currentValue)) {
                                       const allOptions = [...standardOptions, currentValue].sort((a, b) => a - b);
                                       return allOptions.map(sec => (
                                         <option key={sec} value={sec}>
-                                          {sec >= 60 ? `${Math.floor(sec / 60)}m` : `${sec}s`}
+                                          {formatTime(sec)}
                                         </option>
                                       ));
                                     }
                                     
                                     return standardOptions.map(sec => (
                                       <option key={sec} value={sec}>
-                                        {sec >= 60 ? `${Math.floor(sec / 60)}m` : `${sec}s`}
+                                        {formatTime(sec)}
                                       </option>
                                     ));
                                   })()}
