@@ -11,6 +11,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
 import { SetTimer } from '@/components/SetTimer';
+import { WorkoutGlobalTimer } from '@/components/WorkoutGlobalTimer';
+import { PreparationCountdown } from '@/components/PreparationCountdown';
 import SetTypeSelector from '@/components/SetTypeSelector';
 import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -60,6 +62,10 @@ export default function WorkoutPage() {
   const [useSmartRest, setUseSmartRest] = useState(true); // Descanso inteligente activado por defecto
   const [suggestions, setSuggestions] = useState<WorkoutSuggestion[]>([]);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<number>>(new Set());
+  
+  // Nuevos estados para UX mejorada
+  const [showPreparation, setShowPreparation] = useState(false);
+  const [isExecutingSet, setIsExecutingSet] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -202,21 +208,39 @@ export default function WorkoutPage() {
   const isLastSet = currentSet >= currentExercise.sets.length;
   const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
 
+  const handleStartSet = () => {
+    setShowPreparation(true);
+  };
+
+  const handlePreparationComplete = () => {
+    setShowPreparation(false);
+    setIsExecutingSet(true);
+  };
+
   const handleCompleteSet = () => {
+    setIsExecutingSet(false);
+    
     const exerciseId = currentExercise.id;
     
-    // Guardar repeticiones y peso de esta serie
-    const repsValue: number = typeof currentReps === 'number' ? currentReps : 0;
-    const weightValue: number = typeof currentWeight === 'number' ? currentWeight : 0;
+    // Obtener valores actuales de la serie
+    const setIndex = currentSet - 1;
+    const repsValue: number = (actualReps[exerciseId] && actualReps[exerciseId][setIndex]) 
+      ? actualReps[exerciseId][setIndex]
+      : (typeof currentReps === 'number' ? currentReps : currentExercise.sets[setIndex]?.reps || 0);
+    
+    const weightValue: number = (actualWeights[exerciseId] && actualWeights[exerciseId][setIndex])
+      ? actualWeights[exerciseId][setIndex]
+      : (typeof currentWeight === 'number' ? currentWeight : currentExercise.sets[setIndex]?.weight || 0);
 
+    // Actualizar arrays con los valores de esta serie
     const newActualReps = {
       ...actualReps,
-      [exerciseId]: [...(actualReps[exerciseId] || []), repsValue]
+      [exerciseId]: [...(actualReps[exerciseId] || []).slice(0, setIndex), repsValue, ...(actualReps[exerciseId] || []).slice(setIndex + 1)]
     };
     
     const newActualWeights = {
       ...actualWeights,
-      [exerciseId]: [...(actualWeights[exerciseId] || []), weightValue]
+      [exerciseId]: [...(actualWeights[exerciseId] || []).slice(0, setIndex), weightValue, ...(actualWeights[exerciseId] || []).slice(setIndex + 1)]
     };
 
     const newCompletedSets = {
@@ -226,19 +250,18 @@ export default function WorkoutPage() {
 
     setActualReps(newActualReps);
     setActualWeights(newActualWeights);
-    // Persistir último peso para esta serie (guardado en el perfil o fallback local)
+    
+    // Persistir último peso para esta serie
     try {
       const parsed = { ...(lastWeights || {}) };
       parsed[exerciseId] = parsed[exerciseId] || [];
-      parsed[exerciseId][(newActualWeights[exerciseId] || []).length - 1] = weightValue;
+      parsed[exerciseId][setIndex] = weightValue;
       setLastWeights(parsed);
-      // Fire-and-forget persist
-      try {
-        storageService.saveLastWeights(parsed).catch(() => {});
-      } catch (e) {}
+      storageService.saveLastWeights(parsed).catch(() => {});
     } catch (e) {
       // ignore
     }
+    
     setCompletedSets(newCompletedSets);
 
     // Actualizar el contexto global
@@ -253,7 +276,6 @@ export default function WorkoutPage() {
     if (isLastSet) {
       if (isLastExercise) {
         // Mostrar modal para notas antes de finalizar
-        // calcular duración propuesta y abrir modal para confirmar/editar
         const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
         setProposedDuration(Math.max(duration, 60));
         setShowNotesModal(true);
@@ -263,7 +285,6 @@ export default function WorkoutPage() {
         const nextExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
         const currentExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
         
-        // Prioridad: 1) Override del ejercicio (editing live), 2) Valor de la rutina, 3) Cálculo inteligente, 4) Fallback
         let restTime = restOverrides[currentExercise.id] || routine.restBetweenExercises || 120;
         
         if (useSmartRest && currentExerciseTemplate && nextExerciseTemplate) {
@@ -280,7 +301,6 @@ export default function WorkoutPage() {
         setTimerTitle('Descanso entre ejercicios');
         setNextExerciseName(nextExercise.name);
         
-        // Persistir estado del timer
         updateWorkoutProgress(
           currentExerciseIndex,
           currentSet,
@@ -292,19 +312,15 @@ export default function WorkoutPage() {
       }
     } else {
       // Descanso entre series
-      // Prioridad: 1) Override del ejercicio actual (editing live), 2) Valor global de la rutina, 3) Cálculo inteligente, 4) Fallback 60s
       let restTime: number;
       
       if (restOverrides[currentExercise.id] && restOverrides[currentExercise.id] > 0) {
         restTime = restOverrides[currentExercise.id];
       } else if (currentExercise.restBetweenSets && currentExercise.restBetweenSets > 0) {
-        // El ejercicio tiene su propio tiempo de descanso configurado
         restTime = currentExercise.restBetweenSets;
       } else if (routine.restBetweenSets && routine.restBetweenSets > 0) {
-        // Usar el valor global de la rutina
         restTime = routine.restBetweenSets;
       } else if (useSmartRest) {
-        // Cálculo inteligente como fallback
         const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
         if (exerciseTemplate) {
           const currentSetData = currentExercise.sets[currentSet - 1];
@@ -329,7 +345,6 @@ export default function WorkoutPage() {
       setTimerTitle(timerTitleText);
       setNextExerciseName(undefined);
       
-      // Persistir estado del timer
       updateWorkoutProgress(
         currentExerciseIndex,
         currentSet,
@@ -339,28 +354,6 @@ export default function WorkoutPage() {
         { isResting: true, restTimerDuration: restTime, restTimerTitle: timerTitleText, restTimerStartedAt: Date.now() }
       );
     }
-  };
-
-  const handleSetTimerComplete = (duration: number, pausedTime: number) => {
-    const exerciseId = currentExercise.id;
-    
-    // Guardar duración y tiempo pausado de esta serie
-    const newActualSetDurations = {
-      ...actualSetDurations,
-      [exerciseId]: [...(actualSetDurations[exerciseId] || []), duration]
-    };
-    
-    const newActualPauseDurations = {
-      ...actualPauseDurations,
-      [exerciseId]: [...(actualPauseDurations[exerciseId] || []), pausedTime]
-    };
-
-    setActualSetDurations(newActualSetDurations);
-    setActualPauseDurations(newActualPauseDurations);
-    setTotalPausedTime(prev => prev + pausedTime);
-
-    // Completar la serie después de registrar los tiempos
-    handleCompleteSet();
   };
 
   // Helpers para gestionar pesos recientes en localStorage
@@ -598,16 +591,19 @@ export default function WorkoutPage() {
     <ProtectedRoute>
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {routine.name}
-          </h1>
-          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-            <span>Ejercicio {currentExerciseIndex + 1}/{routine.exercises.length}</span>
-            <span>•</span>
-            <span>Serie {currentSet}/{currentExercise.sets.length}</span>
+        {/* Header con Timer Global */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              {routine.name}
+            </h1>
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <span>Ejercicio {currentExerciseIndex + 1}/{routine.exercises.length}</span>
+              <span>•</span>
+              <span>Serie {currentSet}/{currentExercise.sets.length}</span>
+            </div>
           </div>
+          <WorkoutGlobalTimer startTime={workoutStartTime} />
         </div>
 
         {/* Progreso */}
@@ -646,39 +642,78 @@ export default function WorkoutPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Cronómetro de serie */}
-              <div className="mb-6">
-                <SetTimer 
-                  onComplete={handleSetTimerComplete}
-                  autoStart={true}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    {currentExercise.sets.length}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Series totales</div>
-                </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {currentExercise.sets[currentSet - 1]?.reps || 10}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Reps (Serie {currentSet})</div>
-                </div>
-              </div>
-
-              {/* Comparación con última sesión */}
-              {lastSessionForExercise && typeof currentWeight === 'number' && typeof currentReps === 'number' && (
-                <WorkoutComparison
+              {/* Countdown de Preparación */}
+              {showPreparation && (
+                <PreparationCountdown
+                  duration={3}
+                  onComplete={handlePreparationComplete}
                   exerciseName={currentExercise.name}
-                  currentSet={currentSet}
-                  currentWeight={currentWeight}
-                  currentReps={currentReps}
-                  lastSession={lastSessionForExercise}
-                  compact
+                  setNumber={currentSet}
                 />
+              )}
+
+              {/* Botón para iniciar serie */}
+              {!isExecutingSet && !showPreparation && (
+                <Button
+                  onClick={handleStartSet}
+                  className="w-full py-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  ▶️ Iniciar Serie {currentSet}
+                </Button>
+              )}
+
+              {/* Botón grande para completar serie */}
+              {isExecutingSet && (
+                <div className="space-y-4">
+                  <div className="text-center py-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                    <p className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                      🏋️ Ejecuta tu serie
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Presiona el botón cuando termines
+                    </p>
+                  </div>
+                  
+                  <Button
+                    onClick={handleCompleteSet}
+                    className="w-full py-6 text-xl font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg transition-all hover:scale-105"
+                  >
+                    <span className="text-2xl mr-2">✓</span>
+                    Completar Serie
+                  </Button>
+                </div>
+              )}
+
+              {/* Información del ejercicio */}
+              {!isExecutingSet && !showPreparation && (
+                <>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        {currentExercise.sets.length}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Series totales</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                        {currentExercise.sets[currentSet - 1]?.reps || 10}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Reps (Serie {currentSet})</div>
+                    </div>
+                  </div>
+
+                  {/* Comparación con última sesión */}
+                  {lastSessionForExercise && typeof currentWeight === 'number' && typeof currentReps === 'number' && (
+                    <WorkoutComparison
+                      exerciseName={currentExercise.name}
+                      currentSet={currentSet}
+                      currentWeight={currentWeight}
+                      currentReps={currentReps}
+                      lastSession={lastSessionForExercise}
+                      compact
+                    />
+                  )}
+                </>
               )}
 
               <div className="space-y-3">
