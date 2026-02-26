@@ -38,6 +38,7 @@ interface FreeExercise {
     weight: number; 
     duration?: number;
     type?: import('@/types').SetType;
+    checked?: boolean; // Para trackear si está marcado o no
   }[];
   restBetweenSets?: number;
 }
@@ -502,22 +503,105 @@ export default function FreeWorkoutPage() {
                     ✅ Completar serie {activeExercise.completedSets.length + 1}
                   </Button>
 
-                  {/* Sets history */}
+                  {/* Sets history con edición */}
                   {activeExercise.completedSets.length > 0 && (
                     <div className="mt-3">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Series completadas:</p>
                       <div className="space-y-2">
                         {activeExercise.completedSets.map((set, i) => (
-                          <div key={i} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
-                              {set.type && set.type !== 'normal' && (
-                                <SetTypeBadge type={set.type} />
-                              )}
+                          <div key={i} className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-300 dark:border-green-700">
+                            {/* Header con checkbox */}
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                {/* Checkbox para desmarcar */}
+                                <input
+                                  type="checkbox"
+                                  checked={true}
+                                  onChange={(e) => {
+                                    if (!e.target.checked) {
+                                      // Eliminar esta serie
+                                      const newExercises = [...exercises];
+                                      newExercises[activeExerciseIndex!] = {
+                                        ...activeExercise,
+                                        completedSets: activeExercise.completedSets.filter((_, idx) => idx !== i)
+                                      };
+                                      setExercises(newExercises);
+                                    }
+                                  }}
+                                  className="w-5 h-5 rounded border-2 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                />
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
+                                {set.type && set.type !== 'normal' && (
+                                  <SetTypeBadge type={set.type} />
+                                )}
+                              </div>
+                              {/* Botón eliminar */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newExercises = [...exercises];
+                                  newExercises[activeExerciseIndex!] = {
+                                    ...activeExercise,
+                                    completedSets: activeExercise.completedSets.filter((_, idx) => idx !== i)
+                                  };
+                                  setExercises(newExercises);
+                                }}
+                                className="p-1 text-red-400 hover:text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {set.reps} reps × {set.weight}kg
-                            </span>
+                            
+                            {/* Inputs editables */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                  Reps
+                                </label>
+                                <input
+                                  type="number"
+                                  className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  value={set.reps}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : parseInt(val);
+                                    const newExercises = [...exercises];
+                                    const updatedSets = [...activeExercise.completedSets];
+                                    updatedSets[i] = { ...updatedSets[i], reps: isNaN(num) ? 0 : Math.max(0, num) };
+                                    newExercises[activeExerciseIndex!] = {
+                                      ...activeExercise,
+                                      completedSets: updatedSets
+                                    };
+                                    setExercises(newExercises);
+                                  }}
+                                  min="0"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                  Peso (kg)
+                                </label>
+                                <input
+                                  type="number"
+                                  className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  value={set.weight}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : parseFloat(val);
+                                    const newExercises = [...exercises];
+                                    const updatedSets = [...activeExercise.completedSets];
+                                    updatedSets[i] = { ...updatedSets[i], weight: isNaN(num) ? 0 : Math.max(0, num) };
+                                    newExercises[activeExerciseIndex!] = {
+                                      ...activeExercise,
+                                      completedSets: updatedSets
+                                    };
+                                    setExercises(newExercises);
+                                  }}
+                                  step="0.5"
+                                  min="0"
+                                />
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -637,18 +721,103 @@ export default function FreeWorkoutPage() {
                         </div>
                       </div>
 
-                      {/* Expanded sets */}
+                      {/* Expanded sets con edición */}
                       {!isCollapsed && exercise.completedSets.length > 0 && (
                         <div className="mt-2 pl-8 space-y-1.5">
                           {exercise.completedSets.map((set, i) => (
-                            <div key={i} className="flex items-center justify-between text-xs p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
-                                {set.type && set.type !== 'normal' && (
-                                  <SetTypeBadge type={set.type} />
-                                )}
+                            <div key={i} className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-300 dark:border-green-700">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  {/* Checkbox */}
+                                  <input
+                                    type="checkbox"
+                                    checked={true}
+                                    onChange={(e) => {
+                                      if (!e.target.checked) {
+                                        const newExercises = [...exercises];
+                                        newExercises[index] = {
+                                          ...exercise,
+                                          completedSets: exercise.completedSets.filter((_, idx) => idx !== i)
+                                        };
+                                        setExercises(newExercises);
+                                      }
+                                    }}
+                                    className="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                  />
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
+                                  {set.type && set.type !== 'normal' && (
+                                    <SetTypeBadge type={set.type} />
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newExercises = [...exercises];
+                                    newExercises[index] = {
+                                      ...exercise,
+                                      completedSets: exercise.completedSets.filter((_, idx) => idx !== i)
+                                    };
+                                    setExercises(newExercises);
+                                  }}
+                                  className="p-1 text-red-400 hover:text-red-600"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
                               </div>
-                              <span className="font-medium">{set.reps} reps × {set.weight}kg</span>
+                              
+                              {/* Inputs editables */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Reps
+                                  </label>
+                                  <input
+                                    type="number"
+                                    className="w-full p-1.5 border rounded bg-white dark:bg-gray-700 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value={set.reps}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      const val = e.target.value;
+                                      const num = val === '' ? 0 : parseInt(val);
+                                      const newExercises = [...exercises];
+                                      const updatedSets = [...exercise.completedSets];
+                                      updatedSets[i] = { ...updatedSets[i], reps: isNaN(num) ? 0 : Math.max(0, num) };
+                                      newExercises[index] = {
+                                        ...exercise,
+                                        completedSets: updatedSets
+                                      };
+                                      setExercises(newExercises);
+                                    }}
+                                    min="0"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Peso (kg)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    className="w-full p-1.5 border rounded bg-white dark:bg-gray-700 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value={set.weight}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      const val = e.target.value;
+                                      const num = val === '' ? 0 : parseFloat(val);
+                                      const newExercises = [...exercises];
+                                      const updatedSets = [...exercise.completedSets];
+                                      updatedSets[i] = { ...updatedSets[i], weight: isNaN(num) ? 0 : Math.max(0, num) };
+                                      newExercises[index] = {
+                                        ...exercise,
+                                        completedSets: updatedSets
+                                      };
+                                      setExercises(newExercises);
+                                    }}
+                                    step="0.5"
+                                    min="0"
+                                  />
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>

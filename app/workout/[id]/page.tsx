@@ -48,7 +48,8 @@ export default function WorkoutPage() {
   const [actualWeights, setActualWeights] = useState<{[key: string]: number[]}>({});
   const [setTypes, setSetTypes] = useState<{[key: string]: import('@/types').SetType[]}>({});
   const [lastWeights, setLastWeights] = useState<{[key: string]: number[]}>({});
-  const [restOverrides, setRestOverrides] = useState<{[key: string]: number}>({});
+  const [restOverrides, setRestOverrides] = useState<{[key: string]: number}>({}); // Descanso global del ejercicio
+  const [perSetRestOverrides, setPerSetRestOverrides] = useState<{[key: string]: number[]}>({});  // Descanso por serie individual
   const [actualSetDurations, setActualSetDurations] = useState<{[key: string]: number[]}>({});
   const [actualPauseDurations, setActualPauseDurations] = useState<{[key: string]: number[]}>({});
   const [actualRestTimes, setActualRestTimes] = useState<{[key: string]: number[]}>({});
@@ -313,8 +314,12 @@ export default function WorkoutPage() {
     } else {
       // Descanso entre series
       let restTime: number;
+      const setIndex = currentSet - 1; // Índice de la serie actual (0-based)
       
-      if (restOverrides[currentExercise.id] && restOverrides[currentExercise.id] > 0) {
+      // Prioridad: 1) Override individual de la serie, 2) Override del ejercicio, 3) Configurado en ejercicio, 4) Configurado en rutina, 5) Inteligente, 6) Default 60
+      if (perSetRestOverrides[currentExercise.id] && perSetRestOverrides[currentExercise.id][setIndex]) {
+        restTime = perSetRestOverrides[currentExercise.id][setIndex];
+      } else if (restOverrides[currentExercise.id] && restOverrides[currentExercise.id] > 0) {
         restTime = restOverrides[currentExercise.id];
       } else if (currentExercise.restBetweenSets && currentExercise.restBetweenSets > 0) {
         restTime = currentExercise.restBetweenSets;
@@ -407,6 +412,15 @@ export default function WorkoutPage() {
   const handleEditRestOverride = (exerciseId: string, value: number) => {
     setRestOverrides(prev => {
       const copy = { ...prev, [exerciseId]: value };
+      return copy;
+    });
+  };
+
+  const handleEditSetRestOverride = (exerciseId: string, setIndex: number, value: number) => {
+    setPerSetRestOverrides(prev => {
+      const copy = { ...prev };
+      copy[exerciseId] = copy[exerciseId] || [];
+      copy[exerciseId][setIndex] = value;
       return copy;
     });
   };
@@ -733,9 +747,9 @@ export default function WorkoutPage() {
                   step="0.5"
                 /> */}
                 
-                  {/* Lista de series configuradas: mostrar peso/reps/estado y permitir edición en vivo */}
-                  <div className="mt-4">
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Series configuradas</h4>
+                  {/* Lista de series - Diseño compacto para móvil */}
+                  <div className="mt-3">
+                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Series</h4>
                     <div className="space-y-2">
                       {currentExercise.sets.map((set, idx) => {
                         const exerciseId = currentExercise.id;
@@ -744,28 +758,77 @@ export default function WorkoutPage() {
                         const setType = (setTypes[exerciseId] && setTypes[exerciseId][idx]) || set.type || 'normal';
                         const isCompleted = typeof doneReps === 'number' && doneReps > 0;
                         return (
-                          <div key={`${exerciseId}-s-${idx}`} className={`p-3 rounded-lg border-2 transition-all ${
+                          <div key={`${exerciseId}-s-${idx}`} className={`p-2 rounded-lg border transition-all ${
                             isCompleted 
-                              ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700' 
-                              : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600' 
+                              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
                           }`}>
-                            {/* Header de la serie */}
-                            <div className="flex items-center justify-between mb-3">
+                            {/* Header compacto */}
+                            <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm">
-                                  {idx + 1}
-                                </div>
-                                <div>
-                                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                    Serie {idx + 1}
-                                  </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                                    {set.reps} reps objetivo
-                                  </div>
+                                {/* Checkbox */}
+                                <input
+                                  type="checkbox"
+                                  checked={isCompleted}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    if (checked) {
+                                      const repsToUse = doneReps || set.reps;
+                                      const weightToUse = typeof doneWeight === 'number' ? doneWeight : (set.weight || 0);
+                                      
+                                      setActualReps(prev => {
+                                        const copy = { ...prev };
+                                        copy[exerciseId] = copy[exerciseId] || [];
+                                        copy[exerciseId][idx] = repsToUse;
+                                        return copy;
+                                      });
+                                      
+                                      setActualWeights(prev => {
+                                        const copy = { ...prev };
+                                        copy[exerciseId] = copy[exerciseId] || [];
+                                        copy[exerciseId][idx] = weightToUse;
+                                        return copy;
+                                      });
+                                      
+                                      setCompletedSets(prev => ({
+                                        ...prev,
+                                        [exerciseId]: (prev[exerciseId] || 0) + 1
+                                      }));
+                                    } else {
+                                      setActualReps(prev => {
+                                        const copy = { ...prev };
+                                        if (copy[exerciseId]) {
+                                          copy[exerciseId][idx] = null as any;
+                                        }
+                                        return copy;
+                                      });
+                                      
+                                      setActualWeights(prev => {
+                                        const copy = { ...prev };
+                                        if (copy[exerciseId]) {
+                                          copy[exerciseId][idx] = null as any;
+                                        }
+                                        return copy;
+                                      });
+                                      
+                                      setCompletedSets(prev => ({
+                                        ...prev,
+                                        [exerciseId]: Math.max(0, (prev[exerciseId] || 0) - 1)
+                                      }));
+                                    }
+                                  }}
+                                  className="w-5 h-5 rounded border-2 border-gray-400 dark:border-gray-500 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer flex-shrink-0"
+                                />
+                                
+                                {/* Número de serie */}
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100">#{idx + 1}</span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">•</span>
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">{set.reps} reps</span>
                                 </div>
                               </div>
                               
-                              {/* Selector de tipo de serie */}
+                              {/* Tipo de serie - más compacto */}
                               <SetTypeSelector
                                 value={setType}
                                 onChange={(type) => handleEditSetType(exerciseId, idx, type)}
@@ -773,15 +836,34 @@ export default function WorkoutPage() {
                               />
                             </div>
 
-                            {/* Inputs de peso y descanso */}
-                            <div className="grid grid-cols-2 gap-3">
+                            {/* Inputs en grid compacto */}
+                            <div className="grid grid-cols-3 gap-1.5">
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                  Peso (kg)
-                                </label>
                                 <input
                                   type="number"
-                                  className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  value={doneReps || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : parseInt(val);
+                                    setActualReps(prev => {
+                                      const copy = { ...prev };
+                                      copy[exerciseId] = copy[exerciseId] || [];
+                                      copy[exerciseId][idx] = isNaN(num) ? 0 : Math.max(0, num);
+                                      return copy;
+                                    });
+                                  }}
+                                  min="0"
+                                  placeholder={set.reps.toString()}
+                                  aria-label="Repeticiones"
+                                />
+                                <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">reps</div>
+                              </div>
+                              
+                              <div>
+                                <input
+                                  type="number"
+                                  className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   value={doneWeight === 0 ? '' : doneWeight}
                                   onChange={(e) => {
                                     const val = e.target.value;
@@ -794,34 +876,60 @@ export default function WorkoutPage() {
                                   }}
                                   step="0.5"
                                   min="0"
-                                  placeholder="Peso en kg"
+                                  placeholder={(set.weight || 0).toString()}
+                                  aria-label="Peso"
                                 />
+                                <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">kg</div>
                               </div>
                               
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                  Descanso (s)
-                                </label>
                                 <select
-                                  className="w-full p-2 border rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  value={restOverrides[currentExercise.id] ?? currentExercise.restBetweenSets ?? routine.restBetweenSets ?? 60}
+                                  className="w-full px-1 py-2 border rounded-md bg-white dark:bg-gray-700 text-xs font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                                  value={
+                                    (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
+                                    restOverrides[currentExercise.id] ?? 
+                                    currentExercise.restBetweenSets ?? 
+                                    routine.restBetweenSets ?? 
+                                    60
+                                  }
                                   onChange={(e) => {
                                     const v = parseInt(e.target.value || '0');
-                                    handleEditRestOverride(currentExercise.id, v);
+                                    handleEditSetRestOverride(currentExercise.id, idx, v);
                                   }}
+                                  aria-label="Descanso"
                                 >
-                                  {Array.from({ length: 60 }, (_, i) => (i + 1) * 5).map(sec => (
-                                    <option key={sec} value={sec}>{sec}s</option>
-                                  ))}
+                                  {(() => {
+                                    const currentValue = (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
+                                                        restOverrides[currentExercise.id] ?? 
+                                                        currentExercise.restBetweenSets ?? 
+                                                        routine.restBetweenSets ?? 
+                                                        60;
+                                    const standardOptions = Array.from({ length: 60 }, (_, i) => (i + 1) * 5);
+                                    
+                                    if (!standardOptions.includes(currentValue)) {
+                                      const allOptions = [...standardOptions, currentValue].sort((a, b) => a - b);
+                                      return allOptions.map(sec => (
+                                        <option key={sec} value={sec}>
+                                          {sec >= 60 ? `${Math.floor(sec / 60)}m` : `${sec}s`}
+                                        </option>
+                                      ));
+                                    }
+                                    
+                                    return standardOptions.map(sec => (
+                                      <option key={sec} value={sec}>
+                                        {sec >= 60 ? `${Math.floor(sec / 60)}m` : `${sec}s`}
+                                      </option>
+                                    ));
+                                  })()}
                                 </select>
+                                <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">desc</div>
                               </div>
                             </div>
 
                             {/* Indicador de completado */}
                             {isCompleted && (
-                              <div className="mt-2 flex items-center gap-2 text-xs text-green-700 dark:text-green-300">
-                                <span>✓</span>
-                                <span>Completada: {doneReps} reps @ {doneWeight}kg</span>
+                              <div className="mt-1.5 text-xs text-green-700 dark:text-green-300 font-medium">
+                                ✓ {doneReps} × {doneWeight}kg
                               </div>
                             )}
                           </div>
@@ -831,34 +939,24 @@ export default function WorkoutPage() {
                   </div>
               </div>
               
-              {/* Información de descanso */}
-              <div className="mt-4 space-y-3">
-                {/* Tiempo de descanso configurado */}
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">⏱️</span>
-                      <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                        Descanso entre series
-                      </span>
-                    </div>
-                    <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+              {/* Información de descanso - Compacta */}
+              <div className="mt-3 space-y-2">
+                {/* Descanso configurado - más compacto */}
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-blue-900 dark:text-blue-100">
+                      ⏱️ Descanso base
+                    </span>
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
                       {(() => {
                         const restSecs = currentExercise.restBetweenSets || routine.restBetweenSets || 60;
-                        return `${Math.floor(restSecs / 60)}:${(restSecs % 60).toString().padStart(2, '0')}`;
+                        return restSecs >= 60 ? `${Math.floor(restSecs / 60)}min` : `${restSecs}s`;
                       })()}
                     </span>
                   </div>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    {currentExercise.restBetweenSets 
-                      ? '⚙️ Configurado para este ejercicio'
-                      : routine.restBetweenSets 
-                        ? '⚙️ Configurado en la rutina'
-                        : '⚙️ Valor por defecto (60s)'}
-                  </p>
                 </div>
 
-                {/* Toggle y sugerencia inteligente */}
+                {/* Descanso inteligente - más compacto */}
                 {(() => {
                   const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
                   if (exerciseTemplate) {
@@ -870,50 +968,51 @@ export default function WorkoutPage() {
                       'intermediate'
                     );
                     return (
-                      <div className={`p-3 rounded-lg border ${
+                      <div className={`p-2 rounded-md border ${
                         useSmartRest 
                           ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' 
                           : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                       }`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">🧠</span>
-                            <span className={`text-sm font-semibold ${
-                              useSmartRest 
-                                ? 'text-purple-900 dark:text-purple-100' 
-                                : 'text-gray-700 dark:text-gray-300'
-                            }`}>
-                              Descanso inteligente
-                            </span>
-                          </div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className={`text-xs font-medium ${
+                            useSmartRest 
+                              ? 'text-purple-900 dark:text-purple-100' 
+                              : 'text-gray-700 dark:text-gray-300'
+                          }`}>
+                            🧠 Inteligente
+                          </span>
                           <button
                             type="button"
                             onClick={() => setUseSmartRest(!useSmartRest)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                               useSmartRest ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
                             }`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              useSmartRest ? 'translate-x-6' : 'translate-x-1'
+                            <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                              useSmartRest ? 'translate-x-5' : 'translate-x-1'
                             }`} />
                           </button>
                         </div>
-                        {useSmartRest ? (
+                        {useSmartRest && (
                           <>
-                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mb-1">
+                            <div className="text-base font-bold text-purple-600 dark:text-purple-400 mb-1">
                               {formatRestTime(restRecommendation.recommended)}
                             </div>
-                            <p className="text-xs text-purple-700 dark:text-purple-300">
+                            <p className="text-xs text-purple-700 dark:text-purple-300 mb-1.5">
                               {restRecommendation.description}
                             </p>
-                            <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                              Rango: {formatRestTime(restRecommendation.min)} - {formatRestTime(restRecommendation.max)}
-                            </p>
+                            
+                            {/* Botón compacto para aplicar a todas */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleEditRestOverride(currentExercise.id, restRecommendation.recommended);
+                              }}
+                              className="w-full py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md transition-colors"
+                            >
+                              ⚡ Aplicar a todas
+                            </button>
                           </>
-                        ) : (
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Actívalo para usar tiempos calculados según el tipo de ejercicio y series
-                          </p>
                         )}
                       </div>
                     );
@@ -978,7 +1077,7 @@ export default function WorkoutPage() {
           </p>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selecciona duración</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Duración del entrenamiento</label>
             <select
               value={Math.floor(proposedDuration / 60)}
               onChange={(e) => setProposedDuration(Math.max(0, parseInt(e.target.value || '0')) * 60)}
