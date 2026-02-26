@@ -79,7 +79,7 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
     } else {
       const num = parseFloat(val);
       if (!isNaN(num) && num >= 0) {
-        onChange(num);
+        onChange(Math.max(0, num)); // Asegurar que nunca sea negativo
       }
     }
   };
@@ -89,6 +89,7 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
     if (!isNaN(num) && num > 0) {
       saveWeight(num);
     }
+    // Si el valor es 0 o vacío, no guardarlo en el historial
   };
 
   const handleSelectWeight = (weight: number) => {
