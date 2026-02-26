@@ -230,38 +230,10 @@ export const Timer: React.FC<TimerProps> = ({
         </div>
       </div>
 
-      {/* Ajustes rápidos de tiempo */}
-      {!isCompleted && (
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAdjustTime(-15)}
-            className="flex items-center gap-1"
-            disabled={timeLeft <= 15}
-          >
-            <Minus className="w-4 h-4" />
-            <span className="text-xs">15s</span>
-          </Button>
-          <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
-            Ajustar tiempo
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAdjustTime(15)}
-            className="flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-xs">15s</span>
-          </Button>
-        </div>
-      )}
-
       {isCompleted && (
-        <div className="mb-4 sm:mb-6">
+        <div className="mb-6">
           <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-500 dark:border-green-400 mb-3">
-            <div className="text-green-600 dark:text-green-400 text-lg sm:text-xl font-bold text-center mb-2 animate-bounce">
+            <div className="text-green-600 dark:text-green-400 text-xl font-bold text-center mb-2 animate-bounce">
               {t ? t('restCompleted') : '✓ ¡Descanso Completado!'}
             </div>
             <p className="text-green-700 dark:text-green-300 text-sm text-center">
@@ -308,8 +280,10 @@ export const Timer: React.FC<TimerProps> = ({
       
       {/* Información adicional */}
       {!isCompleted && timeLeft > 0 && (
-        <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>Tiempo planificado: {formatRestTime(plannedDuration)}</p>
+        <div className="mb-4 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Tiempo planificado: {formatRestTime(plannedDuration)}
+          </p>
           {hasAdjusted && (
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
               ⚙️ Ajustado manualmente
@@ -318,60 +292,77 @@ export const Timer: React.FC<TimerProps> = ({
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 justify-center">
+      {/* Botones de acción */}
+      <div className="space-y-3">
         {!isCompleted ? (
           <>
-            {/* Botones de ajuste rápido */}
-            <div className="flex gap-2 w-full justify-center mb-2">
+            {/* Botones de ajuste rápido - Diseño limpio */}
+            <div className="flex items-center justify-center gap-3">
               <Button
                 variant="ghost"
                 onClick={() => {
                   setTimeLeft(prev => Math.max(0, prev - 30));
                   setHasAdjusted(true);
                 }}
-                size="sm"
-                className="relative z-10 flex items-center gap-1"
+                size="lg"
+                className="flex items-center gap-2 px-6"
                 disabled={timeLeft <= 30}
               >
-                <Minus className="w-4 h-4" />
-                30s
+                <Minus className="w-5 h-5" />
+                <span className="font-semibold">30s</span>
               </Button>
+              
               <Button
                 variant="ghost"
                 onClick={() => {
                   setTimeLeft(prev => prev + 30);
                   setHasAdjusted(true);
                 }}
-                size="sm"
-                className="relative z-10 flex items-center gap-1"
+                size="lg"
+                className="flex items-center gap-2 px-6"
               >
-                <Plus className="w-4 h-4" />
-                30s
+                <Plus className="w-5 h-5" />
+                <span className="font-semibold">30s</span>
               </Button>
             </div>
 
-            {/* Botones principales */}
-            <Button
-              variant={isRunning ? 'secondary' : 'primary'}
-              onClick={handleStartPause}
-              size="lg"
-              className="relative z-10 flex-1 sm:flex-none"
-            >
-              {isRunning ? `⏸️ ${t ? t('pause') : 'Pausar'}` : `▶️ ${t ? t('start') : 'Iniciar'}`}
-            </Button>
-            <Button variant="ghost" onClick={handleReset} size="lg" className="relative z-10">
-              🔄
-            </Button>
-            <Button variant="primary" onClick={handleSkip} size="lg" className="relative z-10 bg-orange-600 hover:bg-orange-700">
-              ⏭️ Saltar
-            </Button>
+            {/* Botones principales - Centrados y espaciados */}
+            <div className="flex items-center justify-center gap-3">
+              <Button
+                variant={isRunning ? 'secondary' : 'primary'}
+                onClick={handleStartPause}
+                size="lg"
+                className="px-8 py-3 text-base font-semibold"
+              >
+                {isRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+              </Button>
+              
+              <Button 
+                variant="primary" 
+                onClick={handleSkip} 
+                size="lg"
+                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700"
+              >
+                ⏭️ Saltar
+              </Button>
+            </div>
           </>
         ) : (
-          <div className="flex flex-col gap-2 w-full">
-            <Button variant="primary" onClick={() => { if (onComplete) onComplete(); }} size="lg" className="w-full relative z-10">
+          <div className="space-y-2">
+            <Button 
+              variant="primary" 
+              onClick={() => { if (onComplete) onComplete(); }} 
+              size="lg" 
+              className="w-full py-4 text-lg font-bold"
+            >
               ✅ Continuar
             </Button>
-            <Button variant="ghost" onClick={handleReset} size="lg" className="w-full relative z-10">
+            <Button 
+              variant="ghost" 
+              onClick={handleReset} 
+              size="lg" 
+              className="w-full"
+            >
               🔄 Más descanso
             </Button>
           </div>

@@ -60,22 +60,33 @@ await haptics.heavy();
 **Archivo:** `components/Timer.tsx`
 
 **Descripción:**  
-Botones para ajustar el tiempo de descanso sobre la marcha sin interrumpir el flujo del entrenamiento.
+Timer rediseñado con interfaz limpia, profesional y centrada. Botones de ajuste rápido sin duplicación.
 
 **Funcionalidades:**
 - **+30s** - Agregar 30 segundos al descanso actual
 - **-30s** - Reducir 30 segundos al descanso actual
-- **Saltar** - Botón más visible y destacado (naranja)
-- **Pausar** - Pausar el timer si necesitas más tiempo
+- **Pausar/Iniciar** - Control del timer
+- **Saltar** - Botón destacado en naranja para saltar el descanso
 
-**Diseño:**
+**Diseño Mejorado:**
 ```
 ┌─────────────────────────────┐
-│     [-30s]    [+30s]        │
+│    Cronómetro Circular      │
+│         Grande              │
 │                             │
-│  [Pausar] [🔄] [⏭️ Saltar] │
+│    [-30s]    [+30s]        │
+│                             │
+│  [⏸️ Pausar] [⏭️ Saltar]   │
 └─────────────────────────────┘
 ```
+
+**Mejoras Implementadas:**
+- ✅ Eliminada duplicación de botones +30s/-30s
+- ✅ Diseño centrado en todos los dispositivos
+- ✅ Botones más grandes y espaciados
+- ✅ Cronómetro circular prominente
+- ✅ Layout profesional y limpio
+- ✅ Responsive para móvil y desktop
 
 **Casos de uso:**
 - Necesitas 30s más de descanso → Click en +30s
@@ -84,10 +95,11 @@ Botones para ajustar el tiempo de descanso sobre la marcha sin interrumpir el fl
 - Máquina ocupada → Pausar y esperar
 
 **Beneficios:**
-- Flexibilidad en tiempo real
-- No necesitas cancelar y reiniciar
+- Interfaz más limpia y profesional
+- Botones fáciles de presionar durante el entrenamiento
+- Sin confusión por botones duplicados
+- Mejor experiencia visual
 - Adaptación a cómo te sientes
-- Botones grandes y fáciles de presionar
 
 ---
 
