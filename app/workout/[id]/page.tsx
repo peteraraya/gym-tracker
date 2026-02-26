@@ -641,13 +641,29 @@ export default function WorkoutPage() {
     handleTimerComplete();
   };
 
+  // Ocultar navbar cuando se muestra el timer
+  useEffect(() => {
+    if (showTimer) {
+      // Agregar clase al body para ocultar navbar
+      document.body.classList.add('hide-navbar');
+    } else {
+      document.body.classList.remove('hide-navbar');
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      document.body.classList.remove('hide-navbar');
+    };
+  }, [showTimer]);
+
   if (showTimer) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <Timer
-            duration={timerDuration}
-            onComplete={handleTimerComplete}
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 overflow-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <Timer
+              duration={timerDuration}
+              onComplete={handleTimerComplete}
             autoStart={true}
             title={timerTitle}
             nextExerciseName={nextExerciseName}

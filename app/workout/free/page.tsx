@@ -356,25 +356,40 @@ export default function FreeWorkoutPage() {
 
   const activeExercise = activeExerciseIndex !== null ? exercises[activeExerciseIndex] : null;
 
+  // Ocultar navbar cuando se muestra el timer
+  useEffect(() => {
+    if (showTimer) {
+      document.body.classList.add('hide-navbar');
+    } else {
+      document.body.classList.remove('hide-navbar');
+    }
+
+    return () => {
+      document.body.classList.remove('hide-navbar');
+    };
+  }, [showTimer]);
+
   // Timer screen
   if (showTimer) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <Timer
-            duration={timerDuration}
-            onComplete={handleTimerComplete}
-            autoStart={true}
-            title={timerTitle}
-            showMotivation={true}
-            onActualDurationChange={handleActualRestDuration}
-          />
-          <div className="mt-6 text-center space-y-3">
-            <Button variant="ghost" onClick={handleTimerComplete} className="w-full">
-              ⏭️ Saltar descanso
-            </Button>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              <p>💡 Tip: Aprovecha para hidratarte y respirar profundo</p>
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 overflow-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <Timer
+              duration={timerDuration}
+              onComplete={handleTimerComplete}
+              autoStart={true}
+              title={timerTitle}
+              showMotivation={true}
+              onActualDurationChange={handleActualRestDuration}
+            />
+            <div className="mt-6 text-center space-y-3">
+              <Button variant="ghost" onClick={handleTimerComplete} className="w-full">
+                ⏭️ Saltar descanso
+              </Button>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                <p>💡 Tip: Aprovecha para hidratarte y respirar profundo</p>
+              </div>
             </div>
           </div>
         </div>

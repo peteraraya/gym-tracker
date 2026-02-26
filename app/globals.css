@@ -255,3 +255,14 @@ body {
   --halo-2: rgba(99,102,241,0.05);
   animation: haloPulse 3s ease-in-out infinite;
 }
+
+
+/* Ocultar navbar cuando se muestra el timer de descanso */
+body.hide-navbar nav,
+body.hide-navbar header {
+  display: none !important;
+}
+
+body.hide-navbar {
+  padding-bottom: 0 !important;
+}
