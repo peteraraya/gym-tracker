@@ -62,6 +62,8 @@ export interface WorkoutSession {
   totalPausedTime?: number; // Tiempo total pausado en el entrenamiento
 }
 
+export type Session = WorkoutSession;
+
 export type FitnessGoal = 
   | 'muscle_gain'      // Ganar músculo/hipertrofia
   | 'strength'         // Ganar fuerza
