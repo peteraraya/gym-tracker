@@ -41,8 +41,8 @@ interface WorkoutContextType {
     }
   ) => void;
   clearRestState: () => void;
-  finishWorkout: () => void;
-  cancelWorkout: () => void;
+  finishWorkout: () => Promise<void>;
+  cancelWorkout: () => Promise<void>;
   isWorkoutActive: boolean;
 }
 
@@ -213,26 +213,26 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const finishWorkout = useCallback(() => {
+  const finishWorkout = useCallback(async () => {
+    // Actualizar la ref inmediatamente para evitar restauración
+    activeWorkoutRef.current = null;
     setActiveWorkout(null);
-    (async () => {
-      try {
-        await storageService.clearActiveWorkout();
-      } catch (e) {
-        console.error('[WorkoutContext] Error limpiando active workout:', e);
-      }
-    })();
+    try {
+      await storageService.clearActiveWorkout();
+    } catch (e) {
+      console.error('[WorkoutContext] Error limpiando active workout:', e);
+    }
   }, []);
 
-  const cancelWorkout = useCallback(() => {
+  const cancelWorkout = useCallback(async () => {
+    // Actualizar la ref inmediatamente para evitar restauración
+    activeWorkoutRef.current = null;
     setActiveWorkout(null);
-    (async () => {
-      try {
-        await storageService.clearActiveWorkout();
-      } catch (e) {
-        console.error('[WorkoutContext] Error limpiando active workout:', e);
-      }
-    })();
+    try {
+      await storageService.clearActiveWorkout();
+    } catch (e) {
+      console.error('[WorkoutContext] Error limpiando active workout:', e);
+    }
   }, []);
 
   // Manejar ciclo de vida de la app para persistir workout
@@ -261,9 +261,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       if (process.env.NODE_ENV === 'development') {
         console.debug('[WorkoutContext] App resumed, checking workout state...');
       }
-      (async () => {
+      
+      // Esperar un poco para asegurar que clearActiveWorkout se completó
+      setTimeout(async () => {
         try {
           const stored = await storageService.getActiveWorkout();
+          // Solo restaurar si hay datos en storage Y no hay workout en memoria
           if (stored && !activeWorkoutRef.current) {
             if (process.env.NODE_ENV === 'development') {
               console.debug('[WorkoutContext] Restoring workout from storage');
@@ -285,11 +288,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
               restTimerStartedAt: typeof s.restTimerStartedAt === 'number' ? s.restTimerStartedAt : undefined,
             };
             setActiveWorkout(parsed);
+            activeWorkoutRef.current = parsed;
           }
         } catch (e) {
           console.error('[WorkoutContext] Error restoring workout on resume:', e);
         }
-      })();
+      }, 100); // Pequeño delay para asegurar que clearActiveWorkout se completó
     }, [])
   });
 
