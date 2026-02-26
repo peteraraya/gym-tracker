@@ -13,7 +13,7 @@ import { Timer } from '@/components/Timer';
 import { SetTimer } from '@/components/SetTimer';
 import { WorkoutGlobalTimer } from '@/components/WorkoutGlobalTimer';
 import { PreparationCountdown } from '@/components/PreparationCountdown';
-import SetTypeSelector from '@/components/SetTypeSelector';
+import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
 import { WeightSelector } from '@/components/WeightSelector';
 import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -832,7 +832,7 @@ export default function WorkoutPage() {
                   step="0.5"
                 /> */}
                 
-                  {/* Lista de series - Diseño compacto para móvil */}
+                  {/* Lista de series - Diseño compacto con collapse */}
                   <div className="mt-3">
                     <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Series</h4>
                     <div className="space-y-2">
@@ -842,15 +842,16 @@ export default function WorkoutPage() {
                         const doneWeight = (actualWeights[exerciseId] && actualWeights[exerciseId][idx]) ?? lastWeights[exerciseId]?.[idx] ?? set.weight ?? '';
                         const setType = (setTypes[exerciseId] && setTypes[exerciseId][idx]) || set.type || 'normal';
                         const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                        
                         return (
-                          <div key={`${exerciseId}-s-${idx}`} className={`p-2 rounded-lg border transition-all ${
+                          <div key={`${exerciseId}-s-${idx}`} className={`rounded-lg border transition-all ${
                             isCompleted 
                               ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600' 
                               : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
                           }`}>
-                            {/* Header compacto */}
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
+                            {/* Header - siempre visible */}
+                            <div className="p-2 flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-1">
                                 {/* Checkbox */}
                                 <input
                                   type="checkbox"
@@ -877,7 +878,6 @@ export default function WorkoutPage() {
                                       
                                       setCompletedSets(prev => {
                                         const newCount = (prev[exerciseId] || 0) + 1;
-                                        // Si completamos una serie, avanzar currentSet si es necesario
                                         if (idx + 1 === currentSet) {
                                           setCurrentSet(Math.min(currentSet + 1, currentExercise.sets.length));
                                         }
@@ -912,111 +912,125 @@ export default function WorkoutPage() {
                                   className="w-5 h-5 rounded border-2 border-gray-400 dark:border-gray-500 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer flex-shrink-0"
                                 />
                                 
-                                {/* Número de serie */}
-                                <div className="flex items-center gap-1.5">
+                                {/* Info de la serie */}
+                                <div className="flex items-center gap-2 flex-1">
                                   <span className="text-sm font-bold text-gray-900 dark:text-gray-100">#{idx + 1}</span>
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">•</span>
-                                  <span className="text-xs text-gray-600 dark:text-gray-400">{set.reps} reps</span>
+                                  
+                                  {isCompleted ? (
+                                    // Vista colapsada - Resumen compacto
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <span className="text-green-700 dark:text-green-300 font-semibold">
+                                        ✓ {doneReps} × {typeof doneWeight === 'number' ? doneWeight : 0}kg
+                                      </span>
+                                      {setType && setType !== 'normal' && (
+                                        <SetTypeBadge type={setType} />
+                                      )}
+                                    </div>
+                                  ) : (
+                                    // Vista expandida - Info básica
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">
+                                      {set.reps} reps • {set.weight || 0}kg
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               
-                              {/* Tipo de serie - más compacto */}
-                              <SetTypeSelector
-                                value={setType}
-                                onChange={(type) => handleEditSetType(exerciseId, idx, type)}
-                                compact
-                              />
+                              {/* Tipo de serie - solo visible cuando NO está completada */}
+                              {!isCompleted && (
+                                <SetTypeSelector
+                                  value={setType}
+                                  onChange={(type) => handleEditSetType(exerciseId, idx, type)}
+                                  compact
+                                />
+                              )}
                             </div>
 
-                            {/* Inputs en grid compacto */}
-                            <div className="grid grid-cols-3 gap-1.5">
-                              <div>
-                                <input
-                                  type="number"
-                                  className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  value={doneReps || ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    const num = val === '' ? 0 : parseInt(val);
-                                    setActualReps(prev => {
-                                      const copy = { ...prev };
-                                      copy[exerciseId] = copy[exerciseId] || [];
-                                      copy[exerciseId][idx] = isNaN(num) ? 0 : Math.max(0, num);
-                                      return copy;
-                                    });
-                                  }}
-                                  min="0"
-                                  placeholder={set.reps.toString()}
-                                  aria-label="Repeticiones"
-                                />
-                                <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">reps</div>
-                              </div>
-                              
-                              <div>
-                                <WeightSelector
-                                  value={doneWeight === 0 ? '' : doneWeight}
-                                  onChange={(weight) => handleEditWeight(currentExercise.id, idx, weight)}
-                                  exerciseId={currentExercise.id}
-                                  placeholder={(set.weight || 0).toString()}
-                                />
-                                <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">kg</div>
-                              </div>
-                              
-                              <div>
-                                <select
-                                  className="w-full px-1 py-2 border rounded-md bg-white dark:bg-gray-700 text-xs font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                                  value={
-                                    (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
-                                    restOverrides[currentExercise.id] ?? 
-                                    currentExercise.restBetweenSets ?? 
-                                    routine.restBetweenSets ?? 
-                                    60
-                                  }
-                                  onChange={(e) => {
-                                    const v = parseInt(e.target.value || '0');
-                                    handleEditSetRestOverride(currentExercise.id, idx, v);
-                                  }}
-                                  aria-label="Descanso"
-                                >
-                                  {(() => {
-                                    const currentValue = (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
-                                                        restOverrides[currentExercise.id] ?? 
-                                                        currentExercise.restBetweenSets ?? 
-                                                        routine.restBetweenSets ?? 
-                                                        60;
-                                    const standardOptions = Array.from({ length: 60 }, (_, i) => (i + 1) * 5);
-                                    
-                                    const formatTime = (sec: number) => {
-                                      if (sec < 60) return `${sec}s`;
-                                      const mins = Math.floor(sec / 60);
-                                      const secs = sec % 60;
-                                      return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
-                                    };
-                                    
-                                    if (!standardOptions.includes(currentValue)) {
-                                      const allOptions = [...standardOptions, currentValue].sort((a, b) => a - b);
-                                      return allOptions.map(sec => (
-                                        <option key={sec} value={sec}>
-                                          {formatTime(sec)}
-                                        </option>
-                                      ));
-                                    }
-                                    
-                                    return standardOptions.map(sec => (
-                                      <option key={sec} value={sec}>
-                                        {formatTime(sec)}
-                                      </option>
-                                    ));
-                                  })()}
-                                </select>
-                                <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">desc</div>
-                              </div>
-                            </div>
-
-                            {/* Indicador de completado */}
-                            {isCompleted && (
-                              <div className="mt-1.5 text-xs text-green-700 dark:text-green-300 font-medium">
-                                ✓ {doneReps} × {doneWeight}kg
+                            {/* Inputs - solo visible cuando NO está completada */}
+                            {!isCompleted && (
+                              <div className="px-2 pb-2">
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  <div>
+                                    <input
+                                      type="number"
+                                      className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      value={doneReps || ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        const num = val === '' ? 0 : parseInt(val);
+                                        setActualReps(prev => {
+                                          const copy = { ...prev };
+                                          copy[exerciseId] = copy[exerciseId] || [];
+                                          copy[exerciseId][idx] = isNaN(num) ? 0 : Math.max(0, num);
+                                          return copy;
+                                        });
+                                      }}
+                                      min="0"
+                                      placeholder={set.reps.toString()}
+                                      aria-label="Repeticiones"
+                                    />
+                                    <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">reps</div>
+                                  </div>
+                                  
+                                  <div>
+                                    <WeightSelector
+                                      value={doneWeight === 0 ? '' : doneWeight}
+                                      onChange={(weight) => handleEditWeight(currentExercise.id, idx, weight)}
+                                      exerciseId={currentExercise.id}
+                                      placeholder={(set.weight || 0).toString()}
+                                    />
+                                    <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">kg</div>
+                                  </div>
+                                  
+                                  <div>
+                                    <select
+                                      className="w-full px-1 py-2 border rounded-md bg-white dark:bg-gray-700 text-xs font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                                      value={
+                                        (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
+                                        restOverrides[currentExercise.id] ?? 
+                                        currentExercise.restBetweenSets ?? 
+                                        routine.restBetweenSets ?? 
+                                        60
+                                      }
+                                      onChange={(e) => {
+                                        const v = parseInt(e.target.value || '0');
+                                        handleEditSetRestOverride(currentExercise.id, idx, v);
+                                      }}
+                                      aria-label="Descanso"
+                                    >
+                                      {(() => {
+                                        const currentValue = (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
+                                                            restOverrides[currentExercise.id] ?? 
+                                                            currentExercise.restBetweenSets ?? 
+                                                            routine.restBetweenSets ?? 
+                                                            60;
+                                        const standardOptions = Array.from({ length: 60 }, (_, i) => (i + 1) * 5);
+                                        
+                                        const formatTime = (sec: number) => {
+                                          if (sec < 60) return `${sec}s`;
+                                          const mins = Math.floor(sec / 60);
+                                          const secs = sec % 60;
+                                          return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+                                        };
+                                        
+                                        if (!standardOptions.includes(currentValue)) {
+                                          const allOptions = [...standardOptions, currentValue].sort((a, b) => a - b);
+                                          return allOptions.map(sec => (
+                                            <option key={sec} value={sec}>
+                                              {formatTime(sec)}
+                                            </option>
+                                          ));
+                                        }
+                                        
+                                        return standardOptions.map(sec => (
+                                          <option key={sec} value={sec}>
+                                            {formatTime(sec)}
+                                          </option>
+                                        ));
+                                      })()}
+                                    </select>
+                                    <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">desc</div>
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </div>
