@@ -20,6 +20,9 @@ export const FloatingCreateRoutine: React.FC = () => {
 
   // Ocultar en la ruta /routines y sus subrutas
   if (pathname && pathname.startsWith('/routines')) return null;
+  
+  // Ocultar en las rutas de workout (entrenamiento activo)
+  if (pathname && pathname.startsWith('/workout')) return null;
 
   return (
     <div className="fixed left-6 bottom-20 z-40">
