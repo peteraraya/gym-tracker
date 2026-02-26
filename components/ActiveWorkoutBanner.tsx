@@ -2,19 +2,28 @@
 
 import { useWorkout } from '@/context/WorkoutContext';
 import { useConfirm } from '@/context/ConfirmContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Activity, X } from '@/components/icons/lucide';
-import { Button } from './ui/Button';
 
 export function ActiveWorkoutBanner() {
   const { activeWorkout, cancelWorkout } = useWorkout();
   const { confirm } = useConfirm();
   const router = useRouter();
+  const pathname = usePathname();
 
+  // No mostrar el banner si no hay workout activo
   if (!activeWorkout) return null;
 
+  // No mostrar el banner si ya estamos en una página de workout
+  if (pathname?.startsWith('/workout')) return null;
+
   const handleContinue = () => {
-    router.push(`/workout/${activeWorkout.routineId}`);
+    // Determinar la ruta correcta según el tipo de entrenamiento
+    const targetRoute = activeWorkout.routineId === 'free-training' 
+      ? '/workout/free' 
+      : `/workout/${activeWorkout.routineId}`;
+    
+    router.push(targetRoute);
   };
 
   const handleCancel = async () => {
@@ -42,43 +51,42 @@ export function ActiveWorkoutBanner() {
   };
 
   return (
-    <>
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="bg-linear-to-r from-emerald-500 to-green-600 text-white px-4 py-2 shadow-lg">
-          <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Activity className="w-5 h-5 animate-pulse" />
-          <div>
-            <p className="font-semibold text-sm">
-              Entrenamiento activo: {activeWorkout.routineName}
-            </p>
-            <p className="text-xs opacity-90">
-              Ejercicio {activeWorkout.currentExerciseIndex + 1} · Serie {activeWorkout.currentSet}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleContinue}
-            className="text-white hover:bg-white/20"
-          >
-            Continuar
-          </Button>
-          <button
-            onClick={handleCancel}
-            className="p-1 hover:bg-white/20 rounded transition-colors"
-            aria-label="Cancelar entrenamiento"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+      <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg border-t-2 border-emerald-400">
+        <div className="container mx-auto px-3 py-2">
+          <div className="flex items-center justify-between gap-3">
+            {/* Info compacta */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Activity className="w-4 h-4 flex-shrink-0 animate-pulse" />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-xs truncate">
+                  {activeWorkout.routineName}
+                </p>
+                <p className="text-[10px] opacity-90">
+                  Ej. {activeWorkout.currentExerciseIndex + 1} · Serie {activeWorkout.currentSet}
+                </p>
+              </div>
+            </div>
+            
+            {/* Botones compactos */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                onClick={handleContinue}
+                className="px-3 py-1.5 text-xs font-semibold bg-white/20 hover:bg-white/30 rounded-md transition-colors whitespace-nowrap"
+              >
+                Continuar
+              </button>
+              <button
+                onClick={handleCancel}
+                className="p-1.5 hover:bg-white/20 rounded-md transition-colors"
+                aria-label="Cancelar entrenamiento"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      {/* spacer to keep layout from jumping when banner is fixed */}
-      <div aria-hidden className="h-12 md:h-14" />
-    </>
+    </div>
   );
 }

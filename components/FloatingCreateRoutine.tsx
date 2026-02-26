@@ -22,7 +22,7 @@ export const FloatingCreateRoutine: React.FC = () => {
   if (pathname && pathname.startsWith('/routines')) return null;
 
   return (
-    <div className="fixed left-6 bottom-6 z-50">
+    <div className="fixed left-6 bottom-20 z-40">
       <Link href={href} aria-label={ariaLabel} className="group">
         <div className="flex items-center gap-3 bg-gradient-to-br from-blue-600 to-purple-600 text-white px-4 py-3 rounded-full shadow-lg hover:scale-105 transform transition">
           <div className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-full">
