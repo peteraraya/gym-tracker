@@ -69,6 +69,10 @@ export default function WorkoutPage() {
   const [isExecutingSet, setIsExecutingSet] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   
+  // Estados para drag and drop
+  const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  
   // Ref para sincronización de actualWeights
   const prevActualWeightsRef = React.useRef(actualWeights);
 
@@ -676,6 +680,29 @@ export default function WorkoutPage() {
       copy[exerciseId][setIndex] = value;
       return copy;
     });
+  };
+
+  const handleMoveExercise = (fromIndex: number, toIndex: number) => {
+    if (!routine || fromIndex === toIndex) return;
+    
+    const newExercises = [...routine.exercises];
+    const [movedExercise] = newExercises.splice(fromIndex, 1);
+    newExercises.splice(toIndex, 0, movedExercise);
+    
+    // Actualizar la rutina con el nuevo orden
+    const updatedRoutine = { ...routine, exercises: newExercises };
+    setRoutine(updatedRoutine);
+    
+    // Ajustar el índice del ejercicio actual si es necesario
+    if (currentExerciseIndex === fromIndex) {
+      setCurrentExerciseIndex(toIndex);
+    } else if (fromIndex < currentExerciseIndex && toIndex >= currentExerciseIndex) {
+      setCurrentExerciseIndex(currentExerciseIndex - 1);
+    } else if (fromIndex > currentExerciseIndex && toIndex <= currentExerciseIndex) {
+      setCurrentExerciseIndex(currentExerciseIndex + 1);
+    }
+    
+    success('Orden de ejercicios actualizado', 2000);
   };
 
   const handleActualRestDuration = (actualDuration: number) => {
@@ -1298,6 +1325,11 @@ export default function WorkoutPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Ejercicios de la rutina</CardTitle>
+            {routine.exercises.length > 1 && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                💡 Arrastra los ejercicios para cambiar el orden
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -1313,18 +1345,57 @@ export default function WorkoutPage() {
                   <details
                     key={exercise.id}
                     open={isCurrentExercise}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      setDraggedExerciseIndex(idx);
+                      e.currentTarget.style.opacity = '0.5';
+                    }}
+                    onDragEnd={(e) => {
+                      setDraggedExerciseIndex(null);
+                      setDragOverIndex(null);
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverIndex(idx);
+                    }}
+                    onDragLeave={() => {
+                      setDragOverIndex(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedExerciseIndex !== null && draggedExerciseIndex !== idx) {
+                        handleMoveExercise(draggedExerciseIndex, idx);
+                      }
+                      setDraggedExerciseIndex(null);
+                      setDragOverIndex(null);
+                    }}
                     className={`group rounded-lg border-2 transition-all ${
-                      isCurrentExercise
+                      dragOverIndex === idx && draggedExerciseIndex !== idx
+                        ? 'border-blue-500 scale-105 shadow-lg'
+                        : isCurrentExercise
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                         : isCompleted && allSetsCompleted
                         ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                         : isNext
                         ? 'border-orange-300 bg-orange-50 dark:bg-orange-900/20'
                         : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
-                    }`}
+                    } ${draggedExerciseIndex === idx ? 'cursor-grabbing' : 'cursor-grab'}`}
                   >
                     <summary className="cursor-pointer p-3 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Drag handle */}
+                        <div className="flex-shrink-0 text-gray-400 dark:text-gray-500 cursor-grab active:cursor-grabbing">
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <circle cx="4" cy="4" r="1.5" />
+                            <circle cx="4" cy="8" r="1.5" />
+                            <circle cx="4" cy="12" r="1.5" />
+                            <circle cx="12" cy="4" r="1.5" />
+                            <circle cx="12" cy="8" r="1.5" />
+                            <circle cx="12" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                        
                         {/* Indicador de estado */}
                         <div className="flex-shrink-0">
                           {isCurrentExercise ? (
@@ -1348,20 +1419,34 @@ export default function WorkoutPage() {
                         
                         {/* Nombre y progreso */}
                         <div className="flex-1 min-w-0">
-                          <p className={`font-semibold truncate ${
-                            isCurrentExercise
-                              ? 'text-blue-900 dark:text-blue-100'
-                              : isCompleted
-                              ? 'text-green-900 dark:text-green-100'
-                              : 'text-gray-900 dark:text-gray-100'
-                          }`}>
-                            {exercise.name}
-                            {isCurrentExercise && <span className="ml-2 text-xs">(Actual)</span>}
-                            {isNext && <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">(Siguiente)</span>}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2">
+                            <p className={`font-semibold truncate ${
+                              isCurrentExercise
+                                ? 'text-blue-900 dark:text-blue-100'
+                                : isCompleted && allSetsCompleted
+                                ? 'text-green-900 dark:text-green-100'
+                                : 'text-gray-900 dark:text-gray-100'
+                            }`}>
+                              {exercise.name}
+                            </p>
+                            {isCurrentExercise && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-blue-600 text-white rounded-full">
+                                Actual
+                              </span>
+                            )}
+                            {isCompleted && allSetsCompleted && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-green-600 text-white rounded-full">
+                                Completado
+                              </span>
+                            )}
+                            {isNext && !isCompleted && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-orange-500 text-white rounded-full">
+                                Siguiente
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
                             {exerciseCompletedSets}/{totalSets} series
-                            {isCompleted && allSetsCompleted && ' - Completado'}
                           </p>
                         </div>
                         
