@@ -37,6 +37,19 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [currentStep, setCurrentStep] = useState<'basic' | 'exercises' | 'review'>('basic');
   const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [expandedExercises, setExpandedExercises] = useState<Set<number>>(new Set());
+
+  const toggleExerciseExpanded = (index: number) => {
+    setExpandedExercises(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     if (routineId) {
@@ -119,6 +132,18 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
   const handleRemoveExercise = (index: number) => {
     setExercises(exercises.filter((_, i) => i !== index));
+    // Limpiar el estado de expandido para este índice
+    setExpandedExercises(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      // Ajustar índices mayores
+      const adjusted = new Set<number>();
+      newSet.forEach(i => {
+        if (i > index) adjusted.add(i - 1);
+        else adjusted.add(i);
+      });
+      return adjusted;
+    });
   };
 
   const handleMoveExercise = (fromIndex: number, toIndex: number) => {
@@ -128,7 +153,26 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     const [movedExercise] = newExercises.splice(fromIndex, 1);
     newExercises.splice(toIndex, 0, movedExercise);
     setExercises(newExercises);
+    
+    // Ajustar el estado de expandido
+    setExpandedExercises(prev => {
+      const newSet = new Set<number>();
+      prev.forEach(i => {
+        if (i === fromIndex) {
+          newSet.add(toIndex);
+        } else if (fromIndex < toIndex) {
+          if (i > fromIndex && i <= toIndex) newSet.add(i - 1);
+          else newSet.add(i);
+        } else {
+          if (i >= toIndex && i < fromIndex) newSet.add(i + 1);
+          else newSet.add(i);
+        }
+      });
+      return newSet;
+    });
   };
+
+  // duplicate handleMoveExercise removed (logic kept in the earlier declaration)
 
   const handleExerciseChange = (index: number, field: 'name' | 'equipment' | 'notes', value: string) => {
     const newExercises = [...exercises];
@@ -537,16 +581,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
             <div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {t('exercisesTitle')} ({exercises.length})
-                  </h3>
-                  {exercises.length > 1 && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      💡 Arrastra los ejercicios para cambiar el orden
-                    </p>
-                  )}
-                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {t('exercisesTitle')} ({exercises.length})
+                </h3>
                 <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                   <Button 
                     type="button" 
@@ -585,14 +622,16 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               )}
 
               <div className="space-y-4">
-                {exercises.map((exercise, exerciseIndex) => (
+                {exercises.map((exercise, exerciseIndex) => {
+                  const isExpanded = expandedExercises.has(exerciseIndex);
+                  
+                  return (
                   <div
                     key={exerciseIndex}
                     draggable
                     onDragStart={(e) => {
                       setDraggedExerciseIndex(exerciseIndex);
                       e.dataTransfer.effectAllowed = 'move';
-                      // Agregar clase visual al elemento arrastrado
                       e.currentTarget.classList.add('opacity-50');
                     }}
                     onDragEnd={(e) => {
@@ -616,219 +655,247 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                       setDraggedExerciseIndex(null);
                       setDragOverIndex(null);
                     }}
-                    className={`bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl shadow-md border-2 transition-all space-y-4 cursor-move ${
+                    className={`bg-white dark:bg-gray-800 rounded-xl shadow-md border-2 transition-all overflow-hidden ${
                       dragOverIndex === exerciseIndex && draggedExerciseIndex !== exerciseIndex
                         ? 'border-blue-500 dark:border-blue-400 scale-105 shadow-xl'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500'
+                        : 'border-gray-200 dark:border-gray-700'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        {/* Icono de drag handle */}
-                        <div className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
+                    {/* Header colapsable - siempre visible */}
+                    <div 
+                      className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      onClick={() => toggleExerciseExpanded(exerciseIndex)}
+                    >
+                      {/* Drag handle */}
+                      <div 
+                        className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        onMouseDown={(e) => e.stopPropagation()}
+                      >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
+                        </svg>
+                      </div>
+
+                      {/* Número */}
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                        {exerciseIndex + 1}
+                      </div>
+
+                      {/* Nombre del ejercicio */}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 truncate">
+                          {exercise.name || `Ejercicio ${exerciseIndex + 1}`}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {exercise.sets.length} {exercise.sets.length === 1 ? 'serie' : 'series'}
+                          {exercise.equipment && ` • ${exercise.equipment}`}
+                        </div>
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex items-center gap-2">
+                        {exercises.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveExercise(exerciseIndex);
+                            }}
+                            className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
+                            title="Eliminar ejercicio"
+                          >
+                            <span className="text-lg">🗑️</span>
+                          </button>
+                        )}
+                        
+                        {/* Icono de expandir/colapsar */}
+                        <div className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </div>
-                        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
-                          {exerciseIndex + 1}
+                      </div>
+                    </div>
+
+                    {/* Contenido expandible */}
+                    {isExpanded && (
+                      <div className="p-4 pt-0 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                        <Input
+                          placeholder={t('exerciseName')}
+                          value={exercise.name}
+                          onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
+                          required
+                          className="font-medium"
+                        />
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {t('equipmentLabel')}
+                          </label>
+                          <EquipmentDropdown
+                            value={exercise.equipment || ''}
+                            onChange={(value) => handleExerciseChange(exerciseIndex, 'equipment', value)}
+                            placeholder={t('equipmentPlaceholder')}
+                          />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
-                            {t('exercise')} {exerciseIndex + 1}
+
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t('sets')} ({exercise.sets.length})
+                            </label>
+                            <Button 
+                              type="button" 
+                              variant="secondary" 
+                              size="sm" 
+                              onClick={() => handleAddSet(exerciseIndex)}
+                              className="text-xs"
+                            >
+                              ➕ {t('addSet')}
+                            </Button>
                           </div>
-                          {exercise.name && (
-                            <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
-                              {exercise.name}
-                            </div>
-                          )}
+                          
+                          <div className="space-y-2">
+                            {exercise.sets.map((set, setIndex) => (
+                              <div key={setIndex} className="p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                {/* Header compacto en una línea */}
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                    <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                                      {setIndex + 1}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Selector de tipo compacto */}
+                                  <div className="flex-1 min-w-0">
+                                    <SetTypeSelector
+                                      value={set.type || 'normal'}
+                                      onChange={(type) => handleSetChange(exerciseIndex, setIndex, 'type', type)}
+                                      compact
+                                    />
+                                  </div>
+                                  
+                                  {/* Botones de acción */}
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCopySet(exerciseIndex, setIndex)}
+                                      className="p-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-all active:scale-95"
+                                      title={t('copySetTitle')}
+                                    >
+                                      📋
+                                    </button>
+                                    {exercise.sets.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
+                                        className="p-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95"
+                                        title={t('removeSetTitle')}
+                                      >
+                                        ✕
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Inputs de reps y peso en una línea */}
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Reps</label>
+                                    <Input
+                                      type="number"
+                                      placeholder={t('reps')}
+                                      value={set.reps || ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '') {
+                                          handleSetChange(exerciseIndex, setIndex, 'reps', 0);
+                                        } else {
+                                          const num = parseInt(val);
+                                          handleSetChange(exerciseIndex, setIndex, 'reps', isNaN(num) ? 0 : Math.max(0, num));
+                                        }
+                                      }}
+                                      min="1"
+                                      required
+                                      className={`text-center font-semibold h-8 text-sm ${
+                                        touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
+                                        validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps'))
+                                          ? 'border-red-500 dark:border-red-500'
+                                          : ''
+                                      }`}
+                                    />
+                                    {touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
+                                     validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')) && (
+                                      <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
+                                        Reps requeridas
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Peso (kg)</label>
+                                    <Input
+                                      type="number"
+                                      name={`weight-${exerciseIndex}-${setIndex}`}
+                                      placeholder={t('weight')}
+                                      value={set.weight === 0 ? '' : set.weight ?? ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '') {
+                                          handleSetChange(exerciseIndex, setIndex, 'weight', 0);
+                                        } else {
+                                          const num = parseFloat(val);
+                                          handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
+                                        }
+                                      }}
+                                      min="0"
+                                      step="0.5"
+                                      className={`text-center font-semibold h-8 text-sm ${
+                                        touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
+                                        validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso'))
+                                          ? 'border-red-500 dark:border-red-500'
+                                          : ''
+                                      }`}
+                                    />
+                                    {touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
+                                     validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')) && (
+                                      <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
+                                        Peso requerido
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <Input
+                          placeholder={t('notes')}
+                          value={exercise.notes || ''}
+                          onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
+                        />
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <span className="text-xl">⏱️</span>
+                          <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                            Descanso entre series:
+                          </label>
+                          <RestTimeSelectorCompact
+                            value={exercise.restBetweenSets}
+                            onChange={(v) => {
+                              const newExercises = [...exercises];
+                              newExercises[exerciseIndex].restBetweenSets = v;
+                              setExercises(newExercises);
+                            }}
+                            placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
+                            className="flex-1"
+                          />
                         </div>
                       </div>
-                      {exercises.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExercise(exerciseIndex)}
-                          className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
-                          title={t('removeExercise')}
-                        >
-                          <span className="text-xl">🗑️</span>
-                        </button>
-                      )}
-                    </div>
-
-                    <Input
-                      placeholder={t('exerciseName')}
-                      value={exercise.name}
-                      onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
-                      required
-                      className="font-medium"
-                    />
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('equipmentLabel')}
-                      </label>
-                      <EquipmentDropdown
-                        value={exercise.equipment || ''}
-                        onChange={(value) => handleExerciseChange(exerciseIndex, 'equipment', value)}
-                        placeholder={t('equipmentPlaceholder')}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {t('sets')} ({exercise.sets.length})
-                        </label>
-                        <Button 
-                          type="button" 
-                          variant="secondary" 
-                          size="sm" 
-                          onClick={() => handleAddSet(exerciseIndex)}
-                          className="text-xs"
-                        >
-                          ➕ {t('addSet')}
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {exercise.sets.map((set, setIndex) => (
-                          <div key={setIndex} className="p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            {/* Header compacto en una línea */}
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
-                                  {setIndex + 1}
-                                </span>
-                              </div>
-                              
-                              {/* Selector de tipo compacto */}
-                              <div className="flex-1 min-w-0">
-                                <SetTypeSelector
-                                  value={set.type || 'normal'}
-                                  onChange={(type) => handleSetChange(exerciseIndex, setIndex, 'type', type)}
-                                  compact
-                                />
-                              </div>
-                              
-                              {/* Botones de acción */}
-                              <div className="flex gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleCopySet(exerciseIndex, setIndex)}
-                                  className="p-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-all active:scale-95"
-                                  title={t('copySetTitle')}
-                                >
-                                  📋
-                                </button>
-                                {exercise.sets.length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
-                                    className="p-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95"
-                                    title={t('removeSetTitle')}
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Inputs de reps y peso en una línea */}
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Reps</label>
-                                <Input
-                                  type="number"
-                                  placeholder={t('reps')}
-                                  value={set.reps || ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === '') {
-                                      handleSetChange(exerciseIndex, setIndex, 'reps', 0);
-                                    } else {
-                                      const num = parseInt(val);
-                                      handleSetChange(exerciseIndex, setIndex, 'reps', isNaN(num) ? 0 : Math.max(0, num));
-                                    }
-                                  }}
-                                  min="1"
-                                  required
-                                  className={`text-center font-semibold h-8 text-sm ${
-                                    touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
-                                    validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps'))
-                                      ? 'border-red-500 dark:border-red-500'
-                                      : ''
-                                  }`}
-                                />
-                                {touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
-                                 validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')) && (
-                                  <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
-                                    Reps requeridas
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Peso (kg)</label>
-                                <Input
-                                  type="number"
-                                  name={`weight-${exerciseIndex}-${setIndex}`}
-                                  placeholder={t('weight')}
-                                  value={set.weight === 0 ? '' : set.weight ?? ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === '') {
-                                      handleSetChange(exerciseIndex, setIndex, 'weight', 0);
-                                    } else {
-                                      const num = parseFloat(val);
-                                      handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
-                                    }
-                                  }}
-                                  min="0"
-                                  step="0.5"
-                                  className={`text-center font-semibold h-8 text-sm ${
-                                    touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
-                                    validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso'))
-                                      ? 'border-red-500 dark:border-red-500'
-                                      : ''
-                                  }`}
-                                />
-                                {touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
-                                 validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')) && (
-                                  <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
-                                    Peso requerido
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Input
-                      placeholder={t('notes')}
-                      value={exercise.notes || ''}
-                      onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
-                    />
-
-                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <span className="text-xl">⏱️</span>
-                      <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Descanso entre series:
-                      </label>
-                              <RestTimeSelectorCompact
-                                value={exercise.restBetweenSets}
-                                onChange={(v) => {
-                                  const newExercises = [...exercises];
-                                  newExercises[exerciseIndex].restBetweenSets = v;
-                                  setExercises(newExercises);
-                                }}
-                                placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
-                                className="flex-1"
-                              />
-                    </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
