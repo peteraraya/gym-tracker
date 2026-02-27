@@ -35,11 +35,16 @@ export function WorkoutGlobalTimer({ startTime, isPaused = false }: WorkoutGloba
   };
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-      <Timer className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-      <span className="text-sm font-mono font-semibold text-blue-900 dark:text-blue-100 tabular-nums">
-        {formatTime(elapsed)}
-      </span>
+    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-xl border border-blue-500/30 dark:border-blue-600/30 shadow-lg">
+      <Timer className="w-5 h-5 text-blue-100" />
+      <div className="flex flex-col gap-0.5">
+        <span className="text-xs font-medium text-blue-100/80 uppercase tracking-wide">
+          Duración entrenamiento
+        </span>
+        <span className="text-lg font-mono font-bold text-white tabular-nums">
+          {formatTime(elapsed)}
+        </span>
+      </div>
     </div>
   );
 }
