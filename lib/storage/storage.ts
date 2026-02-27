@@ -9,6 +9,7 @@
 
 import type { Routine, WorkoutSession } from '@/types';
 import type { CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';
+import { WorkoutSessionSchema, RoutineSchema, validateDataWithLogging } from '@/lib/validation';
 
 // Re-export types for convenience
 export type { SetData, RoutineExercise, CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';

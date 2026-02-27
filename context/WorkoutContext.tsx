@@ -5,6 +5,7 @@ import * as storageService from '@/lib/storage/storage';
 import type { ActiveWorkout } from '@/lib/storage/storage';
 import type { Routine } from '@/types';
 import { useAppLifecycle } from '@/hooks/useAppLifecycle';
+import { WorkoutStateSchema, validateDataWithLogging } from '@/lib/validation';
 
 interface WorkoutState {
   routineId: string;
@@ -53,6 +54,50 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   const [isLoadingActiveWorkout, setIsLoadingActiveWorkout] = useState(true);
   const activeWorkoutRef = useRef<WorkoutState | null>(null);
 
+  // Normalizar datos validados a WorkoutState (convierte tipos robustamente)
+  const normalizeActiveWorkout = (data: any): WorkoutState => {
+    return {
+      routineId: String(data.routineId),
+      routineName: String(data.routineName),
+      currentExerciseIndex: Number(data.currentExerciseIndex ?? 0),
+      currentSet: Number(data.currentSet ?? 1),
+      completedSets: (() => {
+        const out: { [key: string]: number } = {};
+        const src = data.completedSets || {};
+        Object.keys(src).forEach(k => {
+          const v = (src as any)[k];
+          out[String(k)] = typeof v === 'number' ? v : Number(v ?? 0);
+        });
+        return out;
+      })(),
+      actualReps: (() => {
+        const out: { [key: string]: number[] } = {};
+        const src = data.actualReps || {};
+        Object.keys(src).forEach(k => {
+          const arr = (src as any)[k];
+          out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+        });
+        return out;
+      })(),
+      actualWeights: (() => {
+        const out: { [key: string]: number[] } = {};
+        const src = data.actualWeights || {};
+        Object.keys(src).forEach(k => {
+          const arr = (src as any)[k];
+          out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+        });
+        return out;
+      })(),
+      startedAt: data.startedAt ? new Date(data.startedAt) : new Date(),
+      // Estado del timer de descanso para persistencia
+      isResting: data.isResting ?? false,
+      restTimerDuration: data.restTimerDuration,
+      restTimerTitle: data.restTimerTitle,
+      restTimerNextExercise: data.restTimerNextExercise,
+      restTimerStartedAt: data.restTimerStartedAt
+    };
+  };
+
   // Mantener ref actualizada para acceso en callbacks
   useEffect(() => {
     activeWorkoutRef.current = activeWorkout;
@@ -65,36 +110,23 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       try {
         const stored = await storageService.getActiveWorkout();
         if (!mounted) return;
+        
         if (stored) {
-          // Ensure Date objects where expected (safe guard + type narrowing)
-          try {
-            if ('startedAt' in stored && (stored as any).startedAt) {
-              const val = (stored as any).startedAt;
-              if (typeof val === 'string' || typeof val === 'number' || val instanceof Date) {
-                (stored as any).startedAt = new Date(val as string | number | Date);
-              }
-            }
-          } catch (e) { /* ignore */ }
+          // ✅ Validar con Zod
+          const validationResult = validateDataWithLogging(
+            WorkoutStateSchema,
+            stored,
+            '[WorkoutContext] Loading active workout'
+          );
 
-          // Convert the loosely-typed ActiveWorkout into a proper WorkoutState
-          const s = stored as any;
-          const parsed: WorkoutState = {
-            routineId: String(s.routineId ?? ''),
-            routineName: String(s.routineName ?? ''),
-            currentExerciseIndex: Number(s.currentExerciseIndex ?? 0),
-            currentSet: Number(s.currentSet ?? 1),
-            completedSets: (s.completedSets && typeof s.completedSets === 'object') ? s.completedSets as { [key: string]: number } : {},
-            actualReps: (s.actualReps && typeof s.actualReps === 'object') ? s.actualReps as { [key: string]: number[] } : {},
-            actualWeights: (s.actualWeights && typeof s.actualWeights === 'object') ? s.actualWeights as { [key: string]: number[] } : {},
-            startedAt: s.startedAt instanceof Date ? s.startedAt : new Date(s.startedAt ?? Date.now()),
-            isResting: typeof s.isResting === 'boolean' ? s.isResting : false,
-            restTimerDuration: typeof s.restTimerDuration === 'number' ? s.restTimerDuration : undefined,
-            restTimerTitle: typeof s.restTimerTitle === 'string' ? s.restTimerTitle : undefined,
-            restTimerNextExercise: typeof s.restTimerNextExercise === 'string' ? s.restTimerNextExercise : undefined,
-            restTimerStartedAt: typeof s.restTimerStartedAt === 'number' ? s.restTimerStartedAt : undefined,
-          };
-
-          setActiveWorkout(parsed);
+          if (validationResult.success && validationResult.data) {
+            setActiveWorkout(normalizeActiveWorkout(validationResult.data));
+          } else {
+            // Datos corruptos - limpiar
+            console.error('[WorkoutContext] Invalid workout state, clearing:', validationResult.error);
+            await storageService.clearActiveWorkout();
+            setActiveWorkout(null);
+          }
         }
       } catch (e) {
         console.error('[WorkoutContext] Error cargando active workout:', e);
@@ -271,24 +303,23 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             if (process.env.NODE_ENV === 'development') {
               console.debug('[WorkoutContext] Restoring workout from storage');
             }
-            const s = stored as any;
-            const parsed: WorkoutState = {
-              routineId: String(s.routineId ?? ''),
-              routineName: String(s.routineName ?? ''),
-              currentExerciseIndex: Number(s.currentExerciseIndex ?? 0),
-              currentSet: Number(s.currentSet ?? 1),
-              completedSets: (s.completedSets && typeof s.completedSets === 'object') ? s.completedSets as { [key: string]: number } : {},
-              actualReps: (s.actualReps && typeof s.actualReps === 'object') ? s.actualReps as { [key: string]: number[] } : {},
-              actualWeights: (s.actualWeights && typeof s.actualWeights === 'object') ? s.actualWeights as { [key: string]: number[] } : {},
-              startedAt: s.startedAt instanceof Date ? s.startedAt : new Date(s.startedAt ?? Date.now()),
-              isResting: typeof s.isResting === 'boolean' ? s.isResting : false,
-              restTimerDuration: typeof s.restTimerDuration === 'number' ? s.restTimerDuration : undefined,
-              restTimerTitle: typeof s.restTimerTitle === 'string' ? s.restTimerTitle : undefined,
-              restTimerNextExercise: typeof s.restTimerNextExercise === 'string' ? s.restTimerNextExercise : undefined,
-              restTimerStartedAt: typeof s.restTimerStartedAt === 'number' ? s.restTimerStartedAt : undefined,
-            };
-            setActiveWorkout(parsed);
-            activeWorkoutRef.current = parsed;
+            
+            // ✅ Validar con Zod
+            const validationResult = validateDataWithLogging(
+              WorkoutStateSchema,
+              stored,
+              '[WorkoutContext] Restoring workout on resume'
+            );
+
+            if (validationResult.success && validationResult.data) {
+              const normalized = normalizeActiveWorkout(validationResult.data);
+              setActiveWorkout(normalized);
+              activeWorkoutRef.current = normalized;
+            } else {
+              // Datos corruptos - limpiar
+              console.error('[WorkoutContext] Invalid workout state on resume, clearing:', validationResult.error);
+              await storageService.clearActiveWorkout();
+            }
           }
         } catch (e) {
           console.error('[WorkoutContext] Error restoring workout on resume:', e);

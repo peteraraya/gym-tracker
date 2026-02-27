@@ -42,7 +42,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "web-push": "^3.6.7",
-    "yup": "^1.2.0"
+    "yup": "^1.2.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.5",
