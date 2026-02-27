@@ -22,6 +22,7 @@ import {
   calculateRestBetweenExercises,
   formatRestTime 
 } from '@/lib/restCalculator';
+import { ExerciseInfoPanel } from '@/components/ExerciseInfoPanel';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import * as storageService from '@/lib/storage/storage';
 import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
@@ -73,6 +74,7 @@ export default function WorkoutPage() {
   const [showPreparation, setShowPreparation] = useState(false);
   const [isExecutingSet, setIsExecutingSet] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   
   // Estados para drag and drop
   const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
@@ -835,13 +837,106 @@ export default function WorkoutPage() {
         {/* Ejercicio actual */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-2xl">{currentExercise.name}</CardTitle>
-            {currentExercise.notes && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                {currentExercise.notes}
-              </p>
-            )}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <CardTitle className="text-2xl">{currentExercise.name}</CardTitle>
+                {currentExercise.notes && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    {currentExercise.notes}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setShowExerciseInfo(true)}
+                className="flex-shrink-0 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-lg font-medium text-sm transition-colors whitespace-nowrap"
+              >
+                ℹ️ Información
+              </button>
+            </div>
           </CardHeader>
+
+          {/* Información de Descanso - Debajo del Título */}
+          <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              {/* Descanso Base */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                  ⏱️ Descanso base:
+                </span>
+                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                  {(() => {
+                    const restSecs = currentExercise.restBetweenSets || routine.restBetweenSets || 60;
+                    return restSecs >= 60 ? `${Math.floor(restSecs / 60)}min` : `${restSecs}s`;
+                  })()}
+                </span>
+              </div>
+
+              {/* Descanso Inteligente - Toggle */}
+              {(() => {
+                const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+                if (exerciseTemplate) {
+                  const currentSetData = currentExercise.sets[currentSet - 1];
+                  const restRecommendation = calculateRestBetweenSets(
+                    exerciseTemplate,
+                    currentExercise.sets.length,
+                    currentSetData?.reps || 10,
+                    'intermediate'
+                  );
+                  return (
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                          🧠 Inteligente:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setUseSmartRest(!useSmartRest)}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                            useSmartRest ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                          }`}
+                          title={useSmartRest ? `${formatRestTime(restRecommendation.recommended)} - ${restRecommendation.description}` : 'Activar descanso inteligente'}
+                        >
+                          <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                            useSmartRest ? 'translate-x-5' : 'translate-x-1'
+                          }`} />
+                        </button>
+                        {useSmartRest && (
+                          <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                            {formatRestTime(restRecommendation.recommended)}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Botón Aplicar a Todas */}
+                      {useSmartRest && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const recommendedRest = Math.round(restRecommendation.recommended / 5) * 5;
+                            setRestOverrides(prev => ({
+                              ...prev,
+                              [currentExercise.id]: recommendedRest
+                            }));
+                            setPerSetRestOverrides(prev => {
+                              const copy = { ...prev };
+                              delete copy[currentExercise.id];
+                              return copy;
+                            });
+                            success(`Descanso de ${formatRestTime(recommendedRest)} aplicado a todas las series`);
+                          }}
+                          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md transition-colors"
+                        >
+                          ⚡ Aplicar a todas
+                        </button>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          </div>
+
           <CardContent>
             <div className="space-y-4">
               {/* Countdown de Preparación */}
@@ -858,7 +953,7 @@ export default function WorkoutPage() {
               {!isExecutingSet && !showPreparation && (
                 <Button
                   onClick={handleStartSet}
-                  className="w-full py-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full py-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white mt-6"
                 >
                   ▶️ Iniciar Serie {(() => {
                     // Calcular la siguiente serie sin completar
@@ -1289,104 +1384,6 @@ export default function WorkoutPage() {
                     </button>
                   </div>
               </div>
-              
-              {/* Información de descanso - Compacta */}
-              <div className="mt-3 space-y-2">
-                {/* Descanso configurado - más compacto */}
-                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-blue-900 dark:text-blue-100">
-                      ⏱️ Descanso base
-                    </span>
-                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                      {(() => {
-                        const restSecs = currentExercise.restBetweenSets || routine.restBetweenSets || 60;
-                        return restSecs >= 60 ? `${Math.floor(restSecs / 60)}min` : `${restSecs}s`;
-                      })()}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Descanso inteligente - más compacto */}
-                {(() => {
-                  const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-                  if (exerciseTemplate) {
-                    const currentSetData = currentExercise.sets[currentSet - 1];
-                    const restRecommendation = calculateRestBetweenSets(
-                      exerciseTemplate,
-                      currentExercise.sets.length,
-                      currentSetData?.reps || 10,
-                      'intermediate'
-                    );
-                    return (
-                      <div className={`p-2 rounded-md border ${
-                        useSmartRest 
-                          ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' 
-                          : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                      }`}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className={`text-xs font-medium ${
-                            useSmartRest 
-                              ? 'text-purple-900 dark:text-purple-100' 
-                              : 'text-gray-700 dark:text-gray-300'
-                          }`}>
-                            🧠 Inteligente
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setUseSmartRest(!useSmartRest)}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                              useSmartRest ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
-                            }`}
-                          >
-                            <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                              useSmartRest ? 'translate-x-5' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
-                        {useSmartRest && (
-                          <>
-                            <div className="text-base font-bold text-purple-600 dark:text-purple-400 mb-1">
-                              {formatRestTime(restRecommendation.recommended)}
-                            </div>
-                            <p className="text-xs text-purple-700 dark:text-purple-300 mb-1.5">
-                              {restRecommendation.description}
-                            </p>
-                            
-                            {/* Botón compacto para aplicar a todas */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Redondear al múltiplo de 5 más cercano (ya que las opciones van de 5 en 5)
-                                const recommendedRest = Math.round(restRecommendation.recommended / 5) * 5;
-                                
-                                // Aplicar el descanso inteligente a todas las series del ejercicio
-                                setRestOverrides(prev => ({
-                                  ...prev,
-                                  [currentExercise.id]: recommendedRest
-                                }));
-                                
-                                // Eliminar completamente los overrides individuales para que usen el global
-                                setPerSetRestOverrides(prev => {
-                                  const copy = { ...prev };
-                                  delete copy[currentExercise.id];
-                                  return copy;
-                                });
-                                
-                                success(`Descanso de ${formatRestTime(recommendedRest)} aplicado a todas las series`);
-                              }}
-                              className="w-full py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md transition-colors"
-                            >
-                              ⚡ Aplicar a todas
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -1659,6 +1656,18 @@ export default function WorkoutPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Panel de información del ejercicio */}
+      {showExerciseInfo && currentExercise && (
+        <ExerciseInfoPanel
+          exercise={EXERCISE_DATABASE.find(e => e.name === currentExercise.name) || {
+            id: currentExercise.id,
+            name: currentExercise.name,
+            muscleGroup: 'pecho' // default
+          } as any}
+          onClose={() => setShowExerciseInfo(false)}
+        />
+      )}
     </div>
     </ProtectedRoute>
   );
