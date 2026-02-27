@@ -241,7 +241,19 @@ export default function WorkoutPage() {
         return hasReps;
       });
       
-      if (allSetsHaveData && !showTimer && !isExecutingSet && !showPreparation) {
+      // Solo avanzar automáticamente si:
+      // 1. Todas las series tienen datos
+      // 2. No hay timer activo
+      // 3. No está ejecutando una serie
+      // 4. No está en preparación
+      // 5. El ejercicio actual es el último ejercicio completado (no está editando uno anterior)
+      const isEditingPreviousExercise = currentExerciseIndex < routine.exercises.findIndex((ex, idx) => {
+        const exCompletedSets = completedSets[ex.id] || 0;
+        return exCompletedSets < ex.sets.length;
+      });
+      
+      if (allSetsHaveData && !showTimer && !isExecutingSet && !showPreparation && !isEditingPreviousExercise) {
+        console.log('[Auto-advance] Todas las series completadas, avanzando...');
         // Todas las series completadas, avanzar al siguiente ejercicio o finalizar
         if (isLastExercise) {
           // Último ejercicio, mostrar modal de finalización
@@ -279,13 +291,22 @@ export default function WorkoutPage() {
             { isResting: true, restTimerDuration: restTime, restTimerTitle: 'Descanso entre ejercicios', restTimerNextExercise: nextExercise.name, restTimerStartedAt: Date.now() }
           );
         }
+      } else if (isEditingPreviousExercise) {
+        console.log('[Auto-advance] Usuario está editando ejercicio anterior, no avanzar automáticamente');
       }
     }
   }, [completedSets, actualReps, currentExercise, routine, currentExerciseIndex, showTimer, isExecutingSet, showPreparation, workoutStartTime, restOverrides, useSmartRest, actualWeights, currentSet, updateWorkoutProgress]);
 
+  // Resetear sugerencias descartadas cuando cambia el ejercicio
+  useEffect(() => {
+    setDismissedSuggestions(new Set());
+  }, [currentExerciseIndex]);
+
   // Generar sugerencias cuando cambie el ejercicio, peso o descanso
   useEffect(() => {
     if (!routine || !currentExercise) return;
+    // No mostrar durante el timer, preparación o ejecución de serie
+    if (showTimer || showPreparation || isExecutingSet) return;
 
     const currentRestTime = restOverrides[currentExercise.id] ?? 
                            currentExercise.restBetweenSets ?? 
@@ -311,24 +332,25 @@ export default function WorkoutPage() {
 
     const allSuggestions = [...generalSuggestions, ...liveSuggestions];
     
-    // Mostrar sugerencias como toasts (solo las más importantes)
+    // Mostrar sugerencias como toasts (solo las más importantes) - SOLO UNA VEZ
     if (allSuggestions.length > 0) {
       // Mostrar solo la primera sugerencia de advertencia como toast
       const warningSuggestion = allSuggestions.find(s => s.type === 'rest_warning' || s.type === 'overtraining');
-      if (warningSuggestion) {
+      if (warningSuggestion && !dismissedSuggestions.has(0)) {
         error(`⚠️ ${warningSuggestion.message}`, 5000);
-      } else {
+        setDismissedSuggestions(prev => new Set([...prev, 0]));
+      } else if (!dismissedSuggestions.has(0)) {
         // Si no hay advertencias, mostrar la primera sugerencia positiva
         const positiveSuggestion = allSuggestions[0];
         if (positiveSuggestion) {
           success(`💡 ${positiveSuggestion.message}`, 4000);
+          setDismissedSuggestions(prev => new Set([...prev, 0]));
         }
       }
     }
     
     setSuggestions(allSuggestions);
-    setDismissedSuggestions(new Set()); // Reset dismissed cuando cambia el ejercicio
-  }, [currentExerciseIndex, currentSet, currentWeight, currentExercise, routine, sessions, restOverrides, success, error]);
+  }, [currentExerciseIndex, currentSet, currentExercise, routine, sessions, restOverrides, success, error, showTimer, showPreparation, isExecutingSet, dismissedSuggestions, currentWeight]);
 
   // Ocultar navbar cuando se muestra el timer
   useEffect(() => {
@@ -625,13 +647,21 @@ export default function WorkoutPage() {
   };
 
   const handleTimerComplete = () => {
+    console.log('[handleTimerComplete] Iniciando - showTimer:', showTimer);
     setShowTimer(false);
     clearRestState(); // Limpiar estado de descanso persistido
+    
+    // Calcular si es la última serie y el último ejercicio
+    const isLastSet = currentSet >= currentExercise.sets.length;
+    const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
+    
+    console.log('[handleTimerComplete] isLastSet:', isLastSet, 'isLastExercise:', isLastExercise);
     
     if (isLastSet && !isLastExercise) {
       // Siguiente ejercicio
       const nextIndex = currentExerciseIndex + 1;
       if (routine.exercises[nextIndex]) {
+        console.log('[handleTimerComplete] Avanzando al siguiente ejercicio:', nextIndex);
         setCurrentExerciseIndex(nextIndex);
         setCurrentSet(1);
         const nextExercise = routine.exercises[nextIndex];
@@ -650,9 +680,10 @@ export default function WorkoutPage() {
           actualWeights
         );
       }
-    } else {
+    } else if (!isLastSet) {
       // Siguiente serie
       const newSet = currentSet + 1;
+      console.log('[handleTimerComplete] Avanzando a la siguiente serie:', newSet);
       setCurrentSet(newSet);
       
       // Actualizar valores con los de la siguiente serie
@@ -671,6 +702,8 @@ export default function WorkoutPage() {
         actualWeights
       );
     }
+    
+    console.log('[handleTimerComplete] Completado - showTimer debería ser false');
   };
 
   const finishCompleteWorkout = async () => {
@@ -756,11 +789,6 @@ export default function WorkoutPage() {
     setShowNotesModal(true);
   };
 
-  const skipTimer = () => {
-    handleTimerComplete();
-  };
-
-
   if (showTimer) {
     return (
       <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 overflow-auto">
@@ -769,24 +797,21 @@ export default function WorkoutPage() {
             <Timer
               duration={timerDuration}
               onComplete={handleTimerComplete}
-            autoStart={true}
-            title={timerTitle}
-            nextExerciseName={nextExerciseName}
-            showMotivation={true}
-            onActualDurationChange={handleActualRestDuration}
-          />
-          <div className="mt-6 text-center space-y-3">
-            <Button variant="ghost" onClick={skipTimer} className="w-full">
-              ⏭️ Saltar descanso
-            </Button>
-            {/* Indicador del tiempo configurado */}
-            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-              <p>⏱️ Tiempo configurado: {Math.floor(timerDuration / 60)}:{(timerDuration % 60).toString().padStart(2, '0')}</p>
-              <p>💡 Tip: Aprovecha este tiempo para hidratarte y respirar profundo</p>
+              autoStart={true}
+              title={timerTitle}
+              nextExerciseName={nextExerciseName}
+              showMotivation={true}
+              onActualDurationChange={handleActualRestDuration}
+            />
+            {/* Información adicional */}
+            <div className="mt-6 text-center space-y-2">
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                <p>⏱️ Tiempo configurado: {Math.floor(timerDuration / 60)}:{(timerDuration % 60).toString().padStart(2, '0')}</p>
+                <p>💡 Tip: Aprovecha este tiempo para hidratarte y respirar profundo</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     );
   }
@@ -1208,7 +1233,7 @@ export default function WorkoutPage() {
         </Card>
 
         {/* Botones de acción */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 mb-6">
           <Button
             variant="ghost"
             onClick={handleCancelWorkout}
@@ -1225,27 +1250,147 @@ export default function WorkoutPage() {
           </Button>
         </div>
 
-        {/* Lista de ejercicios siguientes */}
-        {currentExerciseIndex < routine.exercises.length - 1 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              Próximos ejercicios
-            </h3>
+        {/* Lista compacta de todos los ejercicios */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Ejercicios de la rutina</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-2">
-              {routine.exercises.slice(currentExerciseIndex + 1).map((exercise) => (
-                <div
-                  key={exercise.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                >
-                  <span className="text-gray-900 dark:text-gray-100">{exercise.name}</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {exercise.sets.length} series
-                  </span>
-                </div>
-              ))}
+              {routine.exercises.map((exercise, idx) => {
+                const isCurrentExercise = idx === currentExerciseIndex;
+                const isCompleted = idx < currentExerciseIndex;
+                const isNext = idx === currentExerciseIndex + 1;
+                const exerciseCompletedSets = completedSets[exercise.id] || 0;
+                const totalSets = exercise.sets.length;
+                const allSetsCompleted = exerciseCompletedSets === totalSets;
+                
+                return (
+                  <details
+                    key={exercise.id}
+                    open={isCurrentExercise}
+                    className={`group rounded-lg border-2 transition-all ${
+                      isCurrentExercise
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : isCompleted && allSetsCompleted
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                        : isNext
+                        ? 'border-orange-300 bg-orange-50 dark:bg-orange-900/20'
+                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'
+                    }`}
+                  >
+                    <summary className="cursor-pointer p-3 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Indicador de estado */}
+                        <div className="flex-shrink-0">
+                          {isCurrentExercise ? (
+                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                              {idx + 1}
+                            </div>
+                          ) : isCompleted && allSetsCompleted ? (
+                            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white">
+                              ✓
+                            </div>
+                          ) : isNext ? (
+                            <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-sm">
+                              {idx + 1}
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-sm">
+                              {idx + 1}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Nombre y progreso */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-semibold truncate ${
+                            isCurrentExercise
+                              ? 'text-blue-900 dark:text-blue-100'
+                              : isCompleted
+                              ? 'text-green-900 dark:text-green-100'
+                              : 'text-gray-900 dark:text-gray-100'
+                          }`}>
+                            {exercise.name}
+                            {isCurrentExercise && <span className="ml-2 text-xs">(Actual)</span>}
+                            {isNext && <span className="ml-2 text-xs text-orange-600 dark:text-orange-400">(Siguiente)</span>}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {exerciseCompletedSets}/{totalSets} series
+                            {isCompleted && allSetsCompleted && ' - Completado'}
+                          </p>
+                        </div>
+                        
+                        {/* Icono de expandir/colapsar */}
+                        <div className="flex-shrink-0 text-gray-400 group-open:rotate-180 transition-transform">
+                          ▼
+                        </div>
+                      </div>
+                    </summary>
+                    
+                    {/* Contenido expandido - Series del ejercicio */}
+                    <div className="px-3 pb-3 pt-2 space-y-2 border-t border-gray-200 dark:border-gray-700 mt-2">
+                      {exercise.sets.map((set, setIdx) => {
+                        const doneReps = (actualReps[exercise.id] && actualReps[exercise.id][setIdx]) ?? null;
+                        const doneWeight = (actualWeights[exercise.id] && actualWeights[exercise.id][setIdx]) ?? set.weight ?? '';
+                        const isSetCompleted = typeof doneReps === 'number' && doneReps > 0;
+                        
+                        return (
+                          <div
+                            key={`${exercise.id}-set-${setIdx}`}
+                            className={`p-2 rounded-md text-sm ${
+                              isSetCompleted
+                                ? 'bg-green-100 dark:bg-green-900/30'
+                                : 'bg-gray-100 dark:bg-gray-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">
+                                Serie {setIdx + 1}
+                              </span>
+                              {isSetCompleted ? (
+                                <span className="text-green-700 dark:text-green-300 font-semibold">
+                                  ✓ {doneReps} × {typeof doneWeight === 'number' ? doneWeight : 0}kg
+                                </span>
+                              ) : (
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {set.reps} × {set.weight || 0}kg (planeado)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Botón para ir a este ejercicio (solo si no es el actual) */}
+                      {!isCurrentExercise && isCompleted && (
+                        <button
+                          onClick={() => {
+                            console.log('[Editar ejercicio] Cambiando a ejercicio:', idx);
+                            // Cambiar al ejercicio seleccionado
+                            setCurrentExerciseIndex(idx);
+                            // Ir a la primera serie
+                            setCurrentSet(1);
+                            // Asegurar que no hay timer activo
+                            setShowTimer(false);
+                            // Asegurar que no está en modo de ejecución
+                            setIsExecutingSet(false);
+                            setShowPreparation(false);
+                            // Scroll al inicio
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="w-full mt-2 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
+                        >
+                          Editar este ejercicio
+                        </button>
+                      )}
+                    </div>
+                  </details>
+                );
+              })}
             </div>
-          </div>
-        )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modal de notas y duración al finalizar */}
