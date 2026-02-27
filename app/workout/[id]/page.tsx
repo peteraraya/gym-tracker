@@ -29,10 +29,14 @@ import WorkoutSuggestions from '@/components/WorkoutSuggestions';
 import WorkoutComparison from '@/components/WorkoutComparison';
 
 export default function WorkoutPage() {
+  console.log('[WorkoutPage] Componente montándose/renderizando');
+  
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { getRoutineById, addSession, sessions } = useGym();
+  console.log('[WorkoutPage] ID de la URL:', id);
+  
+  const { getRoutineById, addSession, sessions, loading: gymLoading } = useGym();
   const { activeWorkout, startWorkout, updateWorkoutProgress, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
@@ -68,53 +72,87 @@ export default function WorkoutPage() {
   // Nuevos estados para UX mejorada
   const [showPreparation, setShowPreparation] = useState(false);
   const [isExecutingSet, setIsExecutingSet] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Ref para sincronización de actualWeights
+  const prevActualWeightsRef = React.useRef(actualWeights);
 
+  // Inicialización del workout - solo se ejecuta una vez al montar
   useEffect(() => {
-    (async () => {
+    // No hacer nada si GymContext aún está cargando
+    if (gymLoading) {
+      console.log('[WorkoutPage] Esperando a que GymContext termine de cargar...');
+      return;
+    }
+    
+    let mounted = true;
+    
+    const initializeWorkout = async () => {
+      console.log('[WorkoutPage] Inicializando workout con id:', id);
+      
       const foundRoutine = getRoutineById(id);
+      console.log('[WorkoutPage] Rutina encontrada:', foundRoutine ? foundRoutine.name : 'NO ENCONTRADA');
+      
       if (!foundRoutine) {
+        console.warn('[WorkoutPage] Rutina no encontrada, redirigiendo a /routines');
         router.push('/routines');
         return;
       }
+      
+      if (!mounted) return;
       setRoutine(foundRoutine);
       
-      // Si hay un workout activo y coincide con esta rutina, restaurar el estado
-      if (activeWorkout && activeWorkout.routineId === id) {
-        setCurrentExerciseIndex(activeWorkout.currentExerciseIndex);
-        setCurrentSet(activeWorkout.currentSet);
-        setCompletedSets(activeWorkout.completedSets);
-        setActualReps(activeWorkout.actualReps);
-        setActualWeights(activeWorkout.actualWeights);
+      // Verificar si hay un workout guardado
+      const storedWorkout = await storageService.getActiveWorkout();
+      console.log('[WorkoutPage] Workout guardado:', storedWorkout ? {
+        routineId: storedWorkout.routineId,
+        currentExerciseIndex: storedWorkout.currentExerciseIndex,
+        currentSet: storedWorkout.currentSet
+      } : 'NO HAY WORKOUT GUARDADO');
+      
+      if (!mounted) return;
+      
+      // Si hay un workout guardado y coincide con esta rutina, restaurar el estado
+      if (storedWorkout && storedWorkout.routineId === id) {
+        console.log('[WorkoutPage] Restaurando estado del workout guardado');
+        const s = storedWorkout as any;
+        setCurrentExerciseIndex(Number(s.currentExerciseIndex ?? 0));
+        setCurrentSet(Number(s.currentSet ?? 1));
+        setCompletedSets((s.completedSets && typeof s.completedSets === 'object') ? s.completedSets as { [key: string]: number } : {});
+        setActualReps((s.actualReps && typeof s.actualReps === 'object') ? s.actualReps as { [key: string]: number[] } : {});
+        setActualWeights((s.actualWeights && typeof s.actualWeights === 'object') ? s.actualWeights as { [key: string]: number[] } : {});
         
         // Restaurar estado del timer de descanso si estaba descansando
-        if (activeWorkout.isResting && activeWorkout.restTimerDuration && activeWorkout.restTimerStartedAt) {
-          const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
-          const remaining = activeWorkout.restTimerDuration - elapsed;
+        if (s.isResting && s.restTimerDuration && s.restTimerStartedAt) {
+          const elapsed = Math.floor((Date.now() - Number(s.restTimerStartedAt)) / 1000);
+          const remaining = Number(s.restTimerDuration) - elapsed;
           if (remaining > 0) {
             setShowTimer(true);
             setTimerDuration(remaining);
-            setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
-            setNextExerciseName(activeWorkout.restTimerNextExercise);
+            setTimerTitle(String(s.restTimerTitle || 'Descanso'));
+            setNextExerciseName(s.restTimerNextExercise ? String(s.restTimerNextExercise) : undefined);
           }
         }
+        
         // Cargar últimos pesos guardados para los ejercicios
         try {
           const parsed = await storageService.getLastWeights();
-          if (parsed) setLastWeights(parsed as any);
+          if (parsed && mounted) setLastWeights(parsed as any);
         } catch (e) {
           // ignore
         }
         
-        const currentExercise = foundRoutine.exercises[activeWorkout.currentExerciseIndex];
+        const currentExercise = foundRoutine.exercises[Number(s.currentExerciseIndex ?? 0)];
         if (currentExercise) {
-          const currentSetData = currentExercise.sets[activeWorkout.currentSet - 1];
-              if (currentSetData) {
-                setCurrentReps(currentSetData.reps);
-                setCurrentWeight(currentSetData.weight || 0);
-              }
+          const currentSetData = currentExercise.sets[Number(s.currentSet ?? 1) - 1];
+          if (currentSetData) {
+            setCurrentReps(currentSetData.reps);
+            setCurrentWeight(currentSetData.weight || 0);
+          }
         }
-      } else if (!activeWorkout) {
-        // Si no hay workout activo, iniciar uno nuevo
+      } else if (!storedWorkout || storedWorkout.routineId !== id) {
+        console.log('[WorkoutPage] Iniciando nuevo workout');
+        // Solo iniciar un nuevo workout si NO hay ninguno guardado o es de otra rutina
         startWorkout(foundRoutine);
         
         // Inicializar valores del primer ejercicio (primera serie)
@@ -126,17 +164,32 @@ export default function WorkoutPage() {
             // Preferir último peso utilizado si existe
             try {
               const parsed = await storageService.getLastWeights();
-              const last = parsed[firstExercise.id] && parsed[firstExercise.id][0];
-              setCurrentWeight(typeof last === 'number' ? last : (firstSet.weight || 0));
+              if (mounted) {
+                const last = parsed[firstExercise.id] && parsed[firstExercise.id][0];
+                setCurrentWeight(typeof last === 'number' ? last : (firstSet.weight || 0));
+              }
             } catch (e) {
-              setCurrentWeight(firstSet.weight || 0);
+              if (mounted) {
+                setCurrentWeight(firstSet.weight || 0);
+              }
             }
           }
         }
       }
-    })();
+      
+      if (mounted) {
+        console.log('[WorkoutPage] Inicialización completada');
+        setIsInitialized(true);
+      }
+    };
+    
+    initializeWorkout();
+    
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, gymLoading]);
 
   // Calcular ejercicio actual usando useMemo para evitar problemas de inicialización
   const currentExercise = React.useMemo(() => {
@@ -155,36 +208,6 @@ export default function WorkoutPage() {
     
     return relevantSessions[0] || null;
   }, [currentExercise, sessions]);
-
-  // Generar sugerencias cuando cambie el ejercicio, peso o descanso
-  useEffect(() => {
-    if (!routine || !currentExercise) return;
-
-    const currentRestTime = restOverrides[currentExercise.id] ?? 
-                           currentExercise.restBetweenSets ?? 
-                           routine.restBetweenSets ?? 
-                           60;
-
-    // Sugerencias generales
-    const generalSuggestions = generateWorkoutSuggestions(
-      sessions,
-      currentExercise.name,
-      typeof currentWeight === 'number' ? currentWeight : undefined,
-      currentRestTime
-    );
-
-    // Sugerencias en vivo para el ejercicio actual
-    const liveSuggestions = generateLiveSuggestions(
-      currentExercise.name,
-      currentSet,
-      currentExercise.sets.length,
-      typeof currentWeight === 'number' ? currentWeight : 0,
-      sessions
-    );
-
-    setSuggestions([...generalSuggestions, ...liveSuggestions]);
-    setDismissedSuggestions(new Set()); // Reset dismissed cuando cambia el ejercicio
-  }, [currentExerciseIndex, currentSet, currentWeight, currentExercise, routine, sessions, restOverrides]);
 
   // Detectar cuando todas las series están completadas y avanzar automáticamente
   useEffect(() => {
@@ -244,6 +267,86 @@ export default function WorkoutPage() {
       }
     }
   }, [completedSets, actualReps, currentExercise, routine, currentExerciseIndex, showTimer, isExecutingSet, showPreparation, workoutStartTime, restOverrides, useSmartRest, actualWeights, currentSet, updateWorkoutProgress]);
+
+  // Generar sugerencias cuando cambie el ejercicio, peso o descanso
+  useEffect(() => {
+    if (!routine || !currentExercise) return;
+
+    const currentRestTime = restOverrides[currentExercise.id] ?? 
+                           currentExercise.restBetweenSets ?? 
+                           routine.restBetweenSets ?? 
+                           60;
+
+    // Sugerencias generales
+    const generalSuggestions = generateWorkoutSuggestions(
+      sessions,
+      currentExercise.name,
+      typeof currentWeight === 'number' ? currentWeight : undefined,
+      currentRestTime
+    );
+
+    // Sugerencias en vivo para el ejercicio actual
+    const liveSuggestions = generateLiveSuggestions(
+      currentExercise.name,
+      currentSet,
+      currentExercise.sets.length,
+      typeof currentWeight === 'number' ? currentWeight : 0,
+      sessions
+    );
+
+    setSuggestions([...generalSuggestions, ...liveSuggestions]);
+    setDismissedSuggestions(new Set()); // Reset dismissed cuando cambia el ejercicio
+  }, [currentExerciseIndex, currentSet, currentWeight, currentExercise, routine, sessions, restOverrides]);
+
+  // Ocultar navbar cuando se muestra el timer
+  useEffect(() => {
+    if (showTimer) {
+      // Agregar clase al body para ocultar navbar
+      document.body.classList.add('hide-navbar');
+    } else {
+      document.body.classList.remove('hide-navbar');
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      document.body.classList.remove('hide-navbar');
+    };
+  }, [showTimer]);
+
+  // Sincronizar cambios de actualWeights con el contexto
+  useEffect(() => {
+    // Solo actualizar si realmente cambió
+    if (prevActualWeightsRef.current !== actualWeights && Object.keys(actualWeights).length > 0) {
+      updateWorkoutProgress(
+        currentExerciseIndex,
+        currentSet,
+        completedSets,
+        actualReps,
+        actualWeights
+      );
+      prevActualWeightsRef.current = actualWeights;
+    }
+  }, [actualWeights, currentExerciseIndex, currentSet, completedSets, actualReps, updateWorkoutProgress]);
+
+
+  // Mostrar loading mientras GymContext carga o mientras se inicializa
+  if (gymLoading || !isInitialized) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="text-center py-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mt-4">
+              Cargando entrenamiento...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!routine || !routine.exercises || routine.exercises.length === 0) {
     return (
@@ -452,22 +555,6 @@ export default function WorkoutPage() {
     }
   };
 
-  // Sincronizar cambios de actualWeights con el contexto
-  const prevActualWeightsRef = React.useRef(actualWeights);
-  useEffect(() => {
-    // Solo actualizar si realmente cambió
-    if (prevActualWeightsRef.current !== actualWeights && Object.keys(actualWeights).length > 0) {
-      updateWorkoutProgress(
-        currentExerciseIndex,
-        currentSet,
-        completedSets,
-        actualReps,
-        actualWeights
-      );
-      prevActualWeightsRef.current = actualWeights;
-    }
-  }, [actualWeights, currentExerciseIndex, currentSet, completedSets, actualReps, updateWorkoutProgress]);
-
   const handleEditSetType = (exerciseId: string, setIndex: number, type: import('@/types').SetType) => {
     setSetTypes(prev => {
       const copy = { ...prev };
@@ -641,20 +728,6 @@ export default function WorkoutPage() {
     handleTimerComplete();
   };
 
-  // Ocultar navbar cuando se muestra el timer
-  useEffect(() => {
-    if (showTimer) {
-      // Agregar clase al body para ocultar navbar
-      document.body.classList.add('hide-navbar');
-    } else {
-      document.body.classList.remove('hide-navbar');
-    }
-
-    // Cleanup al desmontar
-    return () => {
-      document.body.classList.remove('hide-navbar');
-    };
-  }, [showTimer]);
 
   if (showTimer) {
     return (
