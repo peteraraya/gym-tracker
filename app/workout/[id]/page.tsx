@@ -25,16 +25,11 @@ import {
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import * as storageService from '@/lib/storage/storage';
 import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
-import WorkoutSuggestions from '@/components/WorkoutSuggestions';
-import WorkoutComparison from '@/components/WorkoutComparison';
 
 export default function WorkoutPage() {
-  console.log('[WorkoutPage] Componente montándose/renderizando');
-  
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  console.log('[WorkoutPage] ID de la URL:', id);
   
   const { getRoutineById, addSession, sessions, loading: gymLoading } = useGym();
   const { activeWorkout, startWorkout, updateWorkoutProgress, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
@@ -81,20 +76,15 @@ export default function WorkoutPage() {
   useEffect(() => {
     // No hacer nada si GymContext aún está cargando
     if (gymLoading) {
-      console.log('[WorkoutPage] Esperando a que GymContext termine de cargar...');
       return;
     }
     
     let mounted = true;
     
     const initializeWorkout = async () => {
-      console.log('[WorkoutPage] Inicializando workout con id:', id);
-      
       const foundRoutine = getRoutineById(id);
-      console.log('[WorkoutPage] Rutina encontrada:', foundRoutine ? foundRoutine.name : 'NO ENCONTRADA');
       
       if (!foundRoutine) {
-        console.warn('[WorkoutPage] Rutina no encontrada, redirigiendo a /routines');
         router.push('/routines');
         return;
       }
@@ -104,17 +94,11 @@ export default function WorkoutPage() {
       
       // Verificar si hay un workout guardado
       const storedWorkout = await storageService.getActiveWorkout();
-      console.log('[WorkoutPage] Workout guardado:', storedWorkout ? {
-        routineId: storedWorkout.routineId,
-        currentExerciseIndex: storedWorkout.currentExerciseIndex,
-        currentSet: storedWorkout.currentSet
-      } : 'NO HAY WORKOUT GUARDADO');
       
       if (!mounted) return;
       
       // Si hay un workout guardado y coincide con esta rutina, restaurar el estado
       if (storedWorkout && storedWorkout.routineId === id) {
-        console.log('[WorkoutPage] Restaurando estado del workout guardado');
         const s = storedWorkout as any;
         setCurrentExerciseIndex(Number(s.currentExerciseIndex ?? 0));
         setCurrentSet(Number(s.currentSet ?? 1));
@@ -151,7 +135,6 @@ export default function WorkoutPage() {
           }
         }
       } else if (!storedWorkout || storedWorkout.routineId !== id) {
-        console.log('[WorkoutPage] Iniciando nuevo workout');
         // Solo iniciar un nuevo workout si NO hay ninguno guardado o es de otra rutina
         startWorkout(foundRoutine);
         
@@ -178,7 +161,6 @@ export default function WorkoutPage() {
       }
       
       if (mounted) {
-        console.log('[WorkoutPage] Inicialización completada');
         setIsInitialized(true);
       }
     };
@@ -208,6 +190,39 @@ export default function WorkoutPage() {
     
     return relevantSessions[0] || null;
   }, [currentExercise, sessions]);
+
+  // Mostrar comparación con última sesión como toast
+  useEffect(() => {
+    if (!lastSessionForExercise || !currentExercise || typeof currentWeight !== 'number' || typeof currentReps !== 'number') return;
+    
+    // Buscar el ejercicio en la última sesión
+    const lastExerciseData = lastSessionForExercise.exercises.find(e => e.exerciseName === currentExercise.name);
+    if (!lastExerciseData) return;
+    
+    // Comparar con la serie actual
+    const setIndex = currentSet - 1;
+    const lastWeight = lastExerciseData.actualWeight?.[setIndex];
+    const lastReps = lastExerciseData.actualReps?.[setIndex];
+    
+    if (typeof lastWeight === 'number' && typeof lastReps === 'number') {
+      const weightDiff = currentWeight - lastWeight;
+      const repsDiff = currentReps - lastReps;
+      
+      if (weightDiff > 0 || repsDiff > 0) {
+        let message = '📈 ';
+        if (weightDiff > 0) message += `+${weightDiff}kg `;
+        if (repsDiff > 0) message += `+${repsDiff} reps `;
+        message += 'vs última sesión';
+        success(message, 4000);
+      } else if (weightDiff < 0 || repsDiff < 0) {
+        let message = '📉 ';
+        if (weightDiff < 0) message += `${weightDiff}kg `;
+        if (repsDiff < 0) message += `${repsDiff} reps `;
+        message += 'vs última sesión';
+        error(message, 4000);
+      }
+    }
+  }, [currentExerciseIndex, currentSet, lastSessionForExercise, currentExercise, currentWeight, currentReps, success, error]);
 
   // Detectar cuando todas las series están completadas y avanzar automáticamente
   useEffect(() => {
@@ -294,9 +309,26 @@ export default function WorkoutPage() {
       sessions
     );
 
-    setSuggestions([...generalSuggestions, ...liveSuggestions]);
+    const allSuggestions = [...generalSuggestions, ...liveSuggestions];
+    
+    // Mostrar sugerencias como toasts (solo las más importantes)
+    if (allSuggestions.length > 0) {
+      // Mostrar solo la primera sugerencia de advertencia como toast
+      const warningSuggestion = allSuggestions.find(s => s.type === 'rest_warning' || s.type === 'overtraining');
+      if (warningSuggestion) {
+        error(`⚠️ ${warningSuggestion.message}`, 5000);
+      } else {
+        // Si no hay advertencias, mostrar la primera sugerencia positiva
+        const positiveSuggestion = allSuggestions[0];
+        if (positiveSuggestion) {
+          success(`💡 ${positiveSuggestion.message}`, 4000);
+        }
+      }
+    }
+    
+    setSuggestions(allSuggestions);
     setDismissedSuggestions(new Set()); // Reset dismissed cuando cambia el ejercicio
-  }, [currentExerciseIndex, currentSet, currentWeight, currentExercise, routine, sessions, restOverrides]);
+  }, [currentExerciseIndex, currentSet, currentWeight, currentExercise, routine, sessions, restOverrides, success, error]);
 
   // Ocultar navbar cuando se muestra el timer
   useEffect(() => {
@@ -791,17 +823,6 @@ export default function WorkoutPage() {
           </div>
         </div>
 
-        {/* Sugerencias Inteligentes */}
-        {suggestions.length > 0 && (
-          <WorkoutSuggestions
-            suggestions={suggestions.filter((_, i) => !dismissedSuggestions.has(i))}
-            onDismiss={(index) => {
-              setDismissedSuggestions(prev => new Set([...prev, index]));
-            }}
-            compact
-          />
-        )}
-
         {/* Ejercicio actual */}
         <Card className="mb-6">
           <CardHeader>
@@ -873,18 +894,6 @@ export default function WorkoutPage() {
                       <div className="text-sm text-gray-600 dark:text-gray-400">Reps (Serie {currentSet})</div>
                     </div>
                   </div>
-
-                  {/* Comparación con última sesión */}
-                  {lastSessionForExercise && typeof currentWeight === 'number' && typeof currentReps === 'number' && (
-                    <WorkoutComparison
-                      exerciseName={currentExercise.name}
-                      currentSet={currentSet}
-                      currentWeight={currentWeight}
-                      currentReps={currentReps}
-                      lastSession={lastSessionForExercise}
-                      compact
-                    />
-                  )}
                 </>
               )}
 
