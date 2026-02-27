@@ -233,6 +233,17 @@ export default function WorkoutPage() {
     const completedCount = completedSets[exerciseId] || 0;
     const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
     
+    console.log('[Auto-advance Check]', {
+      exerciseId,
+      exerciseName: currentExercise.name,
+      totalSets,
+      completedCount,
+      actualReps: actualReps[exerciseId],
+      showTimer,
+      isExecutingSet,
+      showPreparation
+    });
+    
     // Si todas las series están completadas
     if (completedCount === totalSets && completedCount > 0) {
       // Verificar que realmente todas las series tienen datos
@@ -241,28 +252,54 @@ export default function WorkoutPage() {
         return hasReps;
       });
       
+      console.log('[Auto-advance] Todas las series marcadas como completadas. allSetsHaveData:', allSetsHaveData);
+      
       // Solo avanzar automáticamente si:
       // 1. Todas las series tienen datos
       // 2. No hay timer activo
       // 3. No está ejecutando una serie
       // 4. No está en preparación
-      // 5. El ejercicio actual es el último ejercicio completado (no está editando uno anterior)
-      const isEditingPreviousExercise = currentExerciseIndex < routine.exercises.findIndex((ex, idx) => {
+      
+      // Verificar si está editando un ejercicio anterior
+      // Estás editando un ejercicio anterior SOLO si el ejercicio actual NO es el último ejercicio completado
+      // Es decir, si hay ejercicios posteriores que ya tienen series completadas
+      let isEditingPreviousExercise = false;
+      
+      // Buscar el índice del último ejercicio que tiene al menos una serie completada
+      let lastCompletedExerciseIndex = -1;
+      for (let i = routine.exercises.length - 1; i >= 0; i--) {
+        const ex = routine.exercises[i];
         const exCompletedSets = completedSets[ex.id] || 0;
-        return exCompletedSets < ex.sets.length;
+        if (exCompletedSets > 0) {
+          lastCompletedExerciseIndex = i;
+          break;
+        }
+      }
+      
+      // Si el ejercicio actual NO es el último con series completadas, estás editando uno anterior
+      if (lastCompletedExerciseIndex > currentExerciseIndex) {
+        isEditingPreviousExercise = true;
+      }
+      
+      console.log('[Auto-advance] Verificación de edición:', {
+        currentExerciseIndex,
+        lastCompletedExerciseIndex,
+        isEditingPreviousExercise
       });
       
       if (allSetsHaveData && !showTimer && !isExecutingSet && !showPreparation && !isEditingPreviousExercise) {
-        console.log('[Auto-advance] Todas las series completadas, avanzando...');
+        console.log('[Auto-advance] ✅ Todas las condiciones cumplidas, avanzando...');
         // Todas las series completadas, avanzar al siguiente ejercicio o finalizar
         if (isLastExercise) {
           // Último ejercicio, mostrar modal de finalización
+          console.log('[Auto-advance] Último ejercicio, mostrando modal de finalización');
           const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
           setProposedDuration(Math.max(duration, 60));
           setShowNotesModal(true);
         } else {
           // Pasar al siguiente ejercicio con descanso
           const nextExercise = routine.exercises[currentExerciseIndex + 1];
+          console.log('[Auto-advance] Pasando al siguiente ejercicio:', nextExercise.name);
           const nextExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
           const currentExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
           
@@ -277,6 +314,7 @@ export default function WorkoutPage() {
             restTime = restRecommendation.recommended;
           }
           
+          console.log('[Auto-advance] Iniciando timer de descanso:', restTime, 'segundos');
           setShowTimer(true);
           setTimerDuration(restTime);
           setTimerTitle('Descanso entre ejercicios');
@@ -291,8 +329,14 @@ export default function WorkoutPage() {
             { isResting: true, restTimerDuration: restTime, restTimerTitle: 'Descanso entre ejercicios', restTimerNextExercise: nextExercise.name, restTimerStartedAt: Date.now() }
           );
         }
-      } else if (isEditingPreviousExercise) {
-        console.log('[Auto-advance] Usuario está editando ejercicio anterior, no avanzar automáticamente');
+      } else {
+        console.log('[Auto-advance] ❌ Condiciones no cumplidas:', {
+          allSetsHaveData,
+          showTimer,
+          isExecutingSet,
+          showPreparation,
+          isEditingPreviousExercise
+        });
       }
     }
   }, [completedSets, actualReps, currentExercise, routine, currentExerciseIndex, showTimer, isExecutingSet, showPreparation, workoutStartTime, restOverrides, useSmartRest, actualWeights, currentSet, updateWorkoutProgress]);
