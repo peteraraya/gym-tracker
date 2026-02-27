@@ -52,36 +52,41 @@ export function ActiveWorkoutBanner() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-      <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg border-t-2 border-emerald-400">
-        <div className="container mx-auto px-3 py-2">
-          <div className="flex items-center justify-between gap-3">
-            {/* Info compacta */}
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <Activity className="w-4 h-4 flex-shrink-0 animate-pulse" />
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-xs truncate">
+      <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-2xl border-t-2 border-emerald-400">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            {/* Info del entrenamiento - Centrada y profesional */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <Activity className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-sm sm:text-base truncate">
                   {activeWorkout.routineName}
                 </p>
-                <p className="text-[10px] opacity-90">
-                  Ej. {activeWorkout.currentExerciseIndex + 1} · Serie {activeWorkout.currentSet}
+                <p className="text-xs opacity-90 flex items-center gap-2">
+                  <span>Ejercicio {activeWorkout.currentExerciseIndex + 1}</span>
+                  <span>•</span>
+                  <span>Serie {activeWorkout.currentSet}</span>
                 </p>
               </div>
             </div>
             
-            {/* Botones compactos */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Botones de acción - Más visibles y profesionales */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={handleContinue}
-                className="px-3 py-1.5 text-xs font-semibold bg-white/20 hover:bg-white/30 rounded-md transition-colors whitespace-nowrap"
+                className="px-5 py-2 text-sm font-bold bg-white text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all hover:scale-105 shadow-md"
               >
                 Continuar
               </button>
               <button
                 onClick={handleCancel}
-                className="p-1.5 hover:bg-white/20 rounded-md transition-colors"
-                aria-label="Cancelar entrenamiento"
+                className="px-4 py-2 text-sm font-semibold bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all hover:scale-105 shadow-md flex items-center gap-1.5"
+                aria-label="Descartar entrenamiento"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Descartar</span>
               </button>
             </div>
           </div>
