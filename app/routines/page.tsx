@@ -9,7 +9,6 @@ import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
 import { useToast } from '@/context/ToastContext';
 import { useConfirm } from '@/context/ConfirmContext';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RoutineForm } from '@/components/RoutineForm';
@@ -233,9 +232,9 @@ export default function RoutinesPage() {
                 return (r.name || '').toLowerCase().includes(searchFilter.toLowerCase()) || (r.description || '').toLowerCase().includes(searchFilter.toLowerCase());
               })
               .map((routine) => (
-              <Card 
+              <div 
                 key={routine.id} 
-                className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 rounded-2xl p-0 "
+                className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 p-0"
               >
                 {/* Imagen de la rutina (si existe) */}
                 {routine.image && (
@@ -287,7 +286,7 @@ export default function RoutinesPage() {
                   </div>
                 )}
 
-                <CardContent className="p-4 space-y-4">
+                <div className="p-4 space-y-4">
                   {/* Título y descripción (si hay imagen) */}
                   {routine.image && (
                     <div>
@@ -385,8 +384,9 @@ export default function RoutinesPage() {
                       Eliminar
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>  
+
             ))}
           </div>
         )}
