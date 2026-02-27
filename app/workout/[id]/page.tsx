@@ -424,7 +424,35 @@ export default function WorkoutPage() {
       
       workoutState.updateActualReps(exerciseId, newActualReps);
       workoutState.updateActualWeights(exerciseId, newActualWeights);
-      workoutState.updateCompletedSets(exerciseId, (workoutState.workoutData.completedSets[exerciseId] || 0) + 1);
+      const newCompletedCount = (workoutState.workoutData.completedSets[exerciseId] || 0) + 1;
+      workoutState.updateCompletedSets(exerciseId, newCompletedCount);
+      
+      // Check if all sets are now complete
+      if (newCompletedCount >= currentExercise.sets.length) {
+        const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
+        
+        if (isLastExercise) {
+          // Show completion modal
+          const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+          setProposedDuration(Math.max(duration, 60));
+          setShowNotesModal(true);
+        } else {
+          // Show rest timer before next exercise
+          const nextExercise = routine.exercises[workoutState.currentExerciseIndex + 1];
+          const restTime = calculateExerciseRestTime({
+            currentExercise,
+            nextExercise,
+            routine,
+            restOverrides: workoutState.workoutData.restOverrides,
+            useSmartRest
+          });
+          
+          setShowTimer(true);
+          setTimerDuration(restTime);
+          setTimerTitle('Descanso entre ejercicios');
+          setNextExerciseName(nextExercise.name);
+        }
+      }
     } else {
       // Mark as incomplete
       const newActualReps = [...(workoutState.workoutData.actualReps[exerciseId] || [])];
@@ -437,7 +465,7 @@ export default function WorkoutPage() {
       workoutState.updateActualWeights(exerciseId, newActualWeights);
       workoutState.updateCompletedSets(exerciseId, Math.max(0, (workoutState.workoutData.completedSets[exerciseId] || 0) - 1));
     }
-  }, [currentExercise, routine, workoutState]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest]);
 
   const handleAddSet = useCallback(() => {
     if (!routine || !currentExercise) return;
