@@ -75,6 +75,16 @@ export const Timer: React.FC<TimerProps> = ({
             // Calcular duración real
             const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
             setActualDuration(realDuration);
+            
+            // Llamar onComplete automáticamente cuando el timer llega a 0
+            if (onComplete && !onCompleteCalledRef.current) {
+              onCompleteCalledRef.current = true;
+              // Usar setTimeout para permitir que el estado se actualice primero
+              setTimeout(() => {
+                onComplete();
+              }, 100);
+            }
+            
             return 0;
           }
           return prev - 1;
@@ -87,7 +97,7 @@ export const Timer: React.FC<TimerProps> = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning]);
+  }, [isRunning, onComplete]);
 
   // Efecto separado para notificar cambios en la duración real
   useEffect(() => {
