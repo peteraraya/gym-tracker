@@ -25,6 +25,7 @@ import {
   calculateExerciseRestTime,
   updateNestedArray 
 } from './utils/workoutCalculations';
+import { calculateRestBetweenSets } from '@/lib/restCalculator';
 import { useWorkoutState } from './hooks/useWorkoutState';
 import { WorkoutHeader } from './components/WorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
@@ -406,6 +407,47 @@ export default function WorkoutPage() {
     workoutState.updateSetType(exerciseId, setIndex, type);
   }, [currentExercise, workoutState]);
 
+  const handleEditRestTime = useCallback((setIndex: number, restTime: number) => {
+    if (!currentExercise) return;
+    const exerciseId = currentExercise.id;
+    workoutState.updatePerSetRestOverride(exerciseId, setIndex, restTime);
+  }, [currentExercise, workoutState]);
+
+  const smartRestTime = useMemo(() => {
+    if (!currentExercise) return undefined;
+    
+    const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+    
+    if (!exerciseTemplate) return undefined;
+    
+    // Calculate smart rest based on exercise characteristics (sets, reps)
+    // Use average reps from all sets for a more accurate calculation
+    const avgReps = Math.round(
+      currentExercise.sets.reduce((sum: number, set: any) => sum + set.reps, 0) / currentExercise.sets.length
+    );
+    
+    const restRecommendation = calculateRestBetweenSets(
+      exerciseTemplate,
+      currentExercise.sets.length,
+      avgReps,
+      'intermediate'
+    );
+    
+    // Round to nearest 5-second interval to match selector options
+    return Math.round(restRecommendation.recommended / 5) * 5;
+  }, [currentExercise]);
+
+  const handleApplySmartRest = useCallback(() => {
+    if (!currentExercise || !smartRestTime) return;
+    const exerciseId = currentExercise.id;
+    
+    // Apply smart rest to all sets
+    for (let i = 0; i < currentExercise.sets.length; i++) {
+      workoutState.updatePerSetRestOverride(exerciseId, i, smartRestTime);
+    }
+    success('Descanso inteligente aplicado a todas las series', 2000);
+  }, [currentExercise, smartRestTime, workoutState, success]);
+
   const handleToggleSetComplete = useCallback((setIndex: number, isComplete: boolean) => {
     if (!currentExercise || !routine) return;
     
@@ -639,6 +681,10 @@ export default function WorkoutPage() {
           onEditSetType={handleEditSetType}
           onToggleSetComplete={handleToggleSetComplete}
           onAddSet={handleAddSet}
+          perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
+          onEditRestTime={handleEditRestTime}
+          onApplySmartRest={handleApplySmartRest}
+          smartRestTime={smartRestTime}
         />
 
         {/* Exercise list */}

@@ -22,6 +22,10 @@ interface SeriesTableProps {
   onEditSetType: (setIndex: number, type: SetType) => void;
   onToggleSetComplete: (setIndex: number, isComplete: boolean) => void;
   onAddSet: () => void;
+  perSetRestOverrides?: {[key: string]: number[]};
+  onEditRestTime?: (setIndex: number, restTime: number) => void;
+  onApplySmartRest?: () => void;
+  smartRestTime?: number;
 }
 
 /**
@@ -46,6 +50,10 @@ export function SeriesTable({
   onEditSetType,
   onToggleSetComplete,
   onAddSet,
+  perSetRestOverrides,
+  onEditRestTime,
+  onApplySmartRest,
+  smartRestTime,
 }: SeriesTableProps) {
   const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
 
@@ -59,6 +67,42 @@ export function SeriesTable({
       </CardHeader>
 
       <CardContent>
+        <div className="space-y-3">
+          {/* Mobile set type selectors - shown above table */}
+          <div className="sm:hidden space-y-2">
+            {exercise.sets.map((set, idx) => {
+              const setType = setTypes[idx] || 'normal';
+              const doneReps = actualReps[idx] ?? null;
+              const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+              
+              if (isCompleted) return null;
+              
+              return (
+                <div key={`type-selector-${idx}`} className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Serie {idx + 1}</span>
+                  <button
+                    onClick={() => {
+                      const types: SetType[] = ['normal', 'warmup', 'dropset', 'failure', 'amrap', 'rest-pause', 'cluster'];
+                      const currentIdx = types.indexOf(setType as SetType);
+                      const nextIdx = (currentIdx + 1) % types.length;
+                      onEditSetType(idx, types[nextIdx]);
+                    }}
+                    className="text-xs px-3 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors font-semibold"
+                  >
+                    {setType === 'normal' && '🟦 Normal'}
+                    {setType === 'warmup' && '🔥 Warmup'}
+                    {setType === 'dropset' && '📉 Drop'}
+                    {setType === 'failure' && '💪 Fallo'}
+                    {setType === 'amrap' && '⚡ AMRAP'}
+                    {setType === 'rest-pause' && '⏸️ Rest-Pause'}
+                    {setType === 'cluster' && '🔗 Cluster'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -66,7 +110,8 @@ export function SeriesTable({
                 <th className="text-left py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Serie</th>
                 <th className="text-left py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Reps</th>
                 <th className="text-left py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Peso (kg)</th>
-                <th className="text-left py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Tipo</th>
+                <th className="hidden sm:table-cell text-left py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Descanso (s)</th>
+                <th className="hidden sm:table-cell text-left py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Tipo</th>
                 <th className="text-center py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Estado</th>
               </tr>
             </thead>
@@ -101,7 +146,7 @@ export function SeriesTable({
                         }`}>
                           {idx + 1}
                         </div>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                        <span className="font-medium text-gray-900 dark:text-gray-100 hidden sm:inline">
                           Serie {idx + 1}
                         </span>
                       </div>
@@ -143,8 +188,28 @@ export function SeriesTable({
                       />
                     </td>
 
-                    {/* Tipo de serie */}
-                    <td className="py-3 px-2">
+                    {/* Descanso personalizado - Hidden on mobile */}
+                    <td className="hidden sm:table-cell py-3 px-2">
+                      {onEditRestTime && (
+                        <select
+                          value={perSetRestOverrides?.[exerciseId]?.[idx] || exercise.restBetweenSets || 90}
+                          onChange={(e) => onEditRestTime(idx, parseInt(e.target.value))}
+                          className="w-full px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs border border-gray-300 dark:border-gray-600"
+                        >
+                          {Array.from({ length: 61 }, (_, i) => (i + 1) * 5).map(s => {
+                            const mins = Math.floor(s / 60);
+                            const secs = s % 60;
+                            const label = mins > 0 ? `${mins}m ${secs}s` : `${s}s`;
+                            return (
+                              <option key={s} value={s}>{label}</option>
+                            );
+                          })}
+                        </select>
+                      )}
+                    </td>
+
+                    {/* Tipo de serie - Hidden on mobile */}
+                    <td className="hidden sm:table-cell py-3 px-2">
                       {isCompleted ? (
                         <SetTypeBadge type={setType as SetType} />
                       ) : (
@@ -184,6 +249,23 @@ export function SeriesTable({
           </table>
         </div>
 
+        {/* Smart rest button */}
+        {onApplySmartRest && smartRestTime && (
+          <button
+            onClick={onApplySmartRest}
+            className="w-full mb-3 py-2 px-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all font-medium text-sm flex items-center justify-center gap-2"
+          >
+            🧠 Aplicar Descanso Inteligente a Todas
+            <span className="text-xs opacity-75">
+              ({(() => {
+                const mins = Math.floor(smartRestTime / 60);
+                const secs = smartRestTime % 60;
+                return mins > 0 ? `${mins}m ${secs}s` : `${smartRestTime}s`;
+              })()})
+            </span>
+          </button>
+        )}
+
         {/* Botón para agregar serie */}
         <button
           onClick={onAddSet}
@@ -192,6 +274,7 @@ export function SeriesTable({
           <Plus className="w-5 h-5" />
           Agregar Serie
         </button>
+        </div>
       </CardContent>
     </Card>
   );
