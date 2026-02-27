@@ -35,6 +35,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [validationErrors, setValidationErrors] = useState<Array<{ exerciseIndex: number; setIndex: number; message: string }>>([]);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const [currentStep, setCurrentStep] = useState<'basic' | 'exercises' | 'review'>('basic');
+  const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (routineId) {
@@ -117,6 +119,15 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
   const handleRemoveExercise = (index: number) => {
     setExercises(exercises.filter((_, i) => i !== index));
+  };
+
+  const handleMoveExercise = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    
+    const newExercises = [...exercises];
+    const [movedExercise] = newExercises.splice(fromIndex, 1);
+    newExercises.splice(toIndex, 0, movedExercise);
+    setExercises(newExercises);
   };
 
   const handleExerciseChange = (index: number, field: 'name' | 'equipment' | 'notes', value: string) => {
@@ -526,9 +537,16 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
             <div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {t('exercisesTitle')} ({exercises.length})
-                </h3>
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {t('exercisesTitle')} ({exercises.length})
+                  </h3>
+                  {exercises.length > 1 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      💡 Arrastra los ejercicios para cambiar el orden
+                    </p>
+                  )}
+                </div>
                 <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                   <Button 
                     type="button" 
@@ -570,10 +588,48 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 {exercises.map((exercise, exerciseIndex) => (
                   <div
                     key={exerciseIndex}
-                    className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl shadow-md border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all space-y-4"
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedExerciseIndex(exerciseIndex);
+                      e.dataTransfer.effectAllowed = 'move';
+                      // Agregar clase visual al elemento arrastrado
+                      e.currentTarget.classList.add('opacity-50');
+                    }}
+                    onDragEnd={(e) => {
+                      setDraggedExerciseIndex(null);
+                      setDragOverIndex(null);
+                      e.currentTarget.classList.remove('opacity-50');
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      setDragOverIndex(exerciseIndex);
+                    }}
+                    onDragLeave={() => {
+                      setDragOverIndex(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedExerciseIndex !== null && draggedExerciseIndex !== exerciseIndex) {
+                        handleMoveExercise(draggedExerciseIndex, exerciseIndex);
+                      }
+                      setDraggedExerciseIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    className={`bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl shadow-md border-2 transition-all space-y-4 cursor-move ${
+                      dragOverIndex === exerciseIndex && draggedExerciseIndex !== exerciseIndex
+                        ? 'border-blue-500 dark:border-blue-400 scale-105 shadow-xl'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500'
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Icono de drag handle */}
+                        <div className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
+                          </svg>
+                        </div>
                         <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
                           {exerciseIndex + 1}
                         </div>
