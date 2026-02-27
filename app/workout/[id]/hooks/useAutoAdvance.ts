@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { shouldAutoAdvance } from '../utils/workoutCalculations';
 import type { Exercise, Routine } from '@/types';
 
@@ -32,8 +32,27 @@ export function useAutoAdvance(params: UseAutoAdvanceParams) {
     onShowFinishModal
   } = params;
   
+  // Ref para rastrear el último ejercicio procesado
+  const lastProcessedExerciseRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    // Resetear el ref cuando cambia el ejercicio actual
+    if (currentExercise) {
+      const exerciseKey = `${currentExercise.id}-${currentExerciseIndex}`;
+      // Solo resetear si es un ejercicio diferente
+      if (lastProcessedExerciseRef.current && !lastProcessedExerciseRef.current.startsWith(currentExercise.id)) {
+        lastProcessedExerciseRef.current = null;
+      }
+    }
+  }, [currentExercise?.id, currentExerciseIndex]);
+  
   useEffect(() => {
     if (!currentExercise || !routine) return;
+    
+    // NO ejecutar auto-avance si hay un timer activo, está ejecutando o en preparación
+    if (showTimer || isExecutingSet || showPreparation) {
+      return;
+    }
     
     const shouldAdvance = shouldAutoAdvance({
       completedSets,
@@ -47,11 +66,22 @@ export function useAutoAdvance(params: UseAutoAdvanceParams) {
     });
     
     if (shouldAdvance) {
+      // Prevenir procesamiento duplicado del mismo ejercicio
+      const exerciseKey = `${currentExercise.id}-${currentExerciseIndex}`;
+      if (lastProcessedExerciseRef.current === exerciseKey) {
+        console.log('[Auto-advance] Ya procesado este ejercicio, ignorando');
+        return;
+      }
+      
+      lastProcessedExerciseRef.current = exerciseKey;
+      
       const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
       
       if (isLastExercise) {
+        console.log('[Auto-advance] Último ejercicio, mostrando modal');
         onShowFinishModal();
       } else {
+        console.log('[Auto-advance] Avanzando al siguiente ejercicio');
         onAdvanceToNextExercise();
       }
     }

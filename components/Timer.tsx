@@ -130,16 +130,35 @@ export const Timer: React.FC<TimerProps> = ({
     setTimeLeft(plannedDuration);
     setIsCompleted(false);
     setHasAdjusted(false);
+    onCompleteCalledRef.current = false; // Resetear la referencia
     startTimeRef.current = Date.now();
   };
 
-  const handleSkip = () => {
+  const handleSkip = (e: React.MouseEvent) => {
+    // Prevenir propagación y comportamiento por defecto
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Prevenir múltiples llamadas
+    if (onCompleteCalledRef.current) {
+      console.log('[Timer] Skip ya fue llamado, ignorando');
+      return;
+    }
+    
+    console.log('[Timer] Ejecutando skip');
+    onCompleteCalledRef.current = true;
     setIsRunning(false);
+    
     const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
     setActualDuration(realDuration);
     setTimeLeft(0);
     setIsCompleted(true);
-    if (onComplete) onComplete();
+    
+    // Llamar onComplete inmediatamente sin setTimeout
+    if (onComplete) {
+      console.log('[Timer] Llamando onComplete');
+      onComplete();
+    }
   };
 
   // Ajuste rápido de tiempo
@@ -337,21 +356,26 @@ export const Timer: React.FC<TimerProps> = ({
                 {isRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
               </Button>
               
-              <Button 
-                variant="primary" 
-                onClick={handleSkip} 
-                size="lg"
-                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700"
+              {/* Botón nativo para evitar problemas con el componente Button */}
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-semibold rounded-xl transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md bg-orange-600 hover:bg-orange-700 text-white"
               >
                 ⏭️ Saltar
-              </Button>
+              </button>
             </div>
           </>
         ) : (
           <div className="space-y-2">
             <Button 
               variant="primary" 
-              onClick={() => { if (onComplete) onComplete(); }} 
+              onClick={() => { 
+                if (onComplete && !onCompleteCalledRef.current) {
+                  onCompleteCalledRef.current = true;
+                  onComplete();
+                }
+              }} 
               size="lg" 
               className="w-full py-4 text-lg font-bold"
             >

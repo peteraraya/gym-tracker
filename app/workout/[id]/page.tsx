@@ -30,7 +30,6 @@ import {
   calculateExerciseRestTime,
   updateNestedArray 
 } from './utils/workoutCalculations';
-import { useAutoAdvance } from './hooks/useAutoAdvance';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -81,6 +80,9 @@ export default function WorkoutPage() {
   
   // Ref para sincronización de actualWeights
   const prevActualWeightsRef = React.useRef(actualWeights);
+  
+  // Ref para prevenir múltiples llamadas a handleTimerComplete
+  const timerCompleteProcessingRef = React.useRef(false);
 
   // Inicialización del workout - solo se ejecuta una vez al montar
   useEffect(() => {
@@ -234,61 +236,64 @@ export default function WorkoutPage() {
     }
   }, [currentExerciseIndex, currentSet, lastSessionForExercise, currentExercise, currentWeight, currentReps, success, error]);
 
-  // Auto-avance entre ejercicios usando custom hook
-  useAutoAdvance({
-    currentExercise,
-    routine,
-    completedSets,
-    actualReps,
-    currentExerciseIndex,
-    showTimer,
-    isExecutingSet,
-    showPreparation,
-    onAdvanceToNextExercise: () => {
-      const nextExercise = routine!.exercises[currentExerciseIndex + 1];
-      console.log('[Auto-advance] Pasando al siguiente ejercicio:', nextExercise.name);
-      
-      const restTime = calculateExerciseRestTime({
-        currentExercise: currentExercise!,
-        nextExercise,
-        routine: routine!,
-        restOverrides,
-        useSmartRest
-      });
-      
-      console.log('[Auto-advance] Iniciando timer de descanso:', restTime, 'segundos');
-      setShowTimer(true);
-      setTimerDuration(restTime);
-      setTimerTitle('Descanso entre ejercicios');
-      setNextExerciseName(nextExercise.name);
-      
-      updateWorkoutProgress(
-        currentExerciseIndex,
-        currentSet,
-        completedSets,
-        actualReps,
-        actualWeights,
-        { 
-          isResting: true, 
-          restTimerDuration: restTime, 
-          restTimerTitle: 'Descanso entre ejercicios', 
-          restTimerNextExercise: nextExercise.name, 
-          restTimerStartedAt: Date.now() 
-        }
-      );
-    },
-    onShowFinishModal: () => {
-      console.log('[Auto-advance] Último ejercicio, mostrando modal de finalización');
-      const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-      setProposedDuration(Math.max(duration, 60));
-      setShowNotesModal(true);
-    }
-  });
-
   // Resetear sugerencias descartadas cuando cambia el ejercicio
   useEffect(() => {
     setDismissedSuggestions(new Set());
   }, [currentExerciseIndex]);
+
+  // Detectar cuando todas las series se completan con checkboxes
+  useEffect(() => {
+    if (!currentExercise || !routine || showTimer) return;
+    
+    const exerciseId = currentExercise.id;
+    const completedCount = completedSets[exerciseId] || 0;
+    const totalSets = currentExercise.sets.length;
+    
+    // Si todas las series están completadas, iniciar timer
+    if (completedCount >= totalSets && completedCount > 0) {
+      const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
+      
+      if (isLastExercise) {
+        // Último ejercicio - mostrar modal
+        console.log('[Checkbox Detection] Último ejercicio completado, mostrando modal');
+        const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+        setProposedDuration(Math.max(duration, 60));
+        setShowNotesModal(true);
+      } else {
+        // Siguiente ejercicio - iniciar timer de descanso
+        console.log('[Checkbox Detection] Todas las series completadas, iniciando timer');
+        const nextExercise = routine.exercises[currentExerciseIndex + 1];
+        
+        const restTime = calculateExerciseRestTime({
+          currentExercise,
+          nextExercise,
+          routine,
+          restOverrides,
+          useSmartRest
+        });
+        
+        setShowTimer(true);
+        setTimerDuration(restTime);
+        setTimerTitle('Descanso entre ejercicios');
+        setNextExerciseName(nextExercise.name);
+        
+        updateWorkoutProgress(
+          currentExerciseIndex,
+          currentSet,
+          completedSets,
+          actualReps,
+          actualWeights,
+          { 
+            isResting: true, 
+            restTimerDuration: restTime, 
+            restTimerTitle: 'Descanso entre ejercicios', 
+            restTimerNextExercise: nextExercise.name, 
+            restTimerStartedAt: Date.now() 
+          }
+        );
+      }
+    }
+  }, [completedSets, currentExercise, currentExerciseIndex, routine, showTimer, currentSet, workoutStartTime, restOverrides, useSmartRest, updateWorkoutProgress]);
 
   // Generar sugerencias cuando cambie el ejercicio, peso o descanso
   useEffect(() => {
@@ -625,21 +630,47 @@ export default function WorkoutPage() {
   };
 
   const handleTimerComplete = () => {
-    console.log('[handleTimerComplete] Iniciando - showTimer:', showTimer);
+    console.log('[handleTimerComplete] Iniciando - showTimer:', showTimer, 'processing:', timerCompleteProcessingRef.current);
+    
+    // Prevenir múltiples ejecuciones simultáneas
+    if (timerCompleteProcessingRef.current) {
+      console.log('[handleTimerComplete] Ya está procesando, ignorando');
+      return;
+    }
+    
+    timerCompleteProcessingRef.current = true;
     setShowTimer(false);
     clearRestState(); // Limpiar estado de descanso persistido
     
-    // Calcular si es la última serie y el último ejercicio
-    const isLastSet = currentSet >= currentExercise.sets.length;
+    // Calcular si es la última serie basado en completedSets (no en currentSet)
+    // porque currentSet puede no estar actualizado si se completaron series con checkboxes
+    if (!currentExercise || !routine) {
+      console.log('[handleTimerComplete] ERROR: currentExercise o routine es null');
+      timerCompleteProcessingRef.current = false;
+      return;
+    }
+    
+    const exerciseId = currentExercise.id;
+    const completedCount = completedSets[exerciseId] || 0;
+    const totalSets = currentExercise.sets.length;
+    const isLastSet = completedCount >= totalSets;
     const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
     
+    console.log('[handleTimerComplete] completedCount:', completedCount, 'totalSets:', totalSets);
     console.log('[handleTimerComplete] isLastSet:', isLastSet, 'isLastExercise:', isLastExercise);
     
-    if (isLastSet && !isLastExercise) {
-      // Siguiente ejercicio
+    if (isLastSet && isLastExercise) {
+      // Último ejercicio completado - mostrar modal
+      console.log('[handleTimerComplete] Último ejercicio completado');
+      const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+      setProposedDuration(Math.max(duration, 60));
+      setShowNotesModal(true);
+    } else if (isLastSet && !isLastExercise) {
+      // Siguiente ejercicio - avanzar inmediatamente
       const nextIndex = currentExerciseIndex + 1;
+      console.log('[handleTimerComplete] Intentando avanzar a ejercicio:', nextIndex, 'total ejercicios:', routine.exercises.length);
       if (routine.exercises[nextIndex]) {
-        console.log('[handleTimerComplete] Avanzando al siguiente ejercicio:', nextIndex);
+        console.log('[handleTimerComplete] Avanzando al siguiente ejercicio:', nextIndex, 'nombre:', routine.exercises[nextIndex].name);
         setCurrentExerciseIndex(nextIndex);
         setCurrentSet(1);
         const nextExercise = routine.exercises[nextIndex];
@@ -657,6 +688,8 @@ export default function WorkoutPage() {
           actualReps,
           actualWeights
         );
+      } else {
+        console.log('[handleTimerComplete] ERROR: No existe ejercicio en índice:', nextIndex);
       }
     } else if (!isLastSet) {
       // Siguiente serie
@@ -682,6 +715,11 @@ export default function WorkoutPage() {
     }
     
     console.log('[handleTimerComplete] Completado - showTimer debería ser false');
+    
+    // Resetear el flag después de un pequeño delay para permitir que los estados se actualicen
+    setTimeout(() => {
+      timerCompleteProcessingRef.current = false;
+    }, 100);
   };
 
   const finishCompleteWorkout = async () => {
@@ -854,7 +892,12 @@ export default function WorkoutPage() {
                   onClick={handleStartSet}
                   className="w-full py-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  ▶️ Iniciar Serie {currentSet}
+                  ▶️ Iniciar Serie {(() => {
+                    // Calcular la siguiente serie sin completar
+                    const exerciseId = currentExercise.id;
+                    const completedCount = completedSets[exerciseId] || 0;
+                    return Math.min(completedCount + 1, currentExercise.sets.length);
+                  })()}
                 </Button>
               )}
 
@@ -1112,49 +1155,63 @@ export default function WorkoutPage() {
                                 onClick={() => {
                                   if (isCompleted) {
                                     // Desmarcar
-                                    setActualReps(prev => {
-                                      const copy = { ...prev };
-                                      if (copy[exerciseId]) {
-                                        copy[exerciseId][idx] = null as any;
-                                      }
-                                      return copy;
-                                    });
+                                    const newActualReps = { ...actualReps };
+                                    if (newActualReps[exerciseId]) {
+                                      newActualReps[exerciseId][idx] = null as any;
+                                    }
                                     
-                                    setActualWeights(prev => {
-                                      const copy = { ...prev };
-                                      if (copy[exerciseId]) {
-                                        copy[exerciseId][idx] = null as any;
-                                      }
-                                      return copy;
-                                    });
+                                    const newActualWeights = { ...actualWeights };
+                                    if (newActualWeights[exerciseId]) {
+                                      newActualWeights[exerciseId][idx] = null as any;
+                                    }
                                     
-                                    setCompletedSets(prev => ({
-                                      ...prev,
-                                      [exerciseId]: Math.max(0, (prev[exerciseId] || 0) - 1)
-                                    }));
+                                    const newCompletedSets = {
+                                      ...completedSets,
+                                      [exerciseId]: Math.max(0, (completedSets[exerciseId] || 0) - 1)
+                                    };
+                                    
+                                    setActualReps(newActualReps);
+                                    setActualWeights(newActualWeights);
+                                    setCompletedSets(newCompletedSets);
+                                    
+                                    // Actualizar contexto para que el auto-avance detecte el cambio
+                                    updateWorkoutProgress(
+                                      currentExerciseIndex,
+                                      currentSet,
+                                      newCompletedSets,
+                                      newActualReps,
+                                      newActualWeights
+                                    );
                                   } else {
                                     // Marcar como completada
                                     const repsToUse = doneReps || set.reps;
                                     const weightToUse = typeof doneWeight === 'number' && doneWeight > 0 ? doneWeight : (set.weight || 0);
                                     
-                                    setActualReps(prev => {
-                                      const copy = { ...prev };
-                                      copy[exerciseId] = copy[exerciseId] || [];
-                                      copy[exerciseId][idx] = repsToUse;
-                                      return copy;
-                                    });
+                                    const newActualReps = { ...actualReps };
+                                    newActualReps[exerciseId] = newActualReps[exerciseId] || [];
+                                    newActualReps[exerciseId][idx] = repsToUse;
                                     
-                                    setActualWeights(prev => {
-                                      const copy = { ...prev };
-                                      copy[exerciseId] = copy[exerciseId] || [];
-                                      copy[exerciseId][idx] = weightToUse;
-                                      return copy;
-                                    });
+                                    const newActualWeights = { ...actualWeights };
+                                    newActualWeights[exerciseId] = newActualWeights[exerciseId] || [];
+                                    newActualWeights[exerciseId][idx] = weightToUse;
                                     
-                                    setCompletedSets(prev => ({
-                                      ...prev,
-                                      [exerciseId]: (prev[exerciseId] || 0) + 1
-                                    }));
+                                    const newCompletedSets = {
+                                      ...completedSets,
+                                      [exerciseId]: (completedSets[exerciseId] || 0) + 1
+                                    };
+                                    
+                                    setActualReps(newActualReps);
+                                    setActualWeights(newActualWeights);
+                                    setCompletedSets(newCompletedSets);
+                                    
+                                    // Actualizar contexto para que el auto-avance detecte el cambio
+                                    updateWorkoutProgress(
+                                      currentExerciseIndex,
+                                      currentSet,
+                                      newCompletedSets,
+                                      newActualReps,
+                                      newActualWeights
+                                    );
                                   }
                                 }}
                                 className={`w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
