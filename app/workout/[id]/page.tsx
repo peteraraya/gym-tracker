@@ -25,6 +25,12 @@ import {
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import * as storageService from '@/lib/storage/storage';
 import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
+import { 
+  calculateNextRestTime, 
+  calculateExerciseRestTime,
+  updateNestedArray 
+} from './utils/workoutCalculations';
+import { useAutoAdvance } from './hooks/useAutoAdvance';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -228,122 +234,56 @@ export default function WorkoutPage() {
     }
   }, [currentExerciseIndex, currentSet, lastSessionForExercise, currentExercise, currentWeight, currentReps, success, error]);
 
-  // Detectar cuando todas las series están completadas y avanzar automáticamente
-  useEffect(() => {
-    if (!currentExercise || !routine) return;
-    
-    const exerciseId = currentExercise.id;
-    const totalSets = currentExercise.sets.length;
-    const completedCount = completedSets[exerciseId] || 0;
-    const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
-    
-    console.log('[Auto-advance Check]', {
-      exerciseId,
-      exerciseName: currentExercise.name,
-      totalSets,
-      completedCount,
-      actualReps: actualReps[exerciseId],
-      showTimer,
-      isExecutingSet,
-      showPreparation
-    });
-    
-    // Si todas las series están completadas
-    if (completedCount === totalSets && completedCount > 0) {
-      // Verificar que realmente todas las series tienen datos
-      const allSetsHaveData = currentExercise.sets.every((_, idx) => {
-        const hasReps = actualReps[exerciseId] && typeof actualReps[exerciseId][idx] === 'number' && actualReps[exerciseId][idx] > 0;
-        return hasReps;
+  // Auto-avance entre ejercicios usando custom hook
+  useAutoAdvance({
+    currentExercise,
+    routine,
+    completedSets,
+    actualReps,
+    currentExerciseIndex,
+    showTimer,
+    isExecutingSet,
+    showPreparation,
+    onAdvanceToNextExercise: () => {
+      const nextExercise = routine!.exercises[currentExerciseIndex + 1];
+      console.log('[Auto-advance] Pasando al siguiente ejercicio:', nextExercise.name);
+      
+      const restTime = calculateExerciseRestTime({
+        currentExercise: currentExercise!,
+        nextExercise,
+        routine: routine!,
+        restOverrides,
+        useSmartRest
       });
       
-      console.log('[Auto-advance] Todas las series marcadas como completadas. allSetsHaveData:', allSetsHaveData);
+      console.log('[Auto-advance] Iniciando timer de descanso:', restTime, 'segundos');
+      setShowTimer(true);
+      setTimerDuration(restTime);
+      setTimerTitle('Descanso entre ejercicios');
+      setNextExerciseName(nextExercise.name);
       
-      // Solo avanzar automáticamente si:
-      // 1. Todas las series tienen datos
-      // 2. No hay timer activo
-      // 3. No está ejecutando una serie
-      // 4. No está en preparación
-      
-      // Verificar si está editando un ejercicio anterior
-      // Estás editando un ejercicio anterior SOLO si el ejercicio actual NO es el último ejercicio completado
-      // Es decir, si hay ejercicios posteriores que ya tienen series completadas
-      let isEditingPreviousExercise = false;
-      
-      // Buscar el índice del último ejercicio que tiene al menos una serie completada
-      let lastCompletedExerciseIndex = -1;
-      for (let i = routine.exercises.length - 1; i >= 0; i--) {
-        const ex = routine.exercises[i];
-        const exCompletedSets = completedSets[ex.id] || 0;
-        if (exCompletedSets > 0) {
-          lastCompletedExerciseIndex = i;
-          break;
-        }
-      }
-      
-      // Si el ejercicio actual NO es el último con series completadas, estás editando uno anterior
-      if (lastCompletedExerciseIndex > currentExerciseIndex) {
-        isEditingPreviousExercise = true;
-      }
-      
-      console.log('[Auto-advance] Verificación de edición:', {
+      updateWorkoutProgress(
         currentExerciseIndex,
-        lastCompletedExerciseIndex,
-        isEditingPreviousExercise
-      });
-      
-      if (allSetsHaveData && !showTimer && !isExecutingSet && !showPreparation && !isEditingPreviousExercise) {
-        console.log('[Auto-advance] ✅ Todas las condiciones cumplidas, avanzando...');
-        // Todas las series completadas, avanzar al siguiente ejercicio o finalizar
-        if (isLastExercise) {
-          // Último ejercicio, mostrar modal de finalización
-          console.log('[Auto-advance] Último ejercicio, mostrando modal de finalización');
-          const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-          setProposedDuration(Math.max(duration, 60));
-          setShowNotesModal(true);
-        } else {
-          // Pasar al siguiente ejercicio con descanso
-          const nextExercise = routine.exercises[currentExerciseIndex + 1];
-          console.log('[Auto-advance] Pasando al siguiente ejercicio:', nextExercise.name);
-          const nextExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
-          const currentExerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-          
-          let restTime = restOverrides[currentExercise.id] || routine.restBetweenExercises || 120;
-          
-          if (useSmartRest && currentExerciseTemplate && nextExerciseTemplate) {
-            const restRecommendation = calculateRestBetweenExercises(
-              currentExerciseTemplate,
-              nextExerciseTemplate,
-              'intermediate'
-            );
-            restTime = restRecommendation.recommended;
-          }
-          
-          console.log('[Auto-advance] Iniciando timer de descanso:', restTime, 'segundos');
-          setShowTimer(true);
-          setTimerDuration(restTime);
-          setTimerTitle('Descanso entre ejercicios');
-          setNextExerciseName(nextExercise.name);
-          
-          updateWorkoutProgress(
-            currentExerciseIndex,
-            currentSet,
-            completedSets,
-            actualReps,
-            actualWeights,
-            { isResting: true, restTimerDuration: restTime, restTimerTitle: 'Descanso entre ejercicios', restTimerNextExercise: nextExercise.name, restTimerStartedAt: Date.now() }
-          );
+        currentSet,
+        completedSets,
+        actualReps,
+        actualWeights,
+        { 
+          isResting: true, 
+          restTimerDuration: restTime, 
+          restTimerTitle: 'Descanso entre ejercicios', 
+          restTimerNextExercise: nextExercise.name, 
+          restTimerStartedAt: Date.now() 
         }
-      } else {
-        console.log('[Auto-advance] ❌ Condiciones no cumplidas:', {
-          allSetsHaveData,
-          showTimer,
-          isExecutingSet,
-          showPreparation,
-          isEditingPreviousExercise
-        });
-      }
+      );
+    },
+    onShowFinishModal: () => {
+      console.log('[Auto-advance] Último ejercicio, mostrando modal de finalización');
+      const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+      setProposedDuration(Math.max(duration, 60));
+      setShowNotesModal(true);
     }
-  }, [completedSets, actualReps, currentExercise, routine, currentExerciseIndex, showTimer, isExecutingSet, showPreparation, workoutStartTime, restOverrides, useSmartRest, actualWeights, currentSet, updateWorkoutProgress]);
+  });
 
   // Resetear sugerencias descartadas cuando cambia el ejercicio
   useEffect(() => {
@@ -578,36 +518,15 @@ export default function WorkoutPage() {
         );
       }
     } else {
-      // Descanso entre series
-      let restTime: number;
-      const setIndex = currentSet - 1; // Índice de la serie actual (0-based)
-      
-      // Prioridad: 1) Override individual de la serie, 2) Override del ejercicio, 3) Configurado en ejercicio, 4) Configurado en rutina, 5) Inteligente, 6) Default 60
-      if (perSetRestOverrides[currentExercise.id] && perSetRestOverrides[currentExercise.id][setIndex]) {
-        restTime = perSetRestOverrides[currentExercise.id][setIndex];
-      } else if (restOverrides[currentExercise.id] && restOverrides[currentExercise.id] > 0) {
-        restTime = restOverrides[currentExercise.id];
-      } else if (currentExercise.restBetweenSets && currentExercise.restBetweenSets > 0) {
-        restTime = currentExercise.restBetweenSets;
-      } else if (routine.restBetweenSets && routine.restBetweenSets > 0) {
-        restTime = routine.restBetweenSets;
-      } else if (useSmartRest) {
-        const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-        if (exerciseTemplate) {
-          const currentSetData = currentExercise.sets[currentSet - 1];
-          const restRecommendation = calculateRestBetweenSets(
-            exerciseTemplate,
-            currentExercise.sets.length,
-            currentSetData?.reps || 10,
-            'intermediate'
-          );
-          restTime = restRecommendation.recommended;
-        } else {
-          restTime = 60;
-        }
-      } else {
-        restTime = 60;
-      }
+      // Descanso entre series - usar utilidad de cálculo
+      const restTime = calculateNextRestTime({
+        currentExercise,
+        routine,
+        restOverrides,
+        perSetOverrides: perSetRestOverrides,
+        currentSet,
+        useSmartRest
+      });
       
       const timerTitleText = `Descanso - Serie ${currentSet + 1}/${currentExercise.sets.length}`;
       
@@ -643,15 +562,12 @@ export default function WorkoutPage() {
   };
 
   const handleEditWeight = (exerciseId: string, setIndex: number, value: number) => {
-    // actualizar actualWeights en memoria
-    setActualWeights(prev => {
-      const copy = { ...prev };
-      copy[exerciseId] = copy[exerciseId] ? [...copy[exerciseId]] : [];
-      copy[exerciseId][setIndex] = value;
-      return copy;
-    });
-    // guardar como último peso
+    // Actualizar actualWeights usando helper
+    setActualWeights(prev => updateNestedArray(prev, exerciseId, setIndex, value));
+    
+    // Guardar como último peso
     saveLastWeight(exerciseId, setIndex, value);
+    
     // Si estamos editando la serie actual, actualizar el input principal
     if (exerciseId === currentExercise.id && setIndex === currentSet - 1) {
       setCurrentWeight(value);
@@ -659,12 +575,7 @@ export default function WorkoutPage() {
   };
 
   const handleEditSetType = (exerciseId: string, setIndex: number, type: import('@/types').SetType) => {
-    setSetTypes(prev => {
-      const copy = { ...prev };
-      copy[exerciseId] = copy[exerciseId] ? [...copy[exerciseId]] : [];
-      copy[exerciseId][setIndex] = type;
-      return copy;
-    });
+    setSetTypes(prev => updateNestedArray(prev, exerciseId, setIndex, type));
   };
 
   const handleEditRestOverride = (exerciseId: string, value: number) => {
@@ -675,12 +586,7 @@ export default function WorkoutPage() {
   };
 
   const handleEditSetRestOverride = (exerciseId: string, setIndex: number, value: number) => {
-    setPerSetRestOverrides(prev => {
-      const copy = { ...prev };
-      copy[exerciseId] = copy[exerciseId] || [];
-      copy[exerciseId][setIndex] = value;
-      return copy;
-    });
+    setPerSetRestOverrides(prev => updateNestedArray(prev, exerciseId, setIndex, value));
   };
 
   const handleMoveExercise = (fromIndex: number, toIndex: number) => {
