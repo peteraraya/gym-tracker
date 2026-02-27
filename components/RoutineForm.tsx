@@ -1035,19 +1035,46 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
                         <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                           <span className="text-xl">⏱️</span>
-                          <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                            Descanso entre series:
-                          </label>
-                          <RestTimeSelectorCompact
-                            value={exercise.restBetweenSets}
-                            onChange={(v) => {
-                              const newExercises = [...exercises];
-                              newExercises[exerciseIndex].restBetweenSets = v;
-                              setExercises(newExercises);
-                            }}
-                            placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
-                            className="flex-1"
-                          />
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                Descanso entre series:
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newExercises = [...exercises];
+                                  newExercises[exerciseIndex].useSmartRest = !newExercises[exerciseIndex].useSmartRest;
+                                  setExercises(newExercises);
+                                }}
+                                className={`px-2 py-1 text-xs font-semibold rounded transition-all ${
+                                  exercise.useSmartRest
+                                    ? 'bg-purple-500 text-white'
+                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                }`}
+                                title="Usar descanso inteligente basado en características del ejercicio"
+                              >
+                                🧠 Inteligente
+                              </button>
+                            </div>
+                            {!exercise.useSmartRest && (
+                              <RestTimeSelectorCompact
+                                value={exercise.restBetweenSets}
+                                onChange={(v) => {
+                                  const newExercises = [...exercises];
+                                  newExercises[exerciseIndex].restBetweenSets = v;
+                                  setExercises(newExercises);
+                                }}
+                                placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
+                                className="flex-1"
+                              />
+                            )}
+                            {exercise.useSmartRest && (
+                              <div className="text-xs text-purple-600 dark:text-purple-400 italic">
+                                El descanso se calculará automáticamente según el tipo de ejercicio
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}

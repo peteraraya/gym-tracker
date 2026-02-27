@@ -27,18 +27,13 @@ export function calculateNextRestTime(params: {
     return restOverrides[currentExercise.id];
   }
   
-  // 3. Configurado en el ejercicio
-  if (currentExercise.restBetweenSets) {
+  // 3. Configurado en el ejercicio (manual) - solo si useSmartRest es false
+  if (currentExercise.restBetweenSets && currentExercise.useSmartRest === false) {
     return currentExercise.restBetweenSets;
   }
   
-  // 4. Configurado en la rutina
-  if (routine.restBetweenSets) {
-    return routine.restBetweenSets;
-  }
-  
-  // 5. Descanso inteligente
-  if (useSmartRest) {
+  // 4. Descanso inteligente (si está habilitado en el ejercicio o no está especificado)
+  if (useSmartRest && currentExercise.useSmartRest !== false) {
     const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
     if (exerciseTemplate) {
       const currentSetData = currentExercise.sets[currentSet - 1];
@@ -50,6 +45,11 @@ export function calculateNextRestTime(params: {
       );
       return restRecommendation.recommended;
     }
+  }
+  
+  // 5. Configurado en la rutina
+  if (routine.restBetweenSets) {
+    return routine.restBetweenSets;
   }
   
   // 6. Default

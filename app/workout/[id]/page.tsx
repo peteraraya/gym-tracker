@@ -93,7 +93,17 @@ export default function WorkoutPage() {
       }
       
       if (!mounted) return;
-      setRoutine(foundRoutine);
+      
+      // Ensure all exercises have useSmartRest field (default to true for new exercises)
+      const routineWithDefaults = {
+        ...foundRoutine,
+        exercises: foundRoutine.exercises.map((ex: any) => ({
+          ...ex,
+          useSmartRest: ex.useSmartRest !== undefined ? ex.useSmartRest : true
+        }))
+      };
+      
+      setRoutine(routineWithDefaults);
       
       // Verificar si hay un workout guardado
       const storedWorkout = await storageService.getActiveWorkout();
@@ -118,7 +128,7 @@ export default function WorkoutPage() {
           }
         }
         
-        const currentExercise = foundRoutine.exercises[Number(s.currentExerciseIndex ?? 0)];
+        const currentExercise = routineWithDefaults.exercises[Number(s.currentExerciseIndex ?? 0)];
         if (currentExercise) {
           const currentSetData = currentExercise.sets[Number(s.currentSet ?? 1) - 1];
           if (currentSetData) {
@@ -128,11 +138,11 @@ export default function WorkoutPage() {
         }
       } else if (!storedWorkout || storedWorkout.routineId !== id) {
         // Solo iniciar un nuevo workout si NO hay ninguno guardado o es de otra rutina
-        startWorkout(foundRoutine);
+        startWorkout(routineWithDefaults);
         
         // Inicializar valores del primer ejercicio (primera serie)
-        if (foundRoutine.exercises && foundRoutine.exercises.length > 0 && foundRoutine.exercises[0]) {
-          const firstExercise = foundRoutine.exercises[0];
+        if (routineWithDefaults.exercises && routineWithDefaults.exercises.length > 0 && routineWithDefaults.exercises[0]) {
+          const firstExercise = routineWithDefaults.exercises[0];
           const firstSet = firstExercise.sets[0];
           if (firstSet) {
             workoutState.setCurrentReps(firstSet.reps);
@@ -415,6 +425,11 @@ export default function WorkoutPage() {
 
   const smartRestTime = useMemo(() => {
     if (!currentExercise) return undefined;
+    
+    // Check if smart rest is enabled for this exercise (default to true if not specified)
+    const useSmartRestForExercise = currentExercise.useSmartRest !== false;
+    
+    if (!useSmartRestForExercise) return undefined;
     
     const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
     

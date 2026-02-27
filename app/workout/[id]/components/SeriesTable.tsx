@@ -250,19 +250,30 @@ export function SeriesTable({
         </div>
 
         {/* Smart rest button */}
-        {onApplySmartRest && smartRestTime && (
+        {onApplySmartRest && (
           <button
             onClick={onApplySmartRest}
-            className="w-full mb-3 py-2 px-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all font-medium text-sm flex items-center justify-center gap-2"
+            disabled={!smartRestTime}
+            className={`w-full mb-3 py-2 px-4 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${
+              smartRestTime
+                ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40'
+                : 'bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-50'
+            }`}
+            title={smartRestTime ? 'Aplicar descanso inteligente a todas las series' : 'Descanso inteligente no disponible para este ejercicio'}
           >
             🧠 Aplicar Descanso Inteligente a Todas
-            <span className="text-xs opacity-75">
-              ({(() => {
-                const mins = Math.floor(smartRestTime / 60);
-                const secs = smartRestTime % 60;
-                return mins > 0 ? `${mins}m ${secs}s` : `${smartRestTime}s`;
-              })()})
-            </span>
+            {smartRestTime && (
+              <span className="text-xs opacity-75">
+                ({(() => {
+                  const mins = Math.floor(smartRestTime / 60);
+                  const secs = smartRestTime % 60;
+                  return mins > 0 ? `${mins}m ${secs}s` : `${smartRestTime}s`;
+                })()})
+              </span>
+            )}
+            {!smartRestTime && (
+              <span className="text-xs opacity-75">(no configurado)</span>
+            )}
           </button>
         )}
 
