@@ -588,6 +588,17 @@ export default function WorkoutPage() {
           onPause={() => {}} // TODO: Implement pause
         />
 
+        {/* Action buttons - TOP */}
+        <div className="mb-6">
+          <Button
+            variant="primary"
+            onClick={handleStartSet}
+            className="w-full py-3 text-base font-semibold"
+          >
+            ▶️ Iniciar Serie
+          </Button>
+        </div>
+
         {/* Exercise card */}
         <ExerciseCard
           exercise={currentExercise}
@@ -604,6 +615,7 @@ export default function WorkoutPage() {
             workoutState.setCurrentSet(1);
           }}
           onShowInfo={() => setShowExerciseInfo(true)}
+          isSetStarted={isExecutingSet}
         />
 
         {/* Set controls */}
@@ -637,24 +649,6 @@ export default function WorkoutPage() {
           onSelectExercise={handleSelectExercise}
           onMoveExercise={handleMoveExercise}
         />
-
-        {/* Action buttons */}
-        <div className="flex gap-2 mb-6">
-          <Button
-            variant="primary"
-            onClick={handleStartSet}
-            className="flex-1 py-3 text-base font-semibold"
-          >
-            ▶️ Iniciar Serie
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={handleCancelWorkout}
-            className="flex-1"
-          >
-            ✕ Cancelar
-          </Button>
-        </div>
 
         {/* Notes modal */}
         <Modal

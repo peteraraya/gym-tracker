@@ -19,6 +19,7 @@ interface ExerciseCardProps {
   onCompleteSet: () => void;
   onSkipExercise: () => void;
   onShowInfo?: () => void;
+  isSetStarted?: boolean;
 }
 
 /**
@@ -42,6 +43,7 @@ export function ExerciseCard({
   onCompleteSet,
   onSkipExercise,
   onShowInfo,
+  isSetStarted = false,
 }: ExerciseCardProps) {
   const totalSets = exercise.sets.length;
   const isLastSet = currentSet === totalSets;
@@ -142,19 +144,20 @@ export function ExerciseCard({
           <Button
             variant="primary"
             onClick={onCompleteSet}
-            disabled={!isSetComplete}
+            disabled={!isSetComplete || !isSetStarted}
             className="flex-1 py-2 sm:py-3 text-sm sm:text-base font-semibold"
+            title={!isSetStarted ? 'Inicia la serie primero' : ''}
           >
             <span className="hidden sm:inline">✅ Completar Serie {isLastSet ? '(Última)' : ''}</span>
             <span className="sm:hidden">✅ Completar</span>
           </Button>
           <Button
-            variant="ghost"
+            variant="secondary"
             onClick={onSkipExercise}
-            className="flex-1 py-2 sm:py-3 text-sm sm:text-base"
+            className="flex-1 py-2 sm:py-3 text-sm sm:text-base font-semibold"
           >
-            <span className="hidden sm:inline">⏭️ Saltar</span>
-            <span className="sm:hidden">⏭️</span>
+            <span className="hidden sm:inline">⏭️ Saltar Ejercicio</span>
+            <span className="sm:hidden">⏭️ Saltar</span>
           </Button>
         </div>
 
