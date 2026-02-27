@@ -241,59 +241,9 @@ export default function WorkoutPage() {
     setDismissedSuggestions(new Set());
   }, [currentExerciseIndex]);
 
-  // Detectar cuando todas las series se completan con checkboxes
-  useEffect(() => {
-    if (!currentExercise || !routine || showTimer) return;
-    
-    const exerciseId = currentExercise.id;
-    const completedCount = completedSets[exerciseId] || 0;
-    const totalSets = currentExercise.sets.length;
-    
-    // Si todas las series están completadas, iniciar timer
-    if (completedCount >= totalSets && completedCount > 0) {
-      const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
-      
-      if (isLastExercise) {
-        // Último ejercicio - mostrar modal
-        console.log('[Checkbox Detection] Último ejercicio completado, mostrando modal');
-        const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-        setProposedDuration(Math.max(duration, 60));
-        setShowNotesModal(true);
-      } else {
-        // Siguiente ejercicio - iniciar timer de descanso
-        console.log('[Checkbox Detection] Todas las series completadas, iniciando timer');
-        const nextExercise = routine.exercises[currentExerciseIndex + 1];
-        
-        const restTime = calculateExerciseRestTime({
-          currentExercise,
-          nextExercise,
-          routine,
-          restOverrides,
-          useSmartRest
-        });
-        
-        setShowTimer(true);
-        setTimerDuration(restTime);
-        setTimerTitle('Descanso entre ejercicios');
-        setNextExerciseName(nextExercise.name);
-        
-        updateWorkoutProgress(
-          currentExerciseIndex,
-          currentSet,
-          completedSets,
-          actualReps,
-          actualWeights,
-          { 
-            isResting: true, 
-            restTimerDuration: restTime, 
-            restTimerTitle: 'Descanso entre ejercicios', 
-            restTimerNextExercise: nextExercise.name, 
-            restTimerStartedAt: Date.now() 
-          }
-        );
-      }
-    }
-  }, [completedSets, currentExercise, currentExerciseIndex, routine, showTimer, currentSet, workoutStartTime, restOverrides, useSmartRest, updateWorkoutProgress]);
+  // Ref para prevenir múltiples llamadas cuando se completan todas las series
+  const allSetsCompletedRef = React.useRef(false);
+  const prevCompletedSetsRef = React.useRef<Record<string, number>>({});
 
   // Generar sugerencias cuando cambie el ejercicio, peso o descanso
   useEffect(() => {
@@ -864,6 +814,24 @@ export default function WorkoutPage() {
           </div>
         </div>
 
+        {/* Botones de acción */}
+        <div className="flex gap-3 mb-6">
+          <Button
+            variant="ghost"
+            onClick={handleCancelWorkout}
+            className="flex-1"
+          >
+            Descartar entrenamiento
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleFinishNow}
+            className="flex-1"
+          >
+            Terminar sesión
+          </Button>
+        </div>
+
         {/* Ejercicio actual */}
         <Card className="mb-6">
           <CardHeader>
@@ -981,7 +949,7 @@ export default function WorkoutPage() {
                         const doneWeight = actualWeights[exerciseId]?.[idx] ?? lastWeights[exerciseId]?.[idx] ?? set.weight ?? '';
                         const previousWeight = lastWeights[exerciseId]?.[idx] ?? set.weight ?? 0;
                         const setType = (setTypes[exerciseId]?.[idx]) || set.type || 'normal';
-                        const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                        const isCompleted = (completedSets[exerciseId] || 0) > idx;
                         
                         // Calcular el descanso con la cascada correcta de prioridades
                         const hasPerSetOverride = perSetRestOverrides[exerciseId]?.[idx] !== undefined && 
@@ -1212,6 +1180,53 @@ export default function WorkoutPage() {
                                       newActualReps,
                                       newActualWeights
                                     );
+                                    
+                                    // Detectar si todas las series están completadas
+                                    const totalSets = currentExercise.sets.length;
+                                    if (newCompletedSets[exerciseId] >= totalSets) {
+                                      console.log('[Checkbox] Todas las series completadas');
+                                      const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
+                                      
+                                      if (isLastExercise) {
+                                        // Último ejercicio - mostrar modal
+                                        console.log('[Checkbox] Último ejercicio, mostrando modal');
+                                        const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+                                        setProposedDuration(Math.max(duration, 60));
+                                        setShowNotesModal(true);
+                                      } else {
+                                        // Siguiente ejercicio - iniciar timer de descanso
+                                        console.log('[Checkbox] Iniciando timer de descanso');
+                                        const nextExercise = routine.exercises[currentExerciseIndex + 1];
+                                        
+                                        const restTime = calculateExerciseRestTime({
+                                          currentExercise,
+                                          nextExercise,
+                                          routine,
+                                          restOverrides,
+                                          useSmartRest
+                                        });
+                                        
+                                        setShowTimer(true);
+                                        setTimerDuration(restTime);
+                                        setTimerTitle('Descanso entre ejercicios');
+                                        setNextExerciseName(nextExercise.name);
+                                        
+                                        updateWorkoutProgress(
+                                          currentExerciseIndex,
+                                          currentSet,
+                                          newCompletedSets,
+                                          newActualReps,
+                                          newActualWeights,
+                                          { 
+                                            isResting: true, 
+                                            restTimerDuration: restTime, 
+                                            restTimerTitle: 'Descanso entre ejercicios', 
+                                            restTimerNextExercise: nextExercise.name, 
+                                            restTimerStartedAt: Date.now() 
+                                          }
+                                        );
+                                      }
+                                    }
                                   }
                                 }}
                                 className={`w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
@@ -1375,24 +1390,6 @@ export default function WorkoutPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Botones de acción */}
-        <div className="flex gap-3 mb-6">
-          <Button
-            variant="ghost"
-            onClick={handleCancelWorkout}
-            className="flex-1"
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleFinishNow}
-            className="flex-1"
-          >
-            Terminar sesión
-          </Button>
-        </div>
 
         {/* Lista compacta de todos los ejercicios */}
         <Card>
