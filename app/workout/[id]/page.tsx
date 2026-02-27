@@ -474,6 +474,7 @@ export default function WorkoutPage() {
   const isLastSet = currentSet >= currentExercise.sets.length;
   const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
 
+
   const handleStartSet = () => {
     setShowPreparation(true);
   };
@@ -1010,211 +1011,304 @@ export default function WorkoutPage() {
                   step="0.5"
                 /> */}
                 
-                  {/* Lista de series - Diseño compacto con collapse */}
-                  <div className="mt-3">
-                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Series</h4>
-                    <div className="space-y-2">
+                  {/* Lista de series - Diseño vertical estilo Hevy */}
+                  <div className="mt-3 w-full">
+                    {/* Encabezados */}
+                    <div className="grid grid-cols-[10%_12%_18%_16%_15%_17%_12%] sm:grid-cols-[50px_60px_70px_70px_70px_80px_60px] gap-0.5 sm:gap-2 px-1 sm:px-3 py-1.5 sm:py-2 text-[7px] sm:text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-tight sm:tracking-wide">
+                      <div className="text-center">Set</div>
+                      <div className="text-center">Ant</div>
+                      <div className="text-center">Kg</div>
+                      <div className="text-center">Rep</div>
+                      <div className="text-center">Des</div>
+                      <div className="text-center">Tipo</div>
+                      <div className="text-center">✓</div>
+                    </div>
+                    
+                    {/* Series */}
+                    <div className="space-y-1 sm:space-y-2 w-full">
                       {currentExercise.sets.map((set, idx) => {
                         const exerciseId = currentExercise.id;
-                        const doneReps = (actualReps[exerciseId] && actualReps[exerciseId][idx]) ?? null;
-                        const doneWeight = (actualWeights[exerciseId] && actualWeights[exerciseId][idx]) ?? lastWeights[exerciseId]?.[idx] ?? set.weight ?? '';
-                        const setType = (setTypes[exerciseId] && setTypes[exerciseId][idx]) || set.type || 'normal';
+                        const doneReps = actualReps[exerciseId]?.[idx];
+                        const doneWeight = actualWeights[exerciseId]?.[idx] ?? lastWeights[exerciseId]?.[idx] ?? set.weight ?? '';
+                        const previousWeight = lastWeights[exerciseId]?.[idx] ?? set.weight ?? 0;
+                        const setType = (setTypes[exerciseId]?.[idx]) || set.type || 'normal';
                         const isCompleted = typeof doneReps === 'number' && doneReps > 0;
                         
+                        // Calcular el descanso con la cascada correcta de prioridades
+                        const hasPerSetOverride = perSetRestOverrides[exerciseId]?.[idx] !== undefined && 
+                                                 perSetRestOverrides[exerciseId]?.[idx] !== null;
+                        const restTime = hasPerSetOverride
+                          ? perSetRestOverrides[exerciseId][idx]
+                          : (restOverrides[exerciseId] ?? 
+                             currentExercise.restBetweenSets ?? 
+                             routine.restBetweenSets ?? 
+                             60);
+                        
                         return (
-                          <div key={`${exerciseId}-s-${idx}`} className={`rounded-lg border transition-all ${
-                            isCompleted 
-                              ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600' 
-                              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
-                          }`}>
-                            {/* Header - siempre visible */}
-                            <div className="p-2 flex items-center justify-between">
-                              <div className="flex items-center gap-2 flex-1">
-                                {/* Checkbox */}
+                          <div 
+                            key={`${exerciseId}-s-${idx}`}
+                            className={`grid grid-cols-[10%_12%_18%_16%_15%_17%_12%] sm:grid-cols-[50px_60px_70px_70px_70px_80px_60px] gap-0.5 sm:gap-2 items-center px-1 sm:px-3 py-1.5 sm:py-3 rounded-md sm:rounded-lg transition-all ${
+                              isCompleted 
+                                ? 'bg-green-50 dark:bg-green-900/20' 
+                                : setType === 'warmup'
+                                  ? 'bg-orange-50 dark:bg-orange-900/20'
+                                  : setType === 'dropset'
+                                    ? 'bg-purple-50 dark:bg-purple-900/20'
+                                    : setType === 'failure'
+                                      ? 'bg-red-50 dark:bg-red-900/20'
+                                      : setType === 'amrap'
+                                        ? 'bg-emerald-50 dark:bg-emerald-900/20'
+                                        : setType === 'rest-pause'
+                                          ? 'bg-cyan-50 dark:bg-cyan-900/20'
+                                          : setType === 'cluster'
+                                            ? 'bg-pink-50 dark:bg-pink-900/20'
+                                            : 'bg-gray-50 dark:bg-gray-800'
+                            }`}
+                          >
+                            {/* Sets - Número */}
+                            <div className="flex flex-col items-center">
+                              <span className={`text-xs sm:text-lg font-bold ${
+                                isCompleted 
+                                  ? 'text-green-600 dark:text-green-400' 
+                                  : 'text-gray-900 dark:text-gray-100'
+                              }`}>
+                                {setType === 'warmup' ? 'W' : setType === 'dropset' ? 'D' : setType === 'failure' ? 'F' : idx + 1}
+                              </span>
+                            </div>
+                            
+                            {/* Anterior */}
+                            <div className="text-center">
+                              <span className="text-[7px] sm:text-sm text-gray-400 dark:text-gray-500 leading-tight">
+                                {previousWeight ? `${previousWeight}×${set.reps}` : '-'}
+                              </span>
+                            </div>
+                            
+                            {/* Kg */}
+                            <div className="text-center">
+                              {isCompleted ? (
+                                <span className="text-xs sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                                  {typeof doneWeight === 'number' ? doneWeight : 0}
+                                </span>
+                              ) : (
                                 <input
-                                  type="checkbox"
-                                  checked={isCompleted}
+                                  type="number"
+                                  className="w-full h-7 sm:h-12 px-0 sm:px-2 py-0.5 sm:py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg bg-white dark:bg-gray-700 text-[10px] sm:text-base font-bold text-center focus:ring-1 sm:focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  value={typeof doneWeight === 'number' && doneWeight > 0 ? doneWeight : ''}
                                   onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    if (checked) {
-                                      const repsToUse = doneReps || set.reps;
-                                      const weightToUse = typeof doneWeight === 'number' ? doneWeight : (set.weight || 0);
-                                      
-                                      setActualReps(prev => {
-                                        const copy = { ...prev };
-                                        copy[exerciseId] = copy[exerciseId] || [];
-                                        copy[exerciseId][idx] = repsToUse;
-                                        return copy;
-                                      });
-                                      
-                                      setActualWeights(prev => {
-                                        const copy = { ...prev };
-                                        copy[exerciseId] = copy[exerciseId] || [];
-                                        copy[exerciseId][idx] = weightToUse;
-                                        return copy;
-                                      });
-                                      
-                                      setCompletedSets(prev => {
-                                        const newCount = (prev[exerciseId] || 0) + 1;
-                                        if (idx + 1 === currentSet) {
-                                          setCurrentSet(Math.min(currentSet + 1, currentExercise.sets.length));
-                                        }
-                                        return {
-                                          ...prev,
-                                          [exerciseId]: newCount
-                                        };
-                                      });
-                                    } else {
-                                      setActualReps(prev => {
-                                        const copy = { ...prev };
-                                        if (copy[exerciseId]) {
-                                          copy[exerciseId][idx] = null as any;
-                                        }
-                                        return copy;
-                                      });
-                                      
-                                      setActualWeights(prev => {
-                                        const copy = { ...prev };
-                                        if (copy[exerciseId]) {
-                                          copy[exerciseId][idx] = null as any;
-                                        }
-                                        return copy;
-                                      });
-                                      
-                                      setCompletedSets(prev => ({
-                                        ...prev,
-                                        [exerciseId]: Math.max(0, (prev[exerciseId] || 0) - 1)
-                                      }));
-                                    }
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : parseFloat(val);
+                                    handleEditWeight(exerciseId, idx, isNaN(num) ? 0 : num);
                                   }}
-                                  className="w-5 h-5 rounded border-2 border-gray-400 dark:border-gray-500 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer flex-shrink-0"
-                                />
-                                
-                                {/* Info de la serie */}
-                                <div className="flex items-center gap-2 flex-1">
-                                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100">#{idx + 1}</span>
-                                  
-                                  {isCompleted ? (
-                                    // Vista colapsada - Resumen compacto
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <span className="text-green-700 dark:text-green-300 font-semibold">
-                                        ✓ {doneReps} × {typeof doneWeight === 'number' ? doneWeight : 0}kg
-                                      </span>
-                                      {setType && setType !== 'normal' && (
-                                        <SetTypeBadge type={setType} />
-                                      )}
-                                    </div>
-                                  ) : (
-                                    // Vista expandida - Info básica
-                                    <span className="text-xs text-gray-600 dark:text-gray-400">
-                                      {set.reps} reps • {set.weight || 0}kg
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {/* Tipo de serie - solo visible cuando NO está completada */}
-                              {!isCompleted && (
-                                <SetTypeSelector
-                                  value={setType}
-                                  onChange={(type) => handleEditSetType(exerciseId, idx, type)}
-                                  compact
+                                  placeholder={(set.weight || 0).toString()}
+                                  min="0"
+                                  step="0.5"
                                 />
                               )}
                             </div>
-
-                            {/* Inputs - solo visible cuando NO está completada */}
-                            {!isCompleted && (
-                              <div className="px-2 pb-2">
-                                <div className="grid grid-cols-3 gap-1.5">
-                                  <div>
-                                    <input
-                                      type="number"
-                                      className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      value={doneReps || ''}
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        const num = val === '' ? 0 : parseInt(val);
-                                        setActualReps(prev => {
-                                          const copy = { ...prev };
-                                          copy[exerciseId] = copy[exerciseId] || [];
-                                          copy[exerciseId][idx] = isNaN(num) ? 0 : Math.max(0, num);
-                                          return copy;
-                                        });
-                                      }}
-                                      min="0"
-                                      placeholder={set.reps.toString()}
-                                      aria-label="Repeticiones"
-                                    />
-                                    <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">reps</div>
-                                  </div>
-                                  
-                                  <div>
-                                    <WeightSelector
-                                      value={doneWeight === 0 ? '' : doneWeight}
-                                      onChange={(weight) => handleEditWeight(currentExercise.id, idx, weight)}
-                                      exerciseId={currentExercise.id}
-                                      placeholder={(set.weight || 0).toString()}
-                                    />
-                                    <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">kg</div>
-                                  </div>
-                                  
-                                  <div>
-                                    <select
-                                      className="w-full px-1 py-2 border rounded-md bg-white dark:bg-gray-700 text-xs font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                                      value={
-                                        (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
-                                        restOverrides[currentExercise.id] ?? 
-                                        currentExercise.restBetweenSets ?? 
-                                        routine.restBetweenSets ?? 
-                                        60
+                            
+                            {/* Reps */}
+                            <div className="text-center">
+                              {isCompleted ? (
+                                <span className="text-xs sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                                  {doneReps}
+                                </span>
+                              ) : (
+                                <input
+                                  type="number"
+                                  className="w-full h-7 sm:h-12 px-0 sm:px-2 py-0.5 sm:py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg bg-white dark:bg-gray-700 text-[10px] sm:text-base font-bold text-center focus:ring-1 sm:focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  value={doneReps || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : parseInt(val);
+                                    setActualReps(prev => {
+                                      const copy = { ...prev };
+                                      copy[exerciseId] = copy[exerciseId] || [];
+                                      copy[exerciseId][idx] = isNaN(num) ? 0 : Math.max(0, num);
+                                      return copy;
+                                    });
+                                  }}
+                                  placeholder={set.reps.toString()}
+                                  min="0"
+                                />
+                              )}
+                            </div>
+                            
+                            {/* Descanso */}
+                            <div className="text-center">
+                              {isCompleted ? (
+                                <span className="text-[7px] sm:text-sm text-gray-600 dark:text-gray-400">
+                                  {(() => {
+                                    const minutes = Math.floor(restTime / 60);
+                                    const seconds = restTime % 60;
+                                    
+                                    if (restTime < 60) {
+                                      return `${restTime}s`;
+                                    } else if (seconds === 0) {
+                                      return `${minutes}m`;
+                                    } else {
+                                      return `${minutes}m ${seconds}s`;
+                                    }
+                                  })()}
+                                </span>
+                              ) : (
+                                <select
+                                  className="w-full h-7 sm:h-12 px-0 sm:px-2 py-0.5 sm:py-2 border-2 border-gray-300 dark:border-gray-600 rounded-md sm:rounded-lg bg-white dark:bg-gray-700 text-[7px] sm:text-sm font-medium text-center focus:ring-1 sm:focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                                  value={restTime}
+                                  onChange={(e) => {
+                                    const v = parseInt(e.target.value || '0');
+                                    handleEditSetRestOverride(exerciseId, idx, v);
+                                  }}
+                                >
+                                  {/* De 5 en 5 segundos hasta 5 minutos (300s) */}
+                                  {Array.from({ length: 60 }, (_, i) => (i + 1) * 5).map(sec => {
+                                    const minutes = Math.floor(sec / 60);
+                                    const seconds = sec % 60;
+                                    let label: string;
+                                    
+                                    if (sec < 60) {
+                                      label = `${sec}s`;
+                                    } else if (seconds === 0) {
+                                      label = `${minutes}m`;
+                                    } else {
+                                      label = `${minutes}m ${seconds}s`;
+                                    }
+                                    
+                                    return (
+                                      <option key={sec} value={sec}>
+                                        {label}
+                                      </option>
+                                    );
+                                  })}
+                                </select>
+                              )}
+                            </div>
+                            
+                            {/* Tipo */}
+                            <div className="text-center flex justify-center items-center">
+                              {isCompleted ? (
+                                setType !== 'normal' && (
+                                  <span className="text-[10px] sm:text-xs font-bold text-gray-600 dark:text-gray-400">
+                                    {setType === 'warmup' ? 'C' : setType === 'dropset' ? 'D' : setType === 'failure' ? 'F' : 'N'}
+                                  </span>
+                                )
+                              ) : (
+                                <SetTypeSelector
+                                  value={setType}
+                                  onChange={(type) => handleEditSetType(exerciseId, idx, type)}
+                                  mini
+                                />
+                              )}
+                            </div>
+                            
+                            {/* Checkbox */}
+                            <div className="flex justify-center">
+                              <button
+                                onClick={() => {
+                                  if (isCompleted) {
+                                    // Desmarcar
+                                    setActualReps(prev => {
+                                      const copy = { ...prev };
+                                      if (copy[exerciseId]) {
+                                        copy[exerciseId][idx] = null as any;
                                       }
-                                      onChange={(e) => {
-                                        const v = parseInt(e.target.value || '0');
-                                        handleEditSetRestOverride(currentExercise.id, idx, v);
-                                      }}
-                                      aria-label="Descanso"
-                                    >
-                                      {(() => {
-                                        const currentValue = (perSetRestOverrides[exerciseId] && perSetRestOverrides[exerciseId][idx]) ?? 
-                                                            restOverrides[currentExercise.id] ?? 
-                                                            currentExercise.restBetweenSets ?? 
-                                                            routine.restBetweenSets ?? 
-                                                            60;
-                                        const standardOptions = Array.from({ length: 60 }, (_, i) => (i + 1) * 5);
-                                        
-                                        const formatTime = (sec: number) => {
-                                          if (sec < 60) return `${sec}s`;
-                                          const mins = Math.floor(sec / 60);
-                                          const secs = sec % 60;
-                                          return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
-                                        };
-                                        
-                                        if (!standardOptions.includes(currentValue)) {
-                                          const allOptions = [...standardOptions, currentValue].sort((a, b) => a - b);
-                                          return allOptions.map(sec => (
-                                            <option key={sec} value={sec}>
-                                              {formatTime(sec)}
-                                            </option>
-                                          ));
-                                        }
-                                        
-                                        return standardOptions.map(sec => (
-                                          <option key={sec} value={sec}>
-                                            {formatTime(sec)}
-                                          </option>
-                                        ));
-                                      })()}
-                                    </select>
-                                    <div className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-0.5">desc</div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+                                      return copy;
+                                    });
+                                    
+                                    setActualWeights(prev => {
+                                      const copy = { ...prev };
+                                      if (copy[exerciseId]) {
+                                        copy[exerciseId][idx] = null as any;
+                                      }
+                                      return copy;
+                                    });
+                                    
+                                    setCompletedSets(prev => ({
+                                      ...prev,
+                                      [exerciseId]: Math.max(0, (prev[exerciseId] || 0) - 1)
+                                    }));
+                                  } else {
+                                    // Marcar como completada
+                                    const repsToUse = doneReps || set.reps;
+                                    const weightToUse = typeof doneWeight === 'number' && doneWeight > 0 ? doneWeight : (set.weight || 0);
+                                    
+                                    setActualReps(prev => {
+                                      const copy = { ...prev };
+                                      copy[exerciseId] = copy[exerciseId] || [];
+                                      copy[exerciseId][idx] = repsToUse;
+                                      return copy;
+                                    });
+                                    
+                                    setActualWeights(prev => {
+                                      const copy = { ...prev };
+                                      copy[exerciseId] = copy[exerciseId] || [];
+                                      copy[exerciseId][idx] = weightToUse;
+                                      return copy;
+                                    });
+                                    
+                                    setCompletedSets(prev => ({
+                                      ...prev,
+                                      [exerciseId]: (prev[exerciseId] || 0) + 1
+                                    }));
+                                  }
+                                }}
+                                className={`w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
+                                  isCompleted
+                                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                                    : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-3 h-3 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
                     </div>
+                    
+                    {/* Botón para agregar serie */}
+                    <button
+                      onClick={() => {
+                        // Agregar una nueva serie al ejercicio actual
+                        if (!routine) return;
+                        const lastSet = currentExercise.sets[currentExercise.sets.length - 1];
+                        const newSet = {
+                          reps: lastSet?.reps || 10,
+                          weight: lastSet?.weight || 0,
+                          type: 'normal' as const
+                        };
+                        
+                        const updatedExercises = routine.exercises.map((ex, idx) => {
+                          if (idx === currentExerciseIndex) {
+                            return {
+                              ...ex,
+                              sets: [...ex.sets, newSet]
+                            };
+                          }
+                          return ex;
+                        });
+                        
+                        setRoutine({
+                          ...routine,
+                          exercises: updatedExercises
+                        });
+                        
+                        success('Serie agregada', 2000);
+                      }}
+                      className="w-full mt-3 py-3 px-4 bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all font-medium flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Agregar Serie
+                    </button>
                   </div>
               </div>
               
@@ -1285,7 +1379,23 @@ export default function WorkoutPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                handleEditRestOverride(currentExercise.id, restRecommendation.recommended);
+                                // Redondear al múltiplo de 5 más cercano (ya que las opciones van de 5 en 5)
+                                const recommendedRest = Math.round(restRecommendation.recommended / 5) * 5;
+                                
+                                // Aplicar el descanso inteligente a todas las series del ejercicio
+                                setRestOverrides(prev => ({
+                                  ...prev,
+                                  [currentExercise.id]: recommendedRest
+                                }));
+                                
+                                // Eliminar completamente los overrides individuales para que usen el global
+                                setPerSetRestOverrides(prev => {
+                                  const copy = { ...prev };
+                                  delete copy[currentExercise.id];
+                                  return copy;
+                                });
+                                
+                                success(`Descanso de ${formatRestTime(recommendedRest)} aplicado a todas las series`);
                               }}
                               className="w-full py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md transition-colors"
                             >
