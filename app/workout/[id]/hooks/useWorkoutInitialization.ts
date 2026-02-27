@@ -70,14 +70,14 @@ export function useWorkoutInitialization(
           onStateRestored({
             currentExerciseIndex: Number(storedWorkout.currentExerciseIndex ?? 0),
             currentSet: Number(storedWorkout.currentSet ?? 1),
-            completedSets: storedWorkout.completedSets || {},
-            actualReps: storedWorkout.actualReps || {},
-            actualWeights: storedWorkout.actualWeights || {},
-            isResting: storedWorkout.isResting,
-            restTimerDuration: storedWorkout.restTimerDuration,
-            restTimerTitle: storedWorkout.restTimerTitle,
-            restTimerNextExercise: storedWorkout.restTimerNextExercise,
-            restTimerStartedAt: storedWorkout.restTimerStartedAt
+            completedSets: (storedWorkout.completedSets ?? {}) as Record<string, number>,
+            actualReps: (storedWorkout.actualReps ?? {}) as Record<string, number[]>,
+            actualWeights: (storedWorkout.actualWeights ?? {}) as Record<string, number[]>,
+            isResting: storedWorkout.isResting as boolean | undefined,
+            restTimerDuration: storedWorkout.restTimerDuration as number | undefined,
+            restTimerTitle: storedWorkout.restTimerTitle as string | undefined,
+            restTimerNextExercise: storedWorkout.restTimerNextExercise as string | undefined,
+            restTimerStartedAt: storedWorkout.restTimerStartedAt as number | undefined
           });
         } else if (!storedWorkout || storedWorkout.routineId !== routineId) {
           // 4. Iniciar nuevo workout si no hay ninguno guardado o es de otra rutina
