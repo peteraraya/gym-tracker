@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { WeightSelector } from '@/components/WeightSelector';
 import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
+import SetTypeCycleButton from '@/components/SetTypeCycleButton';
 import { Plus } from '@/components/icons/lucide';
 import type { Exercise, SetType } from '@/types';
 
@@ -68,35 +69,124 @@ export function SeriesTable({
 
       <CardContent>
         <div className="space-y-3">
-          {/* Mobile set type selectors - shown above table */}
+          {/* Mobile set controls - shown above table */}
           <div className="sm:hidden space-y-2">
             {exercise.sets.map((set, idx) => {
               const setType = setTypes[idx] || 'normal';
               const doneReps = actualReps[idx] ?? null;
+              const doneWeight = actualWeights[idx] ?? set.weight ?? '';
               const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+              const [editingField, setEditingField] = React.useState<'reps' | 'weight' | null>(null);
               
               if (isCompleted) return null;
               
               return (
-                <div key={`type-selector-${idx}`} className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Serie {idx + 1}</span>
-                  <button
-                    onClick={() => {
-                      const types: SetType[] = ['normal', 'warmup', 'dropset', 'failure', 'amrap', 'rest-pause', 'cluster'];
-                      const currentIdx = types.indexOf(setType as SetType);
-                      const nextIdx = (currentIdx + 1) % types.length;
-                      onEditSetType(idx, types[nextIdx]);
-                    }}
-                    className="text-xs px-3 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors font-semibold"
-                  >
-                    {setType === 'normal' && '🟦 Normal'}
-                    {setType === 'warmup' && '🔥 Warmup'}
-                    {setType === 'dropset' && '📉 Drop'}
-                    {setType === 'failure' && '💪 Fallo'}
-                    {setType === 'amrap' && '⚡ AMRAP'}
-                    {setType === 'rest-pause' && '⏸️ Rest-Pause'}
-                    {setType === 'cluster' && '🔗 Cluster'}
-                  </button>
+                <div key={`mobile-controls-${idx}`} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg space-y-3">
+                  {/* Serie header with number and info */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
+                        idx === currentSet - 1 ? 'bg-blue-600' : 'bg-gray-400 dark:bg-gray-600'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        {/* Reps - clickable */}
+                        {editingField === 'reps' ? (
+                          <input
+                            type="number"
+                            value={doneReps ?? set.reps}
+                            onChange={(e) => onEditReps(idx, parseInt(e.target.value) || 0)}
+                            onBlur={() => setEditingField(null)}
+                            onKeyDown={(e) => e.key === 'Enter' && setEditingField(null)}
+                            autoFocus
+                            className="w-10 px-1 py-0.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-semibold border border-blue-500 text-center"
+                          />
+                        ) : (
+                          <button
+                            onClick={() => setEditingField('reps')}
+                            className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
+                          >
+                            {doneReps ?? set.reps}
+                          </button>
+                        )}
+                        <span className="text-xs text-gray-600 dark:text-gray-400 flex-shrink-0">reps ×</span>
+                        
+                        {/* Weight - using WeightSelector */}
+                        {editingField === 'weight' ? (
+                          <div className="w-14">
+                            <WeightSelector
+                              value={doneWeight || set.weight || 0}
+                              onChange={(weight) => {
+                                onEditWeight(idx, weight);
+                                setEditingField(null);
+                              }}
+                              exerciseId={exerciseId}
+                              className="text-xs py-0.5"
+                            />
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setEditingField('weight')}
+                            className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
+                          >
+                            {doneWeight || set.weight || 0}
+                          </button>
+                        )}
+                        <span className="text-xs text-gray-600 dark:text-gray-400 flex-shrink-0">kg</span>
+                      </div>
+                    </div>
+                    {/* Status checkbox */}
+                    <button
+                      onClick={() => onToggleSetComplete(idx, !isCompleted)}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+                        isCompleted
+                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400'
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : null}
+                    </button>
+                  </div>
+                  
+                  {/* Type and Rest in a row */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Type selector */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Tipo</span>
+                      <SetTypeCycleButton
+                        value={setType as SetType}
+                        onChange={(type) => onEditSetType(idx, type)}
+                        size="sm"
+                        showLabel={false}
+                      />
+                    </div>
+                    
+                    {/* Rest time selector */}
+                    {onEditRestTime && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Descanso</span>
+                        <select
+                          value={perSetRestOverrides?.[exerciseId]?.[idx] || exercise.restBetweenSets || 90}
+                          onChange={(e) => onEditRestTime(idx, parseInt(e.target.value))}
+                          className="px-2 py-1.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-medium border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                        >
+                          {Array.from({ length: 61 }, (_, i) => (i + 1) * 5).map(s => {
+                            const mins = Math.floor(s / 60);
+                            const secs = s % 60;
+                            const label = mins > 0 ? `${mins}m ${secs}s` : `${s}s`;
+                            return (
+                              <option key={s} value={s}>{label}</option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -213,10 +303,11 @@ export function SeriesTable({
                       {isCompleted ? (
                         <SetTypeBadge type={setType as SetType} />
                       ) : (
-                        <SetTypeSelector
+                        <SetTypeCycleButton
                           value={setType as SetType}
                           onChange={(type) => onEditSetType(idx, type)}
-                          mini
+                          size="sm"
+                          showLabel={false}
                         />
                       )}
                     </td>
