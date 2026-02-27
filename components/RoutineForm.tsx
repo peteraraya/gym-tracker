@@ -395,7 +395,51 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     .filter((mg): mg is MuscleGroup => mg !== undefined);
 
   const canProceedToExercises = name.trim().length > 0;
-  const canProceedToReview = exercises.length > 0 && exercises.every(ex => ex.name.trim().length > 0);
+  
+  // Validación mejorada para el paso de ejercicios
+  const validateExercises = () => {
+    const errors: Array<{ exerciseIndex: number; setIndex: number; message: string }> = [];
+    const exercisesWithErrors = new Set<number>();
+    
+    exercises.forEach((exercise, ei) => {
+      // Validar que el ejercicio tenga nombre
+      if (!exercise.name || exercise.name.trim().length === 0) {
+        errors.push({ exerciseIndex: ei, setIndex: -1, message: 'Nombre del ejercicio requerido' });
+        exercisesWithErrors.add(ei);
+      }
+      
+      exercise.sets.forEach((s, si) => {
+        const reps = typeof s.reps === 'number' ? s.reps : parseInt(String(s.reps));
+        if (!reps || reps <= 0) {
+          errors.push({ exerciseIndex: ei, setIndex: si, message: 'Reps requeridas (> 0)' });
+          exercisesWithErrors.add(ei);
+        }
+        
+        // Solo validar peso si no es un ejercicio de peso corporal
+        const weight = typeof s.weight === 'number' ? s.weight : parseFloat(String(s.weight || 0));
+        const isBodyweightExercise = exercise.equipment?.toLowerCase().includes('peso corporal') || 
+                                     exercise.equipment?.toLowerCase().includes('bodyweight') ||
+                                     exercise.equipment?.toLowerCase().includes('calistenia') ||
+                                     exercise.name?.toLowerCase().includes('plancha') ||
+                                     exercise.name?.toLowerCase().includes('flexion') ||
+                                     exercise.name?.toLowerCase().includes('dominada') ||
+                                     exercise.name?.toLowerCase().includes('abdominal') ||
+                                     exercise.name?.toLowerCase().includes('pull up') ||
+                                     exercise.name?.toLowerCase().includes('push up');
+        
+        if (!isBodyweightExercise && (!weight || weight <= 0)) {
+          errors.push({ exerciseIndex: ei, setIndex: si, message: 'Peso requerido (> 0)' });
+          exercisesWithErrors.add(ei);
+        }
+      });
+    });
+    
+    return { errors, exercisesWithErrors };
+  };
+  
+  const canProceedToReview = exercises.length > 0 && 
+                             exercises.every(ex => ex.name.trim().length > 0) &&
+                             validateExercises().errors.length === 0;
 
   return (
     <div className="min-h-[600px] flex flex-col">
@@ -628,6 +672,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                   return (
                   <div
                     key={exerciseIndex}
+                    data-exercise-index={exerciseIndex}
                     draggable
                     onDragStart={(e) => {
                       setDraggedExerciseIndex(exerciseIndex);
@@ -663,7 +708,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                   >
                     {/* Header colapsable - siempre visible */}
                     <div 
-                      className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                        validationErrors.some(err => err.exerciseIndex === exerciseIndex) 
+                          ? 'bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500' 
+                          : ''
+                      }`}
                       onClick={() => toggleExerciseExpanded(exerciseIndex)}
                     >
                       {/* Drag handle */}
@@ -683,8 +732,15 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
                       {/* Nombre del ejercicio */}
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 truncate">
-                          {exercise.name || `Ejercicio ${exerciseIndex + 1}`}
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 truncate">
+                            {exercise.name || `Ejercicio ${exerciseIndex + 1}`}
+                          </div>
+                          {validationErrors.some(err => err.exerciseIndex === exerciseIndex) && (
+                            <span className="flex-shrink-0 px-2 py-0.5 text-xs font-semibold bg-amber-500 text-white rounded-full animate-pulse">
+                              ⚠️ Completar
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           {exercise.sets.length} {exercise.sets.length === 1 ? 'serie' : 'series'}
@@ -720,13 +776,24 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     {/* Contenido expandible */}
                     {isExpanded && (
                       <div className="p-4 pt-0 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                        <Input
-                          placeholder={t('exerciseName')}
-                          value={exercise.name}
-                          onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
-                          required
-                          className="font-medium"
-                        />
+                        <div>
+                          <Input
+                            placeholder={t('exerciseName')}
+                            value={exercise.name}
+                            onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
+                            required
+                            className={`font-medium ${
+                              validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === -1)
+                                ? 'border-red-500 dark:border-red-500'
+                                : ''
+                            }`}
+                          />
+                          {validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === -1) && (
+                            <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+                              ⚠️ El nombre del ejercicio es requerido
+                            </div>
+                          )}
+                        </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -911,8 +978,38 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               <Button
                 type="button"
                 variant="primary"
-                onClick={() => setCurrentStep('review')}
-                disabled={!canProceedToReview}
+                onClick={() => {
+                  const validation = validateExercises();
+                  if (validation.errors.length > 0) {
+                    // Expandir ejercicios con errores
+                    setExpandedExercises(validation.exercisesWithErrors);
+                    
+                    // Marcar todos los campos como tocados
+                    const allTouchedFields = new Set<string>();
+                    exercises.forEach((exercise, ei) => {
+                      exercise.sets.forEach((s, si) => {
+                        allTouchedFields.add(`${ei}-${si}-reps`);
+                        allTouchedFields.add(`${ei}-${si}-weight`);
+                      });
+                    });
+                    setTouchedFields(allTouchedFields);
+                    setValidationErrors(validation.errors);
+                    
+                    // Mostrar toast con resumen de errores
+                    const errorCount = validation.errors.length;
+                    const exerciseCount = validation.exercisesWithErrors.size;
+                    error(`⚠️ Completa los datos faltantes: ${errorCount} ${errorCount === 1 ? 'campo' : 'campos'} en ${exerciseCount} ${exerciseCount === 1 ? 'ejercicio' : 'ejercicios'}. Los campos están marcados en rojo.`);
+                    
+                    // Scroll al primer ejercicio con error
+                    setTimeout(() => {
+                      const firstErrorExercise = Math.min(...Array.from(validation.exercisesWithErrors));
+                      const element = document.querySelector(`[data-exercise-index="${firstErrorExercise}"]`);
+                      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                  } else {
+                    setCurrentStep('review');
+                  }
+                }}
                 className="order-1 sm:order-2 px-8"
               >
                 Siguiente: Revisar →
