@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useGym } from '@/context/GymContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -10,6 +10,9 @@ import { SessionComparison } from '@/components/SessionComparison';
 import type { WorkoutSession } from '@/types';
 import * as storageService from '@/lib/storage/storage';
 import { useSessionStats } from '@/hooks/useSessionStats';
+import { PageLayout } from '@/components/PageLayout';
+import { EmptyState } from '@/components/EmptyState';
+import { LoadingState } from '@/components/LoadingState';
 
 export default function SessionsPage() {
   const { sessions: serverSessions, routines, loading } = useGym();

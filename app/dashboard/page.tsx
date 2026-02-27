@@ -27,6 +27,10 @@ import {
 } from '@/components/icons/lucide';
 import { useGym } from '@/context/GymContext';
 import { useValidSessions } from '@/hooks/useValidSessions';
+import { PageLayout } from '@/components/PageLayout';
+import { StatsGrid, StatCard } from '@/components/StatsGrid';
+import { EmptyState } from '@/components/EmptyState';
+import { LoadingState } from '@/components/LoadingState';
 
 // Lazy loaded components
 import {

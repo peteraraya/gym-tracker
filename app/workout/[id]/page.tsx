@@ -610,6 +610,7 @@ export default function WorkoutPage() {
           title={timerTitle}
           nextExerciseName={nextExerciseName}
           onComplete={handleTimerComplete}
+          autoStart={true}
         />
       </div>
     );

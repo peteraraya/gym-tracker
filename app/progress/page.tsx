@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useRoutines } from '@/context/GymContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { EXERCISE_DATABASE, type MuscleGroup } from '@/data/exercises';
-import { calculateSessionVolume, calculateTotalSets } from '@/lib/utils/dateUtils';
 import { useValidSessions } from '@/hooks/useValidSessions';
 import { APP_CONFIG } from '@/config/app.config';
+import { PageLayout } from '@/components/PageLayout';
+import { StatsGrid, StatCard } from '@/components/StatsGrid';
+import { EmptyState } from '@/components/EmptyState';
+import { TrendingUp } from '@/components/icons/lucide';
 
 const MUSCLE_GROUPS = Object.keys(APP_CONFIG.muscleGroupColors) as MuscleGroup[];
 const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
