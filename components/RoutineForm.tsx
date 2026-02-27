@@ -15,6 +15,7 @@ import SetTypeSelector from '@/components/SetTypeSelector';
 import { ExerciseTemplate, getExerciseByName, MuscleGroup } from '@/data/exercises';
 import { WarmupExercise } from '@/data/warmupExercises';
 import { WarmupRecommendation } from '@/components/WarmupRecommendation';
+import { useConfirm } from '@/context/ConfirmContext';
 
 interface RoutineFormProps {
   routineId?: string | null;
@@ -24,6 +25,11 @@ interface RoutineFormProps {
 export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) => {
   const { addRoutine, updateRoutine, getRoutineById } = useRoutines();
   const { success, error } = useToast();
+  const { confirm } = useConfirm();
+  
+  // Clave para localStorage
+  const STORAGE_KEY = 'gym-tracker-routine-draft';
+  
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<string>('');
@@ -51,8 +57,35 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     });
   };
 
+  // Guardar borrador en localStorage cada vez que cambie el estado
+  useEffect(() => {
+    // No guardar si estamos editando una rutina existente
+    if (routineId) return;
+    
+    // Solo guardar si hay algún dato ingresado
+    if (name || description || image || exercises.length > 0) {
+      try {
+        const draft = {
+          name,
+          description,
+          image,
+          exercises,
+          restBetweenSets,
+          restBetweenExercises,
+          currentStep,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+      } catch (e) {
+        console.warn('Error saving draft:', e);
+      }
+    }
+  }, [name, description, image, exercises, restBetweenSets, restBetweenExercises, currentStep, routineId]);
+
+  // Restaurar borrador al montar (solo si no estamos editando)
   useEffect(() => {
     if (routineId) {
+      // Lógica existente para editar rutina
       const routine = getRoutineById(routineId);
       if (routine) {
         setName(routine.name);
@@ -85,9 +118,59 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         setRestBetweenExercises(routine.restBetweenExercises || 120);
         setCurrentStep('exercises');
       }
+    } else {
+      // Intentar restaurar borrador
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const draft = JSON.parse(stored);
+          // Solo restaurar si el borrador es reciente (menos de 24 horas)
+          const age = Date.now() - (draft.timestamp || 0);
+          if (age < 24 * 60 * 60 * 1000) {
+            setName(draft.name || '');
+            setDescription(draft.description || '');
+            setImage(draft.image || '');
+            setExercises(draft.exercises || []);
+            setRestBetweenSets(draft.restBetweenSets || 60);
+            setRestBetweenExercises(draft.restBetweenExercises || 120);
+            setCurrentStep(draft.currentStep || 'basic');
+          } else {
+            // Borrador muy antiguo, eliminarlo
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        }
+      } catch (e) {
+        console.warn('Error restoring draft:', e);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routineId]);
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('Error clearing draft:', e);
+    }
+  };
+
+  const handleCancelWithConfirm = async () => {
+    // Si hay datos ingresados, pedir confirmación
+    if (name || description || image || exercises.length > 0) {
+      const confirmed = await confirm({
+        title: 'Cancelar creación de rutina',
+        message: '¿Estás seguro? Se perderá todo el progreso no guardado.',
+        confirmText: 'Sí, cancelar',
+        cancelText: 'Continuar editando',
+        variant: 'danger'
+      });
+      
+      if (!confirmed) return;
+    }
+    
+    clearDraft();
+    onClose();
+  };
 
   const handleAddExercise = () => {
     setIsExerciseSelectorOpen(true);
@@ -360,6 +443,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         });
       }
       success(routineId ? t('updateSuccess') : t('createSuccess'));
+      clearDraft(); // Limpiar borrador al guardar exitosamente
       onClose();
     } catch (err) {
       console.error('Error saving routine:', err);
@@ -578,7 +662,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               />
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-between pt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCancelWithConfirm}
+              >
+                Cancelar
+              </Button>
               <Button
                 type="button"
                 variant="primary"

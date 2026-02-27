@@ -408,6 +408,8 @@ export default function RoutinesPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={editingRoutine ? t('modal.editTitle') : t('modal.newTitle')}
+        closeOnClickOutside={false}
+        closeOnEscape={false}
       >
         <RoutineForm routineId={editingRoutine} onClose={handleCloseModal} />
       </Modal>
