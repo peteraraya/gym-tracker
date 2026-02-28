@@ -23,7 +23,7 @@ export function MinimizedTimer({
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
+    <div className="fixed bottom-24 right-4 z-50 animate-in slide-in-from-bottom-2 duration-300">
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl border-2 border-white/20 backdrop-blur-sm">
         <div className="px-4 py-3 flex items-center gap-3">
           {/* Timer display */}

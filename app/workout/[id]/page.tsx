@@ -30,6 +30,7 @@ import { calculateRestBetweenSets } from '@/lib/restCalculator';
 import { useWorkoutState } from './hooks/useWorkoutState';
 import { useWorkoutSuggestions } from './hooks/useWorkoutSuggestions';
 import { WorkoutHeader } from './components/WorkoutHeader';
+import { CompactWorkoutHeader } from './components/CompactWorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
 import { SetControls } from './components/SetControls';
 import { WorkoutSummary } from './components/WorkoutSummary';
@@ -237,8 +238,16 @@ export default function WorkoutPage() {
     return relevantSessions[0] || null;
   }, [currentExercise, sessions]);
 
-  const elapsedTime = useMemo(() => {
-    return Math.floor((Date.now() - workoutStartTime) / 1000);
+  // ✨ Estado para tiempo transcurrido que se actualiza cada segundo
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  // ✨ Actualizar tiempo transcurrido cada segundo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - workoutStartTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [workoutStartTime]);
 
   // ==================== EFFECTS ====================
@@ -1048,32 +1057,26 @@ export default function WorkoutPage() {
           />
         )}
 
-        {/* Global timer */}
-        <WorkoutGlobalTimer startTime={workoutStartTime} />
-
-        {/* Header */}
-        <WorkoutHeader
-          routine={routine}
-          currentExerciseIndex={workoutState.currentExerciseIndex}
-          totalExercises={routine.exercises.length}
-          elapsedTime={elapsedTime}
-          onCancel={handleCancelWorkout}
-          onPause={() => {}} // TODO: Implement pause
-        />
-
-        {/* Live Stats Panel - STICKY */}
-        <div className="sticky top-0 z-10 mb-6 -mx-4 px-4 py-2 bg-white dark:bg-gray-900">
-          <LiveStatsPanel
-            completedSets={workoutState.workoutData.completedSets}
-            actualReps={workoutState.workoutData.actualReps}
-            actualWeights={workoutState.workoutData.actualWeights}
-            exercises={routine.exercises}
-          />
+        {/* Compact Header - STICKY (combina header + stats) */}
+        <div className="sticky top-16 z-10 mb-4">
+          <div className="rounded-lg bg-white dark:bg-gray-800 shadow-lg ">
+            <CompactWorkoutHeader
+              routine={routine}
+              currentExerciseIndex={workoutState.currentExerciseIndex}
+              totalExercises={routine.exercises.length}
+              elapsedTime={elapsedTime}
+              completedSets={workoutState.workoutData.completedSets}
+              actualReps={workoutState.workoutData.actualReps}
+              actualWeights={workoutState.workoutData.actualWeights}
+              exercises={routine.exercises}
+              onCancel={handleCancelWorkout}
+            />
+          </div>
         </div>
 
         {/* Action buttons - TOP */}
         {!isExecutingSet && (
-          <div className="mb-6">
+          <div className="mt-6 mb-6">
             <Button
               variant="primary"
               onClick={handleStartSet}

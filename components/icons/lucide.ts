@@ -26,6 +26,9 @@ export {
   Dumbbell,
   Flame,
   Sparkles,
+  Weight,
+  Repeat,
+  ListChecks,
   
   // Actions
   Plus,
