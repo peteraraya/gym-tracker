@@ -38,6 +38,7 @@ import { ExerciseList } from './components/ExerciseList';
 import { SetExecutionModal } from '@/components/SetExecutionModal';
 import { generateWeightSuggestion, formatWeightSuggestion } from '@/lib/weightSuggestions';
 import { calculateAchievements, getRecentAchievements } from '@/lib/achievements';
+import { predictWeight, validateWeight } from './utils/weightPrediction';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -71,6 +72,9 @@ export default function WorkoutPage() {
   const [setStartTime, setSetStartTime] = useState<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
+  
+  // Fase 2: Collapsible SeriesTable state
+  const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
   
   // Workout tracking
   const [workoutStartTime] = useState(Date.now());
@@ -320,6 +324,7 @@ export default function WorkoutPage() {
   useEffect(() => {
     setDismissedSuggestions(new Set());
     setDismissedWeightSuggestion(false); // Reset cuando cambia ejercicio
+    setIsSeriesTableExpanded(false); // Reset expansion state when exercise changes
   }, [workoutState.currentExerciseIndex]);
 
   // Generate weight suggestions for current exercise
@@ -358,6 +363,39 @@ export default function WorkoutPage() {
       return () => clearTimeout(timer);
     }
   }, [showTimer, pendingToast, success]);
+
+  // ==================== INTELLIGENT WEIGHT PREDICTION ====================
+  useEffect(() => {
+    if (!currentExercise || !isInitialized) return;
+    
+    const exerciseId = currentExercise.id;
+    const setIndex = workoutState.currentSet - 1;
+    
+    // Skip if user has already edited this set
+    const hasEditedValue = workoutState.workoutData.actualWeights[exerciseId]?.[setIndex];
+    if (hasEditedValue !== undefined && hasEditedValue !== 0) return;
+    
+    // Predict weight
+    const prediction = predictWeight({
+      exerciseName: currentExercise.name,
+      currentSet: workoutState.currentSet,
+      sessions,
+      currentExercise,
+      actualWeights: workoutState.workoutData.actualWeights,
+      exerciseId
+    });
+    
+    // Apply prediction if different from current
+    const validatedWeight = validateWeight(prediction.predictedWeight);
+    if (validatedWeight !== workoutState.currentWeight) {
+      workoutState.setCurrentWeight(validatedWeight);
+      
+      // Show reasoning as toast (only for high confidence predictions)
+      if (prediction.confidence === 'high' && prediction.source !== 'routine_default') {
+        success(`💡 ${prediction.reasoning}`, 3000);
+      }
+    }
+  }, [currentExercise, workoutState.currentSet, isInitialized, sessions]);
 
   // ==================== SMART REST TIME ====================
   const smartRestTime = useMemo(() => {
@@ -1016,28 +1054,45 @@ export default function WorkoutPage() {
           onSetChange={workoutState.setCurrentSet}
         />
 
-        {/* Series table */}
-        <SeriesTable
-          exercise={currentExercise}
-          exerciseId={currentExercise.id}
-          completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
-          actualReps={workoutState.workoutData.actualReps[currentExercise.id] || []}
-          actualWeights={workoutState.workoutData.actualWeights[currentExercise.id] || []}
-          setTypes={workoutState.workoutData.setTypes[currentExercise.id] || []}
-          currentSet={workoutState.currentSet}
-          onEditReps={handleEditReps}
-          onEditWeight={handleEditWeight}
-          onEditSetType={handleEditSetType}
-          onToggleSetComplete={handleToggleSetComplete}
-          onAddSet={handleAddSet}
-          perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
-          onEditRestTime={handleEditRestTime}
-          onApplySmartRest={handleApplySmartRest}
-          smartRestTime={smartRestTime}
-          routine={routine}
-          restOverrides={workoutState.workoutData.restOverrides}
-          useSmartRest={useSmartRest}
-        />
+        {/* Collapsible SeriesTable toggle button */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => setIsSeriesTableExpanded(!isSeriesTableExpanded)}
+            className="w-full text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 py-2"
+          >
+            {isSeriesTableExpanded ? (
+              <>▼ Ocultar series ({currentExercise.sets.length})</>
+            ) : (
+              <>▶ Ver todas las series ({currentExercise.sets.length})</>
+            )}
+          </Button>
+        </div>
+
+        {/* Series table - conditional render */}
+        {isSeriesTableExpanded && (
+          <SeriesTable
+            exercise={currentExercise}
+            exerciseId={currentExercise.id}
+            completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
+            actualReps={workoutState.workoutData.actualReps[currentExercise.id] || []}
+            actualWeights={workoutState.workoutData.actualWeights[currentExercise.id] || []}
+            setTypes={workoutState.workoutData.setTypes[currentExercise.id] || []}
+            currentSet={workoutState.currentSet}
+            onEditReps={handleEditReps}
+            onEditWeight={handleEditWeight}
+            onEditSetType={handleEditSetType}
+            onToggleSetComplete={handleToggleSetComplete}
+            onAddSet={handleAddSet}
+            perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
+            onEditRestTime={handleEditRestTime}
+            onApplySmartRest={handleApplySmartRest}
+            smartRestTime={smartRestTime}
+            routine={routine}
+            restOverrides={workoutState.workoutData.restOverrides}
+            useSmartRest={useSmartRest}
+          />
+        )}
 
         {/* Exercise list */}
         <ExerciseList

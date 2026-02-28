@@ -85,6 +85,17 @@ export function ExerciseCard({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Quick weight adjustment handler
+  const handleQuickWeightAdjustment = (delta: number) => {
+    const newWeight = Math.max(0, (currentWeight || 0) + delta);
+    onWeightChange(newWeight);
+    
+    // Haptic feedback
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+  };
+
   // Calcular progreso visual
   const progress = useMemo(() => {
     return (completedSets / totalSets) * 100;
@@ -214,6 +225,45 @@ export function ExerciseCard({
               exerciseId={exercise.id}
             />
           </div>
+        </div>
+
+        {/* Quick weight adjustment buttons */}
+        <div className="flex items-center justify-center gap-2 py-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold">
+            Ajuste rápido:
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => handleQuickWeightAdjustment(-5)}
+            className="px-3 py-1.5 min-w-[60px]"
+          >
+            -5kg
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => handleQuickWeightAdjustment(-2.5)}
+            className="px-3 py-1.5 min-w-[60px]"
+          >
+            -2.5kg
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => handleQuickWeightAdjustment(+2.5)}
+            className="px-3 py-1.5 min-w-[60px]"
+          >
+            +2.5kg
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => handleQuickWeightAdjustment(+5)}
+            className="px-3 py-1.5 min-w-[60px]"
+          >
+            +5kg
+          </Button>
         </div>
 
         {/* Quick action: Repeat Previous */}
