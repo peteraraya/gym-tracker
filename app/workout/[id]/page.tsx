@@ -61,6 +61,8 @@ export default function WorkoutPage() {
   const [timerTitle, setTimerTitle] = useState('');
   const [nextExerciseName, setNextExerciseName] = useState<string | undefined>(undefined);
   const [timerMinimized, setTimerMinimized] = useState(false);
+  const [timerStartTime, setTimerStartTime] = useState<number>(0); // ✨ NEW: Track when timer started
+  const [currentTimeLeft, setCurrentTimeLeft] = useState(0); // ✨ NEW: Current time remaining
   
   // Completion modal state
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -94,6 +96,7 @@ export default function WorkoutPage() {
   
   // Refs
   const timerCompleteProcessingRef = React.useRef(false);
+  const handleTimerCompleteRef = React.useRef<(() => void) | null>(null); // ✨ NEW: Ref for handleTimerComplete
 
   // ==================== INITIALIZATION ====================
   useEffect(() => {
@@ -328,6 +331,26 @@ export default function WorkoutPage() {
     setIsSeriesTableExpanded(false); // Reset expansion state when exercise changes
   }, [workoutState.currentExerciseIndex]);
 
+  // ✨ NEW: Update timer countdown when minimized
+  useEffect(() => {
+    if (!showTimer || !timerMinimized || !timerStartTime) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+      const remaining = Math.max(0, currentTimeLeft - 1);
+      setCurrentTimeLeft(remaining);
+
+      // Auto-complete when time runs out
+      if (remaining === 0 && handleTimerCompleteRef.current) {
+        handleTimerCompleteRef.current();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [showTimer, timerMinimized, timerStartTime, currentTimeLeft]);
+
   // Generate weight suggestions for current exercise
   useEffect(() => {
     console.log('[Weight Suggestion] Checking conditions:', {
@@ -537,6 +560,8 @@ export default function WorkoutPage() {
         
         setShowTimer(true);
         setTimerDuration(restTime);
+        setTimerStartTime(Date.now()); // ✨ Track start time
+        setCurrentTimeLeft(restTime); // ✨ Initialize current time
         setTimerTitle('Descanso entre ejercicios');
         setNextExerciseName(nextExercise.name);
       }
@@ -552,6 +577,8 @@ export default function WorkoutPage() {
       
       setShowTimer(true);
       setTimerDuration(restTime);
+      setTimerStartTime(Date.now()); // ✨ Track start time
+      setCurrentTimeLeft(restTime); // ✨ Initialize current time
       setTimerTitle(`Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
       setNextExerciseName(undefined);
     }
@@ -606,6 +633,11 @@ export default function WorkoutPage() {
       timerCompleteProcessingRef.current = false;
     }, 100);
   }, [currentExercise, routine, workoutState, workoutStartTime, clearRestState]);
+
+  // ✨ Update ref for handleTimerComplete
+  useEffect(() => {
+    handleTimerCompleteRef.current = handleTimerComplete;
+  }, [handleTimerComplete]);
 
   const finishCompleteWorkout = useCallback(async () => {
     if (!routine) return;
@@ -820,6 +852,8 @@ export default function WorkoutPage() {
           
           setShowTimer(true);
           setTimerDuration(restTime);
+          setTimerStartTime(Date.now()); // ✨ Track start time
+          setCurrentTimeLeft(restTime); // ✨ Initialize current time
           setTimerTitle('Descanso entre ejercicios');
           setNextExerciseName(nextExercise.name);
         }
@@ -971,12 +1005,17 @@ export default function WorkoutPage() {
       <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
         <Timer
           duration={timerDuration}
+          initialTimeLeft={currentTimeLeft} // ✨ Pass current time when expanding
           title={timerTitle}
           nextExerciseName={nextExerciseName}
           onComplete={handleTimerComplete}
           autoStart={true}
           showMotivation={true}
-          onMinimize={() => setTimerMinimized(true)}
+          onMinimize={(timeLeft) => {
+            setTimerMinimized(true);
+            setCurrentTimeLeft(timeLeft); // ✨ Update with actual time left
+            setTimerStartTime(Date.now()); // ✨ Reset start time for minimized countdown
+          }}
         />
       </div>
     );
@@ -1002,7 +1041,7 @@ export default function WorkoutPage() {
         {/* Minimized timer overlay */}
         {showTimer && timerMinimized && (
           <MinimizedTimer
-            timeLeft={timerDuration}
+            timeLeft={currentTimeLeft}
             title={timerTitle}
             onExpand={() => setTimerMinimized(false)}
             onSkip={handleTimerComplete}

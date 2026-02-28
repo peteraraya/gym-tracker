@@ -20,7 +20,8 @@ interface TimerProps {
   nextExerciseName?: string; // Para mostrar en la notificación
   showMotivation?: boolean; // Mostrar mensajes motivacionales
   onActualDurationChange?: (actualDuration: number) => void; // Callback con duración real
-  onMinimize?: () => void; // Callback para minimizar el timer
+  onMinimize?: (timeLeft: number) => void; // Callback para minimizar con tiempo restante
+  initialTimeLeft?: number; // ✨ NEW: Tiempo inicial cuando se expande desde minimizado
 }
 
 export const Timer: React.FC<TimerProps> = ({ 
@@ -31,9 +32,10 @@ export const Timer: React.FC<TimerProps> = ({
   nextExerciseName,
   showMotivation = true,
   onActualDurationChange,
-  onMinimize
+  onMinimize,
+  initialTimeLeft // ✨ NEW: Receive initial time
 }) => {
-  const [timeLeft, setTimeLeft] = useState(duration);
+  const [timeLeft, setTimeLeft] = useState(initialTimeLeft ?? duration); // ✨ Use initialTimeLeft if provided
   const [isRunning, setIsRunning] = useState(autoStart);
   const [isCompleted, setIsCompleted] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(false);
@@ -56,7 +58,7 @@ export const Timer: React.FC<TimerProps> = ({
   }, []);
 
   useEffect(() => {
-    setTimeLeft(duration);
+    setTimeLeft(initialTimeLeft ?? duration); // ✨ Use initialTimeLeft if provided
     setIsCompleted(false);
     setHasAdjusted(false);
     onCompleteCalledRef.current = false;
@@ -65,7 +67,7 @@ export const Timer: React.FC<TimerProps> = ({
       setIsRunning(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [duration]);
+  }, [duration, initialTimeLeft]); // ✨ Add initialTimeLeft to dependencies
 
   useEffect(() => {
     if (isRunning) {
@@ -205,7 +207,7 @@ export const Timer: React.FC<TimerProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onMinimize}
+            onClick={() => onMinimize(timeLeft)} // ✨ Pass current time left
             className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
           >
             ⬇️ Minimizar
