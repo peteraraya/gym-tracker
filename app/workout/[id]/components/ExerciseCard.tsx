@@ -24,6 +24,11 @@ interface ExerciseCardProps {
   isSetStarted?: boolean;
   weightSuggestion?: WeightSuggestion | null;
   onDismissWeightSuggestion?: () => void;
+  // New props for "Repeat Previous" feature
+  lastSetData?: { reps: number; weight: number } | null;
+  onRepeatPrevious?: () => void;
+  // New prop for set timer
+  setStartTime?: number | null;
 }
 
 /**
@@ -50,10 +55,35 @@ export function ExerciseCard({
   isSetStarted = false,
   weightSuggestion,
   onDismissWeightSuggestion,
+  lastSetData,
+  onRepeatPrevious,
+  setStartTime,
 }: ExerciseCardProps) {
   const totalSets = exercise.sets.length;
   const isLastSet = currentSet === totalSets;
   const isSetComplete = currentReps !== '' && currentWeight !== '';
+
+  // Timer for set execution
+  const [elapsedTime, setElapsedTime] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!setStartTime) {
+      setElapsedTime(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - setStartTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [setStartTime]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Calcular progreso visual
   const progress = useMemo(() => {
@@ -103,6 +133,31 @@ export function ExerciseCard({
 
       {/* Contenido principal */}
       <CardContent className="space-y-4">
+        {/* Serie iniciada indicator */}
+        {isSetStarted && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 dark:border-blue-400 rounded-lg p-3 flex items-center gap-3">
+            <span className="text-blue-600 dark:text-blue-400 text-2xl">⏱️</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                Serie en progreso
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Completa cuando termines de ejecutar
+              </p>
+            </div>
+            {setStartTime && (
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                  {formatTime(elapsedTime)}
+                </div>
+                <div className="text-xs text-blue-700 dark:text-blue-300">
+                  Tiempo
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Weight suggestion banner */}
         {weightSuggestion && (
           <WeightSuggestionBanner
@@ -161,14 +216,24 @@ export function ExerciseCard({
           </div>
         </div>
 
+        {/* Quick action: Repeat Previous */}
+        {lastSetData && onRepeatPrevious && (
+          <Button
+            variant="ghost"
+            onClick={onRepeatPrevious}
+            className="w-full text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+          >
+            🔄 Repetir Anterior ({lastSetData.reps} reps × {lastSetData.weight}kg)
+          </Button>
+        )}
+
         {/* Botones de acción */}
         <div className="flex gap-2 pt-2">
           <Button
             variant="primary"
             onClick={onCompleteSet}
-            disabled={!isSetComplete || !isSetStarted}
+            disabled={!isSetComplete}
             className="flex-1 py-2 sm:py-3 text-sm sm:text-base font-semibold"
-            title={!isSetStarted ? 'Inicia la serie primero' : ''}
           >
             <span className="hidden sm:inline">✅ Completar Serie {isLastSet ? '(Última)' : ''}</span>
             <span className="sm:hidden">✅ Completar</span>

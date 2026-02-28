@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
 import { WorkoutGlobalTimer } from '@/components/WorkoutGlobalTimer';
 import { PreparationCountdown } from '@/components/PreparationCountdown';
+import { MinimizedTimer } from '@/components/MinimizedTimer';
 import SetTypeSelector from '@/components/SetTypeSelector';
 import { WeightSelector } from '@/components/WeightSelector';
 import { Input } from '@/components/ui/Input';
@@ -57,6 +58,7 @@ export default function WorkoutPage() {
   const [timerDuration, setTimerDuration] = useState(0);
   const [timerTitle, setTimerTitle] = useState('');
   const [nextExerciseName, setNextExerciseName] = useState<string | undefined>(undefined);
+  const [timerMinimized, setTimerMinimized] = useState(false);
   
   // Completion modal state
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -66,6 +68,7 @@ export default function WorkoutPage() {
   const [showPreparation, setShowPreparation] = useState(false);
   const [showSetExecution, setShowSetExecution] = useState(false);
   const [isExecutingSet, setIsExecutingSet] = useState(false);
+  const [setStartTime, setSetStartTime] = useState<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   
@@ -406,6 +409,7 @@ export default function WorkoutPage() {
 
   // ==================== HANDLERS ====================
   const handleStartSet = useCallback(() => {
+    // Always show preparation countdown first
     setShowPreparation(true);
   }, []);
 
@@ -421,15 +425,32 @@ export default function WorkoutPage() {
 
   const handlePreparationComplete = useCallback(() => {
     setShowPreparation(false);
-    setShowSetExecution(true);
-    setIsExecutingSet(true);
-  }, []);
+    
+    // Check if execution modal is enabled (default: false for better UX)
+    const useExecutionModal = typeof window !== 'undefined' 
+      ? localStorage.getItem('useExecutionModal') === 'true'
+      : false;
+    
+    // Start set timer
+    setSetStartTime(Date.now());
+    
+    if (useExecutionModal) {
+      // Open modal for execution
+      setShowSetExecution(true);
+      setIsExecutingSet(true);
+    } else {
+      // Direct completion mode - just mark as started
+      setIsExecutingSet(true);
+      success('✅ Serie iniciada - completa cuando termines', 2000);
+    }
+  }, [success]);
 
   const handleCompleteSet = useCallback(() => {
     if (!currentExercise || !routine) return;
     
-    setIsExecutingSet(false);
+    setIsExecutingSet(false); // Reset executing state
     setShowSetExecution(false); // Cerrar modal
+    setSetStartTime(null); // Reset set timer
     
     const exerciseId = currentExercise.id;
     const setIndex = workoutState.currentSet - 1;
@@ -438,6 +459,11 @@ export default function WorkoutPage() {
 
     // Update workout state
     workoutState.completeSet(exerciseId, repsValue, weightValue);
+
+    // ✨ Improved feedback - vibration
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([100, 50, 100]); // Double vibration pattern
+    }
 
     // Prepare toast message to show after rest
     if (weightSuggestion && weightSuggestion.suggested > weightValue) {
@@ -497,6 +523,7 @@ export default function WorkoutPage() {
     
     timerCompleteProcessingRef.current = true;
     setShowTimer(false);
+    setTimerMinimized(false); // Reset minimized state
     clearRestState();
     
     if (!currentExercise || !routine) {
@@ -804,6 +831,50 @@ export default function WorkoutPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [workoutState]);
 
+  // ==================== REPEAT PREVIOUS LOGIC ====================
+  const lastSetData = useMemo(() => {
+    if (!currentExercise) return null;
+    
+    const exerciseId = currentExercise.id;
+    const currentSetIndex = workoutState.currentSet - 1;
+    
+    // If first set, try to get data from last session
+    if (currentSetIndex === 0 && lastSessionForExercise) {
+      const lastExerciseData = lastSessionForExercise.exercises.find(
+        e => e.exerciseName === currentExercise.name
+      );
+      if (lastExerciseData && lastExerciseData.actualReps[0] && lastExerciseData.actualWeight[0]) {
+        return {
+          reps: lastExerciseData.actualReps[0],
+          weight: lastExerciseData.actualWeight[0]
+        };
+      }
+    }
+    
+    // If set 2+, get data from previous set in current workout
+    if (currentSetIndex > 0) {
+      const prevReps = workoutState.workoutData.actualReps[exerciseId]?.[currentSetIndex - 1];
+      const prevWeight = workoutState.workoutData.actualWeights[exerciseId]?.[currentSetIndex - 1];
+      
+      if (prevReps && prevWeight) {
+        return {
+          reps: prevReps,
+          weight: prevWeight
+        };
+      }
+    }
+    
+    return null;
+  }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);
+
+  const handleRepeatPrevious = useCallback(() => {
+    if (!lastSetData) return;
+    
+    workoutState.setCurrentReps(lastSetData.reps);
+    workoutState.setCurrentWeight(lastSetData.weight);
+    success(`Copiado: ${lastSetData.reps} reps × ${lastSetData.weight}kg`, 2000);
+  }, [lastSetData, workoutState, success]);
+
   // ==================== RENDER ====================
   if (gymLoading || !isInitialized) {
     return (
@@ -844,8 +915,8 @@ export default function WorkoutPage() {
     return null;
   }
 
-  // Show timer fullscreen
-  if (showTimer) {
+  // Show timer fullscreen or minimized
+  if (showTimer && !timerMinimized) {
     return (
       <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
         <Timer
@@ -855,6 +926,7 @@ export default function WorkoutPage() {
           onComplete={handleTimerComplete}
           autoStart={true}
           showMotivation={true}
+          onMinimize={() => setTimerMinimized(true)}
         />
       </div>
     );
@@ -877,6 +949,16 @@ export default function WorkoutPage() {
   return (
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-8 pb-32">
+        {/* Minimized timer overlay */}
+        {showTimer && timerMinimized && (
+          <MinimizedTimer
+            timeLeft={timerDuration}
+            title={timerTitle}
+            onExpand={() => setTimerMinimized(false)}
+            onSkip={handleTimerComplete}
+          />
+        )}
+
         {/* Global timer */}
         <WorkoutGlobalTimer startTime={workoutStartTime} />
 
@@ -891,15 +973,17 @@ export default function WorkoutPage() {
         />
 
         {/* Action buttons - TOP */}
-        <div className="mb-6">
-          <Button
-            variant="primary"
-            onClick={handleStartSet}
-            className="w-full py-3 text-base font-semibold"
-          >
-            ▶️ Iniciar Serie
-          </Button>
-        </div>
+        {!isExecutingSet && (
+          <div className="mb-6">
+            <Button
+              variant="primary"
+              onClick={handleStartSet}
+              className="w-full py-3 text-base font-semibold"
+            >
+              ▶️ Iniciar Serie
+            </Button>
+          </div>
+        )}
 
         {/* Exercise card */}
         <ExerciseCard
@@ -920,6 +1004,9 @@ export default function WorkoutPage() {
           isSetStarted={isExecutingSet}
           weightSuggestion={!dismissedWeightSuggestion ? weightSuggestion : null}
           onDismissWeightSuggestion={() => setDismissedWeightSuggestion(true)}
+          lastSetData={lastSetData}
+          onRepeatPrevious={handleRepeatPrevious}
+          setStartTime={setStartTime}
         />
 
         {/* Set controls */}

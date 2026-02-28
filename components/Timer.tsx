@@ -20,6 +20,7 @@ interface TimerProps {
   nextExerciseName?: string; // Para mostrar en la notificación
   showMotivation?: boolean; // Mostrar mensajes motivacionales
   onActualDurationChange?: (actualDuration: number) => void; // Callback con duración real
+  onMinimize?: () => void; // Callback para minimizar el timer
 }
 
 export const Timer: React.FC<TimerProps> = ({ 
@@ -29,7 +30,8 @@ export const Timer: React.FC<TimerProps> = ({
   title = undefined,
   nextExerciseName,
   showMotivation = true,
-  onActualDurationChange
+  onActualDurationChange,
+  onMinimize
 }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(autoStart);
@@ -197,6 +199,20 @@ export const Timer: React.FC<TimerProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
+      {/* Minimize button - top right */}
+      {onMinimize && !isCompleted && (
+        <div className="flex justify-end mb-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMinimize}
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+          >
+            ⬇️ Minimizar
+          </Button>
+        </div>
+      )}
+
       <div className="text-center mb-4 sm:mb-6">
         <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {resolvedTitle}
