@@ -102,6 +102,11 @@ export interface CreateRoutineData {
  */
 export async function getRoutines(): Promise<Routine[]> {
     const routines = getFromStorage<Routine[]>(STORAGE_KEYS.ROUTINES, []);
+    console.log('[localStorage] getRoutines - First routine exercises:', routines[0]?.exercises?.map(ex => ({
+        name: ex.name,
+        restBetweenSets: ex.restBetweenSets,
+        useSmartRest: ex.useSmartRest
+    })));
     return routines;
 }
 
@@ -122,6 +127,12 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
             sets: ex.sets,
             equipment: ex.equipment,
             notes: ex.notes,
+            restBetweenSets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
+            useSmartRest: ex.useSmartRest, // ✅ Preservar flag de descanso inteligente
+            technique: ex.technique,
+            recommendedSets: ex.recommendedSets,
+            recommendedReps: ex.recommendedReps,
+            restTime: ex.restTime,
         })),
         restBetweenSets: data.restBetweenSets || 60,
         restBetweenExercises: data.restBetweenExercises || 120,
@@ -157,6 +168,12 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
             sets: ex.sets,
             equipment: ex.equipment,
             notes: ex.notes,
+            restBetweenSets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
+            useSmartRest: ex.useSmartRest, // ✅ Preservar flag de descanso inteligente
+            technique: ex.technique,
+            recommendedSets: ex.recommendedSets,
+            recommendedReps: ex.recommendedReps,
+            restTime: ex.restTime,
         })),
         restBetweenSets: data.restBetweenSets || 60,
         restBetweenExercises: data.restBetweenExercises || 120,

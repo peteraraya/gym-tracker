@@ -96,6 +96,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           const { id, ...rest } = r;
           const restMaybe = rest as unknown as { sets?: unknown; reps?: unknown; weight?: unknown };
           if (typeof restMaybe.sets === 'number') {
+            // Formato antiguo: migrar a nuevo formato
             const oldSets = restMaybe.sets as number;
             const oldReps = (restMaybe.reps as number) || 10;
             const oldWeight = (restMaybe.weight as number) || 0;
@@ -107,10 +108,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 reps: oldReps, 
                 weight: oldWeight,
                 type: 'normal' as import('@/types').SetType
-              }))
+              })),
+              // Preservar campos de descanso si existen
+              restBetweenSets: (rest as any).restBetweenSets,
+              useSmartRest: (rest as any).useSmartRest
             } as Omit<Exercise, 'id'>;
             return newExercise;
           }
+          // Formato nuevo: preservar todos los campos incluyendo restBetweenSets y useSmartRest
           return rest as Omit<Exercise, 'id'>;
         });
         setExercises(migratedExercises);
@@ -421,6 +426,13 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         ? getRoutineById(routineId)?.exercises[index]?.id || `ex-${routineId}-${index}`
         : `ex-new-${index}-${crypto.randomUUID()}`,
     }));
+
+    // Debug: Verificar que los campos de descanso se están guardando
+    console.log('[RoutineForm] Guardando ejercicios:', exercisesWithIds.map(ex => ({
+      name: ex.name,
+      restBetweenSets: ex.restBetweenSets,
+      useSmartRest: ex.useSmartRest
+    })));
 
     try {
       if (routineId) {
@@ -1043,9 +1055,53 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const newExercises = [...exercises];
-                                  newExercises[exerciseIndex].useSmartRest = !newExercises[exerciseIndex].useSmartRest;
-                                  setExercises(newExercises);
+                                  const willEnableSmartRest = !exercise.useSmartRest;
+                                  
+                                  // Si se activa el descanso inteligente, calcular y aplicar el tiempo recomendado
+                                  if (willEnableSmartRest) {
+                                    const exerciseTemplate = getExerciseByName(exercise.name);
+                                    if (exerciseTemplate) {
+                                      // Calcular promedio de reps de todas las series
+                                      const avgReps = Math.round(
+                                        exercise.sets.reduce((sum, set) => sum + (set.reps || 10), 0) / exercise.sets.length
+                                      );
+                                      
+                                      // Importar la función de cálculo
+                                      import('@/lib/restCalculator').then(({ calculateRestBetweenSets }) => {
+                                        const restRecommendation = calculateRestBetweenSets(
+                                          exerciseTemplate,
+                                          exercise.sets.length,
+                                          avgReps,
+                                          'intermediate'
+                                        );
+                                        
+                                        // Redondear a intervalos de 5 segundos
+                                        const recommendedTime = Math.round(restRecommendation.recommended / 5) * 5;
+                                        
+                                        // Aplicar el tiempo calculado - usar el estado actual
+                                        setExercises(currentExercises => {
+                                          const updatedExercises = [...currentExercises];
+                                          updatedExercises[exerciseIndex].restBetweenSets = recommendedTime;
+                                          updatedExercises[exerciseIndex].useSmartRest = true;
+                                          return updatedExercises;
+                                        });
+                                        
+                                        // Mostrar notificación con el tiempo calculado
+                                        const minutes = Math.floor(recommendedTime / 60);
+                                        const seconds = recommendedTime % 60;
+                                        const timeStr = seconds > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${minutes}:00`;
+                                        success(`Descanso inteligente aplicado: ${timeStr} (${restRecommendation.description})`, 3000);
+                                      });
+                                    }
+                                  } else {
+                                    // Si se desactiva, limpiar el tiempo específico
+                                    setExercises(currentExercises => {
+                                      const updatedExercises = [...currentExercises];
+                                      updatedExercises[exerciseIndex].restBetweenSets = undefined;
+                                      updatedExercises[exerciseIndex].useSmartRest = false;
+                                      return updatedExercises;
+                                    });
+                                  }
                                 }}
                                 className={`px-2 py-1 text-xs font-semibold rounded transition-all ${
                                   exercise.useSmartRest
@@ -1070,8 +1126,15 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                               />
                             )}
                             {exercise.useSmartRest && (
-                              <div className="text-xs text-purple-600 dark:text-purple-400 italic">
-                                El descanso se calculará automáticamente según el tipo de ejercicio
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="text-purple-600 dark:text-purple-400 italic">
+                                  Descanso inteligente
+                                </span>
+                                {exercise.restBetweenSets && (
+                                  <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded font-semibold">
+                                    {Math.floor(exercise.restBetweenSets / 60)}:{(exercise.restBetweenSets % 60).toString().padStart(2, '0')}
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>

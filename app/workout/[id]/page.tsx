@@ -53,7 +53,15 @@ export default function WorkoutPage() {
   const { confirm } = useConfirm();
   
   // ==================== STATE ====================
-  const [routine, setRoutine] = useState<any>(getRoutineById(id));
+  const [routine, setRoutine] = useState<any>(() => {
+    const loadedRoutine = getRoutineById(id);
+    console.log('[Workout Init] Initial routine load:', loadedRoutine?.exercises?.map((ex: any) => ({
+      name: ex.name,
+      restBetweenSets: ex.restBetweenSets,
+      useSmartRest: ex.useSmartRest
+    })));
+    return loadedRoutine;
+  });
   const workoutState = useWorkoutState(routine || null);
   
   // Timer and UI state
@@ -123,6 +131,12 @@ export default function WorkoutPage() {
           useSmartRest: ex.useSmartRest !== undefined ? ex.useSmartRest : true
         }))
       };
+      
+      console.log('[Workout Init] Routine exercises loaded:', routineWithDefaults.exercises.map((ex: any) => ({
+        name: ex.name,
+        restBetweenSets: ex.restBetweenSets,
+        useSmartRest: ex.useSmartRest
+      })));
       
       setRoutine(routineWithDefaults);
       

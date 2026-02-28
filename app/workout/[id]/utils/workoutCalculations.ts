@@ -4,7 +4,7 @@ import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/r
 
 /**
  * Calcula el tiempo de descanso para la siguiente serie
- * Prioridad: perSetOverride > exerciseOverride > routineConfig > exerciseConfig > smart > default
+ * Prioridad: perSetOverride > exerciseOverride > exerciseConfig > routineConfig > smart > default
  */
 export function calculateNextRestTime(params: {
   currentExercise: Exercise;
@@ -39,16 +39,26 @@ export function calculateNextRestTime(params: {
     return restOverrides[currentExercise.id];
   }
   
-  // 3. Configurado en la rutina (tiene prioridad sobre smart rest)
-  if (routine.restBetweenSets) {
-    console.log('[calculateNextRestTime] Using routine.restBetweenSets:', routine.restBetweenSets);
-    return routine.restBetweenSets;
-  }
-  
-  // 4. Configurado en el ejercicio (manual)
+  // 3. Configurado en el ejercicio (manual o descanso inteligente aplicado)
+  // Tiene prioridad sobre el tiempo global de la rutina
   if (currentExercise.restBetweenSets) {
     console.log('[calculateNextRestTime] Using exercise.restBetweenSets:', currentExercise.restBetweenSets);
     return currentExercise.restBetweenSets;
+  }
+  
+  console.log('[calculateNextRestTime] exercise.restBetweenSets check failed:', {
+    value: currentExercise.restBetweenSets,
+    type: typeof currentExercise.restBetweenSets,
+    isTruthy: !!currentExercise.restBetweenSets,
+    isUndefined: currentExercise.restBetweenSets === undefined,
+    isNull: currentExercise.restBetweenSets === null,
+    is0: currentExercise.restBetweenSets === 0
+  });
+  
+  // 4. Configurado en la rutina (tiempo global)
+  if (routine.restBetweenSets) {
+    console.log('[calculateNextRestTime] Using routine.restBetweenSets:', routine.restBetweenSets);
+    return routine.restBetweenSets;
   }
   
   // 5. Descanso inteligente (solo si está habilitado y no hay configuración manual)

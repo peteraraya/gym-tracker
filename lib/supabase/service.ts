@@ -87,7 +87,9 @@ export async function getRoutines(): Promise<Routine[]> {
           name: ex.name,
           sets,
           equipment: ex.equipment,
-          notes: ex.notes
+          notes: ex.notes,
+          restBetweenSets: ex.rest_between_sets, // ✅ Cargar tiempo de descanso del ejercicio
+          useSmartRest: ex.use_smart_rest // ✅ Cargar flag de descanso inteligente
         };
       })
   })) || [];
@@ -125,7 +127,9 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
     sets_data: ex.sets,
     equipment: ex.equipment,
     notes: ex.notes,
-    order_index: index
+    order_index: index,
+    rest_between_sets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
+    use_smart_rest: ex.useSmartRest // ✅ Preservar flag de descanso inteligente
   }));
 
   const { error: exercisesError } = await supabase
@@ -187,7 +191,9 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
     sets_data: ex.sets,
     equipment: ex.equipment,
     notes: ex.notes,
-    order_index: index
+    order_index: index,
+    rest_between_sets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
+    use_smart_rest: ex.useSmartRest // ✅ Preservar flag de descanso inteligente
   }));
 
   const { error: exercisesError } = await supabase
