@@ -4,7 +4,7 @@ import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/r
 
 /**
  * Calcula el tiempo de descanso para la siguiente serie
- * Prioridad: perSetOverride > exerciseOverride > exerciseConfig > routineConfig > smart > default
+ * Prioridad: perSetOverride > exerciseOverride > routineConfig > exerciseConfig > smart > default
  */
 export function calculateNextRestTime(params: {
   currentExercise: Exercise;
@@ -17,22 +17,27 @@ export function calculateNextRestTime(params: {
   const { currentExercise, routine, restOverrides, perSetOverrides, currentSet, useSmartRest } = params;
   const setIndex = currentSet - 1;
   
-  // 1. Override individual de la serie
-  if (perSetOverrides[currentExercise.id]?.[setIndex]) {
+  // 1. Override individual de la serie (edición manual en workout)
+  if (perSetOverrides?.[currentExercise.id]?.[setIndex]) {
     return perSetOverrides[currentExercise.id][setIndex];
   }
   
-  // 2. Override del ejercicio
-  if (restOverrides[currentExercise.id]) {
+  // 2. Override del ejercicio (edición manual en workout)
+  if (restOverrides?.[currentExercise.id]) {
     return restOverrides[currentExercise.id];
   }
   
-  // 3. Configurado en el ejercicio (manual) - solo si useSmartRest es false
-  if (currentExercise.restBetweenSets && currentExercise.useSmartRest === false) {
+  // 3. Configurado en la rutina (tiene prioridad sobre smart rest)
+  if (routine.restBetweenSets) {
+    return routine.restBetweenSets;
+  }
+  
+  // 4. Configurado en el ejercicio (manual)
+  if (currentExercise.restBetweenSets) {
     return currentExercise.restBetweenSets;
   }
   
-  // 4. Descanso inteligente (si está habilitado en el ejercicio o no está especificado)
+  // 5. Descanso inteligente (solo si está habilitado y no hay configuración manual)
   if (useSmartRest && currentExercise.useSmartRest !== false) {
     const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
     if (exerciseTemplate) {
@@ -45,11 +50,6 @@ export function calculateNextRestTime(params: {
       );
       return restRecommendation.recommended;
     }
-  }
-  
-  // 5. Configurado en la rutina
-  if (routine.restBetweenSets) {
-    return routine.restBetweenSets;
   }
   
   // 6. Default

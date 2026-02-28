@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,7 +8,8 @@ import { WeightSelector } from '@/components/WeightSelector';
 import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
 import SetTypeCycleButton from '@/components/SetTypeCycleButton';
 import { Plus } from '@/components/icons/lucide';
-import type { Exercise, SetType } from '@/types';
+import type { Exercise, SetType, Routine } from '@/types';
+import { calculateNextRestTime } from '../utils/workoutCalculations';
 
 interface SeriesTableProps {
   exercise: Exercise;
@@ -27,6 +28,9 @@ interface SeriesTableProps {
   onEditRestTime?: (setIndex: number, restTime: number) => void;
   onApplySmartRest?: () => void;
   smartRestTime?: number;
+  routine?: Routine;
+  restOverrides?: Record<string, number>;
+  useSmartRest?: boolean;
 }
 
 /**
@@ -55,10 +59,27 @@ export function SeriesTable({
   onEditRestTime,
   onApplySmartRest,
   smartRestTime,
+  routine,
+  restOverrides = {},
+  useSmartRest = true,
 }: SeriesTableProps) {
   const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
   // ✅ State for mobile editing - one state for all sets
   const [mobileEditingField, setMobileEditingField] = useState<{setIndex: number, field: 'reps' | 'weight'} | null>(null);
+
+  // Calculate correct rest time for each set using the same logic as the timer
+  const getRestTimeForSet = (setIndex: number): number => {
+    if (!routine) return exercise.restBetweenSets || 90;
+    
+    return calculateNextRestTime({
+      currentExercise: exercise,
+      routine,
+      restOverrides,
+      perSetOverrides: perSetRestOverrides || {},
+      currentSet: setIndex + 1, // setIndex is 0-based, currentSet is 1-based
+      useSmartRest
+    });
+  };
 
   return (
     <Card className="mb-6">
@@ -177,7 +198,7 @@ export function SeriesTable({
                       <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Descanso</span>
                         <select
-                          value={perSetRestOverrides?.[exerciseId]?.[idx] || exercise.restBetweenSets || 90}
+                          value={getRestTimeForSet(idx)}
                           onChange={(e) => onEditRestTime(idx, parseInt(e.target.value))}
                           className="px-2 py-1.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-medium border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
                         >
@@ -288,7 +309,7 @@ export function SeriesTable({
                     <td className="hidden sm:table-cell py-3 px-2">
                       {onEditRestTime && (
                         <select
-                          value={perSetRestOverrides?.[exerciseId]?.[idx] || exercise.restBetweenSets || 90}
+                          value={getRestTimeForSet(idx)}
                           onChange={(e) => onEditRestTime(idx, parseInt(e.target.value))}
                           className="w-full px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs border border-gray-300 dark:border-gray-600"
                         >

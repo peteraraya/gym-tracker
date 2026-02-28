@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
+import { calculateNextRestTime } from '../utils/workoutCalculations';
 import type { Exercise, Routine } from '@/types';
 import type { WorkoutSession } from '../types/workout.types';
 
@@ -10,6 +11,8 @@ interface UseWorkoutSuggestionsParams {
   currentWeight: number | '';
   sessions: WorkoutSession[];
   restOverrides: Record<string, number>;
+  perSetRestOverrides: Record<string, number[]>;
+  useSmartRest: boolean;
   showTimer: boolean;
   showPreparation: boolean;
   isExecutingSet: boolean;
@@ -31,6 +34,8 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     currentWeight,
     sessions,
     restOverrides,
+    perSetRestOverrides,
+    useSmartRest,
     showTimer,
     showPreparation,
     isExecutingSet,
@@ -53,10 +58,15 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     // No mostrar durante el timer, preparación o ejecución de serie
     if (showTimer || showPreparation || isExecutingSet) return;
 
-    const currentRestTime = restOverrides[currentExercise.id] ?? 
-                           currentExercise.restBetweenSets ?? 
-                           routine.restBetweenSets ?? 
-                           60;
+    // ✅ Usar la misma lógica que handleCompleteSet para calcular el descanso
+    const currentRestTime = calculateNextRestTime({
+      currentExercise,
+      routine,
+      restOverrides,
+      perSetOverrides: perSetRestOverrides,
+      currentSet,
+      useSmartRest
+    });
 
     // Sugerencias generales basadas en historial
     const generalSuggestions = generateWorkoutSuggestions(

@@ -14,6 +14,22 @@ export interface WorkoutSuggestion {
 }
 
 /**
+ * Formatea segundos a formato legible (Xm Ys o Xs)
+ */
+function formatRestTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  
+  if (mins > 0 && secs > 0) {
+    return `${mins}m ${secs}s`;
+  } else if (mins > 0) {
+    return `${mins}m`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
+/**
  * Analiza el historial de sesiones y genera sugerencias inteligentes
  */
 export function generateWorkoutSuggestions(
@@ -124,7 +140,7 @@ function checkRestTime(
     return {
       type: 'rest_warning',
       title: '⚠️ Descanso muy corto',
-      message: `${exerciseName} es un ejercicio compuesto. Se recomienda descansar al menos 90-180 segundos para recuperación óptima.`,
+      message: `${exerciseName} es un ejercicio compuesto. Se recomienda descansar al menos ${formatRestTime(90)}-${formatRestTime(180)} para recuperación óptima.`,
       icon: '⏱️',
       variant: 'warning',
       actionable: true,
@@ -140,7 +156,7 @@ function checkRestTime(
     return {
       type: 'rest_warning',
       title: '⚠️ Descanso insuficiente',
-      message: `Para ejercicios pesados como ${exerciseName}, considera descansar 2-3 minutos entre series para mantener la intensidad.`,
+      message: `Para ejercicios pesados como ${exerciseName}, considera descansar ${formatRestTime(120)}-${formatRestTime(180)} entre series para mantener la intensidad.`,
       icon: '⏱️',
       variant: 'warning',
       actionable: true,
@@ -148,6 +164,35 @@ function checkRestTime(
         currentRest: restTime,
         recommendedMin: 120,
         recommendedMax: 180
+      }
+    };
+  }
+
+  // ✅ Mensaje positivo cuando el descanso es adecuado
+  if (isCompound && restTime >= 90 && restTime <= 180) {
+    return {
+      type: 'consistency',
+      title: '✅ Descanso adecuado',
+      message: `Perfecto! ${formatRestTime(restTime)} es un tiempo de descanso ideal para ${exerciseName}.`,
+      icon: '⏱️',
+      variant: 'success',
+      actionable: false,
+      data: {
+        currentRest: restTime
+      }
+    };
+  }
+
+  if (isHeavy && restTime >= 120 && restTime <= 180) {
+    return {
+      type: 'consistency',
+      title: '✅ Descanso óptimo',
+      message: `Excelente! ${formatRestTime(restTime)} es perfecto para ejercicios pesados como ${exerciseName}.`,
+      icon: '⏱️',
+      variant: 'success',
+      actionable: false,
+      data: {
+        currentRest: restTime
       }
     };
   }

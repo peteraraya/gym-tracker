@@ -364,6 +364,8 @@ export default function WorkoutPage() {
     currentWeight: workoutState.currentWeight,
     sessions: sessions as any,
     restOverrides: workoutState.workoutData.restOverrides,
+    perSetRestOverrides: workoutState.workoutData.perSetRestOverrides,
+    useSmartRest: useSmartRest,
     showTimer,
     showPreparation,
     isExecutingSet,
@@ -943,6 +945,9 @@ export default function WorkoutPage() {
           onEditRestTime={handleEditRestTime}
           onApplySmartRest={handleApplySmartRest}
           smartRestTime={smartRestTime}
+          routine={routine}
+          restOverrides={workoutState.workoutData.restOverrides}
+          useSmartRest={useSmartRest}
         />
 
         {/* Exercise list */}
