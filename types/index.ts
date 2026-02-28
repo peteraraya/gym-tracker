@@ -61,6 +61,11 @@ export interface WorkoutSession {
   notes?: string;
   totalDuration?: number; // Duración total del entrenamiento en segundos
   totalPausedTime?: number; // Tiempo total pausado en el entrenamiento
+  /**
+   * Volumen total levantado en la sesión (kg)
+   * Calculado como Σ(reps × peso) de todos los ejercicios
+   */
+  totalVolume?: number;
 }
 
 export type Session = WorkoutSession;

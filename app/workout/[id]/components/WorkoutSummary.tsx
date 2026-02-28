@@ -118,13 +118,23 @@ export function WorkoutSummary({
             <div className="text-xs text-gray-500 dark:text-gray-400">total</div>
           </div>
 
-          {/* Tiempo */}
-          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Duración</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+          {/* Promedio de reps */}
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Promedio</div>
+            <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+              {stats.averageReps}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">reps/serie</div>
+          </div>
+        </div>
+
+        {/* Duración */}
+        <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Duración total</div>
+            <div className="text-xl font-bold text-green-600 dark:text-green-400">
               {formattedTime}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">total</div>
           </div>
         </div>
 

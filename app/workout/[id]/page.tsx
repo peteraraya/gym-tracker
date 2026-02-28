@@ -36,6 +36,7 @@ import { WorkoutSummary } from './components/WorkoutSummary';
 import { SeriesTable } from './components/SeriesTable';
 import { ExerciseList } from './components/ExerciseList';
 import { SetExecutionModal } from '@/components/SetExecutionModal';
+import { LiveStatsPanel } from './components/LiveStatsPanel';
 import { generateWeightSuggestion, formatWeightSuggestion } from '@/lib/weightSuggestions';
 import { calculateAchievements, getRecentAchievements } from '@/lib/achievements';
 import { predictWeight, validateWeight } from './utils/weightPrediction';
@@ -613,6 +614,16 @@ export default function WorkoutPage() {
       ? proposedDuration
       : Math.floor((Date.now() - workoutStartTime) / 1000);
 
+    // Calcular volumen total antes de guardar
+    let totalVolume = 0;
+    routine.exercises.forEach((ex: any) => {
+      const reps = workoutState.workoutData.actualReps[ex.id] || [];
+      const weights = workoutState.workoutData.actualWeights[ex.id] || [];
+      reps.forEach((rep, idx) => {
+        totalVolume += rep * (weights[idx] || 0);
+      });
+    });
+
     const sessionExercises = routine.exercises.map((ex: any) => ({
       exerciseId: ex.id,
       exerciseName: ex.name,
@@ -631,7 +642,8 @@ export default function WorkoutPage() {
         exercises: sessionExercises,
         notes: workoutState.sessionNotes.trim() || '',
         totalDuration,
-        totalPausedTime
+        totalPausedTime,
+        totalVolume: Math.round(totalVolume)
       });
       
       // Check for new achievements
@@ -1009,6 +1021,16 @@ export default function WorkoutPage() {
           onCancel={handleCancelWorkout}
           onPause={() => {}} // TODO: Implement pause
         />
+
+        {/* Live Stats Panel - STICKY */}
+        <div className="sticky top-0 z-10 mb-6 -mx-4 px-4 py-2 bg-white dark:bg-gray-900">
+          <LiveStatsPanel
+            completedSets={workoutState.workoutData.completedSets}
+            actualReps={workoutState.workoutData.actualReps}
+            actualWeights={workoutState.workoutData.actualWeights}
+            exercises={routine.exercises}
+          />
+        </div>
 
         {/* Action buttons - TOP */}
         {!isExecutingSet && (
