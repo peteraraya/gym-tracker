@@ -356,6 +356,36 @@ export default function WorkoutPage() {
     }
   }, [showTimer, pendingToast, success]);
 
+  // ==================== SMART REST TIME ====================
+  const smartRestTime = useMemo(() => {
+    if (!currentExercise) return undefined;
+    
+    // Check if smart rest is enabled for this exercise (default to true if not specified)
+    const useSmartRestForExercise = currentExercise.useSmartRest !== false;
+    
+    if (!useSmartRestForExercise) return undefined;
+    
+    const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
+    
+    if (!exerciseTemplate) return undefined;
+    
+    // Calculate smart rest based on exercise characteristics (sets, reps)
+    // Use average reps from all sets for a more accurate calculation
+    const avgReps = Math.round(
+      currentExercise.sets.reduce((sum: number, set: any) => sum + set.reps, 0) / currentExercise.sets.length
+    );
+    
+    const restRecommendation = calculateRestBetweenSets(
+      exerciseTemplate,
+      currentExercise.sets.length,
+      avgReps,
+      'intermediate'
+    );
+    
+    // Round to nearest 5-second interval to match selector options
+    return Math.round(restRecommendation.recommended / 5) * 5;
+  }, [currentExercise]);
+
   // ==================== WORKOUT SUGGESTIONS ====================
   useWorkoutSuggestions({
     currentExercise,
@@ -366,6 +396,7 @@ export default function WorkoutPage() {
     restOverrides: workoutState.workoutData.restOverrides,
     perSetRestOverrides: workoutState.workoutData.perSetRestOverrides,
     useSmartRest: useSmartRest,
+    smartRestTime: smartRestTime,
     showTimer,
     showPreparation,
     isExecutingSet,
@@ -642,35 +673,6 @@ export default function WorkoutPage() {
     const exerciseId = currentExercise.id;
     workoutState.updatePerSetRestOverride(exerciseId, setIndex, restTime);
   }, [currentExercise, workoutState]);
-
-  const smartRestTime = useMemo(() => {
-    if (!currentExercise) return undefined;
-    
-    // Check if smart rest is enabled for this exercise (default to true if not specified)
-    const useSmartRestForExercise = currentExercise.useSmartRest !== false;
-    
-    if (!useSmartRestForExercise) return undefined;
-    
-    const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-    
-    if (!exerciseTemplate) return undefined;
-    
-    // Calculate smart rest based on exercise characteristics (sets, reps)
-    // Use average reps from all sets for a more accurate calculation
-    const avgReps = Math.round(
-      currentExercise.sets.reduce((sum: number, set: any) => sum + set.reps, 0) / currentExercise.sets.length
-    );
-    
-    const restRecommendation = calculateRestBetweenSets(
-      exerciseTemplate,
-      currentExercise.sets.length,
-      avgReps,
-      'intermediate'
-    );
-    
-    // Round to nearest 5-second interval to match selector options
-    return Math.round(restRecommendation.recommended / 5) * 5;
-  }, [currentExercise]);
 
   const handleApplySmartRest = useCallback(() => {
     if (!currentExercise || !smartRestTime) return;

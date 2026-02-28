@@ -13,6 +13,7 @@ interface UseWorkoutSuggestionsParams {
   restOverrides: Record<string, number>;
   perSetRestOverrides: Record<string, number[]>;
   useSmartRest: boolean;
+  smartRestTime?: number;
   showTimer: boolean;
   showPreparation: boolean;
   isExecutingSet: boolean;
@@ -36,6 +37,7 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     restOverrides,
     perSetRestOverrides,
     useSmartRest,
+    smartRestTime,
     showTimer,
     showPreparation,
     isExecutingSet,
@@ -73,7 +75,8 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
       sessions as any[],
       currentExercise.name,
       typeof currentWeight === 'number' ? currentWeight : undefined,
-      currentRestTime
+      currentRestTime,
+      smartRestTime
     );
 
     // Sugerencias en vivo para el ejercicio actual

@@ -36,7 +36,8 @@ export function generateWorkoutSuggestions(
   sessions: WorkoutSession[],
   currentExerciseName?: string,
   currentWeight?: number,
-  currentRestTime?: number
+  currentRestTime?: number,
+  smartRestTime?: number
 ): WorkoutSuggestion[] {
   const suggestions: WorkoutSuggestion[] = [];
 
@@ -53,7 +54,7 @@ export function generateWorkoutSuggestions(
 
   // 2. Advertencia de descanso muy corto
   if (currentExerciseName && currentRestTime !== undefined) {
-    const restSuggestion = checkRestTime(currentExerciseName, currentRestTime);
+    const restSuggestion = checkRestTime(currentExerciseName, currentRestTime, smartRestTime);
     if (restSuggestion) suggestions.push(restSuggestion);
   }
 
@@ -122,19 +123,60 @@ function checkWeightProgression(
 
 /**
  * Verifica si el tiempo de descanso es apropiado para el tipo de ejercicio
+ * Ahora usa el mismo criterio que los selectores (80% del recomendado)
  */
 function checkRestTime(
   exerciseName: string,
-  restTime: number
+  restTime: number,
+  smartRestTime?: number
 ): WorkoutSuggestion | null {
   const exercise = EXERCISE_DATABASE.find(e => e.name === exerciseName);
   if (!exercise) return null;
 
-    // Ejercicios compuestos requieren más descanso
-    const exAny = exercise as any;
-    const equipment = exercise.equipment ?? '';
-    const isCompound = exAny.type === 'compound' || ['Barra', 'Barra/Mancuernas', 'Peso corporal', 'Máquina', 'Poleas'].includes(equipment);
-    const isHeavy = exAny.difficulty === 'avanzado';
+  // Si hay smartRestTime, usar el criterio del 80%
+  if (smartRestTime) {
+    const minRecommended = Math.floor(smartRestTime * 0.8);
+    
+    if (restTime < minRecommended) {
+      return {
+        type: 'rest_warning',
+        title: '⚠️ Descanso bajo mínimo',
+        message: `${exerciseName}: Se recomienda al menos ${formatRestTime(minRecommended)} de descanso. Actualmente: ${formatRestTime(restTime)}.`,
+        icon: '⏱️',
+        variant: 'warning',
+        actionable: true,
+        data: {
+          currentRest: restTime,
+          recommendedMin: minRecommended,
+          recommended: smartRestTime
+        }
+      };
+    }
+    
+    // Mensaje positivo cuando está en rango adecuado
+    if (restTime >= minRecommended && restTime <= smartRestTime * 1.2) {
+      return {
+        type: 'consistency',
+        title: '✅ Descanso adecuado',
+        message: `Perfecto! ${formatRestTime(restTime)} es un tiempo de descanso ideal para ${exerciseName}.`,
+        icon: '⏱️',
+        variant: 'success',
+        actionable: false,
+        data: {
+          currentRest: restTime,
+          recommended: smartRestTime
+        }
+      };
+    }
+    
+    return null;
+  }
+
+  // Fallback: lógica anterior si no hay smartRestTime
+  const exAny = exercise as any;
+  const equipment = exercise.equipment ?? '';
+  const isCompound = exAny.type === 'compound' || ['Barra', 'Barra/Mancuernas', 'Peso corporal', 'Máquina', 'Poleas'].includes(equipment);
+  const isHeavy = exAny.difficulty === 'avanzado';
 
   if (isCompound && restTime < 90) {
     return {

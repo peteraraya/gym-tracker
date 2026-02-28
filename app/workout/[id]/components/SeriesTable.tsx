@@ -81,6 +81,19 @@ export function SeriesTable({
     });
   };
 
+  // Get recommended minimum rest time for the exercise
+  const getRecommendedMinRestTime = (): number | null => {
+    if (!smartRestTime) return null;
+    // Minimum is 80% of smart rest recommendation
+    return Math.floor(smartRestTime * 0.8);
+  };
+
+  // Check if a rest time is below recommended minimum
+  const isBelowMinimum = (restTime: number): boolean => {
+    const minRest = getRecommendedMinRestTime();
+    return minRest !== null && restTime < minRest;
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -200,17 +213,41 @@ export function SeriesTable({
                         <select
                           value={getRestTimeForSet(idx)}
                           onChange={(e) => onEditRestTime(idx, parseInt(e.target.value))}
-                          className="px-2 py-1.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-medium border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                          className={`px-2 py-1.5 rounded text-xs font-medium border focus:ring-2 focus:ring-blue-500 ${
+                            isBelowMinimum(getRestTimeForSet(idx))
+                              ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-400 dark:border-orange-600 text-orange-900 dark:text-orange-100'
+                              : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100'
+                          }`}
+                          style={{
+                            // Forzar fondo blanco en las opciones del dropdown
+                            colorScheme: 'light'
+                          }}
                         >
                           {Array.from({ length: 61 }, (_, i) => (i + 1) * 5).map(s => {
                             const mins = Math.floor(s / 60);
                             const secs = s % 60;
                             const label = mins > 0 ? `${mins}m ${secs}s` : `${s}s`;
+                            const isLow = isBelowMinimum(s);
                             return (
-                              <option key={s} value={s}>{label}</option>
+                              <option 
+                                key={s} 
+                                value={s}
+                                className="bg-white text-gray-900"
+                                style={{
+                                  backgroundColor: isLow ? '#fff3cd' : '#ffffff',
+                                  color: '#000000'
+                                }}
+                              >
+                                {isLow ? '⚠️ ' : ''}{label}
+                              </option>
                             );
                           })}
                         </select>
+                        {isBelowMinimum(getRestTimeForSet(idx)) && (
+                          <span className="text-[9px] text-orange-600 dark:text-orange-400 font-medium">
+                            ⚠️ Bajo mínimo recomendado
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -308,20 +345,46 @@ export function SeriesTable({
                     {/* Descanso personalizado - Hidden on mobile */}
                     <td className="hidden sm:table-cell py-3 px-2">
                       {onEditRestTime && (
-                        <select
-                          value={getRestTimeForSet(idx)}
-                          onChange={(e) => onEditRestTime(idx, parseInt(e.target.value))}
-                          className="w-full px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs border border-gray-300 dark:border-gray-600"
-                        >
-                          {Array.from({ length: 61 }, (_, i) => (i + 1) * 5).map(s => {
-                            const mins = Math.floor(s / 60);
-                            const secs = s % 60;
-                            const label = mins > 0 ? `${mins}m ${secs}s` : `${s}s`;
-                            return (
-                              <option key={s} value={s}>{label}</option>
-                            );
-                          })}
-                        </select>
+                        <div className="flex flex-col gap-0.5">
+                          <select
+                            value={getRestTimeForSet(idx)}
+                            onChange={(e) => onEditRestTime(idx, parseInt(e.target.value))}
+                            className={`w-full px-2 py-1 rounded text-xs border ${
+                              isBelowMinimum(getRestTimeForSet(idx))
+                                ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-400 dark:border-orange-600 text-orange-900 dark:text-orange-100'
+                                : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100'
+                            }`}
+                            style={{
+                              // Forzar fondo blanco en las opciones del dropdown
+                              colorScheme: 'light'
+                            }}
+                          >
+                            {Array.from({ length: 61 }, (_, i) => (i + 1) * 5).map(s => {
+                              const mins = Math.floor(s / 60);
+                              const secs = s % 60;
+                              const label = mins > 0 ? `${mins}m ${secs}s` : `${s}s`;
+                              const isLow = isBelowMinimum(s);
+                              return (
+                                <option 
+                                  key={s} 
+                                  value={s}
+                                  className="bg-white text-gray-900"
+                                  style={{
+                                    backgroundColor: isLow ? '#fff3cd' : '#ffffff',
+                                    color: '#000000'
+                                  }}
+                                >
+                                  {isLow ? '⚠️ ' : ''}{label}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          {isBelowMinimum(getRestTimeForSet(idx)) && (
+                            <span className="text-[9px] text-orange-600 dark:text-orange-400 font-medium">
+                              ⚠️ Bajo mínimo
+                            </span>
+                          )}
+                        </div>
                       )}
                     </td>
 
