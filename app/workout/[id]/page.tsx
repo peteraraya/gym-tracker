@@ -117,13 +117,50 @@ export default function WorkoutPage() {
       // Verificar si hay un workout guardado
       const storedWorkout = await storageService.getActiveWorkout();
       
+      console.log('[Workout Init] Stored workout:', storedWorkout);
+      
       if (!mounted) return;
       
       // Si hay un workout guardado y coincide con esta rutina, restaurar el estado
       if (storedWorkout && storedWorkout.routineId === id) {
         const s = storedWorkout as any;
+        console.log('[Workout Init] Restoring workout state:', {
+          currentExerciseIndex: s.currentExerciseIndex,
+          currentSet: s.currentSet,
+          completedSets: s.completedSets,
+          actualReps: s.actualReps,
+          actualWeights: s.actualWeights
+        });
+        
         workoutState.setCurrentExerciseIndex(Number(s.currentExerciseIndex ?? 0));
         workoutState.setCurrentSet(Number(s.currentSet ?? 1));
+        
+        // ✅ CRÍTICO: Restaurar datos de series completadas
+        if (s.completedSets) {
+          Object.keys(s.completedSets).forEach(exerciseId => {
+            workoutState.updateCompletedSets(exerciseId, Number(s.completedSets[exerciseId] ?? 0));
+          });
+        }
+        
+        // ✅ CRÍTICO: Restaurar repeticiones reales
+        if (s.actualReps) {
+          Object.keys(s.actualReps).forEach(exerciseId => {
+            const reps = s.actualReps[exerciseId];
+            if (Array.isArray(reps)) {
+              workoutState.updateActualReps(exerciseId, reps.map((r: any) => Number(r ?? 0)));
+            }
+          });
+        }
+        
+        // ✅ CRÍTICO: Restaurar pesos reales
+        if (s.actualWeights) {
+          Object.keys(s.actualWeights).forEach(exerciseId => {
+            const weights = s.actualWeights[exerciseId];
+            if (Array.isArray(weights)) {
+              workoutState.updateActualWeights(exerciseId, weights.map((w: any) => Number(w ?? 0)));
+            }
+          });
+        }
         
         // Restaurar estado del timer de descanso si estaba descansando
         if (s.isResting && s.restTimerDuration && s.restTimerStartedAt) {
@@ -194,6 +231,48 @@ export default function WorkoutPage() {
   }, [workoutStartTime]);
 
   // ==================== EFFECTS ====================
+  
+  // Sync workout state with context for persistence
+  useEffect(() => {
+    if (!routine || !isInitialized) return;
+    
+    console.log('[Workout Sync] Syncing state to context:', {
+      currentExerciseIndex: workoutState.currentExerciseIndex,
+      currentSet: workoutState.currentSet,
+      completedSets: workoutState.workoutData.completedSets,
+      actualReps: workoutState.workoutData.actualReps,
+      actualWeights: workoutState.workoutData.actualWeights
+    });
+    
+    updateWorkoutProgress(
+      workoutState.currentExerciseIndex,
+      workoutState.currentSet,
+      workoutState.workoutData.completedSets,
+      workoutState.workoutData.actualReps,
+      workoutState.workoutData.actualWeights,
+      showTimer ? {
+        isResting: true,
+        restTimerDuration: timerDuration,
+        restTimerTitle: timerTitle,
+        restTimerNextExercise: nextExerciseName,
+        restTimerStartedAt: Date.now()
+      } : undefined
+    );
+  }, [
+    workoutState.currentExerciseIndex,
+    workoutState.currentSet,
+    workoutState.workoutData.completedSets,
+    workoutState.workoutData.actualReps,
+    workoutState.workoutData.actualWeights,
+    showTimer,
+    timerDuration,
+    timerTitle,
+    nextExerciseName,
+    routine,
+    isInitialized,
+    updateWorkoutProgress
+  ]);
+  
   useEffect(() => {
     if (showTimer) {
       document.body.classList.add('hide-navbar');
