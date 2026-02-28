@@ -406,8 +406,7 @@ export default function WorkoutPage() {
 
   // ==================== HANDLERS ====================
   const handleStartSet = useCallback(() => {
-    setShowSetExecution(true);
-    setIsExecutingSet(true);
+    setShowPreparation(true);
   }, []);
 
   const handleCancelSetExecution = useCallback(() => {
@@ -422,6 +421,7 @@ export default function WorkoutPage() {
 
   const handlePreparationComplete = useCallback(() => {
     setShowPreparation(false);
+    setShowSetExecution(true);
     setIsExecutingSet(true);
   }, []);
 
