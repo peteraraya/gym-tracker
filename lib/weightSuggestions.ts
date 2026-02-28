@@ -106,7 +106,7 @@ export function generateWeightSuggestion(
   }
 
   return {
-    suggested: Math.round(suggested * 2) / 2, // Redondear a 0.5kg
+    suggested: Math.round(suggested / 5) * 5, // Redondear a 5kg
     lastUsed: lastWeight,
     increase,
     confidence,

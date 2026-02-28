@@ -78,21 +78,21 @@ export default function SessionsPage() {
 
   // Opción para ocultar sesiones cuya rutina fue eliminada
   // Cambiado a `false` para mostrar por defecto las sesiones huérfanas.
-  const [hideDeletedRoutines, setHideDeletedRoutines] = React.useState<boolean>(false);
+  const [hideDeletedRoutines, setHideDeletedRoutines] = useState<boolean>(false);
 
   // Keep filteredSessions in sync when sessions change
-  React.useEffect(() => {
+  useEffect(() => {
     setFilteredSessions(sessions);
   }, [sessions]);
 
   // Computar sesiones que se muestran según la opción de ocultar rutinas eliminadas
-  const displayedSessions = React.useMemo(() => {
+  const displayedSessions = useMemo(() => {
     if (!hideDeletedRoutines) return sessions;
     return sessions.filter(s => routines.some(r => r.id === s.routineId));
   }, [sessions, hideDeletedRoutines, routines]);
 
   // Mantener filteredSessions sincronizado con displayedSessions
-  React.useEffect(() => {
+  useEffect(() => {
     setFilteredSessions(displayedSessions);
   }, [displayedSessions]);
 

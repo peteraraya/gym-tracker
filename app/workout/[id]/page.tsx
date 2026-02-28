@@ -27,12 +27,16 @@ import {
 } from './utils/workoutCalculations';
 import { calculateRestBetweenSets } from '@/lib/restCalculator';
 import { useWorkoutState } from './hooks/useWorkoutState';
+import { useWorkoutSuggestions } from './hooks/useWorkoutSuggestions';
 import { WorkoutHeader } from './components/WorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
 import { SetControls } from './components/SetControls';
 import { WorkoutSummary } from './components/WorkoutSummary';
 import { SeriesTable } from './components/SeriesTable';
 import { ExerciseList } from './components/ExerciseList';
+import { SetExecutionModal } from '@/components/SetExecutionModal';
+import { generateWeightSuggestion, formatWeightSuggestion } from '@/lib/weightSuggestions';
+import { calculateAchievements, getRecentAchievements } from '@/lib/achievements';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -60,6 +64,7 @@ export default function WorkoutPage() {
   
   // Execution flow state
   const [showPreparation, setShowPreparation] = useState(false);
+  const [showSetExecution, setShowSetExecution] = useState(false);
   const [isExecutingSet, setIsExecutingSet] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
@@ -70,6 +75,10 @@ export default function WorkoutPage() {
   const [useSmartRest, setUseSmartRest] = useState(true);
   const [suggestions, setSuggestions] = useState<WorkoutSuggestion[]>([]);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<number>>(new Set());
+  const [weightSuggestion, setWeightSuggestion] = useState<any>(null);
+  const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
+  const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
+  const [dismissedWeightSuggestion, setDismissedWeightSuggestion] = useState(false);
   
   // Drag and drop state
   const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
@@ -199,12 +208,76 @@ export default function WorkoutPage() {
 
   useEffect(() => {
     setDismissedSuggestions(new Set());
+    setDismissedWeightSuggestion(false); // Reset cuando cambia ejercicio
   }, [workoutState.currentExerciseIndex]);
+
+  // Generate weight suggestions for current exercise
+  useEffect(() => {
+    console.log('[Weight Suggestion] Checking conditions:', {
+      hasExercise: !!currentExercise,
+      exerciseName: currentExercise?.name,
+      sessionsCount: sessions.length,
+      currentSet: workoutState.currentSet
+    });
+
+    if (!currentExercise || sessions.length === 0) {
+      console.log('[Weight Suggestion] No suggestion - missing exercise or sessions');
+      setWeightSuggestion(null);
+      return;
+    }
+
+    const suggestion = generateWeightSuggestion(
+      currentExercise.name,
+      sessions,
+      currentExercise.sets[workoutState.currentSet - 1]?.reps || 10
+    );
+
+    console.log('[Weight Suggestion] Generated:', suggestion);
+    setWeightSuggestion(suggestion);
+  }, [currentExercise, workoutState.currentSet, sessions]);
+
+  // Show pending toast when timer closes
+  useEffect(() => {
+    if (!showTimer && pendingToast) {
+      // Small delay to ensure timer is fully closed
+      const timer = setTimeout(() => {
+        success(pendingToast.message, pendingToast.duration);
+        setPendingToast(null);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [showTimer, pendingToast, success]);
+
+  // ==================== WORKOUT SUGGESTIONS ====================
+  useWorkoutSuggestions({
+    currentExercise,
+    routine,
+    currentSet: workoutState.currentSet,
+    currentWeight: workoutState.currentWeight,
+    sessions: sessions as any,
+    restOverrides: workoutState.workoutData.restOverrides,
+    showTimer,
+    showPreparation,
+    isExecutingSet,
+    onSuccess: success,
+    onError: error
+  });
 
   // ==================== HANDLERS ====================
   const handleStartSet = useCallback(() => {
-    setShowPreparation(true);
+    setShowSetExecution(true);
+    setIsExecutingSet(true);
   }, []);
+
+  const handleCancelSetExecution = useCallback(() => {
+    setShowSetExecution(false);
+    setIsExecutingSet(false);
+    // Skip to next exercise
+    if (routine && workoutState.currentExerciseIndex < routine.exercises.length - 1) {
+      workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
+      workoutState.setCurrentSet(1);
+    }
+  }, [routine, workoutState]);
 
   const handlePreparationComplete = useCallback(() => {
     setShowPreparation(false);
@@ -215,6 +288,7 @@ export default function WorkoutPage() {
     if (!currentExercise || !routine) return;
     
     setIsExecutingSet(false);
+    setShowSetExecution(false); // Cerrar modal
     
     const exerciseId = currentExercise.id;
     const setIndex = workoutState.currentSet - 1;
@@ -223,6 +297,19 @@ export default function WorkoutPage() {
 
     // Update workout state
     workoutState.completeSet(exerciseId, repsValue, weightValue);
+
+    // Prepare toast message to show after rest
+    if (weightSuggestion && weightSuggestion.suggested > weightValue) {
+      setPendingToast({
+        message: `💪 Próxima vez intenta con ${weightSuggestion.suggested}kg (+${weightSuggestion.increase}kg)`,
+        duration: 4000
+      });
+    } else if (repsValue >= (currentExercise.sets[setIndex]?.reps || 10)) {
+      setPendingToast({
+        message: `✅ ¡Excelente serie! Completaste todas las repeticiones`,
+        duration: 3000
+      });
+    }
 
     const isLastSet = workoutState.currentSet >= currentExercise.sets.length;
     const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
@@ -262,7 +349,7 @@ export default function WorkoutPage() {
       setTimerTitle(`Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
       setNextExerciseName(undefined);
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, weightSuggestion, success]);
 
   const handleTimerComplete = useCallback(() => {
     if (timerCompleteProcessingRef.current) return;
@@ -341,6 +428,27 @@ export default function WorkoutPage() {
         totalPausedTime
       });
       
+      // Check for new achievements
+      const updatedSessions = [...sessions, {
+        routineId: routine.id,
+        date: new Date(),
+        exercises: sessionExercises,
+        notes: workoutState.sessionNotes.trim() || '',
+        totalDuration,
+        totalPausedTime
+      } as any];
+
+      const achievements = calculateAchievements(updatedSessions);
+      const recentAchievements = getRecentAchievements(achievements);
+      
+      // Show achievement notifications for newly unlocked achievements
+      recentAchievements.forEach(achievement => {
+        if (achievement.unlocked && !shownAchievements.has(achievement.id)) {
+          success(`🏆 ¡Logro desbloqueado! ${achievement.name}`, 5000);
+          setShownAchievements(prev => new Set([...prev, achievement.id]));
+        }
+      });
+      
       finishWorkoutContext();
       success('Sesión guardada exitosamente');
       
@@ -352,7 +460,7 @@ export default function WorkoutPage() {
       console.error('Error saving session:', err);
       error('Error al guardar la sesión. Por favor, intenta nuevamente.');
     }
-  }, [routine, workoutState, workoutStartTime, totalPausedTime, addSession, finishWorkoutContext, success, error, router]);
+  }, [routine, workoutState, workoutStartTime, totalPausedTime, addSession, finishWorkoutContext, success, error, router, sessions, shownAchievements]);
 
   const handleCancelWorkout = useCallback(async () => {
     const confirmed = await confirm({
@@ -611,6 +719,7 @@ export default function WorkoutPage() {
           nextExerciseName={nextExerciseName}
           onComplete={handleTimerComplete}
           autoStart={true}
+          showMotivation={true}
         />
       </div>
     );
@@ -674,6 +783,8 @@ export default function WorkoutPage() {
           }}
           onShowInfo={() => setShowExerciseInfo(true)}
           isSetStarted={isExecutingSet}
+          weightSuggestion={!dismissedWeightSuggestion ? weightSuggestion : null}
+          onDismissWeightSuggestion={() => setDismissedWeightSuggestion(true)}
         />
 
         {/* Set controls */}
@@ -791,6 +902,22 @@ export default function WorkoutPage() {
             onClose={() => setShowExerciseInfo(false)}
           />
         )}
+
+        {/* Set execution modal */}
+        <SetExecutionModal
+          isOpen={showSetExecution}
+          exerciseName={currentExercise.name}
+          equipment={currentExercise.equipment}
+          currentSet={workoutState.currentSet}
+          totalSets={currentExercise.sets.length}
+          currentReps={workoutState.currentReps}
+          currentWeight={workoutState.currentWeight}
+          exerciseId={currentExercise.id}
+          onRepsChange={workoutState.setCurrentReps}
+          onWeightChange={workoutState.setCurrentWeight}
+          onComplete={handleCompleteSet}
+          onCancel={handleCancelSetExecution}
+        />
       </div>
     </ProtectedRoute>
   );

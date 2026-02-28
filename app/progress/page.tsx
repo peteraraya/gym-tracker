@@ -10,6 +10,7 @@ import { APP_CONFIG } from '@/config/app.config';
 import { PageLayout } from '@/components/PageLayout';
 import { StatsGrid, StatCard } from '@/components/StatsGrid';
 import { EmptyState } from '@/components/EmptyState';
+import { LoadingState } from '@/components/LoadingState';
 import { TrendingUp } from '@/components/icons/lucide';
 
 const MUSCLE_GROUPS = Object.keys(APP_CONFIG.muscleGroupColors) as MuscleGroup[];
@@ -129,28 +130,13 @@ export default function ProgressPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                Progreso por Grupo Muscular
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Analiza tu volumen de entrenamiento por grupo muscular
-              </p>
-            </div>
-
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">⏳</div>
-              <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Cargando progreso...
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Cargando tus sesiones y rutinas, esto puede tardar unos segundos
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageLayout
+          title="Progreso por Grupo Muscular"
+          description="Analiza tu volumen de entrenamiento por grupo muscular"
+          icon={<TrendingUp className="w-8 h-8 text-blue-500" />}
+        >
+          <LoadingState message="Cargando progreso..." description="Cargando tus sesiones y rutinas" />
+        </PageLayout>
       </ProtectedRoute>
     );
   }
@@ -158,80 +144,49 @@ export default function ProgressPage() {
   if (validSessions.length === 0) {
     return (
       <ProtectedRoute>
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                Progreso por Grupo Muscular
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Analiza tu volumen de entrenamiento por grupo muscular
-              </p>
-            </div>
-
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📊</div>
-              <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                No hay datos de progreso
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Completa algunas sesiones de entrenamiento para ver tu progreso aquí
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageLayout
+          title="Progreso por Grupo Muscular"
+          description="Analiza tu volumen de entrenamiento por grupo muscular"
+          icon={<TrendingUp className="w-8 h-8 text-blue-500" />}
+        >
+          <EmptyState
+            icon="📊"
+            title="No hay datos de progreso"
+            description="Completa algunas sesiones de entrenamiento para ver tu progreso aquí"
+          />
+        </PageLayout>
       </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Progreso por Grupo Muscular
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Analiza tu volumen de entrenamiento por grupo muscular
-            </p>
-          </div>
-
-          {/* Estadísticas generales */}
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Total Sesiones</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-                  {validSessions.length}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Total Series</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold text-green-600 dark:text-green-400">
-                  {totalSets}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Volumen Total (kg)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">
-                  {totalVolume.toLocaleString()}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+      <PageLayout
+        title="Progreso por Grupo Muscular"
+        description="Analiza tu volumen de entrenamiento por grupo muscular"
+        icon={<TrendingUp className="w-8 h-8 text-blue-500" />}
+      >
+        {/* Estadísticas generales */}
+        <StatsGrid columns={3}>
+          <StatCard
+            title="Total Sesiones"
+            value={validSessions.length}
+            icon={<TrendingUp className="w-6 h-6" />}
+            color="blue"
+          />
+          <StatCard
+            title="Total Series"
+            value={totalSets}
+            icon={<TrendingUp className="w-6 h-6" />}
+            color="green"
+          />
+          <StatCard
+            title="Volumen Total (kg)"
+            value={totalVolume.toLocaleString()}
+            icon={<TrendingUp className="w-6 h-6" />}
+            color="purple"
+          />
+        </StatsGrid>
 
           {/* Gráfica de barras por grupo muscular */}
           <Card className="mb-8">
@@ -362,8 +317,7 @@ export default function ProgressPage() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

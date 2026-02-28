@@ -4,8 +4,10 @@ import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { WeightSelector } from '@/components/WeightSelector';
+import { WeightSuggestionBanner } from '@/components/WeightSuggestionBanner';
 import { Input } from '@/components/ui/Input';
 import type { Exercise } from '@/types';
+import type { WeightSuggestion } from '@/lib/weightSuggestions';
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -20,6 +22,8 @@ interface ExerciseCardProps {
   onSkipExercise: () => void;
   onShowInfo?: () => void;
   isSetStarted?: boolean;
+  weightSuggestion?: WeightSuggestion | null;
+  onDismissWeightSuggestion?: () => void;
 }
 
 /**
@@ -44,6 +48,8 @@ export function ExerciseCard({
   onSkipExercise,
   onShowInfo,
   isSetStarted = false,
+  weightSuggestion,
+  onDismissWeightSuggestion,
 }: ExerciseCardProps) {
   const totalSets = exercise.sets.length;
   const isLastSet = currentSet === totalSets;
@@ -97,6 +103,22 @@ export function ExerciseCard({
 
       {/* Contenido principal */}
       <CardContent className="space-y-4">
+        {/* Weight suggestion banner */}
+        {weightSuggestion && (
+          <WeightSuggestionBanner
+            suggestion={weightSuggestion}
+            onAccept={() => onWeightChange(weightSuggestion.suggested)}
+            onDismiss={() => onDismissWeightSuggestion?.()}
+          />
+        )}
+        
+        {/* Debug: Show when no suggestion available */}
+        {!weightSuggestion && (
+          <div className="text-xs text-gray-500 dark:text-gray-400 p-2 bg-gray-50 dark:bg-gray-900 rounded">
+            💡 Completa más entrenamientos para ver sugerencias de peso personalizadas
+          </div>
+        )}
+
         {/* Información adicional */}
         {exercise.equipment && (
           <div className="text-sm text-gray-600 dark:text-gray-400">
