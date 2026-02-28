@@ -131,18 +131,54 @@ WorkoutContext persiste en storage (IndexedDB/Supabase)
     ↓
 Usuario actualiza página (F5)
     ↓
-Estado se restaura desde storage
+Inicialización lee storage
+    ↓
+✅ Restaura completedSets, actualReps, actualWeights
+    ↓
+Estado completo restaurado
 ```
 
-## 📊 Datos Persistidos
+## 📊 Datos Persistidos y Restaurados
 
-El efecto sincroniza:
-- `currentExerciseIndex` - Ejercicio actual
-- `currentSet` - Serie actual
-- `completedSets` - Contador de series completadas por ejercicio
-- `actualReps` - Repeticiones reales de cada serie
-- `actualWeights` - Pesos reales de cada serie
-- Estado del timer de descanso (si está activo)
+El fix completo maneja:
+- `currentExerciseIndex` - Ejercicio actual ✅
+- `currentSet` - Serie actual ✅
+- `completedSets` - Contador de series completadas por ejercicio ✅
+- `actualReps` - Repeticiones reales de cada serie ✅
+- `actualWeights` - Pesos reales de cada serie ✅
+- Estado del timer de descanso (si está activo) ✅
+
+## 🐛 Debug
+
+Agregados logs de consola para debugging:
+
+```typescript
+// Al inicializar
+console.log('[Workout Init] Stored workout:', storedWorkout);
+console.log('[Workout Init] Restoring workout state:', {
+  currentExerciseIndex: s.currentExerciseIndex,
+  currentSet: s.currentSet,
+  completedSets: s.completedSets,
+  actualReps: s.actualReps,
+  actualWeights: s.actualWeights
+});
+
+// Al sincronizar
+console.log('[Workout Sync] Syncing state to context:', {
+  currentExerciseIndex: workoutState.currentExerciseIndex,
+  currentSet: workoutState.currentSet,
+  completedSets: workoutState.workoutData.completedSets,
+  actualReps: workoutState.workoutData.actualReps,
+  actualWeights: workoutState.workoutData.actualWeights
+});
+```
+
+Para verificar que funciona:
+1. Abre DevTools Console
+2. Completa una serie
+3. Verifica que aparece `[Workout Sync]` con los datos
+4. Actualiza la página (F5)
+5. Verifica que aparece `[Workout Init]` con los datos restaurados
 
 ## 🧪 Testing
 

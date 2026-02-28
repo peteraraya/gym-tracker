@@ -232,6 +232,35 @@ export default function WorkoutPage() {
 
   // ==================== EFFECTS ====================
   
+  // Sync currentReps and currentWeight with actual values when currentSet changes
+  useEffect(() => {
+    if (!currentExercise || !isInitialized) return;
+    
+    const exerciseId = currentExercise.id;
+    const setIndex = workoutState.currentSet - 1;
+    
+    // Get actual values if they exist (edited values)
+    const actualReps = workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
+    const actualWeight = workoutState.workoutData.actualWeights[exerciseId]?.[setIndex];
+    
+    // Use actual values if they exist and are not 0, otherwise use routine values
+    const repsToShow = (actualReps !== undefined && actualReps !== 0)
+      ? actualReps
+      : currentExercise.sets[setIndex]?.reps || 0;
+    
+    const weightToShow = (actualWeight !== undefined && actualWeight !== 0)
+      ? actualWeight
+      : currentExercise.sets[setIndex]?.weight || 0;
+    
+    // Only update if different to avoid infinite loops
+    if (workoutState.currentReps !== repsToShow) {
+      workoutState.setCurrentReps(repsToShow);
+    }
+    if (workoutState.currentWeight !== weightToShow) {
+      workoutState.setCurrentWeight(weightToShow);
+    }
+  }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, isInitialized]);
+  
   // Sync workout state with context for persistence
   useEffect(() => {
     if (!routine || !isInitialized) return;
@@ -586,6 +615,7 @@ export default function WorkoutPage() {
       reps,
       ...(workoutState.workoutData.actualReps[exerciseId] || []).slice(setIndex + 1)
     ]);
+    // Note: currentReps will be updated automatically by the sync effect
   }, [currentExercise, workoutState]);
 
   const handleEditWeight = useCallback((setIndex: number, weight: number) => {
@@ -596,6 +626,7 @@ export default function WorkoutPage() {
       weight,
       ...(workoutState.workoutData.actualWeights[exerciseId] || []).slice(setIndex + 1)
     ]);
+    // Note: currentWeight will be updated automatically by the sync effect
   }, [currentExercise, workoutState]);
 
   const handleEditSetType = useCallback((setIndex: number, type: any) => {
@@ -656,9 +687,16 @@ export default function WorkoutPage() {
     const exerciseId = currentExercise.id;
     
     if (isComplete) {
-      // Mark as complete
-      const repsToUse = currentExercise.sets[setIndex].reps;
-      const weightToUse = currentExercise.sets[setIndex].weight || 0;
+      // Mark as complete - use values from actualReps/actualWeights if available, otherwise from routine
+      const existingReps = workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
+      const existingWeight = workoutState.workoutData.actualWeights[exerciseId]?.[setIndex];
+      
+      const repsToUse = existingReps !== undefined && existingReps !== 0 
+        ? existingReps 
+        : currentExercise.sets[setIndex].reps;
+      const weightToUse = existingWeight !== undefined && existingWeight !== 0
+        ? existingWeight
+        : (currentExercise.sets[setIndex].weight || 0);
       
       const newActualReps = [...(workoutState.workoutData.actualReps[exerciseId] || [])];
       newActualReps[setIndex] = repsToUse;
@@ -671,8 +709,16 @@ export default function WorkoutPage() {
       const newCompletedCount = (workoutState.workoutData.completedSets[exerciseId] || 0) + 1;
       workoutState.updateCompletedSets(exerciseId, newCompletedCount);
       
-      // Check if all sets are now complete
-      if (newCompletedCount >= currentExercise.sets.length) {
+      // ✅ Update currentSet to next incomplete set
+      const nextIncompleteSet = currentExercise.sets.findIndex((_: any, idx: number) => {
+        return idx > setIndex && !newActualReps[idx];
+      });
+      
+      if (nextIncompleteSet !== -1) {
+        workoutState.setCurrentSet(nextIncompleteSet + 1);
+        // Note: currentReps/currentWeight will be updated automatically by sync effect
+      } else if (newCompletedCount >= currentExercise.sets.length) {
+        // All sets complete
         const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
         
         if (isLastExercise) {
@@ -708,6 +754,12 @@ export default function WorkoutPage() {
       workoutState.updateActualReps(exerciseId, newActualReps);
       workoutState.updateActualWeights(exerciseId, newActualWeights);
       workoutState.updateCompletedSets(exerciseId, Math.max(0, (workoutState.workoutData.completedSets[exerciseId] || 0) - 1));
+      
+      // ✅ Update currentSet to the uncompleted set if it's before current
+      if (setIndex + 1 < workoutState.currentSet) {
+        workoutState.setCurrentSet(setIndex + 1);
+        // Note: currentReps/currentWeight will be updated automatically by sync effect
+      }
     }
   }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest]);
 
