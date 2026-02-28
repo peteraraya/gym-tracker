@@ -57,6 +57,8 @@ export function SeriesTable({
   smartRestTime,
 }: SeriesTableProps) {
   const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
+  // ✅ State for mobile editing - one state for all sets
+  const [mobileEditingField, setMobileEditingField] = useState<{setIndex: number, field: 'reps' | 'weight'} | null>(null);
 
   return (
     <Card className="mb-6">
@@ -76,9 +78,13 @@ export function SeriesTable({
               const doneReps = actualReps[idx] ?? null;
               const doneWeight = actualWeights[idx] ?? set.weight ?? '';
               const isCompleted = typeof doneReps === 'number' && doneReps > 0;
-              const [editingField, setEditingField] = React.useState<'reps' | 'weight' | null>(null);
               
+              // Skip completed sets in mobile view
               if (isCompleted) return null;
+              
+              // ✅ Use shared state instead of individual useState per item
+              const isEditingReps = mobileEditingField?.setIndex === idx && mobileEditingField?.field === 'reps';
+              const isEditingWeight = mobileEditingField?.setIndex === idx && mobileEditingField?.field === 'weight';
               
               return (
                 <div key={`mobile-controls-${idx}`} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg space-y-3">
@@ -92,19 +98,19 @@ export function SeriesTable({
                       </div>
                       <div className="flex items-center gap-1 min-w-0">
                         {/* Reps - clickable */}
-                        {editingField === 'reps' ? (
+                        {isEditingReps ? (
                           <input
                             type="number"
                             value={doneReps ?? set.reps}
                             onChange={(e) => onEditReps(idx, parseInt(e.target.value) || 0)}
-                            onBlur={() => setEditingField(null)}
-                            onKeyDown={(e) => e.key === 'Enter' && setEditingField(null)}
+                            onBlur={() => setMobileEditingField(null)}
+                            onKeyDown={(e) => e.key === 'Enter' && setMobileEditingField(null)}
                             autoFocus
                             className="w-10 px-1 py-0.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-semibold border border-blue-500 text-center"
                           />
                         ) : (
                           <button
-                            onClick={() => setEditingField('reps')}
+                            onClick={() => setMobileEditingField({setIndex: idx, field: 'reps'})}
                             className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
                           >
                             {doneReps ?? set.reps}
@@ -113,13 +119,13 @@ export function SeriesTable({
                         <span className="text-xs text-gray-600 dark:text-gray-400 flex-shrink-0">reps ×</span>
                         
                         {/* Weight - using WeightSelector */}
-                        {editingField === 'weight' ? (
+                        {isEditingWeight ? (
                           <div className="w-14">
                             <WeightSelector
                               value={doneWeight || set.weight || 0}
                               onChange={(weight) => {
                                 onEditWeight(idx, weight);
-                                setEditingField(null);
+                                setMobileEditingField(null);
                               }}
                               exerciseId={exerciseId}
                               className="text-xs py-0.5"
@@ -127,7 +133,7 @@ export function SeriesTable({
                           </div>
                         ) : (
                           <button
-                            onClick={() => setEditingField('weight')}
+                            onClick={() => setMobileEditingField({setIndex: idx, field: 'weight'})}
                             className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
                           >
                             {doneWeight || set.weight || 0}
