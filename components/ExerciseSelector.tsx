@@ -5,7 +5,7 @@ import { MuscleGroup, MUSCLE_GROUPS, getExercisesByMuscleGroup, ExerciseTemplate
 import { getWarmupsByMuscleGroup, WARMUP_CATEGORY_LABELS, WarmupExercise, WarmupCategory, getAllWarmups } from '@/data/warmupExercises';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { BodyMap } from '@/components/BodyMap';
+import { AnatomicalBodyMap } from '@/components/AnatomicalBodyMap';
 import { ExerciseDetails } from '@/components/ExerciseDetails';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
 import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
@@ -329,7 +329,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
               </div>
 
               {viewMode === 'body' ? (
-                <BodyMap
+                <AnatomicalBodyMap
                   selectedMuscles={[]}
                   onMuscleClick={handleMuscleSelect}
                 />
