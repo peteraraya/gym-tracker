@@ -1074,17 +1074,29 @@ export default function WorkoutPage() {
           </div>
         </div>
 
-        {/* Action buttons - TOP */}
+        {/* Action buttons - FIXED BOTTOM */}
         {!isExecutingSet && (
-          <div className="mt-6 mb-6">
-            <Button
-              variant="primary"
-              onClick={handleStartSet}
-              className="w-full py-3 text-base font-semibold"
-            >
-              ▶️ Iniciar Serie
-            </Button>
-          </div>
+          <>
+            {/* Fondo degradado detrás del botón */}
+            <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
+            
+            {/* Botón flotante */}
+            <div className="fixed bottom-0 left-0 right-0 z-30 px-0">
+              <Button
+                variant="primary"
+                onClick={handleStartSet}
+                className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
+              >
+                <span className="text-2xl">▶️</span>
+                <div className="flex flex-col items-start">
+                  <span>Iniciar Serie {workoutState.currentSet}</span>
+                  <span className="text-xs font-normal opacity-90">
+                    {workoutState.currentReps} reps × {workoutState.currentWeight}kg
+                  </span>
+                </div>
+              </Button>
+            </div>
+          </>
         )}
 
         {/* Exercise card */}
