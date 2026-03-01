@@ -141,9 +141,18 @@ Error: "Rutina no encontrada"
 
 ## Próximos Pasos
 
-1. ✅ **Ejecutar migración SQL en Supabase** (CRÍTICO)
-2. ✅ Verificar que las columnas se crearon
-3. ✅ Crear nueva rutina de prueba
-4. ✅ Activar descanso inteligente
-5. ✅ Verificar que se guarda correctamente (sin error "Rutina no encontrada")
-6. ✅ Iniciar workout y verificar que usa el tiempo específico
+1. 🔴 **ACCIÓN INMEDIATA: Ejecutar migración SQL en Supabase** (CRÍTICO)
+   - Ver: `docs/ACCION_INMEDIATA_MIGRACION.md` (resumen rápido)
+   - Ver: `docs/MIGRATION_GUIDE_REST_FIELDS.md` (guía completa)
+2. ⏳ Verificar que las columnas se crearon
+3. ⏳ Crear nueva rutina de prueba
+4. ⏳ Activar descanso inteligente
+5. ⏳ Verificar que se guarda correctamente (sin error "Rutina no encontrada")
+6. ⏳ Iniciar workout y verificar que usa el tiempo específico
+
+## Documentos Relacionados
+
+- `docs/ACCION_INMEDIATA_MIGRACION.md` - Pasos rápidos para ejecutar migración (5 min)
+- `docs/MIGRATION_GUIDE_REST_FIELDS.md` - Guía completa paso a paso
+- `docs/STORAGE_ARCHITECTURE_ANALYSIS.md` - Análisis de arquitectura de almacenamiento
+- `docs/FIX_DESCANSO_INTELIGENTE_EDICION_RUTINA.md` - Implementación del código

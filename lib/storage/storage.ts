@@ -94,325 +94,305 @@ export function getStorageStatus(): { mode: string; hasError: boolean; lastError
 }
 
 // ==================== ROUTINES ====================
+// CRITICAL_SUPABASE_ONLY: Rutinas son datos críticos, solo Supabase (sin fallback)
 
 export async function getRoutines(): Promise<Routine[]> {
-    if (isDatabaseEnabled()) {
-        // Si estamos en modo localStorage por error previo, verificar si reintentar
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getRoutines();
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las rutinas solo están disponibles con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
-            if (supabaseService.getRoutines) {
-                const result = await supabaseService.getRoutines();
-                handleStorageSuccess();
-                return result;
-            }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getRoutines();
-        } catch (err) {
-            handleStorageError(err, 'getRoutines');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getRoutines();
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        
+        if (!supabaseService.getRoutines) {
+            throw new Error('Servicio de rutinas no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.getRoutines();
+        
+        const result = await supabaseService.getRoutines();
+        handleStorageSuccess();
+        return result;
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al cargar rutinas desde Supabase:', err);
+        throw new Error('No se pudieron cargar las rutinas. Verifica tu conexión a internet e intenta de nuevo.');
     }
 }
 
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.createRoutine(data);
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las rutinas solo se pueden crear con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
-            if (supabaseService.createRoutine) {
-                const result = await supabaseService.createRoutine(data);
-                handleStorageSuccess();
-                return result;
-            }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.createRoutine(data);
-        } catch (err) {
-            handleStorageError(err, 'createRoutine');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.createRoutine(data);
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        
+        if (!supabaseService.createRoutine) {
+            throw new Error('Servicio de creación de rutinas no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.createRoutine(data);
+        
+        const result = await supabaseService.createRoutine(data);
+        handleStorageSuccess();
+        return result;
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al crear rutina en Supabase:', err);
+        
+        // Guardar borrador en localStorage para no perder el trabajo
+        try {
+            const draftKey = `routine-draft-${Date.now()}`;
+            localStorage.setItem(draftKey, JSON.stringify({ ...data, savedAt: Date.now() }));
+            console.log(`[DRAFT] Borrador guardado en localStorage: ${draftKey}`);
+        } catch (draftErr) {
+            console.warn('[DRAFT] No se pudo guardar borrador:', draftErr);
+        }
+        
+        throw new Error('No se pudo crear la rutina. Verifica tu conexión a internet. Se guardó un borrador local.');
     }
 }
 
 export async function updateRoutine(id: string, data: CreateRoutineData): Promise<Routine> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.updateRoutine(id, data);
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las rutinas solo se pueden actualizar con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
-            if (supabaseService.updateRoutine) {
-                const result = await supabaseService.updateRoutine(id, data);
-                handleStorageSuccess();
-                return result;
-            }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.updateRoutine(id, data);
-        } catch (err) {
-            handleStorageError(err, 'updateRoutine');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.updateRoutine(id, data);
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        
+        if (!supabaseService.updateRoutine) {
+            throw new Error('Servicio de actualización de rutinas no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.updateRoutine(id, data);
+        
+        const result = await supabaseService.updateRoutine(id, data);
+        handleStorageSuccess();
+        return result;
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al actualizar rutina en Supabase:', err);
+        
+        // Guardar borrador en localStorage para no perder el trabajo
+        try {
+            const draftKey = `routine-draft-${id}`;
+            localStorage.setItem(draftKey, JSON.stringify({ ...data, id, savedAt: Date.now() }));
+            console.log(`[DRAFT] Borrador de edición guardado en localStorage: ${draftKey}`);
+        } catch (draftErr) {
+            console.warn('[DRAFT] No se pudo guardar borrador:', draftErr);
+        }
+        
+        throw new Error('No se pudo actualizar la rutina. Verifica tu conexión a internet. Se guardó un borrador local.');
     }
 }
 
 export async function deleteRoutine(id: string): Promise<void> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            // Also remove local sessions associated with this routine to avoid orphans
-            if (localStorageService.deleteSessionsByRoutine) {
-                await localStorageService.deleteSessionsByRoutine(id);
-            }
-            return localStorageService.deleteRoutine(id);
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las rutinas solo se pueden eliminar con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseService = await import('@/lib/supabase/service');
-            // Attempt to delete sessions associated with the routine first
-            if (supabaseService.deleteSessionsByRoutine) {
-                await supabaseService.deleteSessionsByRoutine(id);
-            }
-            await supabaseService.deleteRoutine(id);
-            handleStorageSuccess();
-        } catch (err) {
-            handleStorageError(err, 'deleteRoutine');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            // Ensure local sessions are cleaned up as fallback
-            if (localStorageService.deleteSessionsByRoutine) {
-                await localStorageService.deleteSessionsByRoutine(id);
-            }
-            return localStorageService.deleteRoutine(id);
+    try {
+        const supabaseService = await import('@/lib/supabase/service');
+        
+        // Eliminar sesiones asociadas primero
+        if (supabaseService.deleteSessionsByRoutine) {
+            await supabaseService.deleteSessionsByRoutine(id);
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        // Also remove local sessions associated with this routine to avoid orphans
-        if (localStorageService.deleteSessionsByRoutine) {
-            await localStorageService.deleteSessionsByRoutine(id);
-        }
-        return localStorageService.deleteRoutine(id);
+        
+        // Eliminar rutina
+        await supabaseService.deleteRoutine(id);
+        handleStorageSuccess();
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al eliminar rutina en Supabase:', err);
+        throw new Error('No se pudo eliminar la rutina. Verifica tu conexión a internet e intenta de nuevo.');
     }
 }
 
 // ==================== SESSIONS ====================
+// CRITICAL_SUPABASE_ONLY: Sesiones son datos críticos, solo Supabase (sin fallback)
 
 export async function getSessions(): Promise<WorkoutSession[]> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getSessions();
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las sesiones solo están disponibles con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
-            const result = await (supabaseService.getSessions ? supabaseService.getSessions() : Promise.resolve([] as WorkoutSession[]));
-            handleStorageSuccess();
-            return result;
-        } catch (err) {
-            handleStorageError(err, 'getSessions');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getSessions();
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        
+        if (!supabaseService.getSessions) {
+            throw new Error('Servicio de sesiones no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.getSessions();
+        
+        const result = await supabaseService.getSessions();
+        handleStorageSuccess();
+        return result;
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al cargar sesiones desde Supabase:', err);
+        throw new Error('No se pudieron cargar las sesiones de entrenamiento. Verifica tu conexión a internet.');
     }
 }
 
 export async function saveSession(session: WorkoutSession): Promise<void> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveSession(session);
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las sesiones solo se pueden guardar con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { saveSession?: (s: WorkoutSession) => Promise<void> };
-            if (supabaseService.saveSession) await supabaseService.saveSession(session);
-            handleStorageSuccess();
-            // Persist a lightweight debug marker so developers can inspect post-save
-            try {
-                if (typeof window !== 'undefined' && window.localStorage) {
-                    const marker = {
-                        savedAt: Date.now(),
-                        id: session.id || null,
-                        routineId: session.routineId || null,
-                    };
-                    localStorage.setItem('gym_tracker_last_saved_session', JSON.stringify(marker));
-                }
-            } catch (e) {
-                // ignore storage debug failures
-            }
-        } catch (err) {
-            handleStorageError(err, 'saveSession');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            const result = await localStorageService.saveSession(session);
-            // also write debug marker when falling back to localStorage
-            try {
-                if (typeof window !== 'undefined' && window.localStorage) {
-                    const marker = {
-                        savedAt: Date.now(),
-                        id: session.id || null,
-                        routineId: session.routineId || null,
-                        fallback: true
-                    };
-                    localStorage.setItem('gym_tracker_last_saved_session', JSON.stringify(marker));
-                }
-            } catch (e) {
-                // ignore
-            }
-            return result;
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { saveSession?: (s: WorkoutSession) => Promise<void> };
+        
+        if (!supabaseService.saveSession) {
+            throw new Error('Servicio de guardado de sesiones no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        const result = await localStorageService.saveSession(session);
+        
+        await supabaseService.saveSession(session);
+        handleStorageSuccess();
+        
+        // Guardar marker de debug
         try {
             if (typeof window !== 'undefined' && window.localStorage) {
                 const marker = {
                     savedAt: Date.now(),
                     id: session.id || null,
                     routineId: session.routineId || null,
-                    fallback: 'local'
                 };
                 localStorage.setItem('gym_tracker_last_saved_session', JSON.stringify(marker));
             }
         } catch (e) {
-            // ignore
+            // ignore storage debug failures
         }
-        return result;
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al guardar sesión en Supabase:', err);
+        
+        // Guardar borrador de sesión en localStorage para no perder datos
+        try {
+            const draftKey = `session-draft-${session.id || Date.now()}`;
+            localStorage.setItem(draftKey, JSON.stringify({ ...session, savedAt: Date.now() }));
+            console.log(`[DRAFT] Borrador de sesión guardado en localStorage: ${draftKey}`);
+        } catch (draftErr) {
+            console.warn('[DRAFT] No se pudo guardar borrador de sesión:', draftErr);
+        }
+        
+        throw new Error('No se pudo guardar la sesión de entrenamiento. Verifica tu conexión. Se guardó un borrador local.');
     }
 }
 
 // ==================== PROFILE ====================
+// CRITICAL_SUPABASE_ONLY: Perfil es dato crítico, solo Supabase (sin fallback)
 
 export async function getProfile(): Promise<UserProfile> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getProfile();
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. El perfil solo está disponible con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { getProfile?: () => Promise<UserProfile> };
-            const result = supabaseService.getProfile ? await supabaseService.getProfile() : (null as unknown as UserProfile);
-            handleStorageSuccess();
-            return result;
-        } catch (err) {
-            handleStorageError(err, 'getProfile');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getProfile();
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { getProfile?: () => Promise<UserProfile> };
+        
+        if (!supabaseService.getProfile) {
+            throw new Error('Servicio de perfil no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.getProfile();
+        
+        const result = await supabaseService.getProfile();
+        handleStorageSuccess();
+        return result;
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al cargar perfil desde Supabase:', err);
+        throw new Error('No se pudo cargar tu perfil. Verifica tu conexión a internet.');
     }
 }
 
 export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.updateProfile(data);
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. El perfil solo se puede actualizar con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { updateProfile?: (d: Partial<UserProfile>) => Promise<void> };
-            if (supabaseService.updateProfile) await supabaseService.updateProfile(data);
-            handleStorageSuccess();
-        } catch (err) {
-            handleStorageError(err, 'updateProfile');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.updateProfile(data);
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { updateProfile?: (d: Partial<UserProfile>) => Promise<void> };
+        
+        if (!supabaseService.updateProfile) {
+            throw new Error('Servicio de actualización de perfil no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.updateProfile(data);
+        
+        await supabaseService.updateProfile(data);
+        handleStorageSuccess();
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al actualizar perfil en Supabase:', err);
+        
+        // Guardar borrador de cambios de perfil
+        try {
+            const draftKey = `profile-draft-${Date.now()}`;
+            localStorage.setItem(draftKey, JSON.stringify({ ...data, savedAt: Date.now() }));
+            console.log(`[DRAFT] Borrador de perfil guardado en localStorage: ${draftKey}`);
+        } catch (draftErr) {
+            console.warn('[DRAFT] No se pudo guardar borrador de perfil:', draftErr);
+        }
+        
+        throw new Error('No se pudo actualizar tu perfil. Verifica tu conexión. Se guardó un borrador local.');
     }
 }
 
 // ==================== WEEKLY PLAN ====================
+// CRITICAL_SUPABASE_ONLY: Plan semanal es dato crítico, solo Supabase (sin fallback)
 
 export async function getWeeklyPlan(): Promise<WeeklyPlan> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getWeeklyPlan();
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. El plan semanal solo está disponible con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
-            if (supabaseService.getWeeklyPlan) {
-                const res = await supabaseService.getWeeklyPlan();
-                handleStorageSuccess();
-                return res;
-            }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getWeeklyPlan();
-        } catch (err) {
-            handleStorageError(err, 'getWeeklyPlan');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getWeeklyPlan();
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        
+        if (!supabaseService.getWeeklyPlan) {
+            throw new Error('Servicio de plan semanal no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.getWeeklyPlan();
+        
+        const res = await supabaseService.getWeeklyPlan();
+        handleStorageSuccess();
+        return res;
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al cargar plan semanal desde Supabase:', err);
+        throw new Error('No se pudo cargar tu plan semanal. Verifica tu conexión a internet.');
     }
 }
 
 export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
-    if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveWeeklyPlan(plan);
-        }
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. El plan semanal solo se puede guardar con Supabase habilitado.');
+    }
 
-        try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
-            if (supabaseService.saveWeeklyPlan) {
-                await supabaseService.saveWeeklyPlan(plan);
-                handleStorageSuccess();
-                return;
-            }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveWeeklyPlan(plan);
-        } catch (err) {
-            handleStorageError(err, 'saveWeeklyPlan');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.saveWeeklyPlan(plan);
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        
+        if (!supabaseService.saveWeeklyPlan) {
+            throw new Error('Servicio de guardado de plan semanal no disponible');
         }
-    } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.saveWeeklyPlan(plan);
+        
+        await supabaseService.saveWeeklyPlan(plan);
+        handleStorageSuccess();
+    } catch (err) {
+        // NO FALLBACK - Lanzar error al usuario
+        console.error('[CRITICAL] Error al guardar plan semanal en Supabase:', err);
+        
+        // Guardar borrador del plan
+        try {
+            const draftKey = `weekly-plan-draft-${Date.now()}`;
+            localStorage.setItem(draftKey, JSON.stringify({ ...plan, savedAt: Date.now() }));
+            console.log(`[DRAFT] Borrador de plan semanal guardado en localStorage: ${draftKey}`);
+        } catch (draftErr) {
+            console.warn('[DRAFT] No se pudo guardar borrador de plan semanal:', draftErr);
+        }
+        
+        throw new Error('No se pudo guardar tu plan semanal. Verifica tu conexión. Se guardó un borrador local.');
     }
 }
 
@@ -508,62 +488,65 @@ export async function rebuildRoutinesFromSessions(): Promise<Routine[]> {
 }
 
 // ==================== ACTIVE WORKOUT ====================
+// DUAL_WRITE: ActiveWorkout es semi-crítico, guardar en ambos lugares simultáneamente
 
 export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
+    // Intentar Supabase primero si está habilitado
     if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getActiveWorkout();
-        }
-
         try {
             const supabaseModule = await import('@/lib/supabase/service');
             const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            
             if (supabaseService.getActiveWorkout) {
-                const res = await supabaseService.getActiveWorkout();
+                const supabaseResult = await supabaseService.getActiveWorkout();
                 
-                // Si Supabase retorna null, intentar con localStorage como fallback
-                if (res === null) {
-                    const localStorageService = await import('@/lib/storage/localStorage');
-                    const localRes = await localStorageService.getActiveWorkout();
-                    return localRes;
+                // Si Supabase tiene datos, usarlos
+                if (supabaseResult !== null) {
+                    handleStorageSuccess();
+                    console.log('[DUAL_READ] Active workout loaded from Supabase');
+                    return supabaseResult;
                 }
-                
-                handleStorageSuccess();
-                return res;
             }
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getActiveWorkout();
         } catch (err) {
-            handleStorageError(err, 'getActiveWorkout');
-            const localStorageService = await import('@/lib/storage/localStorage');
-            return localStorageService.getActiveWorkout();
+            console.warn('[DUAL_READ] Supabase failed for active workout, trying localStorage:', err);
+            // No lanzar error, intentar localStorage como backup
         }
-    } else {
+    }
+    
+    // Fallback a localStorage (siempre disponible)
+    try {
         const localStorageService = await import('@/lib/storage/localStorage');
-        return localStorageService.getActiveWorkout();
+        const localResult = await localStorageService.getActiveWorkout();
+        if (localResult) {
+            console.log('[DUAL_READ] Active workout loaded from localStorage');
+        }
+        return localResult;
+    } catch (err) {
+        console.error('[DUAL_READ] Both Supabase and localStorage failed for active workout:', err);
+        return null;
     }
 }
 
 export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
-    // SIEMPRE guardar en localStorage como backup
+    // DUAL WRITE: Guardar en localStorage primero (crítico para el workout)
     const localStorageService = await import('@/lib/storage/localStorage');
     await localStorageService.saveActiveWorkout(payload);
+    console.log('[DUAL_WRITE] Active workout saved to localStorage');
     
+    // Intentar guardar en Supabase también (best effort)
     if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            return;
-        }
-
         try {
             const supabaseModule = await import('@/lib/supabase/service');
             const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            
             if (supabaseService.saveActiveWorkout) {
                 await supabaseService.saveActiveWorkout(payload);
                 handleStorageSuccess();
+                console.log('[DUAL_WRITE] Active workout saved to Supabase');
             }
         } catch (err) {
-            handleStorageError(err, 'saveActiveWorkout');
+            // No lanzar error - localStorage ya tiene los datos
+            console.warn('[DUAL_WRITE] Supabase save failed, but localStorage succeeded:', err);
         }
     }
 }
@@ -627,25 +610,27 @@ export async function saveLastWeights(weights: Record<string, number[]>): Promis
 }
 
 export async function clearActiveWorkout(): Promise<void> {
-    // SIEMPRE limpiar localStorage primero para evitar que el workout reaparezca
+    // DUAL CLEAR: Limpiar de ambos lugares
+    
+    // Limpiar localStorage primero (siempre disponible)
     const localStorageService = await import('@/lib/storage/localStorage');
     await localStorageService.clearActiveWorkout();
+    console.log('[DUAL_CLEAR] Active workout cleared from localStorage');
 
+    // Intentar limpiar de Supabase también
     if (isDatabaseEnabled()) {
-        if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            return; // Ya limpiamos localStorage arriba
-        }
-
         try {
             const supabaseModule = await import('@/lib/supabase/service');
             const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { clearActiveWorkout?: () => Promise<void> };
+            
             if (supabaseService.clearActiveWorkout) {
                 await supabaseService.clearActiveWorkout();
                 handleStorageSuccess();
+                console.log('[DUAL_CLEAR] Active workout cleared from Supabase');
             }
         } catch (err) {
-            handleStorageError(err, 'clearActiveWorkout');
             // No importa si Supabase falla, ya limpiamos localStorage
+            console.warn('[DUAL_CLEAR] Supabase clear failed, but localStorage succeeded:', err);
         }
     }
 }

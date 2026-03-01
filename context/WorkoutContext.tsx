@@ -246,22 +246,38 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const finishWorkout = useCallback(async () => {
+    // Marcar que el workout fue finalizado intencionalmente
+    // Esto evita que onResume lo restaure
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('workout_finished', Date.now().toString());
+    }
+    
     // Actualizar la ref inmediatamente para evitar restauración
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
+    
     try {
       await storageService.clearActiveWorkout();
+      console.log('[WorkoutContext] Active workout finished and cleared');
     } catch (e) {
       console.error('[WorkoutContext] Error limpiando active workout:', e);
     }
   }, []);
 
   const cancelWorkout = useCallback(async () => {
+    // Marcar que el workout fue cancelado intencionalmente
+    // Esto evita que onResume lo restaure
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('workout_cancelled', Date.now().toString());
+    }
+    
     // Actualizar la ref inmediatamente para evitar restauración
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
+    
     try {
       await storageService.clearActiveWorkout();
+      console.log('[WorkoutContext] Active workout cancelled and cleared');
     } catch (e) {
       console.error('[WorkoutContext] Error limpiando active workout:', e);
     }
@@ -297,6 +313,32 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       // Esperar un poco para asegurar que clearActiveWorkout se completó
       setTimeout(async () => {
         try {
+          // Verificar si el workout fue cancelado o finalizado recientemente (últimos 5 segundos)
+          if (typeof window !== 'undefined') {
+            const cancelledAt = sessionStorage.getItem('workout_cancelled');
+            const finishedAt = sessionStorage.getItem('workout_finished');
+            
+            if (cancelledAt) {
+              const timeSinceCancelled = Date.now() - parseInt(cancelledAt);
+              if (timeSinceCancelled < 5000) {
+                console.log('[WorkoutContext] Workout was recently cancelled, skipping restore');
+                sessionStorage.removeItem('workout_cancelled');
+                return;
+              }
+              sessionStorage.removeItem('workout_cancelled');
+            }
+            
+            if (finishedAt) {
+              const timeSinceFinished = Date.now() - parseInt(finishedAt);
+              if (timeSinceFinished < 5000) {
+                console.log('[WorkoutContext] Workout was recently finished, skipping restore');
+                sessionStorage.removeItem('workout_finished');
+                return;
+              }
+              sessionStorage.removeItem('workout_finished');
+            }
+          }
+          
           const stored = await storageService.getActiveWorkout();
           // Solo restaurar si hay datos en storage Y no hay workout en memoria
           if (stored && !activeWorkoutRef.current) {

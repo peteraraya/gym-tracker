@@ -86,6 +86,13 @@ export interface RoutineExercise {
     sets: SetData[];
     equipment?: string;
     notes?: string;
+    // Campos adicionales soportados por la aplicación
+    restBetweenSets?: number;
+    useSmartRest?: boolean;
+    technique?: string | string[];
+    recommendedSets?: string | number;
+    recommendedReps?: string | number;
+    restTime?: string | number;
 }
 
 export interface CreateRoutineData {
@@ -129,10 +136,10 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
             notes: ex.notes,
             restBetweenSets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
             useSmartRest: ex.useSmartRest, // ✅ Preservar flag de descanso inteligente
-            technique: ex.technique,
-            recommendedSets: ex.recommendedSets,
-            recommendedReps: ex.recommendedReps,
-            restTime: ex.restTime,
+            technique: Array.isArray(ex.technique) ? ex.technique : ex.technique ? [ex.technique] : undefined,
+            recommendedSets: ex.recommendedSets !== undefined ? String(ex.recommendedSets) : undefined,
+            recommendedReps: ex.recommendedReps !== undefined ? String(ex.recommendedReps) : undefined,
+            restTime: ex.restTime !== undefined ? String(ex.restTime) : undefined,
         })),
         restBetweenSets: data.restBetweenSets || 60,
         restBetweenExercises: data.restBetweenExercises || 120,
@@ -170,10 +177,10 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
             notes: ex.notes,
             restBetweenSets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
             useSmartRest: ex.useSmartRest, // ✅ Preservar flag de descanso inteligente
-            technique: ex.technique,
-            recommendedSets: ex.recommendedSets,
-            recommendedReps: ex.recommendedReps,
-            restTime: ex.restTime,
+            technique: Array.isArray(ex.technique) ? ex.technique : ex.technique ? [ex.technique] : undefined,
+            recommendedSets: ex.recommendedSets !== undefined ? String(ex.recommendedSets) : undefined,
+            recommendedReps: ex.recommendedReps !== undefined ? String(ex.recommendedReps) : undefined,
+            restTime: ex.restTime !== undefined ? String(ex.restTime) : undefined,
         })),
         restBetweenSets: data.restBetweenSets || 60,
         restBetweenExercises: data.restBetweenExercises || 120,

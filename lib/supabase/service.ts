@@ -29,6 +29,13 @@ export interface RoutineExercise {
   sets: SetData[];
   equipment?: string;
   notes?: string;
+  // Campos opcionales presentes en la UI
+  restBetweenSets?: number;
+  useSmartRest?: boolean;
+  technique?: string[];
+  recommendedSets?: string;
+  recommendedReps?: string;
+  restTime?: string;
 }
 
 export interface CreateRoutineData {

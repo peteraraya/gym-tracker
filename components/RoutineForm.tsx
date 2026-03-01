@@ -459,7 +459,35 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
       onClose();
     } catch (err) {
       console.error('Error saving routine:', err);
-      error(t('saveError'));
+      
+      // Mostrar mensaje de error específico
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      
+      if (errorMessage.includes('conexión') || errorMessage.includes('internet') || errorMessage.includes('Verifica')) {
+        // Error de conexión - Mostrar mensaje con opción de reintentar
+        error(
+          `❌ ${errorMessage}\n\n💾 Se guardó un borrador local. Puedes intentar de nuevo cuando tengas conexión.`,
+          10000 // 10 segundos
+        );
+        
+        // El borrador ya se guardó en storage.ts, solo informar al usuario
+        console.log('[RoutineForm] Borrador guardado automáticamente por el sistema de storage');
+      } else if (errorMessage.includes('Base de datos requerida')) {
+        // Base de datos no habilitada
+        error(
+          '❌ La base de datos no está habilitada. Contacta al administrador del sistema.',
+          8000
+        );
+      } else {
+        // Otro tipo de error
+        error(
+          `❌ ${errorMessage}\n\nIntenta de nuevo o contacta soporte si el problema persiste.`,
+          8000
+        );
+      }
+      
+      // No cerrar el formulario para que el usuario pueda reintentar
+      // onClose(); // Comentado intencionalmente
     } finally {
       setIsSubmitting(false);
     }
