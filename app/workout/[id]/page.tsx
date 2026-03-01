@@ -1,46 +1,39 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
 import { useToast } from '@/context/ToastContext';
 import { useConfirm } from '@/context/ConfirmContext';
 import { Button } from '@/components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
-import { WorkoutGlobalTimer } from '@/components/WorkoutGlobalTimer';
 import { PreparationCountdown } from '@/components/PreparationCountdown';
 import { MinimizedTimer } from '@/components/MinimizedTimer';
-import SetTypeSelector from '@/components/SetTypeSelector';
-import { WeightSelector } from '@/components/WeightSelector';
-import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ExerciseInfoPanel } from '@/components/ExerciseInfoPanel';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import * as storageService from '@/lib/storage/storage';
-import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
-import { 
-  calculateNextRestTime, 
-  calculateExerciseRestTime,
-  updateNestedArray 
-} from './utils/workoutCalculations';
-import { calculateRestBetweenSets } from '@/lib/restCalculator';
 import { useWorkoutState } from './hooks/useWorkoutState';
+import { useWorkoutTimer } from './hooks/useWorkoutTimer';
+import { useWeightPrediction } from './hooks/useWeightPrediction';
+import { useSetExecution } from './hooks/useSetExecution';
+import { useWorkoutCompletion } from './hooks/useWorkoutCompletion';
 import { useWorkoutSuggestions } from './hooks/useWorkoutSuggestions';
-import { WorkoutHeader } from './components/WorkoutHeader';
 import { CompactWorkoutHeader } from './components/CompactWorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
 import { SetControls } from './components/SetControls';
-import { WorkoutSummary } from './components/WorkoutSummary';
 import { SeriesTable } from './components/SeriesTable';
 import { ExerciseList } from './components/ExerciseList';
 import { SetExecutionModal } from '@/components/SetExecutionModal';
-import { LiveStatsPanel } from './components/LiveStatsPanel';
-import { generateWeightSuggestion, formatWeightSuggestion } from '@/lib/weightSuggestions';
-import { calculateAchievements, getRecentAchievements } from '@/lib/achievements';
-import { predictWeight, validateWeight } from './utils/weightPrediction';
+import { 
+  calculateNextRestTime, 
+  calculateExerciseRestTime,
+  calculateSmartRestTime,
+  applySmartRestToAllSets
+} from './services/restCalculationService';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -48,64 +41,117 @@ export default function WorkoutPage() {
   const id = params.id as string;
   
   const { getRoutineById, addSession, sessions, loading: gymLoading } = useGym();
-  const { activeWorkout, startWorkout, updateWorkoutProgress, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
+  const { startWorkout, updateWorkoutProgress, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
   
   // ==================== STATE ====================
-  const [routine, setRoutine] = useState<any>(() => {
-    const loadedRoutine = getRoutineById(id);
-    console.log('[Workout Init] Initial routine load:', loadedRoutine?.exercises?.map((ex: any) => ({
-      name: ex.name,
-      restBetweenSets: ex.restBetweenSets,
-      useSmartRest: ex.useSmartRest
-    })));
-    return loadedRoutine;
-  });
+  const [routine, setRoutine] = useState<any>(() => getRoutineById(id));
   const workoutState = useWorkoutState(routine || null);
-  
-  // Timer and UI state
-  const [showTimer, setShowTimer] = useState(false);
-  const [timerDuration, setTimerDuration] = useState(0);
-  const [timerTitle, setTimerTitle] = useState('');
-  const [nextExerciseName, setNextExerciseName] = useState<string | undefined>(undefined);
-  const [timerMinimized, setTimerMinimized] = useState(false);
-  const [timerStartTime, setTimerStartTime] = useState<number>(0); // ✨ NEW: Track when timer started
-  const [currentTimeLeft, setCurrentTimeLeft] = useState(0); // ✨ NEW: Current time remaining
-  
-  // Completion modal state
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [proposedDuration, setProposedDuration] = useState<number>(0);
-  
-  // Execution flow state
-  const [showPreparation, setShowPreparation] = useState(false);
-  const [showSetExecution, setShowSetExecution] = useState(false);
-  const [isExecutingSet, setIsExecutingSet] = useState(false);
-  const [setStartTime, setSetStartTime] = useState<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
-  
-  // Fase 2: Collapsible SeriesTable state
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
-  
-  // Workout tracking
-  const [workoutStartTime] = useState(Date.now());
-  const [totalPausedTime, setTotalPausedTime] = useState(0);
-  const [useSmartRest, setUseSmartRest] = useState(true);
-  const [suggestions, setSuggestions] = useState<WorkoutSuggestion[]>([]);
-  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<number>>(new Set());
-  const [weightSuggestion, setWeightSuggestion] = useState<any>(null);
-  const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
+  const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
-  const [dismissedWeightSuggestion, setDismissedWeightSuggestion] = useState(false);
+  const [workoutStartTime] = useState(() => Date.now());
+  const [totalPausedTime] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
   
-  // Drag and drop state
-  const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  // ==================== COMPUTED VALUES ====================
+  const currentExercise = useMemo(() => {
+    if (!routine || !routine.exercises || routine.exercises.length === 0) return null;
+    return routine.exercises[workoutState.currentExerciseIndex] || null;
+  }, [routine, workoutState.currentExerciseIndex]);
+
+  const lastSessionForExercise = useMemo(() => {
+    if (!currentExercise || sessions.length === 0) return null;
+    
+    const relevantSessions = sessions
+      .filter(s => s.exercises.some(e => e.exerciseName === currentExercise.name))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    return relevantSessions[0] || null;
+  }, [currentExercise, sessions]);
+
+  const smartRestTime = useMemo(() => {
+    if (!currentExercise) return undefined;
+    const useSmartRestForExercise = currentExercise.useSmartRest !== false;
+    if (!useSmartRestForExercise) return undefined;
+    return calculateSmartRestTime(currentExercise);
+  }, [currentExercise]);
+
+  const lastSetData = useMemo(() => {
+    if (!currentExercise) return null;
+    
+    const exerciseId = currentExercise.id;
+    const currentSetIndex = workoutState.currentSet - 1;
+    
+    if (currentSetIndex === 0 && lastSessionForExercise) {
+      const lastExerciseData = lastSessionForExercise.exercises.find(
+        e => e.exerciseName === currentExercise.name
+      );
+      if (lastExerciseData && lastExerciseData.actualReps[0] && lastExerciseData.actualWeight[0]) {
+        return {
+          reps: lastExerciseData.actualReps[0],
+          weight: lastExerciseData.actualWeight[0]
+        };
+      }
+    }
+    
+    if (currentSetIndex > 0) {
+      const prevReps = workoutState.workoutData.actualReps[exerciseId]?.[currentSetIndex - 1];
+      const prevWeight = workoutState.workoutData.actualWeights[exerciseId]?.[currentSetIndex - 1];
+      
+      if (prevReps && prevWeight) {
+        return { reps: prevReps, weight: prevWeight };
+      }
+    }
+    
+    return null;
+  }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);
+
+  // ==================== CUSTOM HOOKS ====================
+    const handleTimerCompleteRef = useRef(() => {});
+    const timerHandlers = useWorkoutTimer(() => handleTimerCompleteRef.current());
+    
+    const weightPrediction = useWeightPrediction({
+      currentExercise,
+      currentSet: workoutState.currentSet,
+      sessions,
+      actualWeights: workoutState.workoutData.actualWeights,
+      isInitialized
+    });
   
-  // Refs
-  const timerCompleteProcessingRef = React.useRef(false);
-  const handleTimerCompleteRef = React.useRef<(() => void) | null>(null); // ✨ NEW: Ref for handleTimerComplete
+  const setExecution = useSetExecution();
+  
+  const completion = useWorkoutCompletion({
+    routine,
+    workoutStartTime,
+    totalPausedTime,
+    sessions,
+    addSession,
+    finishWorkoutContext,
+    onSuccess: success,
+    onError: error,
+    router
+  });
+  
+  useWorkoutSuggestions({
+    currentExercise,
+    routine,
+    currentSet: workoutState.currentSet,
+    currentWeight: workoutState.currentWeight,
+    sessions: sessions as any,
+    restOverrides: workoutState.workoutData.restOverrides,
+    perSetRestOverrides: workoutState.workoutData.perSetRestOverrides,
+    useSmartRest,
+    smartRestTime,
+    showTimer: timerHandlers.showTimer,
+    showPreparation: setExecution.showPreparation,
+    isExecutingSet: setExecution.isExecutingSet,
+    onSuccess: success,
+    onError: error
+  });
 
   // ==================== INITIALIZATION ====================
   useEffect(() => {
@@ -123,7 +169,6 @@ export default function WorkoutPage() {
       
       if (!mounted) return;
       
-      // Ensure all exercises have useSmartRest field (default to true for new exercises)
       const routineWithDefaults = {
         ...foundRoutine,
         exercises: foundRoutine.exercises.map((ex: any) => ({
@@ -132,43 +177,24 @@ export default function WorkoutPage() {
         }))
       };
       
-      console.log('[Workout Init] Routine exercises loaded:', routineWithDefaults.exercises.map((ex: any) => ({
-        name: ex.name,
-        restBetweenSets: ex.restBetweenSets,
-        useSmartRest: ex.useSmartRest
-      })));
-      
       setRoutine(routineWithDefaults);
       
-      // Verificar si hay un workout guardado
       const storedWorkout = await storageService.getActiveWorkout();
-      
-      console.log('[Workout Init] Stored workout:', storedWorkout);
       
       if (!mounted) return;
       
-      // Si hay un workout guardado y coincide con esta rutina, restaurar el estado
       if (storedWorkout && storedWorkout.routineId === id) {
         const s = storedWorkout as any;
-        console.log('[Workout Init] Restoring workout state:', {
-          currentExerciseIndex: s.currentExerciseIndex,
-          currentSet: s.currentSet,
-          completedSets: s.completedSets,
-          actualReps: s.actualReps,
-          actualWeights: s.actualWeights
-        });
         
         workoutState.setCurrentExerciseIndex(Number(s.currentExerciseIndex ?? 0));
         workoutState.setCurrentSet(Number(s.currentSet ?? 1));
         
-        // ✅ CRÍTICO: Restaurar datos de series completadas
         if (s.completedSets) {
           Object.keys(s.completedSets).forEach(exerciseId => {
             workoutState.updateCompletedSets(exerciseId, Number(s.completedSets[exerciseId] ?? 0));
           });
         }
         
-        // ✅ CRÍTICO: Restaurar repeticiones reales
         if (s.actualReps) {
           Object.keys(s.actualReps).forEach(exerciseId => {
             const reps = s.actualReps[exerciseId];
@@ -178,7 +204,6 @@ export default function WorkoutPage() {
           });
         }
         
-        // ✅ CRÍTICO: Restaurar pesos reales
         if (s.actualWeights) {
           Object.keys(s.actualWeights).forEach(exerciseId => {
             const weights = s.actualWeights[exerciseId];
@@ -188,15 +213,11 @@ export default function WorkoutPage() {
           });
         }
         
-        // Restaurar estado del timer de descanso si estaba descansando
         if (s.isResting && s.restTimerDuration && s.restTimerStartedAt) {
           const elapsed = Math.floor((Date.now() - Number(s.restTimerStartedAt)) / 1000);
           const remaining = Number(s.restTimerDuration) - elapsed;
           if (remaining > 0) {
-            setShowTimer(true);
-            setTimerDuration(remaining);
-            setTimerTitle(String(s.restTimerTitle || 'Descanso'));
-            setNextExerciseName(s.restTimerNextExercise ? String(s.restTimerNextExercise) : undefined);
+            timerHandlers.startTimer(remaining, String(s.restTimerTitle || 'Descanso'), s.restTimerNextExercise ? String(s.restTimerNextExercise) : undefined);
           }
         }
         
@@ -209,10 +230,8 @@ export default function WorkoutPage() {
           }
         }
       } else if (!storedWorkout || storedWorkout.routineId !== id) {
-        // Solo iniciar un nuevo workout si NO hay ninguno guardado o es de otra rutina
         startWorkout(routineWithDefaults);
         
-        // Inicializar valores del primer ejercicio (primera serie)
         if (routineWithDefaults.exercises && routineWithDefaults.exercises.length > 0 && routineWithDefaults.exercises[0]) {
           const firstExercise = routineWithDefaults.exercises[0];
           const firstSet = firstExercise.sets[0];
@@ -233,51 +252,18 @@ export default function WorkoutPage() {
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, gymLoading]);
 
-  // ==================== COMPUTED VALUES ====================
-  const currentExercise = useMemo(() => {
-    if (!routine || !routine.exercises || routine.exercises.length === 0) return null;
-    return routine.exercises[workoutState.currentExerciseIndex] || null;
-  }, [routine, workoutState.currentExerciseIndex]);
-
-  const lastSessionForExercise = useMemo(() => {
-    if (!currentExercise || sessions.length === 0) return null;
-    
-    const relevantSessions = sessions
-      .filter(s => s.exercises.some(e => e.exerciseName === currentExercise.name))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    return relevantSessions[0] || null;
-  }, [currentExercise, sessions]);
-
-  // ✨ Estado para tiempo transcurrido que se actualiza cada segundo
-  const [elapsedTime, setElapsedTime] = useState(0);
-
-  // ✨ Actualizar tiempo transcurrido cada segundo
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - workoutStartTime) / 1000));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [workoutStartTime]);
-
   // ==================== EFFECTS ====================
-  
-  // Sync currentReps and currentWeight with actual values when currentSet changes
   useEffect(() => {
     if (!currentExercise || !isInitialized) return;
     
     const exerciseId = currentExercise.id;
     const setIndex = workoutState.currentSet - 1;
     
-    // Get actual values if they exist (edited values)
     const actualReps = workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
     const actualWeight = workoutState.workoutData.actualWeights[exerciseId]?.[setIndex];
     
-    // Use actual values if they exist and are not 0, otherwise use routine values
     const repsToShow = (actualReps !== undefined && actualReps !== 0)
       ? actualReps
       : currentExercise.sets[setIndex]?.reps || 0;
@@ -286,7 +272,6 @@ export default function WorkoutPage() {
       ? actualWeight
       : currentExercise.sets[setIndex]?.weight || 0;
     
-    // Only update if different to avoid infinite loops
     if (workoutState.currentReps !== repsToShow) {
       workoutState.setCurrentReps(repsToShow);
     }
@@ -295,17 +280,8 @@ export default function WorkoutPage() {
     }
   }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, isInitialized]);
   
-  // Sync workout state with context for persistence
   useEffect(() => {
     if (!routine || !isInitialized) return;
-    
-    console.log('[Workout Sync] Syncing state to context:', {
-      currentExerciseIndex: workoutState.currentExerciseIndex,
-      currentSet: workoutState.currentSet,
-      completedSets: workoutState.workoutData.completedSets,
-      actualReps: workoutState.workoutData.actualReps,
-      actualWeights: workoutState.workoutData.actualWeights
-    });
     
     updateWorkoutProgress(
       workoutState.currentExerciseIndex,
@@ -313,11 +289,11 @@ export default function WorkoutPage() {
       workoutState.workoutData.completedSets,
       workoutState.workoutData.actualReps,
       workoutState.workoutData.actualWeights,
-      showTimer ? {
+      timerHandlers.showTimer ? {
         isResting: true,
-        restTimerDuration: timerDuration,
-        restTimerTitle: timerTitle,
-        restTimerNextExercise: nextExerciseName,
+        restTimerDuration: timerHandlers.timerDuration,
+        restTimerTitle: timerHandlers.timerTitle,
+        restTimerNextExercise: timerHandlers.nextExerciseName,
         restTimerStartedAt: Date.now()
       } : undefined
     );
@@ -327,17 +303,13 @@ export default function WorkoutPage() {
     workoutState.workoutData.completedSets,
     workoutState.workoutData.actualReps,
     workoutState.workoutData.actualWeights,
-    showTimer,
-    timerDuration,
-    timerTitle,
-    nextExerciseName,
+    timerHandlers.showTimer,
     routine,
-    isInitialized,
-    updateWorkoutProgress
+    isInitialized
   ]);
   
   useEffect(() => {
-    if (showTimer) {
+    if (timerHandlers.showTimer) {
       document.body.classList.add('hide-navbar');
     } else {
       document.body.classList.remove('hide-navbar');
@@ -346,214 +318,68 @@ export default function WorkoutPage() {
     return () => {
       document.body.classList.remove('hide-navbar');
     };
-  }, [showTimer]);
+  }, [timerHandlers.showTimer]);
 
   useEffect(() => {
-    setDismissedSuggestions(new Set());
-    setDismissedWeightSuggestion(false); // Reset cuando cambia ejercicio
-    setIsSeriesTableExpanded(false); // Reset expansion state when exercise changes
+    // Defer closing the series table to the next tick to avoid synchronous setState within an effect
+    const timer = setTimeout(() => {
+      setIsSeriesTableExpanded(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [workoutState.currentExerciseIndex]);
 
-  // ✨ NEW: Update timer countdown when minimized
   useEffect(() => {
-    if (!showTimer || !timerMinimized || !timerStartTime) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
-      const remaining = Math.max(0, currentTimeLeft - 1);
-      setCurrentTimeLeft(remaining);
-
-      // Auto-complete when time runs out
-      if (remaining === 0 && handleTimerCompleteRef.current) {
-        handleTimerCompleteRef.current();
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [showTimer, timerMinimized, timerStartTime, currentTimeLeft]);
-
-  // Generate weight suggestions for current exercise
-  useEffect(() => {
-    console.log('[Weight Suggestion] Checking conditions:', {
-      hasExercise: !!currentExercise,
-      exerciseName: currentExercise?.name,
-      sessionsCount: sessions.length,
-      currentSet: workoutState.currentSet
-    });
-
-    if (!currentExercise || sessions.length === 0) {
-      console.log('[Weight Suggestion] No suggestion - missing exercise or sessions');
-      setWeightSuggestion(null);
-      return;
-    }
-
-    const suggestion = generateWeightSuggestion(
-      currentExercise.name,
-      sessions,
-      currentExercise.sets[workoutState.currentSet - 1]?.reps || 10
-    );
-
-    console.log('[Weight Suggestion] Generated:', suggestion);
-    setWeightSuggestion(suggestion);
-  }, [currentExercise, workoutState.currentSet, sessions]);
-
-  // Show pending toast when timer closes
-  useEffect(() => {
-    if (!showTimer && pendingToast) {
-      // Small delay to ensure timer is fully closed
+    if (!timerHandlers.showTimer && pendingToast) {
       const timer = setTimeout(() => {
         success(pendingToast.message, pendingToast.duration);
         setPendingToast(null);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [showTimer, pendingToast, success]);
+  }, [timerHandlers.showTimer, pendingToast, success]);
 
-  // ==================== INTELLIGENT WEIGHT PREDICTION ====================
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - workoutStartTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [workoutStartTime]);
+
   useEffect(() => {
     if (!currentExercise || !isInitialized) return;
     
-    const exerciseId = currentExercise.id;
-    const setIndex = workoutState.currentSet - 1;
+    const prediction = weightPrediction.predictWeightForSet(workoutState.currentWeight);
     
-    // Skip if user has already edited this set
-    const hasEditedValue = workoutState.workoutData.actualWeights[exerciseId]?.[setIndex];
-    if (hasEditedValue !== undefined && hasEditedValue !== 0) return;
-    
-    // Predict weight
-    const prediction = predictWeight({
-      exerciseName: currentExercise.name,
-      currentSet: workoutState.currentSet,
-      sessions,
-      currentExercise,
-      actualWeights: workoutState.workoutData.actualWeights,
-      exerciseId
-    });
-    
-    // Apply prediction if different from current
-    const validatedWeight = validateWeight(prediction.predictedWeight);
-    if (validatedWeight !== workoutState.currentWeight) {
-      workoutState.setCurrentWeight(validatedWeight);
+    if (prediction.weight !== workoutState.currentWeight) {
+      workoutState.setCurrentWeight(prediction.weight);
       
-      // Show reasoning as toast (only for high confidence predictions)
-      if (prediction.confidence === 'high' && prediction.source !== 'routine_default') {
+      if (prediction.reasoning) {
         success(`💡 ${prediction.reasoning}`, 3000);
       }
     }
-  }, [currentExercise, workoutState.currentSet, isInitialized, sessions]);
-
-  // ==================== SMART REST TIME ====================
-  const smartRestTime = useMemo(() => {
-    if (!currentExercise) return undefined;
-    
-    // Check if smart rest is enabled for this exercise (default to true if not specified)
-    const useSmartRestForExercise = currentExercise.useSmartRest !== false;
-    
-    if (!useSmartRestForExercise) return undefined;
-    
-    const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-    
-    if (!exerciseTemplate) return undefined;
-    
-    // Calculate smart rest based on exercise characteristics (sets, reps)
-    // Use average reps from all sets for a more accurate calculation
-    const avgReps = Math.round(
-      currentExercise.sets.reduce((sum: number, set: any) => sum + set.reps, 0) / currentExercise.sets.length
-    );
-    
-    const restRecommendation = calculateRestBetweenSets(
-      exerciseTemplate,
-      currentExercise.sets.length,
-      avgReps,
-      'intermediate'
-    );
-    
-    // Round to nearest 5-second interval to match selector options
-    return Math.round(restRecommendation.recommended / 5) * 5;
-  }, [currentExercise]);
-
-  // ==================== WORKOUT SUGGESTIONS ====================
-  useWorkoutSuggestions({
-    currentExercise,
-    routine,
-    currentSet: workoutState.currentSet,
-    currentWeight: workoutState.currentWeight,
-    sessions: sessions as any,
-    restOverrides: workoutState.workoutData.restOverrides,
-    perSetRestOverrides: workoutState.workoutData.perSetRestOverrides,
-    useSmartRest: useSmartRest,
-    smartRestTime: smartRestTime,
-    showTimer,
-    showPreparation,
-    isExecutingSet,
-    onSuccess: success,
-    onError: error
-  });
+  }, [currentExercise, workoutState.currentSet, isInitialized]);
 
   // ==================== HANDLERS ====================
-  const handleStartSet = useCallback(() => {
-    // Always show preparation countdown first
-    setShowPreparation(true);
-  }, []);
-
-  const handleCancelSetExecution = useCallback(() => {
-    setShowSetExecution(false);
-    setIsExecutingSet(false);
-    // Skip to next exercise
-    if (routine && workoutState.currentExerciseIndex < routine.exercises.length - 1) {
-      workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
-      workoutState.setCurrentSet(1);
-    }
-  }, [routine, workoutState]);
-
-  const handlePreparationComplete = useCallback(() => {
-    setShowPreparation(false);
-    
-    // Check if execution modal is enabled (default: false for better UX)
-    const useExecutionModal = typeof window !== 'undefined' 
-      ? localStorage.getItem('useExecutionModal') === 'true'
-      : false;
-    
-    // Start set timer
-    setSetStartTime(Date.now());
-    
-    if (useExecutionModal) {
-      // Open modal for execution
-      setShowSetExecution(true);
-      setIsExecutingSet(true);
-    } else {
-      // Direct completion mode - just mark as started
-      setIsExecutingSet(true);
-      success('✅ Serie iniciada - completa cuando termines', 2000);
-    }
-  }, [success]);
-
   const handleCompleteSet = useCallback(() => {
     if (!currentExercise || !routine) return;
     
-    setIsExecutingSet(false); // Reset executing state
-    setShowSetExecution(false); // Cerrar modal
-    setSetStartTime(null); // Reset set timer
+    setExecution.completeSet();
     
     const exerciseId = currentExercise.id;
     const setIndex = workoutState.currentSet - 1;
     const repsValue = typeof workoutState.currentReps === 'number' ? workoutState.currentReps : currentExercise.sets[setIndex]?.reps || 0;
     const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
 
-    // Update workout state
     workoutState.completeSet(exerciseId, repsValue, weightValue);
 
-    // ✨ Improved feedback - vibration
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]); // Double vibration pattern
+      navigator.vibrate([100, 50, 100]);
     }
 
-    // Prepare toast message to show after rest
-    if (weightSuggestion && weightSuggestion.suggested > weightValue) {
+    if (weightPrediction.weightSuggestion && weightPrediction.weightSuggestion.suggested > weightValue) {
       setPendingToast({
-        message: `💪 Próxima vez intenta con ${weightSuggestion.suggested}kg (+${weightSuggestion.increase}kg)`,
+        message: `💪 Próxima vez intenta con ${weightPrediction.weightSuggestion.suggested}kg (+${weightPrediction.weightSuggestion.increase}kg)`,
         duration: 4000
       });
     } else if (repsValue >= (currentExercise.sets[setIndex]?.reps || 10)) {
@@ -569,8 +395,7 @@ export default function WorkoutPage() {
     if (isLastSet) {
       if (isLastExercise) {
         const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-        setProposedDuration(Math.max(duration, 60));
-        setShowNotesModal(true);
+        completion.openCompletionModal(duration);
       } else {
         const nextExercise = routine.exercises[workoutState.currentExerciseIndex + 1];
         const restTime = calculateExerciseRestTime({
@@ -578,15 +403,11 @@ export default function WorkoutPage() {
           nextExercise,
           routine,
           restOverrides: workoutState.workoutData.restOverrides,
+          perSetOverrides: workoutState.workoutData.perSetRestOverrides,
           useSmartRest
         });
         
-        setShowTimer(true);
-        setTimerDuration(restTime);
-        setTimerStartTime(Date.now()); // ✨ Track start time
-        setCurrentTimeLeft(restTime); // ✨ Initialize current time
-        setTimerTitle('Descanso entre ejercicios');
-        setNextExerciseName(nextExercise.name);
+        timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
       }
     } else {
       const restTime = calculateNextRestTime({
@@ -598,27 +419,15 @@ export default function WorkoutPage() {
         useSmartRest
       });
       
-      setShowTimer(true);
-      setTimerDuration(restTime);
-      setTimerStartTime(Date.now()); // ✨ Track start time
-      setCurrentTimeLeft(restTime); // ✨ Initialize current time
-      setTimerTitle(`Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
-      setNextExerciseName(undefined);
+      timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, weightSuggestion, success]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, weightPrediction.weightSuggestion, timerHandlers, setExecution, completion]);
 
   const handleTimerComplete = useCallback(() => {
-    if (timerCompleteProcessingRef.current) return;
-    
-    timerCompleteProcessingRef.current = true;
-    setShowTimer(false);
-    setTimerMinimized(false); // Reset minimized state
+    timerHandlers.stopTimer();
     clearRestState();
     
-    if (!currentExercise || !routine) {
-      timerCompleteProcessingRef.current = false;
-      return;
-    }
+    if (!currentExercise || !routine) return;
     
     const exerciseId = currentExercise.id;
     const completedCount = workoutState.workoutData.completedSets[exerciseId] || 0;
@@ -628,8 +437,7 @@ export default function WorkoutPage() {
     
     if (isLastSet && isLastExercise) {
       const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-      setProposedDuration(Math.max(duration, 60));
-      setShowNotesModal(true);
+      completion.openCompletionModal(duration);
     } else if (isLastSet && !isLastExercise) {
       const nextIndex = workoutState.currentExerciseIndex + 1;
       if (routine.exercises[nextIndex]) {
@@ -651,96 +459,18 @@ export default function WorkoutPage() {
         workoutState.setCurrentWeight(nextSetData.weight || 0);
       }
     }
-    
-    setTimeout(() => {
-      timerCompleteProcessingRef.current = false;
-    }, 100);
-  }, [currentExercise, routine, workoutState, workoutStartTime, clearRestState]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, clearRestState, timerHandlers, completion]);
 
-  // ✨ Update ref for handleTimerComplete
   useEffect(() => {
+    // keep the ref updated so the timer hook can call the latest handler
     handleTimerCompleteRef.current = handleTimerComplete;
   }, [handleTimerComplete]);
-
-  const finishCompleteWorkout = useCallback(async () => {
-    if (!routine) return;
-
-    const totalDuration = proposedDuration && proposedDuration > 0
-      ? proposedDuration
-      : Math.floor((Date.now() - workoutStartTime) / 1000);
-
-    // Calcular volumen total antes de guardar
-    let totalVolume = 0;
-    routine.exercises.forEach((ex: any) => {
-      const reps = workoutState.workoutData.actualReps[ex.id] || [];
-      const weights = workoutState.workoutData.actualWeights[ex.id] || [];
-      reps.forEach((rep, idx) => {
-        totalVolume += rep * (weights[idx] || 0);
-      });
-    });
-
-    const sessionExercises = routine.exercises.map((ex: any) => ({
-      exerciseId: ex.id,
-      exerciseName: ex.name,
-      completedSets: workoutState.workoutData.completedSets[ex.id] || 0,
-      actualReps: workoutState.workoutData.actualReps[ex.id] || [],
-      actualWeight: workoutState.workoutData.actualWeights[ex.id] || [],
-      setDurations: workoutState.workoutData.actualSetDurations[ex.id] || [],
-      pauseDurations: workoutState.workoutData.actualPauseDurations[ex.id] || [],
-      actualRestTimes: workoutState.workoutData.actualRestTimes[ex.id] || []
-    }));
-
-    try {
-      await addSession({
-        routineId: routine.id,
-        date: new Date(),
-        exercises: sessionExercises,
-        notes: workoutState.sessionNotes.trim() || '',
-        totalDuration,
-        totalPausedTime,
-        totalVolume: Math.round(totalVolume)
-      });
-      
-      // Check for new achievements
-      const updatedSessions = [...sessions, {
-        routineId: routine.id,
-        date: new Date(),
-        exercises: sessionExercises,
-        notes: workoutState.sessionNotes.trim() || '',
-        totalDuration,
-        totalPausedTime
-      } as any];
-
-      const achievements = calculateAchievements(updatedSessions);
-      const recentAchievements = getRecentAchievements(achievements);
-      
-      // Show achievement notifications for newly unlocked achievements
-      recentAchievements.forEach(achievement => {
-        if (achievement.unlocked && !shownAchievements.has(achievement.id)) {
-          success(`🏆 ¡Logro desbloqueado! ${achievement.name}`, 5000);
-          setShownAchievements(prev => new Set([...prev, achievement.id]));
-        }
-      });
-      
-      finishWorkoutContext();
-      success('Sesión guardada exitosamente');
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      router.replace('/sessions');
-      router.refresh();
-    } catch (err) {
-      console.error('Error saving session:', err);
-      error('Error al guardar la sesión. Por favor, intenta nuevamente.');
-    }
-  }, [routine, workoutState, workoutStartTime, totalPausedTime, addSession, finishWorkoutContext, success, error, router, sessions, shownAchievements]);
 
   const handleCancelWorkout = useCallback(async () => {
     const confirmed = await confirm({
       title: 'Cancelar entrenamiento',
       message: '¿Estás seguro de que quieres cancelar el entrenamiento? Se perderá todo el progreso.',
       confirmText: 'Sí, cancelar',
-      cancelText: 'Continuar entrenamiento',
       variant: 'danger'
     });
     
@@ -771,7 +501,6 @@ export default function WorkoutPage() {
     success('Orden de ejercicios actualizado', 2000);
   }, [routine, workoutState, success]);
 
-  // ==================== SERIES TABLE HANDLERS ====================
   const handleEditReps = useCallback((setIndex: number, reps: number) => {
     if (!currentExercise) return;
     const exerciseId = currentExercise.id;
@@ -780,7 +509,6 @@ export default function WorkoutPage() {
       reps,
       ...(workoutState.workoutData.actualReps[exerciseId] || []).slice(setIndex + 1)
     ]);
-    // Note: currentReps will be updated automatically by the sync effect
   }, [currentExercise, workoutState]);
 
   const handleEditWeight = useCallback((setIndex: number, weight: number) => {
@@ -791,7 +519,6 @@ export default function WorkoutPage() {
       weight,
       ...(workoutState.workoutData.actualWeights[exerciseId] || []).slice(setIndex + 1)
     ]);
-    // Note: currentWeight will be updated automatically by the sync effect
   }, [currentExercise, workoutState]);
 
   const handleEditSetType = useCallback((setIndex: number, type: any) => {
@@ -808,12 +535,7 @@ export default function WorkoutPage() {
 
   const handleApplySmartRest = useCallback(() => {
     if (!currentExercise || !smartRestTime) return;
-    const exerciseId = currentExercise.id;
-    
-    // Apply smart rest to all sets
-    for (let i = 0; i < currentExercise.sets.length; i++) {
-      workoutState.updatePerSetRestOverride(exerciseId, i, smartRestTime);
-    }
+    applySmartRestToAllSets(currentExercise, workoutState.updatePerSetRestOverride);
     success('Descanso inteligente aplicado a todas las series', 2000);
   }, [currentExercise, smartRestTime, workoutState, success]);
 
@@ -823,7 +545,6 @@ export default function WorkoutPage() {
     const exerciseId = currentExercise.id;
     
     if (isComplete) {
-      // Mark as complete - use values from actualReps/actualWeights if available, otherwise from routine
       const existingReps = workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
       const existingWeight = workoutState.workoutData.actualWeights[exerciseId]?.[setIndex];
       
@@ -845,44 +566,33 @@ export default function WorkoutPage() {
       const newCompletedCount = (workoutState.workoutData.completedSets[exerciseId] || 0) + 1;
       workoutState.updateCompletedSets(exerciseId, newCompletedCount);
       
-      // ✅ Update currentSet to next incomplete set
       const nextIncompleteSet = currentExercise.sets.findIndex((_: any, idx: number) => {
         return idx > setIndex && !newActualReps[idx];
       });
       
       if (nextIncompleteSet !== -1) {
         workoutState.setCurrentSet(nextIncompleteSet + 1);
-        // Note: currentReps/currentWeight will be updated automatically by sync effect
       } else if (newCompletedCount >= currentExercise.sets.length) {
-        // All sets complete
         const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
         
         if (isLastExercise) {
-          // Show completion modal
           const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-          setProposedDuration(Math.max(duration, 60));
-          setShowNotesModal(true);
+          completion.openCompletionModal(duration);
         } else {
-          // Show rest timer before next exercise
           const nextExercise = routine.exercises[workoutState.currentExerciseIndex + 1];
           const restTime = calculateExerciseRestTime({
             currentExercise,
             nextExercise,
             routine,
             restOverrides: workoutState.workoutData.restOverrides,
+            perSetOverrides: workoutState.workoutData.perSetRestOverrides,
             useSmartRest
           });
           
-          setShowTimer(true);
-          setTimerDuration(restTime);
-          setTimerStartTime(Date.now()); // ✨ Track start time
-          setCurrentTimeLeft(restTime); // ✨ Initialize current time
-          setTimerTitle('Descanso entre ejercicios');
-          setNextExerciseName(nextExercise.name);
+          timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
         }
       }
     } else {
-      // Mark as incomplete
       const newActualReps = [...(workoutState.workoutData.actualReps[exerciseId] || [])];
       newActualReps[setIndex] = 0;
       
@@ -893,13 +603,11 @@ export default function WorkoutPage() {
       workoutState.updateActualWeights(exerciseId, newActualWeights);
       workoutState.updateCompletedSets(exerciseId, Math.max(0, (workoutState.workoutData.completedSets[exerciseId] || 0) - 1));
       
-      // ✅ Update currentSet to the uncompleted set if it's before current
       if (setIndex + 1 < workoutState.currentSet) {
         workoutState.setCurrentSet(setIndex + 1);
-        // Note: currentReps/currentWeight will be updated automatically by sync effect
       }
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, timerHandlers, completion]);
 
   const handleAddSet = useCallback(() => {
     if (!routine || !currentExercise) return;
@@ -932,47 +640,10 @@ export default function WorkoutPage() {
   const handleSelectExercise = useCallback((index: number) => {
     workoutState.setCurrentExerciseIndex(index);
     workoutState.setCurrentSet(1);
-    setShowTimer(false);
-    setIsExecutingSet(false);
-    setShowPreparation(false);
+    timerHandlers.stopTimer();
+    setExecution.cancelSetExecution();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [workoutState]);
-
-  // ==================== REPEAT PREVIOUS LOGIC ====================
-  const lastSetData = useMemo(() => {
-    if (!currentExercise) return null;
-    
-    const exerciseId = currentExercise.id;
-    const currentSetIndex = workoutState.currentSet - 1;
-    
-    // If first set, try to get data from last session
-    if (currentSetIndex === 0 && lastSessionForExercise) {
-      const lastExerciseData = lastSessionForExercise.exercises.find(
-        e => e.exerciseName === currentExercise.name
-      );
-      if (lastExerciseData && lastExerciseData.actualReps[0] && lastExerciseData.actualWeight[0]) {
-        return {
-          reps: lastExerciseData.actualReps[0],
-          weight: lastExerciseData.actualWeight[0]
-        };
-      }
-    }
-    
-    // If set 2+, get data from previous set in current workout
-    if (currentSetIndex > 0) {
-      const prevReps = workoutState.workoutData.actualReps[exerciseId]?.[currentSetIndex - 1];
-      const prevWeight = workoutState.workoutData.actualWeights[exerciseId]?.[currentSetIndex - 1];
-      
-      if (prevReps && prevWeight) {
-        return {
-          reps: prevReps,
-          weight: prevWeight
-        };
-      }
-    }
-    
-    return null;
-  }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);
+  }, [workoutState, timerHandlers, setExecution]);
 
   const handleRepeatPrevious = useCallback(() => {
     if (!lastSetData) return;
@@ -1022,58 +693,54 @@ export default function WorkoutPage() {
     return null;
   }
 
-  // Show timer fullscreen or minimized
-  if (showTimer && !timerMinimized) {
+  if (timerHandlers.showTimer && !timerHandlers.timerMinimized) {
     return (
       <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
         <Timer
-          duration={timerDuration}
-          initialTimeLeft={currentTimeLeft} // ✨ Pass current time when expanding
-          title={timerTitle}
-          nextExerciseName={nextExerciseName}
+          duration={timerHandlers.timerDuration}
+          initialTimeLeft={timerHandlers.currentTimeLeft}
+          title={timerHandlers.timerTitle}
+          nextExerciseName={timerHandlers.nextExerciseName}
           onComplete={handleTimerComplete}
           autoStart={true}
           showMotivation={true}
-          onMinimize={(timeLeft) => {
-            setTimerMinimized(true);
-            setCurrentTimeLeft(timeLeft); // ✨ Update with actual time left
-            setTimerStartTime(Date.now()); // ✨ Reset start time for minimized countdown
+          onMinimize={timerHandlers.minimizeTimer}
+        />
+      </div>
+    );
+  }
+
+  if (setExecution.showPreparation) {
+    return (
+      <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+        <PreparationCountdown
+          exerciseName={currentExercise.name}
+          setNumber={workoutState.currentSet}
+          onComplete={() => {
+            const useExecutionModal = typeof window !== 'undefined' 
+              ? localStorage.getItem('useExecutionModal') === 'true'
+              : false;
+            setExecution.completePreparation(useExecutionModal, success);
           }}
         />
       </div>
     );
   }
 
-  // Show preparation countdown
-  if (showPreparation) {
-    return (
-      <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-        <PreparationCountdown
-          exerciseName={currentExercise.name}
-          setNumber={workoutState.currentSet}
-          onComplete={handlePreparationComplete}
-        />
-      </div>
-    );
-  }
-
-  // Main workout view
   return (
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-8 pb-32">
-        {/* Minimized timer overlay */}
-        {showTimer && timerMinimized && (
+        {timerHandlers.showTimer && timerHandlers.timerMinimized && (
           <MinimizedTimer
-            timeLeft={currentTimeLeft}
-            title={timerTitle}
-            onExpand={() => setTimerMinimized(false)}
-            onSkip={handleTimerComplete}
+            timeLeft={timerHandlers.currentTimeLeft}
+            title={timerHandlers.timerTitle}
+            onExpand={timerHandlers.expandTimer}
+            onSkip={timerHandlers.skipTimer}
           />
         )}
 
-        {/* Compact Header - STICKY (combina header + stats) */}
         <div className="sticky top-16 z-10 mb-4">
-          <div className="rounded-lg bg-white dark:bg-gray-800 shadow-lg ">
+          <div className="rounded-lg bg-white dark:bg-gray-800 shadow-lg">
             <CompactWorkoutHeader
               routine={routine}
               currentExerciseIndex={workoutState.currentExerciseIndex}
@@ -1088,17 +755,14 @@ export default function WorkoutPage() {
           </div>
         </div>
 
-        {/* Action buttons - FIXED BOTTOM */}
-        {!isExecutingSet && (
+        {!setExecution.isExecutingSet && (
           <>
-            {/* Fondo degradado detrás del botón */}
             <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
             
-            {/* Botón flotante */}
             <div className="fixed bottom-0 left-0 right-0 z-30 px-0">
               <Button
                 variant="primary"
-                onClick={handleStartSet}
+                onClick={setExecution.startSet}
                 className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
               >
                 <span className="text-2xl">▶️</span>
@@ -1113,7 +777,6 @@ export default function WorkoutPage() {
           </>
         )}
 
-        {/* Exercise card */}
         <ExerciseCard
           exercise={currentExercise}
           exerciseIndex={workoutState.currentExerciseIndex}
@@ -1129,22 +792,20 @@ export default function WorkoutPage() {
             workoutState.setCurrentSet(1);
           }}
           onShowInfo={() => setShowExerciseInfo(true)}
-          isSetStarted={isExecutingSet}
-          weightSuggestion={!dismissedWeightSuggestion ? weightSuggestion : null}
-          onDismissWeightSuggestion={() => setDismissedWeightSuggestion(true)}
+          isSetStarted={setExecution.isExecutingSet}
+          weightSuggestion={weightPrediction.weightSuggestion}
+          onDismissWeightSuggestion={() => weightPrediction.setDismissedWeightSuggestion(true)}
           lastSetData={lastSetData}
           onRepeatPrevious={handleRepeatPrevious}
-          setStartTime={setStartTime}
+          setStartTime={setExecution.setStartTime}
         />
 
-        {/* Set controls */}
         <SetControls
           currentSet={workoutState.currentSet}
           totalSets={currentExercise.sets.length}
           onSetChange={workoutState.setCurrentSet}
         />
 
-        {/* Collapsible SeriesTable toggle button */}
         <div className="mb-4">
           <Button
             variant="ghost"
@@ -1159,7 +820,6 @@ export default function WorkoutPage() {
           </Button>
         </div>
 
-        {/* Series table - conditional render */}
         {isSeriesTableExpanded && (
           <SeriesTable
             exercise={currentExercise}
@@ -1184,7 +844,6 @@ export default function WorkoutPage() {
           />
         )}
 
-        {/* Exercise list */}
         <ExerciseList
           routine={routine}
           currentExerciseIndex={workoutState.currentExerciseIndex}
@@ -1193,10 +852,9 @@ export default function WorkoutPage() {
           onMoveExercise={handleMoveExercise}
         />
 
-        {/* Notes modal */}
         <Modal
-          isOpen={showNotesModal}
-          onClose={() => setShowNotesModal(false)}
+          isOpen={completion.showNotesModal}
+          onClose={() => completion.setShowNotesModal(false)}
           title="¡Entrenamiento completado! 🎉"
         >
           <div className="space-y-4">
@@ -1209,8 +867,11 @@ export default function WorkoutPage() {
                 Duración del entrenamiento
               </label>
               <select
-                value={Math.floor(proposedDuration / 60)}
-                onChange={(e) => setProposedDuration(Math.max(0, parseInt(e.target.value || '0')) * 60)}
+                value={Math.floor(completion.proposedDuration / 60)}
+                onChange={(e) => {
+                  const minutes = parseInt(e.target.value || '0', 10);
+                  completion.setProposedDuration(Math.max(0, isNaN(minutes) ? 0 : minutes) * 60);
+                }}
                 className="w-full p-2 border rounded bg-white dark:bg-gray-700"
               >
                 {Array.from({ length: 59 }, (_, i) => i + 1).map(m => (
@@ -1230,8 +891,8 @@ export default function WorkoutPage() {
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={4}
                 placeholder="Ej: Me sentí muy fuerte hoy, aumentar peso la próxima vez..."
-                value={workoutState.sessionNotes}
-                onChange={(e) => workoutState.setSessionNotes(e.target.value)}
+                value={completion.sessionNotes}
+                onChange={(e) => completion.setSessionNotes(e.target.value)}
               />
             </div>
 
@@ -1239,9 +900,9 @@ export default function WorkoutPage() {
               <Button
                 variant="secondary"
                 onClick={() => {
-                  workoutState.setSessionNotes('');
-                  setShowNotesModal(false);
-                  finishCompleteWorkout();
+                  completion.setSessionNotes('');
+                  completion.setShowNotesModal(false);
+                  completion.finishWorkout(workoutState.workoutData);
                 }}
                 className="flex-1"
               >
@@ -1250,8 +911,8 @@ export default function WorkoutPage() {
               <Button
                 variant="primary"
                 onClick={() => {
-                  setShowNotesModal(false);
-                  finishCompleteWorkout();
+                  completion.setShowNotesModal(false);
+                  completion.finishWorkout(workoutState.workoutData);
                 }}
                 className="flex-1"
               >
@@ -1261,7 +922,6 @@ export default function WorkoutPage() {
           </div>
         </Modal>
 
-        {/* Exercise info panel */}
         {showExerciseInfo && currentExercise && (
           <ExerciseInfoPanel
             exercise={EXERCISE_DATABASE.find(e => e.name === currentExercise.name) || {
@@ -1273,9 +933,8 @@ export default function WorkoutPage() {
           />
         )}
 
-        {/* Set execution modal */}
         <SetExecutionModal
-          isOpen={showSetExecution}
+          isOpen={setExecution.showSetExecution}
           exerciseName={currentExercise.name}
           equipment={currentExercise.equipment}
           currentSet={workoutState.currentSet}
@@ -1286,7 +945,13 @@ export default function WorkoutPage() {
           onRepsChange={workoutState.setCurrentReps}
           onWeightChange={workoutState.setCurrentWeight}
           onComplete={handleCompleteSet}
-          onCancel={handleCancelSetExecution}
+          onCancel={() => {
+            setExecution.cancelSetExecution();
+            if (routine && workoutState.currentExerciseIndex < routine.exercises.length - 1) {
+              workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
+              workoutState.setCurrentSet(1);
+            }
+          }}
         />
       </div>
     </ProtectedRoute>
