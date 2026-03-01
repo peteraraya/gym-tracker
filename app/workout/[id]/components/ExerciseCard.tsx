@@ -19,7 +19,6 @@ interface ExerciseCardProps {
   onRepsChange: (reps: number | '') => void;
   onWeightChange: (weight: number) => void;
   onCompleteSet: () => void;
-  onSkipExercise: () => void;
   onShowInfo?: () => void;
   isSetStarted?: boolean;
   weightSuggestion?: WeightSuggestion | null;
@@ -29,6 +28,8 @@ interface ExerciseCardProps {
   onRepeatPrevious?: () => void;
   // New prop for set timer
   setStartTime?: number | null;
+  // Quick exercise switcher (rendered as children)
+  quickSwitcher?: React.ReactNode;
 }
 
 /**
@@ -50,7 +51,6 @@ export function ExerciseCard({
   onRepsChange,
   onWeightChange,
   onCompleteSet,
-  onSkipExercise,
   onShowInfo,
   isSetStarted = false,
   weightSuggestion,
@@ -58,6 +58,7 @@ export function ExerciseCard({
   lastSetData,
   onRepeatPrevious,
   setStartTime,
+  quickSwitcher,
 }: ExerciseCardProps) {
   const totalSets = exercise.sets.length;
   const isLastSet = currentSet === totalSets;
@@ -267,7 +268,7 @@ export function ExerciseCard({
         </div>
 
         {/* Quick action: Repeat Previous */}
-        {lastSetData && onRepeatPrevious && (
+        {lastSetData && onRepeatPrevious && !isSetStarted && (
           <Button
             variant="ghost"
             onClick={onRepeatPrevious}
@@ -277,26 +278,12 @@ export function ExerciseCard({
           </Button>
         )}
 
-        {/* Botones de acción */}
-        <div className="flex gap-2 pt-2">
-          <Button
-            variant="primary"
-            onClick={onCompleteSet}
-            disabled={!isSetComplete}
-            className="flex-1 py-2 sm:py-3 text-sm sm:text-base font-semibold"
-          >
-            <span className="hidden sm:inline">✅ Completar Serie {isLastSet ? '(Última)' : ''}</span>
-            <span className="sm:hidden">✅ Completar</span>
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={onSkipExercise}
-            className="flex-1 py-2 sm:py-3 text-sm sm:text-base font-semibold"
-          >
-            <span className="hidden sm:inline">⏭️ Saltar Ejercicio</span>
-            <span className="sm:hidden">⏭️ Saltar</span>
-          </Button>
-        </div>
+        {/* Botones de acción - Solo mostrar cuando NO está en ejecución */}
+        {!isSetStarted && quickSwitcher && (
+          <div className="pt-2">
+            {quickSwitcher}
+          </div>
+        )}
 
         {/* Resumen de progreso */}
         <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-2">
