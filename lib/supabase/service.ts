@@ -210,7 +210,8 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
   if (exercisesError) {
     // ROLLBACK: Restore old exercises if insert failed
     if (oldExercises && oldExercises.length > 0) {
-      console.warn('updateRoutine: Rolling back exercises after insert failure');
+      const { logger } = await import('@/lib/logger');
+      logger.warn('Rolling back exercises after insert failure', { module: 'supabase-service', operation: 'updateRoutine' });
       await supabase.from('exercises').insert(oldExercises);
     }
     throw new Error(`Error al actualizar ejercicios: ${exercisesError.message}`);
@@ -471,16 +472,15 @@ export async function getActiveWorkout(): Promise<any | null> {
           error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        // console.log('[Storage] active_workouts table not found, using localStorage');
         return null;
       }
-      // console.warn('[Storage] Error getting active workout:', error.message);
       return null;
     }
 
     return data?.data || null;
   } catch (error: any) {
-    console.warn('[Storage] Failed to get active workout:', error.message);
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Failed to get active workout', { module: 'supabase-service', errorMessage: error.message });
     return null;
   }
 }
@@ -504,13 +504,14 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
       if (error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        // console.log('[Storage] active_workouts table not found, using localStorage');
         return;
       }
-      console.warn('[Storage] Error saving active workout:', error.message);
+      const { logger } = await import('@/lib/logger');
+      logger.warn('Error saving active workout', { module: 'supabase-service', errorMessage: error.message });
     }
   } catch (error: any) {
-    console.warn('[Storage] Failed to save active workout:', error.message);
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Failed to save active workout', { module: 'supabase-service', errorMessage: error.message });
   }
 }
 
@@ -534,13 +535,14 @@ export async function clearActiveWorkout(): Promise<void> {
       if (error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        // console.log('[Storage] active_workouts table not found, using localStorage');
         return;
       }
-      console.warn('[Storage] Error clearing active workout:', error.message);
+      const { logger } = await import('@/lib/logger');
+      logger.warn('Error clearing active workout', { module: 'supabase-service', errorMessage: error.message });
     }
   } catch (error: any) {
-    console.warn('[Storage] Failed to clear active workout:', error.message);
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Failed to clear active workout', { module: 'supabase-service', errorMessage: error.message });
   }
 }
 

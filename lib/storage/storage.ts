@@ -9,7 +9,7 @@
 
 import type { Routine, WorkoutSession } from '@/types';
 import type { CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';
-import { WorkoutSessionSchema, RoutineSchema, validateDataWithLogging } from '@/lib/validation';
+import logger from '@/lib/logger';
 
 // Re-export types for convenience
 export type { SetData, RoutineExercise, CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';
@@ -72,7 +72,7 @@ function shouldRetrySupabase(): boolean {
 function handleStorageError(err: unknown, operation: string): void {
     lastStorageError = new Date();
     storageMode = 'localStorage';
-    console.warn(`${operation}: Supabase failed, using localStorage:`, err);
+    logger.warn('Supabase failed, using localStorage', { operation }, err instanceof Error ? err : undefined);
 }
 
 // Helper para marcar éxito de Supabase
@@ -114,7 +114,7 @@ export async function getRoutines(): Promise<Routine[]> {
         return result;
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al cargar rutinas desde Supabase:', err);
+        logger.error('Error al cargar rutinas desde Supabase', { critical: true }, err instanceof Error ? err : undefined);
         throw new Error('No se pudieron cargar las rutinas. Verifica tu conexión a internet e intenta de nuevo.');
     }
 }
@@ -137,15 +137,15 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
         return result;
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al crear rutina en Supabase:', err);
+        logger.error('Error al crear rutina en Supabase', { critical: true }, err instanceof Error ? err : undefined);
         
         // Guardar borrador en localStorage para no perder el trabajo
         try {
             const draftKey = `routine-draft-${Date.now()}`;
             localStorage.setItem(draftKey, JSON.stringify({ ...data, savedAt: Date.now() }));
-            console.log(`[DRAFT] Borrador guardado en localStorage: ${draftKey}`);
+            logger.info('Borrador guardado en localStorage', { draftKey });
         } catch (draftErr) {
-            console.warn('[DRAFT] No se pudo guardar borrador:', draftErr);
+            logger.warn('No se pudo guardar borrador', {}, draftErr instanceof Error ? draftErr : undefined);
         }
         
         throw new Error('No se pudo crear la rutina. Verifica tu conexión a internet. Se guardó un borrador local.');
@@ -170,15 +170,15 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
         return result;
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al actualizar rutina en Supabase:', err);
+        logger.error('Error al actualizar rutina en Supabase', { critical: true, routineId: id }, err instanceof Error ? err : undefined);
         
         // Guardar borrador en localStorage para no perder el trabajo
         try {
             const draftKey = `routine-draft-${id}`;
             localStorage.setItem(draftKey, JSON.stringify({ ...data, id, savedAt: Date.now() }));
-            console.log(`[DRAFT] Borrador de edición guardado en localStorage: ${draftKey}`);
+            logger.info('Borrador de edición guardado en localStorage', { draftKey });
         } catch (draftErr) {
-            console.warn('[DRAFT] No se pudo guardar borrador:', draftErr);
+            logger.warn('No se pudo guardar borrador', {}, draftErr instanceof Error ? draftErr : undefined);
         }
         
         throw new Error('No se pudo actualizar la rutina. Verifica tu conexión a internet. Se guardó un borrador local.');
@@ -203,7 +203,7 @@ export async function deleteRoutine(id: string): Promise<void> {
         handleStorageSuccess();
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al eliminar rutina en Supabase:', err);
+        logger.error('Error al eliminar rutina en Supabase', { critical: true, routineId: id }, err instanceof Error ? err : undefined);
         throw new Error('No se pudo eliminar la rutina. Verifica tu conexión a internet e intenta de nuevo.');
     }
 }
@@ -229,7 +229,7 @@ export async function getSessions(): Promise<WorkoutSession[]> {
         return result;
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al cargar sesiones desde Supabase:', err);
+        logger.error('Error al cargar sesiones desde Supabase', { critical: true }, err instanceof Error ? err : undefined);
         throw new Error('No se pudieron cargar las sesiones de entrenamiento. Verifica tu conexión a internet.');
     }
 }
@@ -265,15 +265,15 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
         }
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al guardar sesión en Supabase:', err);
+        logger.error('Error al guardar sesión en Supabase', { critical: true, sessionId: session.id }, err instanceof Error ? err : undefined);
         
         // Guardar borrador de sesión en localStorage para no perder datos
         try {
             const draftKey = `session-draft-${session.id || Date.now()}`;
             localStorage.setItem(draftKey, JSON.stringify({ ...session, savedAt: Date.now() }));
-            console.log(`[DRAFT] Borrador de sesión guardado en localStorage: ${draftKey}`);
+            logger.info('Borrador de sesión guardado en localStorage', { draftKey });
         } catch (draftErr) {
-            console.warn('[DRAFT] No se pudo guardar borrador de sesión:', draftErr);
+            logger.warn('No se pudo guardar borrador de sesión', {}, draftErr instanceof Error ? draftErr : undefined);
         }
         
         throw new Error('No se pudo guardar la sesión de entrenamiento. Verifica tu conexión. Se guardó un borrador local.');
@@ -301,7 +301,7 @@ export async function getProfile(): Promise<UserProfile> {
         return result;
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al cargar perfil desde Supabase:', err);
+        logger.error('Error al cargar perfil desde Supabase', { critical: true }, err instanceof Error ? err : undefined);
         throw new Error('No se pudo cargar tu perfil. Verifica tu conexión a internet.');
     }
 }
@@ -323,15 +323,15 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
         handleStorageSuccess();
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al actualizar perfil en Supabase:', err);
+        logger.error('Error al actualizar perfil en Supabase', { critical: true }, err instanceof Error ? err : undefined);
         
         // Guardar borrador de cambios de perfil
         try {
             const draftKey = `profile-draft-${Date.now()}`;
             localStorage.setItem(draftKey, JSON.stringify({ ...data, savedAt: Date.now() }));
-            console.log(`[DRAFT] Borrador de perfil guardado en localStorage: ${draftKey}`);
+            logger.info('Borrador de perfil guardado en localStorage', { draftKey });
         } catch (draftErr) {
-            console.warn('[DRAFT] No se pudo guardar borrador de perfil:', draftErr);
+            logger.warn('No se pudo guardar borrador de perfil', {}, draftErr instanceof Error ? draftErr : undefined);
         }
         
         throw new Error('No se pudo actualizar tu perfil. Verifica tu conexión. Se guardó un borrador local.');
@@ -359,7 +359,7 @@ export async function getWeeklyPlan(): Promise<WeeklyPlan> {
         return res;
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al cargar plan semanal desde Supabase:', err);
+        logger.error('Error al cargar plan semanal desde Supabase', { critical: true }, err instanceof Error ? err : undefined);
         throw new Error('No se pudo cargar tu plan semanal. Verifica tu conexión a internet.');
     }
 }
@@ -381,15 +381,15 @@ export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
         handleStorageSuccess();
     } catch (err) {
         // NO FALLBACK - Lanzar error al usuario
-        console.error('[CRITICAL] Error al guardar plan semanal en Supabase:', err);
+        logger.error('Error al guardar plan semanal en Supabase', { critical: true }, err instanceof Error ? err : undefined);
         
         // Guardar borrador del plan
         try {
             const draftKey = `weekly-plan-draft-${Date.now()}`;
             localStorage.setItem(draftKey, JSON.stringify({ ...plan, savedAt: Date.now() }));
-            console.log(`[DRAFT] Borrador de plan semanal guardado en localStorage: ${draftKey}`);
+            logger.info('Borrador de plan semanal guardado en localStorage', { draftKey });
         } catch (draftErr) {
-            console.warn('[DRAFT] No se pudo guardar borrador de plan semanal:', draftErr);
+            logger.warn('No se pudo guardar borrador de plan semanal', {}, draftErr instanceof Error ? draftErr : undefined);
         }
         
         throw new Error('No se pudo guardar tu plan semanal. Verifica tu conexión. Se guardó un borrador local.');
@@ -508,7 +508,7 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
                 }
             }
         } catch (err) {
-            console.warn('[DUAL_READ] Supabase failed for active workout, trying localStorage:', err);
+            logger.warn('Supabase failed for active workout, trying localStorage', { operation: 'DUAL_READ' }, err instanceof Error ? err : undefined);
             // No lanzar error, intentar localStorage como backup
         }
     }
@@ -518,11 +518,11 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
         const localStorageService = await import('@/lib/storage/localStorage');
         const localResult = await localStorageService.getActiveWorkout();
         if (localResult) {
-            console.log('[DUAL_READ] Active workout loaded from localStorage');
+            logger.debug('Active workout loaded from localStorage', { operation: 'DUAL_READ' });
         }
         return localResult;
     } catch (err) {
-        console.error('[DUAL_READ] Both Supabase and localStorage failed for active workout:', err);
+        logger.error('Both Supabase and localStorage failed for active workout', { operation: 'DUAL_READ' }, err instanceof Error ? err : undefined);
         return null;
     }
 }
@@ -531,7 +531,7 @@ export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
     // DUAL WRITE: Guardar en localStorage primero (crítico para el workout)
     const localStorageService = await import('@/lib/storage/localStorage');
     await localStorageService.saveActiveWorkout(payload);
-    console.log('[DUAL_WRITE] Active workout saved to localStorage');
+    logger.debug('Active workout saved to localStorage', { operation: 'DUAL_WRITE' });
     
     // Intentar guardar en Supabase también (best effort)
     if (isDatabaseEnabled()) {
@@ -542,11 +542,11 @@ export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
             if (supabaseService.saveActiveWorkout) {
                 await supabaseService.saveActiveWorkout(payload);
                 handleStorageSuccess();
-                console.log('[DUAL_WRITE] Active workout saved to Supabase');
+                logger.debug('Active workout saved to Supabase', { operation: 'DUAL_WRITE' });
             }
         } catch (err) {
             // No lanzar error - localStorage ya tiene los datos
-            console.warn('[DUAL_WRITE] Supabase save failed, but localStorage succeeded:', err);
+            logger.warn('Supabase save failed, but localStorage succeeded', { operation: 'DUAL_WRITE' }, err instanceof Error ? err : undefined);
         }
     }
 }
@@ -615,7 +615,7 @@ export async function clearActiveWorkout(): Promise<void> {
     // Limpiar localStorage primero (siempre disponible)
     const localStorageService = await import('@/lib/storage/localStorage');
     await localStorageService.clearActiveWorkout();
-    console.log('[DUAL_CLEAR] Active workout cleared from localStorage');
+    logger.debug('Active workout cleared from localStorage', { operation: 'DUAL_CLEAR' });
 
     // Intentar limpiar de Supabase también
     if (isDatabaseEnabled()) {
@@ -626,11 +626,11 @@ export async function clearActiveWorkout(): Promise<void> {
             if (supabaseService.clearActiveWorkout) {
                 await supabaseService.clearActiveWorkout();
                 handleStorageSuccess();
-                console.log('[DUAL_CLEAR] Active workout cleared from Supabase');
+                logger.debug('Active workout cleared from Supabase', { operation: 'DUAL_CLEAR' });
             }
         } catch (err) {
             // No importa si Supabase falla, ya limpiamos localStorage
-            console.warn('[DUAL_CLEAR] Supabase clear failed, but localStorage succeeded:', err);
+            logger.warn('Supabase clear failed, but localStorage succeeded', { operation: 'DUAL_CLEAR' }, err instanceof Error ? err : undefined);
         }
     }
 }
@@ -726,7 +726,7 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
         try {
             dbSessions = supabaseService.getSessions ? await supabaseService.getSessions() : [];
         } catch (e) {
-            console.warn('[syncLocalSessionsToDatabase] Could not fetch DB sessions:', e);
+            logger.warn('Could not fetch DB sessions', { operation: 'syncLocalSessionsToDatabase' }, e instanceof Error ? e : undefined);
             return { synced: 0, errors: 0 };
         }
 
@@ -740,21 +740,20 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
                 try {
                     if (supabaseService.saveSession) await supabaseService.saveSession(session);
                     synced++;
-                    // console.log(`[syncLocalSessionsToDatabase] Synced session ${session.id} to database`);
                 } catch (e) {
                     errors++;
-                    console.error(`[syncLocalSessionsToDatabase] Error syncing session ${session.id}:`, e);
+                    logger.error('Error syncing session', { operation: 'syncLocalSessionsToDatabase', sessionId: session.id }, e instanceof Error ? e : undefined);
                 }
             }
         }
 
         if (synced > 0) {
-            // console.log(`[syncLocalSessionsToDatabase] Synced ${synced} sessions to database (${errors} errors)`);
+            logger.info('Sessions synced to database', { operation: 'syncLocalSessionsToDatabase', synced, errors });
         }
 
         return { synced, errors };
     } catch (error) {
-        console.error('[syncLocalSessionsToDatabase] Error:', error);
+        logger.error('Error syncing sessions', { operation: 'syncLocalSessionsToDatabase' }, error instanceof Error ? error : undefined);
         return { synced: 0, errors: 0 };
     }
 }

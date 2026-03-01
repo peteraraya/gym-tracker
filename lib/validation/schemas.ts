@@ -209,7 +209,8 @@ export function validateDataWithLogging<T>(
 ): { success: boolean; data?: T; error?: string } {
   const result = validateData(schema, data);
   if (!result.success) {
-    console.warn(`[Validation] ${context}: ${result.error}`);
+    const { logger } = require('@/lib/logger');
+    logger.warn('Validation failed', { context, error: result.error });
   }
   return result;
 }

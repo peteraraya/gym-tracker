@@ -6,7 +6,11 @@ export function createClient() {
 
   // Return a dummy client if not configured
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your-project-url' || !supabaseUrl.startsWith('http')) {
-    console.warn('⚠️ Supabase not configured');
+    if (typeof window !== 'undefined') {
+      import('@/lib/logger')
+        .then(({ logger }) => logger.warn('Supabase not configured', { module: 'supabase-client' }))
+        .catch(() => {});
+    }
     // Return a mock client that won't crash
     return createBrowserClient(
       'https://placeholder.supabase.co',
