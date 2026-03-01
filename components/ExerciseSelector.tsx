@@ -79,11 +79,34 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
   const handleConfirmSelection = () => {
     if (selectedExercises.size === 0) return;
 
-    const allAvailable = [...filteredExercises, ...warmupExercises];
-    const exercises = allAvailable.filter(ex => selectedExercises.has(ex.id));
+    // Si estamos en búsqueda global, usar globalSearchResults
+    // Si estamos en un grupo muscular específico, usar filteredExercises y warmupExercises
+    const allAvailable = globalSearchResults.length > 0 
+      ? globalSearchResults 
+      : [...filteredExercises, ...warmupExercises];
+    
+    console.log('[ExerciseSelector] handleConfirmSelection:', {
+      globalSearchResultsLength: globalSearchResults.length,
+      allAvailableLength: allAvailable.length,
+      selectedExercisesSize: selectedExercises.size,
+      selectedExercisesIds: Array.from(selectedExercises)
+    });
+    
+    // Filtrar ejercicios seleccionados y limpiar propiedades extra (como 'type')
+    const exercises = allAvailable
+      .filter(ex => selectedExercises.has(ex.id))
+      .map(ex => {
+        // Crear una copia limpia sin la propiedad 'type'
+        const { type, ...cleanExercise } = ex as any;
+        return cleanExercise as ExerciseTemplate;
+      });
+    
+    console.log('[ExerciseSelector] Exercises to add:', exercises);
+    
     onSelectExercises(exercises);
     setSelectedMuscle(null);
     setSearchTerm('');
+    setGlobalSearchTerm('');
     setSelectedExercises(new Set());
   };
 
