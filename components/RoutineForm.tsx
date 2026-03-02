@@ -57,13 +57,16 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     });
   };
 
-  // Guardar borrador en localStorage cada vez que cambie el estado
+  // Guardar borrador en localStorage con debounce para evitar escrituras excesivas
   useEffect(() => {
     // No guardar si estamos editando una rutina existente
     if (routineId) return;
     
     // Solo guardar si hay algún dato ingresado
-    if (name || description || image || exercises.length > 0) {
+    if (!name && !description && !image && exercises.length === 0) return;
+    
+    // Debounce: esperar 1 segundo antes de guardar
+    const timeoutId = setTimeout(() => {
       try {
         const draft = {
           name,
@@ -79,7 +82,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
       } catch (e) {
         console.warn('Error saving draft:', e);
       }
-    }
+    }, 1000); // Esperar 1 segundo de inactividad antes de guardar
+    
+    return () => clearTimeout(timeoutId);
   }, [name, description, image, exercises, restBetweenSets, restBetweenExercises, currentStep, routineId]);
 
   // Restaurar borrador al montar (solo si no estamos editando)

@@ -119,14 +119,26 @@ export async function getRoutines(): Promise<Routine[]> {
     }
 }
 
+// Cache del módulo de Supabase para evitar imports dinámicos repetidos
+let supabaseServiceCache: SupabaseServicePartial | null = null;
+
+async function getSupabaseService(): Promise<SupabaseServicePartial> {
+    if (supabaseServiceCache) {
+        return supabaseServiceCache;
+    }
+    
+    const supabaseModule = await import('@/lib/supabase/service');
+    supabaseServiceCache = supabaseModule as unknown as SupabaseServicePartial;
+    return supabaseServiceCache;
+}
+
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
     if (!isDatabaseEnabled()) {
         throw new Error('Base de datos requerida. Las rutinas solo se pueden crear con Supabase habilitado.');
     }
 
     try {
-        const supabaseModule = await import('@/lib/supabase/service');
-        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        const supabaseService = await getSupabaseService();
         
         if (!supabaseService.createRoutine) {
             throw new Error('Servicio de creación de rutinas no disponible');
@@ -158,8 +170,7 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
     }
 
     try {
-        const supabaseModule = await import('@/lib/supabase/service');
-        const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+        const supabaseService = await getSupabaseService();
         
         if (!supabaseService.updateRoutine) {
             throw new Error('Servicio de actualización de rutinas no disponible');
