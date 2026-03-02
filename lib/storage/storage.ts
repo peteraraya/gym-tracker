@@ -121,6 +121,8 @@ export async function getRoutines(): Promise<Routine[]> {
 
 // Cache del módulo de Supabase para evitar imports dinámicos repetidos
 let supabaseServiceCache: SupabaseServicePartial | null = null;
+// Cache del módulo de localStorage para evitar imports dinámicos repetidos
+let localStorageServiceCache: any | null = null;
 
 async function getSupabaseService(): Promise<SupabaseServicePartial> {
     if (supabaseServiceCache) {
@@ -130,6 +132,15 @@ async function getSupabaseService(): Promise<SupabaseServicePartial> {
     const supabaseModule = await import('@/lib/supabase/service');
     supabaseServiceCache = supabaseModule as unknown as SupabaseServicePartial;
     return supabaseServiceCache;
+}
+
+async function getLocalStorageService(): Promise<any> {
+    if (localStorageServiceCache) {
+        return localStorageServiceCache;
+    }
+    
+    localStorageServiceCache = await import('@/lib/storage/localStorage');
+    return localStorageServiceCache;
 }
 
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
@@ -412,27 +423,26 @@ export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
 export async function getMonthlyPlan(): Promise<MonthlyPlan> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
+            const localStorageService = await getLocalStorageService();
             return localStorageService.getMonthlyPlan();
         }
 
         try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            const supabaseService = await getSupabaseService();
             if (supabaseService.getMonthlyPlan) {
                 const res = await supabaseService.getMonthlyPlan();
                 handleStorageSuccess();
                 return res;
             }
-            const localStorageService = await import('@/lib/storage/localStorage');
+            const localStorageService = await getLocalStorageService();
             return localStorageService.getMonthlyPlan();
         } catch (err) {
             handleStorageError(err, 'getMonthlyPlan');
-            const localStorageService = await import('@/lib/storage/localStorage');
+            const localStorageService = await getLocalStorageService();
             return localStorageService.getMonthlyPlan();
         }
     } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
+        const localStorageService = await getLocalStorageService();
         return localStorageService.getMonthlyPlan();
     }
 }
@@ -440,27 +450,26 @@ export async function getMonthlyPlan(): Promise<MonthlyPlan> {
 export async function saveMonthlyPlan(plan: MonthlyPlan): Promise<void> {
     if (isDatabaseEnabled()) {
         if (storageMode === 'localStorage' && !shouldRetrySupabase()) {
-            const localStorageService = await import('@/lib/storage/localStorage');
+            const localStorageService = await getLocalStorageService();
             return localStorageService.saveMonthlyPlan(plan);
         }
 
         try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            const supabaseService = await getSupabaseService();
             if (supabaseService.saveMonthlyPlan) {
                 await supabaseService.saveMonthlyPlan(plan);
                 handleStorageSuccess();
                 return;
             }
-            const localStorageService = await import('@/lib/storage/localStorage');
+            const localStorageService = await getLocalStorageService();
             return localStorageService.saveMonthlyPlan(plan);
         } catch (err) {
             handleStorageError(err, 'saveMonthlyPlan');
-            const localStorageService = await import('@/lib/storage/localStorage');
+            const localStorageService = await getLocalStorageService();
             return localStorageService.saveMonthlyPlan(plan);
         }
     } else {
-        const localStorageService = await import('@/lib/storage/localStorage');
+        const localStorageService = await getLocalStorageService();
         return localStorageService.saveMonthlyPlan(plan);
     }
 }
@@ -505,8 +514,7 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
     // Intentar Supabase primero si está habilitado
     if (isDatabaseEnabled()) {
         try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            const supabaseService = await getSupabaseService();
             
             if (supabaseService.getActiveWorkout) {
                 const supabaseResult = await supabaseService.getActiveWorkout();
@@ -526,7 +534,7 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
     
     // Fallback a localStorage (siempre disponible)
     try {
-        const localStorageService = await import('@/lib/storage/localStorage');
+        const localStorageService = await getLocalStorageService();
         const localResult = await localStorageService.getActiveWorkout();
         if (localResult) {
             logger.debug('Active workout loaded from localStorage', { operation: 'DUAL_READ' });
@@ -540,15 +548,14 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
 
 export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
     // DUAL WRITE: Guardar en localStorage primero (crítico para el workout)
-    const localStorageService = await import('@/lib/storage/localStorage');
+    const localStorageService = await getLocalStorageService();
     await localStorageService.saveActiveWorkout(payload);
     logger.debug('Active workout saved to localStorage', { operation: 'DUAL_WRITE' });
     
     // Intentar guardar en Supabase también (best effort)
     if (isDatabaseEnabled()) {
         try {
-            const supabaseModule = await import('@/lib/supabase/service');
-            const supabaseService = supabaseModule as unknown as SupabaseServicePartial;
+            const supabaseService = await getSupabaseService();
             
             if (supabaseService.saveActiveWorkout) {
                 await supabaseService.saveActiveWorkout(payload);
