@@ -11,6 +11,8 @@ interface UseWorkoutCompletionProps {
   onSuccess: (message: string, duration?: number) => void;
   onError: (message: string) => void;
   router: any;
+  onWorkoutComplete?: () => void;
+  onAchievementUnlocked?: () => void;
 }
 
 export function useWorkoutCompletion({
@@ -22,7 +24,9 @@ export function useWorkoutCompletion({
   finishWorkoutContext,
   onSuccess,
   onError,
-  router
+  router,
+  onWorkoutComplete,
+  onAchievementUnlocked
 }: UseWorkoutCompletionProps) {
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [proposedDuration, setProposedDuration] = useState<number>(0);
@@ -92,8 +96,13 @@ export function useWorkoutCompletion({
         if (achievement.unlocked && !shownAchievements.has(achievement.id)) {
           onSuccess(`🏆 ¡Logro desbloqueado! ${achievement.name}`, 5000);
           setShownAchievements(prev => new Set([...prev, achievement.id]));
+          // Haptic feedback para logro
+          onAchievementUnlocked?.();
         }
       });
+      
+      // Haptic feedback al completar entrenamiento
+      onWorkoutComplete?.();
       
       finishWorkoutContext();
       onSuccess('Sesión guardada exitosamente');

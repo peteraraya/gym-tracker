@@ -22,6 +22,8 @@ import { useWeightPrediction } from './hooks/useWeightPrediction';
 import { useSetExecution } from './hooks/useSetExecution';
 import { useWorkoutCompletion } from './hooks/useWorkoutCompletion';
 import { useWorkoutSuggestions } from './hooks/useWorkoutSuggestions';
+import { useWakeLock } from './hooks/useWakeLock';
+import { useHapticFeedback } from './hooks/useHapticFeedback';
 import { CompactWorkoutHeader } from './components/CompactWorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
 import { SeriesTable } from './components/SeriesTable';
@@ -140,7 +142,9 @@ export default function WorkoutPage() {
       isInitialized
     });
   
-  const setExecution = useSetExecution();
+  const setExecution = useSetExecution({
+    onSetStart: () => haptic.setStart(),
+  });
   
   const completion = useWorkoutCompletion({
     routine,
@@ -151,7 +155,9 @@ export default function WorkoutPage() {
     finishWorkoutContext,
     onSuccess: success,
     onError: error,
-    router
+    router,
+    onWorkoutComplete: () => haptic.workoutComplete(),
+    onAchievementUnlocked: () => haptic.achievement(),
   });
   
   useWorkoutSuggestions({
@@ -170,6 +176,12 @@ export default function WorkoutPage() {
     onSuccess: success,
     onError: error
   });
+
+  // Wake Lock para mantener la pantalla activa
+  const wakeLock = useWakeLock();
+  
+  // Haptic Feedback mejorado
+  const haptic = useHapticFeedback();
 
   // ==================== INITIALIZATION ====================
   useEffect(() => {
@@ -350,6 +362,22 @@ export default function WorkoutPage() {
     };
   }, [timerHandlers.showTimer]);
 
+  // Activar Wake Lock cuando el entrenamiento está activo
+  useEffect(() => {
+    if (isInitialized && wakeLock.isSupported) {
+      wakeLock.requestWakeLock().then((activated) => {
+        if (activated) {
+          success('🔋 Pantalla activa durante el entrenamiento', 2000);
+        }
+      });
+    }
+
+    // Liberar wake lock al salir
+    return () => {
+      wakeLock.releaseWakeLock();
+    };
+  }, [isInitialized, wakeLock.isSupported]);
+
   useEffect(() => {
     // Defer closing the series table to the next tick to avoid synchronous setState within an effect
     const timer = setTimeout(() => {
@@ -404,9 +432,8 @@ export default function WorkoutPage() {
 
     workoutState.completeSet(exerciseId, repsValue, weightValue);
 
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]);
-    }
+    // Haptic feedback al completar serie
+    haptic.setComplete();
 
     if (weightPrediction.weightSuggestion && weightPrediction.weightSuggestion.suggested > weightValue) {
       setPendingToast({
@@ -438,6 +465,8 @@ export default function WorkoutPage() {
           useSmartRest
         });
         
+        // Haptic feedback al iniciar descanso entre ejercicios
+        haptic.restStart();
         timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
       }
     } else {
@@ -450,6 +479,8 @@ export default function WorkoutPage() {
         useSmartRest
       });
       
+      // Haptic feedback al iniciar descanso entre series
+      haptic.restStart();
       timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
     }
   }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, weightPrediction.weightSuggestion, timerHandlers, setExecution, completion]);
@@ -457,6 +488,9 @@ export default function WorkoutPage() {
   const handleTimerComplete = useCallback(() => {
     timerHandlers.stopTimer();
     clearRestState();
+    
+    // Haptic feedback al terminar descanso
+    haptic.restComplete();
     
     if (!currentExercise || !routine) return;
     
@@ -472,6 +506,9 @@ export default function WorkoutPage() {
     } else if (isLastSet && !isLastExercise) {
       const nextIndex = workoutState.currentExerciseIndex + 1;
       if (routine.exercises[nextIndex]) {
+        // Haptic feedback al cambiar de ejercicio
+        haptic.exerciseChange();
+        
         workoutState.setCurrentExerciseIndex(nextIndex);
         workoutState.setCurrentSet(1);
         const nextExercise = routine.exercises[nextIndex];

@@ -7,7 +7,11 @@ export interface SetExecutionState {
   setStartTime: number | null;
 }
 
-export function useSetExecution() {
+export interface SetExecutionCallbacks {
+  onSetStart?: () => void;
+}
+
+export function useSetExecution(callbacks?: SetExecutionCallbacks) {
   const [showPreparation, setShowPreparation] = useState(false);
   const [showSetExecution, setShowSetExecution] = useState(false);
   const [isExecutingSet, setIsExecutingSet] = useState(false);
@@ -21,6 +25,9 @@ export function useSetExecution() {
     setShowPreparation(false);
     setSetStartTime(Date.now());
     
+    // Llamar callback de inicio de serie (para haptic feedback)
+    callbacks?.onSetStart?.();
+    
     if (useExecutionModal) {
       setShowSetExecution(true);
       setIsExecutingSet(true);
@@ -28,7 +35,7 @@ export function useSetExecution() {
       setIsExecutingSet(true);
       onSuccess?.('✅ Serie iniciada - completa cuando termines', 2000);
     }
-  }, []);
+  }, [callbacks]);
   
   const completeSet = useCallback(() => {
     setIsExecutingSet(false);
