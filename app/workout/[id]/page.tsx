@@ -54,7 +54,23 @@ export default function WorkoutPage() {
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
   const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
-  const [workoutStartTime] = useState(() => Date.now());
+  const [workoutStartTime, setWorkoutStartTime] = useState(() => {
+    // Intentar leer el tiempo de inicio guardado para evitar el flash
+    try {
+      const stored = localStorage.getItem('gym-tracker-active-workout');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.startedAt) {
+          const startTime = new Date(parsed.startedAt).getTime();
+          console.log('[Workout Init] Loaded start time from storage:', new Date(startTime).toISOString());
+          return startTime;
+        }
+      }
+    } catch (e) {
+      console.warn('[Workout] Could not read stored start time:', e);
+    }
+    return Date.now();
+  });
   const [totalPausedTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   
@@ -186,6 +202,13 @@ export default function WorkoutPage() {
       
       if (storedWorkout && storedWorkout.routineId === id) {
         const s = storedWorkout as any;
+        
+        // Restaurar el tiempo de inicio del entrenamiento
+        if (s.startedAt) {
+          const startTime = new Date(s.startedAt).getTime();
+          setWorkoutStartTime(startTime);
+          console.log('[Workout Init] Restored workout start time:', new Date(startTime).toISOString());
+        }
         
         workoutState.setCurrentExerciseIndex(Number(s.currentExerciseIndex ?? 0));
         workoutState.setCurrentSet(Number(s.currentSet ?? 1));
