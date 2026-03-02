@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
@@ -13,8 +13,6 @@ import { Timer } from '@/components/Timer';
 import { PreparationCountdown } from '@/components/PreparationCountdown';
 import { MinimizedTimer } from '@/components/MinimizedTimer';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { ExerciseInfoPanel } from '@/components/ExerciseInfoPanel';
-import { EXERCISE_DATABASE } from '@/data/exercises';
 import * as storageService from '@/lib/storage/storage';
 import { useWorkoutState } from './hooks/useWorkoutState';
 import { useWorkoutTimer } from './hooks/useWorkoutTimer';
@@ -26,11 +24,9 @@ import { useWakeLock } from './hooks/useWakeLock';
 import { useHapticFeedback } from './hooks/useHapticFeedback';
 import { CompactWorkoutHeader } from './components/CompactWorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
-import { SeriesTable } from './components/SeriesTable';
 import { ExerciseList } from './components/ExerciseList';
 import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
 import { AddExerciseButton } from './components/AddExerciseButton';
-import { SetExecutionModal } from '@/components/SetExecutionModal';
 import type { ExerciseTemplate } from '@/data/exercises';
 import { 
   calculateNextRestTime, 
@@ -38,6 +34,17 @@ import {
   calculateSmartRestTime,
   applySmartRestToAllSets
 } from './services/restCalculationService';
+
+// Lazy load componentes pesados que no se usan inmediatamente
+const SeriesTable = lazy(() => import('./components/SeriesTable').then(m => ({ default: m.SeriesTable })));
+const ExerciseInfoPanel = lazy(() => import('@/components/ExerciseInfoPanel').then(m => ({ default: m.ExerciseInfoPanel })));
+const SetExecutionModal = lazy(() => import('@/components/SetExecutionModal').then(m => ({ default: m.SetExecutionModal })));
+
+// Lazy load de datos pesados
+let EXERCISE_DATABASE: any[] = [];
+import('@/data/exercises').then(m => {
+  EXERCISE_DATABASE = m.EXERCISE_DATABASE;
+});
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -979,27 +986,31 @@ export default function WorkoutPage() {
         </div>
 
         {isSeriesTableExpanded && (
-          <SeriesTable
-            exercise={currentExercise}
-            exerciseId={currentExercise.id}
-            completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
-            actualReps={workoutState.workoutData.actualReps[currentExercise.id] || []}
-            actualWeights={workoutState.workoutData.actualWeights[currentExercise.id] || []}
-            setTypes={workoutState.workoutData.setTypes[currentExercise.id] || []}
-            currentSet={workoutState.currentSet}
-            onEditReps={handleEditReps}
-            onEditWeight={handleEditWeight}
-            onEditSetType={handleEditSetType}
-            onToggleSetComplete={handleToggleSetComplete}
-            onAddSet={handleAddSet}
-            perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
-            onEditRestTime={handleEditRestTime}
-            onApplySmartRest={handleApplySmartRest}
-            smartRestTime={smartRestTime}
+          <Suspense fallback={
+            <div className="animate-pulse bg-gray-100 dark:bg-gray-800 rounded-lg h-64 mb-4" />
+          }>
+            <SeriesTable
+              exercise={currentExercise}
+              exerciseId={currentExercise.id}
+              completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
+              actualReps={workoutState.workoutData.actualReps[currentExercise.id] || []}
+              actualWeights={workoutState.workoutData.actualWeights[currentExercise.id] || []}
+              setTypes={workoutState.workoutData.setTypes[currentExercise.id] || []}
+              currentSet={workoutState.currentSet}
+              onEditReps={handleEditReps}
+              onEditWeight={handleEditWeight}
+              onEditSetType={handleEditSetType}
+              onToggleSetComplete={handleToggleSetComplete}
+              onAddSet={handleAddSet}
+              perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
+              onEditRestTime={handleEditRestTime}
+              onApplySmartRest={handleApplySmartRest}
+              smartRestTime={smartRestTime}
             routine={routine}
             restOverrides={workoutState.workoutData.restOverrides}
             useSmartRest={useSmartRest}
           />
+          </Suspense>
         )}
 
         <ExerciseList
@@ -1085,36 +1096,40 @@ export default function WorkoutPage() {
         </Modal>
 
         {showExerciseInfo && currentExercise && (
-          <ExerciseInfoPanel
-            exercise={EXERCISE_DATABASE.find(e => e.name === currentExercise.name) || {
-              id: currentExercise.id,
-              name: currentExercise.name,
-              muscleGroup: 'pecho'
-            } as any}
-            onClose={() => setShowExerciseInfo(false)}
-          />
+          <Suspense fallback={<div />}>
+            <ExerciseInfoPanel
+              exercise={EXERCISE_DATABASE.find(e => e.name === currentExercise.name) || {
+                id: currentExercise.id,
+                name: currentExercise.name,
+                muscleGroup: 'pecho'
+              } as any}
+              onClose={() => setShowExerciseInfo(false)}
+            />
+          </Suspense>
         )}
 
-        <SetExecutionModal
-          isOpen={setExecution.showSetExecution}
-          exerciseName={currentExercise.name}
-          equipment={currentExercise.equipment}
-          currentSet={workoutState.currentSet}
-          totalSets={currentExercise.sets.length}
-          currentReps={workoutState.currentReps}
-          currentWeight={workoutState.currentWeight}
-          exerciseId={currentExercise.id}
-          onRepsChange={workoutState.setCurrentReps}
-          onWeightChange={workoutState.setCurrentWeight}
-          onComplete={handleCompleteSet}
-          onCancel={() => {
-            setExecution.cancelSetExecution();
-            if (routine && workoutState.currentExerciseIndex < routine.exercises.length - 1) {
-              workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
-              workoutState.setCurrentSet(1);
+        <Suspense fallback={<div />}>
+          <SetExecutionModal
+            isOpen={setExecution.showSetExecution}
+            exerciseName={currentExercise.name}
+            equipment={currentExercise.equipment}
+            currentSet={workoutState.currentSet}
+            totalSets={currentExercise.sets.length}
+            currentReps={workoutState.currentReps}
+            currentWeight={workoutState.currentWeight}
+            exerciseId={currentExercise.id}
+            onRepsChange={workoutState.setCurrentReps}
+            onWeightChange={workoutState.setCurrentWeight}
+            onComplete={handleCompleteSet}
+            onCancel={() => {
+              setExecution.cancelSetExecution();
+              if (routine && workoutState.currentExerciseIndex < routine.exercises.length - 1) {
+                workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
+                workoutState.setCurrentSet(1);
             }
           }}
         />
+        </Suspense>
       </div>
     </ProtectedRoute>
   );
