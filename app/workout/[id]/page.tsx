@@ -28,7 +28,9 @@ import { SetControls } from './components/SetControls';
 import { SeriesTable } from './components/SeriesTable';
 import { ExerciseList } from './components/ExerciseList';
 import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
+import { AddExerciseButton } from './components/AddExerciseButton';
 import { SetExecutionModal } from '@/components/SetExecutionModal';
+import type { ExerciseTemplate } from '@/data/exercises';
 import { 
   calculateNextRestTime, 
   calculateExerciseRestTime,
@@ -41,7 +43,7 @@ export default function WorkoutPage() {
   const params = useParams();
   const id = params.id as string;
   
-  const { getRoutineById, addSession, sessions, loading: gymLoading } = useGym();
+  const { getRoutineById, addSession, sessions, loading: gymLoading, updateRoutine } = useGym();
   const { startWorkout, updateWorkoutProgress, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
@@ -678,6 +680,44 @@ export default function WorkoutPage() {
     success(`Copiado: ${lastSetData.reps} reps × ${lastSetData.weight}kg`, 2000);
   }, [lastSetData, workoutState, success]);
 
+  const handleAddExercises = useCallback(async (exercises: ExerciseTemplate[]) => {
+    if (!routine || exercises.length === 0) return;
+    
+    try {
+      // Convertir los ejercicios seleccionados al formato de la rutina
+      const newExercises = exercises.map(ex => ({
+        id: ex.id,
+        name: ex.name,
+        sets: Array.from({ length: ex.defaultSets || 3 }, () => ({
+          reps: ex.defaultReps || 10,
+          weight: 0,
+          type: 'normal' as const
+        })),
+        equipment: ex.equipment,
+        notes: ex.description,
+        restBetweenSets: ex.restTime ? parseInt(String(ex.restTime)) : routine.restBetweenSets || 60,
+        useSmartRest: true
+      }));
+
+      // Agregar los nuevos ejercicios a la rutina
+      const updatedRoutine = {
+        ...routine,
+        exercises: [...routine.exercises, ...newExercises]
+      };
+
+      // Actualizar la rutina en el estado local
+      setRoutine(updatedRoutine);
+
+      // Guardar la rutina actualizada en el storage
+      await updateRoutine(id, updatedRoutine);
+
+      success(`${exercises.length} ejercicio${exercises.length > 1 ? 's' : ''} agregado${exercises.length > 1 ? 's' : ''} a la rutina`, 3000);
+    } catch (err) {
+      console.error('Error adding exercises:', err);
+      error('Error al agregar ejercicios');
+    }
+  }, [routine, id, updateRoutine, success, error]);
+
   // ==================== RENDER ====================
   if (gymLoading || !isInitialized) {
     return (
@@ -900,6 +940,10 @@ export default function WorkoutPage() {
           onSelectExercise={handleSelectExercise}
           onMoveExercise={handleMoveExercise}
         />
+
+        <div className="mb-6">
+          <AddExerciseButton onAddExercises={handleAddExercises} />
+        </div>
 
         <Modal
           isOpen={completion.showNotesModal}
