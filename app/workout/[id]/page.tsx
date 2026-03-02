@@ -265,6 +265,11 @@ export default function WorkoutPage() {
             workoutState.setCurrentReps(firstSet.reps);
             workoutState.setCurrentWeight(firstSet.weight || 0);
           }
+          
+          // Iniciar automáticamente la primera serie
+          setTimeout(() => {
+            setExecution.startSet();
+          }, 500);
         }
       }
       
@@ -476,6 +481,11 @@ export default function WorkoutPage() {
           workoutState.setCurrentReps(firstSet.reps);
           workoutState.setCurrentWeight(firstSet.weight || 0);
         }
+        
+        // Iniciar automáticamente la siguiente serie después del descanso
+        setTimeout(() => {
+          setExecution.startSet();
+        }, 500);
       }
     } else if (!isLastSet) {
       const newSet = workoutState.currentSet + 1;
@@ -485,8 +495,13 @@ export default function WorkoutPage() {
         workoutState.setCurrentReps(nextSetData.reps);
         workoutState.setCurrentWeight(nextSetData.weight || 0);
       }
+      
+      // Iniciar automáticamente la siguiente serie después del descanso
+      setTimeout(() => {
+        setExecution.startSet();
+      }, 500);
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, clearRestState, timerHandlers, completion]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, clearRestState, timerHandlers, completion, setExecution]);
 
   useEffect(() => {
     // keep the ref updated so the timer hook can call the latest handler
