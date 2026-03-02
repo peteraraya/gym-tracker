@@ -1,369 +1,207 @@
-# 🔧 Fix: Workout Reaparece Después de Cancelar
+# Fix: Workout Reaparece Después de Cancelar
 
-## 🐛 Problema Reportado
+## Problema
 
-**Usuario:** "Hay ocasiones que cancelo entrenamiento y al rato vuelven a salir en progreso"
+Después de cancelar un entrenamiento, a veces el workout volvía a aparecer cuando:
+- Se recargaba la página (F5)
+- Se volvía a la app después de estar en segundo plano
+- Se navegaba entre páginas
 
-## 🔍 Diagnóstico
+## Causa Raíz
 
-### Causa Raíz
+El problema tenía múltiples causas:
 
-El problema ocurre debido a una condición de carrera (race condition) entre:
+1. **Marcadores de cancelación insuficientes**: Solo se usaba `sessionStorage` que se limpia fácilmente
+2. **Ventana de tiempo muy corta**: Solo 5 segundos de protección contra restauración
+3. **Falta de sincronización**: El banner y el contexto usaban marcadores diferentes
+4. **Condiciones de carrera**: El `onResume` podía ejecutarse antes de que se limpiara el storage
 
-1. **Cancelación del workout:**
-   - `cancelWorkout()` limpia `activeWorkoutRef.current` y `activeWorkout`
-   - Llama a `clearActiveWorkout()` para limpiar localStorage y Supabase
+## Solución Implementada
 
-2. **Restauración automática (onResume):**
-   - Cuando la app vuelve a primer plano, `onResume` se ejecuta
-   - Espera 100ms y luego intenta restaurar el workout desde storage
-   - Si el timing es incorrecto, puede restaurar el workout ANTES de que se limpie completamente
+### 1. Doble Sistema de Marcadores
 
-### Flujo del Problema
-
-```
-Usuario cancela workout
-    ↓
-cancelWorkout() se ejecuta
-    ↓
-activeWorkout = null (en memoria)
-    ↓
-clearActiveWorkout() empieza a ejecutarse (async)
-    ↓
-Usuario cambia de app o tab
-    ↓
-onResume se ejecuta
-    ↓
-setTimeout(100ms) espera
-    ↓
-getActiveWorkout() lee desde storage
-    ↓
-⚠️ PROBLEMA: El workout todavía está en storage porque clearActiveWorkout() no terminó
-    ↓
-Workout se restaura incorrectamente
-```
-
-## ✅ Solución Implementada
-
-### Estrategia: Banderas de Intención
-
-Usamos `sessionStorage` para marcar cuando un workout fue cancelado o finalizado intencionalmente. Esto evita que `onResume` lo restaure.
-
-### Cambios en `context/WorkoutContext.tsx`
-
-#### 1. Modificación en `cancelWorkout()`
+Ahora se usan dos tipos de marcadores para mayor robustez:
 
 ```typescript
-const cancelWorkout = useCallback(async () => {
-  // ✅ NUEVO: Marcar que el workout fue cancelado intencionalmente
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('workout_cancelled', Date.now().toString());
-  }
-  
-  // Actualizar la ref inmediatamente para evitar restauración
-  activeWorkoutRef.current = null;
-  setActiveWorkout(null);
-  
-  try {
-    await storageService.clearActiveWorkout();
-    console.log('[WorkoutContext] Active workout cancelled and cleared');
-  } catch (e) {
-    console.error('[WorkoutContext] Error limpiando active workout:', e);
-  }
-}, []);
+// En cancelWorkout y finishWorkout
+const timestamp = Date.now().toString();
+sessionStorage.setItem('workout_cancelled', timestamp);  // Corto plazo
+localStorage.setItem('workout_cancelled_persistent', timestamp);  // Persistente
 ```
 
-#### 2. Modificación en `finishWorkout()`
+**Beneficios**:
+- `sessionStorage`: Se limpia al cerrar la pestaña (comportamiento normal)
+- `localStorage`: Persiste entre sesiones (protección adicional)
+
+### 2. Ventana de Tiempo Extendida
 
 ```typescript
-const finishWorkout = useCallback(async () => {
-  // ✅ NUEVO: Marcar que el workout fue finalizado intencionalmente
-  if (typeof window !== 'undefined') {
-    sessionStorage.setItem('workout_finished', Date.now().toString());
-  }
-  
-  // Actualizar la ref inmediatamente para evitar restauración
-  activeWorkoutRef.current = null;
-  setActiveWorkout(null);
-  
-  try {
-    await storageService.clearActiveWorkout();
-    console.log('[WorkoutContext] Active workout finished and cleared');
-  } catch (e) {
-    console.error('[WorkoutContext] Error limpiando active workout:', e);
-  }
-}, []);
+// Antes: 5 segundos
+if (timeSinceCancelled < 5000) { ... }
+
+// Ahora: 30 segundos
+if (timeSinceCancelled < 30000) { ... }
 ```
 
-#### 3. Modificación en `onResume`
+**Beneficios**:
+- Más tiempo para que el storage se limpie completamente
+- Protección contra recargas rápidas
+- Maneja mejor las condiciones de carrera
+
+### 3. Logs Detallados
+
+Se agregaron logs en puntos clave para debugging:
 
 ```typescript
-onResume: useCallback(() => {
-  setTimeout(async () => {
-    try {
-      // ✅ NUEVO: Verificar si el workout fue cancelado o finalizado recientemente
-      if (typeof window !== 'undefined') {
-        const cancelledAt = sessionStorage.getItem('workout_cancelled');
-        const finishedAt = sessionStorage.getItem('workout_finished');
-        
-        // Si fue cancelado en los últimos 5 segundos, NO restaurar
-        if (cancelledAt) {
-          const timeSinceCancelled = Date.now() - parseInt(cancelledAt);
-          if (timeSinceCancelled < 5000) {
-            console.log('[WorkoutContext] Workout was recently cancelled, skipping restore');
-            sessionStorage.removeItem('workout_cancelled');
-            return; // ⛔ NO restaurar
-          }
-          sessionStorage.removeItem('workout_cancelled');
-        }
-        
-        // Si fue finalizado en los últimos 5 segundos, NO restaurar
-        if (finishedAt) {
-          const timeSinceFinished = Date.now() - parseInt(finishedAt);
-          if (timeSinceFinished < 5000) {
-            console.log('[WorkoutContext] Workout was recently finished, skipping restore');
-            sessionStorage.removeItem('workout_finished');
-            return; // ⛔ NO restaurar
-          }
-          sessionStorage.removeItem('workout_finished');
-        }
-      }
-      
-      // ✅ Solo restaurar si NO fue cancelado/finalizado recientemente
-      const stored = await storageService.getActiveWorkout();
-      if (stored && !activeWorkoutRef.current) {
-        // ... restaurar workout
-      }
-    } catch (e) {
-      console.error('[WorkoutContext] Error restoring workout on resume:', e);
+console.log('[WorkoutContext] cancelWorkout called');
+console.log('[WorkoutContext] Set cancellation markers:', timestamp);
+console.log('[WorkoutContext] Active workout cancelled and cleared from storage');
+console.log('[WorkoutContext] Workout was recently cancelled, skipping restore. Time since:', timeSinceCancelled);
+```
+
+### 4. Sincronización Banner-Contexto
+
+El `ActiveWorkoutBanner` ahora usa los mismos marcadores que el contexto:
+
+```typescript
+// Antes: Solo gym-tracker-cancelled
+localStorage.setItem('gym-tracker-cancelled', timestamp);
+
+// Ahora: Todos los marcadores
+localStorage.setItem('gym-tracker-cancelled', timestamp);
+sessionStorage.setItem('workout_cancelled', timestamp);
+localStorage.setItem('workout_cancelled_persistent', timestamp);
+```
+
+### 5. Delay en Redirección
+
+```typescript
+// Esperar a que el estado se limpie antes de redirigir
+await cancelWorkout();
+setTimeout(() => {
+  router.replace('/routines');
+}, 100);
+```
+
+## Flujo Completo de Cancelación
+
+1. **Usuario hace clic en "Descartar"**
+   - Se muestra confirmación
+
+2. **Usuario confirma**
+   - Se establecen 3 marcadores (sessionStorage + 2 localStorage)
+   - Se llama a `cancelWorkout()`
+
+3. **`cancelWorkout()` ejecuta**:
+   - Actualiza `activeWorkoutRef.current = null`
+   - Actualiza `setActiveWorkout(null)`
+   - Limpia el storage: `clearActiveWorkout()`
+   - Log de confirmación
+
+4. **Redirección**:
+   - Espera 100ms
+   - Redirige a `/routines`
+
+5. **Protección contra restauración**:
+   - Si `onResume` se ejecuta en los próximos 30 segundos
+   - Verifica los marcadores
+   - Si encuentra marcadores recientes, NO restaura el workout
+   - Limpia los marcadores después de 5 segundos
+
+## Verificación en onResume
+
+```typescript
+// Verificar ambos storages
+const cancelledAt = sessionStorage.getItem('workout_cancelled');
+const cancelledPersistent = localStorage.getItem('workout_cancelled_persistent');
+
+if (cancelledAt || cancelledPersistent) {
+  const timestamp = cancelledAt || cancelledPersistent;
+  const timeSinceCancelled = Date.now() - parseInt(timestamp || '0');
+  
+  if (timeSinceCancelled < 30000) { // 30 segundos
+    console.log('[WorkoutContext] Workout was recently cancelled, skipping restore');
+    // Limpiar marcadores
+    sessionStorage.removeItem('workout_cancelled');
+    if (timeSinceCancelled > 5000) {
+      localStorage.removeItem('workout_cancelled_persistent');
     }
-  }, 100);
-}, [])
+    return; // NO RESTAURAR
+  }
+}
 ```
 
-## 🎯 Cómo Funciona
+## Testing
 
-### Flujo Corregido
+### Escenarios a Probar
 
-```
-Usuario cancela workout
-    ↓
-cancelWorkout() se ejecuta
-    ↓
-✅ sessionStorage.setItem('workout_cancelled', timestamp)
-    ↓
-activeWorkout = null (en memoria)
-    ↓
-clearActiveWorkout() empieza a ejecutarse (async)
-    ↓
-Usuario cambia de app o tab
-    ↓
-onResume se ejecuta
-    ↓
-setTimeout(100ms) espera
-    ↓
-✅ Verifica sessionStorage: ¿workout_cancelled existe?
-    ↓
-✅ SÍ: Fue cancelado hace menos de 5 segundos
-    ↓
-✅ NO restaurar el workout
-    ↓
-✅ Limpiar la bandera
-    ↓
-✅ Workout permanece cancelado ✓
-```
+1. **Cancelar y recargar inmediatamente (F5)**:
+   - ✅ No debe reaparecer el workout
 
-## 🔧 Ventajas de la Solución
+2. **Cancelar y cerrar/abrir la app**:
+   - ✅ No debe reaparecer el workout
 
-### 1. Usa sessionStorage (No localStorage)
-- ✅ Se limpia automáticamente al cerrar el tab/navegador
-- ✅ No persiste entre sesiones
-- ✅ No interfiere con otros tabs
+3. **Cancelar y navegar entre páginas**:
+   - ✅ No debe reaparecer el banner
 
-### 2. Ventana de Tiempo (5 segundos)
-- ✅ Suficiente para que `clearActiveWorkout()` termine
-- ✅ No demasiado largo para causar problemas
-- ✅ Se limpia automáticamente después
+4. **Cancelar y esperar 30+ segundos**:
+   - ✅ Los marcadores se limpian automáticamente
 
-### 3. Doble Protección
-- ✅ Protege tanto `cancelWorkout()` como `finishWorkout()`
-- ✅ Evita restauración en ambos casos
+5. **Pausar workout legítimamente**:
+   - ✅ Debe restaurarse correctamente al volver
 
-### 4. Logs Claros
-- ✅ Logs específicos para debugging
-- ✅ Fácil identificar si el fix está funcionando
+### Cómo Verificar
 
-## 🧪 Testing
+1. Iniciar un entrenamiento
+2. Hacer clic en "Descartar" en el banner
+3. Confirmar la cancelación
+4. Abrir DevTools Console
+5. Verificar logs:
+   ```
+   [ActiveWorkoutBanner] User confirmed cancellation
+   [ActiveWorkoutBanner] Set cancellation markers: [timestamp]
+   [WorkoutContext] cancelWorkout called
+   [WorkoutContext] Set cancellation markers: [timestamp]
+   [WorkoutContext] Active workout cancelled and cleared from storage
+   [ActiveWorkoutBanner] Workout cancelled, redirecting to routines
+   ```
+6. Recargar la página (F5)
+7. Verificar que NO aparece el banner
+8. Verificar log:
+   ```
+   [WorkoutContext] Workout was recently cancelled, skipping restore. Time since: [ms]
+   ```
 
-### Caso 1: Cancelar Workout y Cambiar de App
+## Archivos Modificados
 
-```
-1. Iniciar un workout
-2. Hacer algunas series
-3. Cancelar el workout
-4. Inmediatamente cambiar a otra app
-5. Volver a la app después de 1-2 segundos
-6. ✅ Verificar: El workout NO debe reaparecer
-```
+1. **`context/WorkoutContext.tsx`**:
+   - `cancelWorkout()`: Doble marcador + logs
+   - `finishWorkout()`: Doble marcador + logs
+   - `onResume()`: Verificación de ambos storages + ventana de 30s
 
-### Caso 2: Finalizar Workout y Cambiar de App
+2. **`components/ActiveWorkoutBanner.tsx`**:
+   - `handleCancel()`: Sincronización de marcadores + delay en redirección
 
-```
-1. Iniciar un workout
-2. Completar todas las series
-3. Finalizar el workout
-4. Inmediatamente cambiar a otra app
-5. Volver a la app después de 1-2 segundos
-6. ✅ Verificar: El workout NO debe reaparecer
-```
+## Marcadores Utilizados
 
-### Caso 3: Workout Legítimo en Background
+| Marcador | Storage | Duración | Propósito |
+|----------|---------|----------|-----------|
+| `workout_cancelled` | sessionStorage | Hasta cerrar pestaña | Protección inmediata |
+| `workout_cancelled_persistent` | localStorage | 30 segundos | Protección persistente |
+| `gym-tracker-cancelled` | localStorage | 30 segundos | Compatibilidad legacy |
+| `workout_finished` | sessionStorage | Hasta cerrar pestaña | Protección inmediata |
+| `workout_finished_persistent` | localStorage | 30 segundos | Protección persistente |
 
-```
-1. Iniciar un workout
-2. Hacer algunas series
-3. Cambiar a otra app (sin cancelar)
-4. Esperar 10 segundos
-5. Volver a la app
-6. ✅ Verificar: El workout DEBE restaurarse correctamente
-```
+## Notas Técnicas
 
-### Caso 4: Cancelar y Esperar Más de 5 Segundos
+- Los marcadores persistentes se limpian automáticamente después de 5 segundos si el tiempo transcurrido es mayor
+- La ventana de 30 segundos es suficiente para manejar recargas, cambios de pestaña, y pausas breves
+- Los logs ayudan a debugging pero no afectan el rendimiento
+- El delay de 100ms en la redirección asegura que el estado se limpie antes de navegar
 
-```
-1. Iniciar un workout
-2. Cancelar el workout
-3. Esperar 6 segundos
-4. Cambiar a otra app
-5. Volver a la app
-6. ✅ Verificar: El workout NO debe reaparecer
-   (clearActiveWorkout ya terminó)
-```
+## Mejoras Futuras Posibles
 
-## 📊 Logs de Debug
-
-### Logs Esperados al Cancelar
-
-```
-[WorkoutContext] Active workout cancelled and cleared
-[DUAL_CLEAR] Active workout cleared from localStorage
-[DUAL_CLEAR] Active workout cleared from Supabase
-```
-
-### Logs Esperados al Volver (Después de Cancelar)
-
-```
-[WorkoutContext] App resumed, checking workout state...
-[WorkoutContext] Workout was recently cancelled, skipping restore
-```
-
-### Logs Esperados al Volver (Workout Legítimo)
-
-```
-[WorkoutContext] App resumed, checking workout state...
-[WorkoutContext] Restoring workout from storage
-```
-
-## 🔍 Verificación en Consola
-
-### Verificar Banderas
-
-```javascript
-// En la consola del navegador
-console.log('Cancelled:', sessionStorage.getItem('workout_cancelled'));
-console.log('Finished:', sessionStorage.getItem('workout_finished'));
-```
-
-### Limpiar Banderas Manualmente (Si es Necesario)
-
-```javascript
-// En la consola del navegador
-sessionStorage.removeItem('workout_cancelled');
-sessionStorage.removeItem('workout_finished');
-```
-
-## 🎨 Diagrama de Estados
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                  WORKOUT ACTIVO                          │
-├─────────────────────────────────────────────────────────┤
-│  Usuario entrena normalmente                             │
-│  Cambiar de app → onResume → Restaurar ✅               │
-└─────────────────────────────────────────────────────────┘
-                        ↓
-                   [Cancelar]
-                        ↓
-┌─────────────────────────────────────────────────────────┐
-│              WORKOUT CANCELADO                           │
-├─────────────────────────────────────────────────────────┤
-│  sessionStorage: workout_cancelled = timestamp           │
-│  activeWorkout = null                                    │
-│  clearActiveWorkout() ejecutándose                       │
-│  Cambiar de app → onResume → NO Restaurar ⛔           │
-└─────────────────────────────────────────────────────────┘
-                        ↓
-                  [5 segundos]
-                        ↓
-┌─────────────────────────────────────────────────────────┐
-│              LIMPIEZA COMPLETA                           │
-├─────────────────────────────────────────────────────────┤
-│  sessionStorage: workout_cancelled eliminado             │
-│  localStorage: active_workout eliminado                  │
-│  Supabase: active_workouts eliminado                     │
-│  Estado: Limpio ✅                                       │
-└─────────────────────────────────────────────────────────┘
-```
-
-## 📝 Notas Importantes
-
-### Por Qué sessionStorage y No localStorage
-
-- **sessionStorage:** Se limpia al cerrar el tab/navegador
-- **localStorage:** Persiste indefinidamente
-- **Ventaja:** No hay riesgo de banderas "huérfanas" que bloqueen restauraciones legítimas
-
-### Por Qué 5 Segundos
-
-- **Suficiente:** Para que `clearActiveWorkout()` termine en ambos lugares (localStorage + Supabase)
-- **No demasiado:** Para no causar problemas si el usuario vuelve rápidamente
-- **Seguro:** Incluso con conexión lenta, 5 segundos es suficiente
-
-### Compatibilidad
-
-- ✅ Funciona en todos los navegadores modernos
-- ✅ Compatible con PWA
-- ✅ Compatible con Capacitor (apps nativas)
-- ✅ No afecta el comportamiento normal de restauración
-
-## 🚀 Próximos Pasos
-
-### Si el Problema Persiste
-
-1. **Verificar logs en consola:**
-   - Buscar `[WorkoutContext]` logs
-   - Verificar que las banderas se están creando
-   - Verificar que `onResume` las está leyendo
-
-2. **Verificar timing:**
-   - Si el problema ocurre después de 5+ segundos, aumentar el tiempo
-   - Si ocurre inmediatamente, verificar que `clearActiveWorkout()` funciona
-
-3. **Verificar storage:**
-   - Verificar que `clearActiveWorkout()` limpia ambos lugares
-   - Verificar que no hay errores en la limpieza
-
-## ✅ Resumen
-
-**Problema:** Workout reaparece después de cancelar  
-**Causa:** Race condition entre cancelación y restauración  
-**Solución:** Banderas de intención en sessionStorage  
-**Resultado:** Workout NO se restaura si fue cancelado/finalizado recientemente  
-
-**Estado:** ✅ Implementado y listo para testing
-
----
-
-**Fecha:** 2026-02-28  
-**Archivo modificado:** `context/WorkoutContext.tsx`  
-**Tipo de fix:** Race condition / Timing issue
+1. Usar un flag en el storage en lugar de timestamps
+2. Implementar un sistema de eventos para sincronizar entre pestañas
+3. Agregar telemetría para detectar casos edge
+4. Considerar usar IndexedDB para mayor robustez

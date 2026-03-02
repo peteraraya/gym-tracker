@@ -246,10 +246,15 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const finishWorkout = useCallback(async () => {
+    console.log('[WorkoutContext] finishWorkout called');
+    
     // Marcar que el workout fue finalizado intencionalmente
     // Esto evita que onResume lo restaure
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('workout_finished', Date.now().toString());
+      const timestamp = Date.now().toString();
+      sessionStorage.setItem('workout_finished', timestamp);
+      localStorage.setItem('workout_finished_persistent', timestamp);
+      console.log('[WorkoutContext] Set finish markers:', timestamp);
     }
     
     // Actualizar la ref inmediatamente para evitar restauración
@@ -258,17 +263,22 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     
     try {
       await storageService.clearActiveWorkout();
-      console.log('[WorkoutContext] Active workout finished and cleared');
+      console.log('[WorkoutContext] Active workout finished and cleared from storage');
     } catch (e) {
       console.error('[WorkoutContext] Error limpiando active workout:', e);
     }
   }, []);
 
   const cancelWorkout = useCallback(async () => {
+    console.log('[WorkoutContext] cancelWorkout called');
+    
     // Marcar que el workout fue cancelado intencionalmente
     // Esto evita que onResume lo restaure
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('workout_cancelled', Date.now().toString());
+      const timestamp = Date.now().toString();
+      sessionStorage.setItem('workout_cancelled', timestamp);
+      localStorage.setItem('workout_cancelled_persistent', timestamp);
+      console.log('[WorkoutContext] Set cancellation markers:', timestamp);
     }
     
     // Actualizar la ref inmediatamente para evitar restauración
@@ -277,7 +287,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     
     try {
       await storageService.clearActiveWorkout();
-      console.log('[WorkoutContext] Active workout cancelled and cleared');
+      console.log('[WorkoutContext] Active workout cancelled and cleared from storage');
     } catch (e) {
       console.error('[WorkoutContext] Error limpiando active workout:', e);
     }
@@ -313,29 +323,46 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       // Esperar un poco para asegurar que clearActiveWorkout se completó
       setTimeout(async () => {
         try {
-          // Verificar si el workout fue cancelado o finalizado recientemente (últimos 5 segundos)
+          // Verificar si el workout fue cancelado o finalizado recientemente
           if (typeof window !== 'undefined') {
+            // Verificar sessionStorage (últimos 5 segundos)
             const cancelledAt = sessionStorage.getItem('workout_cancelled');
             const finishedAt = sessionStorage.getItem('workout_finished');
             
-            if (cancelledAt) {
-              const timeSinceCancelled = Date.now() - parseInt(cancelledAt);
-              if (timeSinceCancelled < 5000) {
-                console.log('[WorkoutContext] Workout was recently cancelled, skipping restore');
+            // Verificar localStorage persistente (últimos 30 segundos)
+            const cancelledPersistent = localStorage.getItem('workout_cancelled_persistent');
+            const finishedPersistent = localStorage.getItem('workout_finished_persistent');
+            
+            if (cancelledAt || cancelledPersistent) {
+              const timestamp = cancelledAt || cancelledPersistent;
+              const timeSinceCancelled = Date.now() - parseInt(timestamp || '0');
+              if (timeSinceCancelled < 30000) { // 30 segundos
+                console.log('[WorkoutContext] Workout was recently cancelled, skipping restore. Time since:', timeSinceCancelled);
                 sessionStorage.removeItem('workout_cancelled');
+                if (timeSinceCancelled > 5000) {
+                  // Limpiar el marcador persistente después de 5 segundos
+                  localStorage.removeItem('workout_cancelled_persistent');
+                }
                 return;
               }
               sessionStorage.removeItem('workout_cancelled');
+              localStorage.removeItem('workout_cancelled_persistent');
             }
             
-            if (finishedAt) {
-              const timeSinceFinished = Date.now() - parseInt(finishedAt);
-              if (timeSinceFinished < 5000) {
-                console.log('[WorkoutContext] Workout was recently finished, skipping restore');
+            if (finishedAt || finishedPersistent) {
+              const timestamp = finishedAt || finishedPersistent;
+              const timeSinceFinished = Date.now() - parseInt(timestamp || '0');
+              if (timeSinceFinished < 30000) { // 30 segundos
+                console.log('[WorkoutContext] Workout was recently finished, skipping restore. Time since:', timeSinceFinished);
                 sessionStorage.removeItem('workout_finished');
+                if (timeSinceFinished > 5000) {
+                  // Limpiar el marcador persistente después de 5 segundos
+                  localStorage.removeItem('workout_finished_persistent');
+                }
                 return;
               }
               sessionStorage.removeItem('workout_finished');
+              localStorage.removeItem('workout_finished_persistent');
             }
           }
           
