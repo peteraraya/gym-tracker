@@ -13,17 +13,44 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
   onMuscleClick 
 }) => {
   const [hovered, setHovered] = useState<MuscleGroup | null>(null);
+  const [tapped, setTapped] = useState<MuscleGroup | null>(null);
   
   const getMuscleName = (muscle: MuscleGroup): string => {
     return MUSCLE_GROUPS.find(m => m.id === muscle)?.name || muscle;
   };
 
   const isSelected = (muscle: MuscleGroup) => selectedMuscles.includes(muscle);
-  const isActive = (muscle: MuscleGroup) => isSelected(muscle) || hovered === muscle;
+  const isActive = (muscle: MuscleGroup) => isSelected(muscle) || hovered === muscle || tapped === muscle;
 
-  const handleAreaClick = (muscle: MuscleGroup) => {
-    onMuscleClick(muscle);
+  const handleAreaClick = (muscle: MuscleGroup, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    
+    // Si ya está tapped, hacer clic lo selecciona
+    if (tapped === muscle) {
+      onMuscleClick(muscle);
+      setTapped(null);
+    } else {
+      // Primer tap: mostrar tooltip
+      setTapped(muscle);
+      
+      // Auto-ocultar tooltip después de 2 segundos
+      setTimeout(() => {
+        setTapped(null);
+      }, 2000);
+    }
   };
+
+  // Cerrar tooltip al hacer clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      if (tapped) {
+        setTapped(null);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [tapped]);
 
   // Estilos para áreas activas
   const getAreaStyle = (muscle: MuscleGroup) => ({
@@ -33,13 +60,15 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
     filter: isActive(muscle) ? 'url(#glow)' : 'none',
   });
 
+  const displayedMuscle = tapped || hovered;
+
   return (
     <>
       {/* Tooltip flotante */}
-      {hovered && (
-        <div className="fixed bottom-50 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-          <div className="bg-gray-800 text-white px-6 py-2 rounded-md shadow-lg font-semibold text-md animate-fade-in">
-            {getMuscleName(hovered)}
+      {displayedMuscle && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-2xl font-bold text-lg animate-fade-in border-2 border-blue-400">
+            {getMuscleName(displayedMuscle)}
           </div>
         </div>
       )}
@@ -87,7 +116,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="150" y="85" width="40" height="20"
                 {...getAreaStyle('cuello')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('cuello')}
+                onClick={(e) => handleAreaClick('cuello')}
                 onMouseEnter={() => setHovered('cuello')}
                 onMouseLeave={() => setHovered(null)}
                 rx="5"
@@ -99,7 +128,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="20" ry="18"
                 {...getAreaStyle('hombros')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('hombros')}
+                onClick={(e) => handleAreaClick('hombros')}
                 onMouseEnter={() => setHovered('hombros')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -108,7 +137,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="20" ry="18"
                 {...getAreaStyle('hombros')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('hombros')}
+                onClick={(e) => handleAreaClick('hombros')}
                 onMouseEnter={() => setHovered('hombros')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -119,7 +148,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="20" ry="26"
                 {...getAreaStyle('pecho')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('pecho')}
+                onClick={(e) => handleAreaClick('pecho')}
                 onMouseEnter={() => setHovered('pecho')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -128,7 +157,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="20" ry="26"
                 {...getAreaStyle('pecho')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('pecho')}
+                onClick={(e) => handleAreaClick('pecho')}
                 onMouseEnter={() => setHovered('pecho')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -139,7 +168,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="14" ry="26"
                 {...getAreaStyle('biceps')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('biceps')}
+                onClick={(e) => handleAreaClick('biceps')}
                 onMouseEnter={() => setHovered('biceps')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -148,7 +177,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="14" ry="26"
                 {...getAreaStyle('biceps')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('biceps')}
+                onClick={(e) => handleAreaClick('biceps')}
                 onMouseEnter={() => setHovered('biceps')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -159,7 +188,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="10" ry="32"
                 {...getAreaStyle('antebrazos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('antebrazos')}
+                onClick={(e) => handleAreaClick('antebrazos')}
                 onMouseEnter={() => setHovered('antebrazos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -168,7 +197,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="10" ry="32"
                 {...getAreaStyle('antebrazos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('antebrazos')}
+                onClick={(e) => handleAreaClick('antebrazos')}
                 onMouseEnter={() => setHovered('antebrazos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -178,7 +207,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="150" y="155" width="40" height="60"
                 {...getAreaStyle('core')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('core')}
+                onClick={(e) => handleAreaClick('core')}
                 onMouseEnter={() => setHovered('core')}
                 onMouseLeave={() => setHovered(null)}
                 rx="8"
@@ -189,7 +218,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="125" y="220" width="32" height="200"
                 {...getAreaStyle('piernas')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('piernas')}
+                onClick={(e) => handleAreaClick('piernas')}
                 onMouseEnter={() => setHovered('piernas')}
                 onMouseLeave={() => setHovered(null)}
                 rx="8"
@@ -198,7 +227,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="180" y="220" width="28" height="200"
                 {...getAreaStyle('piernas')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('piernas')}
+                onClick={(e) => handleAreaClick('piernas')}
                 onMouseEnter={() => setHovered('piernas')}
                 onMouseLeave={() => setHovered(null)}
                 rx="8"
@@ -210,7 +239,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="12" ry="52"
                 {...getAreaStyle('gemelos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('gemelos')}
+                onClick={(e) => handleAreaClick('gemelos')}
                 onMouseEnter={() => setHovered('gemelos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -219,7 +248,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="12" ry="52"
                 {...getAreaStyle('gemelos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('gemelos')}
+                onClick={(e) => handleAreaClick('gemelos')}
                 onMouseEnter={() => setHovered('gemelos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -227,7 +256,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
           </div>
           
           <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
-            Haz clic en un grupo muscular
+            Toca para ver el nombre, toca de nuevo para seleccionar
           </p>
         </div>
 
@@ -273,7 +302,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="310" y="90" width="40" height="18"
                 {...getAreaStyle('cuello')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('cuello')}
+                onClick={(e) => handleAreaClick('cuello')}
                 onMouseEnter={() => setHovered('cuello')}
                 onMouseLeave={() => setHovered(null)}
                 rx="5"
@@ -284,7 +313,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="290" y="110" width="80" height="32"
                 {...getAreaStyle('trapecio')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('trapecio')}
+                onClick={(e) => handleAreaClick('trapecio')}
                 onMouseEnter={() => setHovered('trapecio')}
                 onMouseLeave={() => setHovered(null)}
                 rx="8"
@@ -296,7 +325,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="20" ry="18"
                 {...getAreaStyle('hombros')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('hombros')}
+                onClick={(e) => handleAreaClick('hombros')}
                 onMouseEnter={() => setHovered('hombros')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -305,7 +334,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="20" ry="18"
                 {...getAreaStyle('hombros')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('hombros')}
+                onClick={(e) => handleAreaClick('hombros')}
                 onMouseEnter={() => setHovered('hombros')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -315,7 +344,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="290" y="122" width="35" height="88"
                 {...getAreaStyle('espalda')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('espalda')}
+                onClick={(e) => handleAreaClick('espalda')}
                 onMouseEnter={() => setHovered('espalda')}
                 onMouseLeave={() => setHovered(null)}
                 rx="6"
@@ -324,7 +353,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="330" y="122" width="35" height="88"
                 {...getAreaStyle('espalda')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('espalda')}
+                onClick={(e) => handleAreaClick('espalda')}
                 onMouseEnter={() => setHovered('espalda')}
                 onMouseLeave={() => setHovered(null)}
                 rx="6"
@@ -336,7 +365,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="14" ry="26"
                 {...getAreaStyle('triceps')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('triceps')}
+                onClick={(e) => handleAreaClick('triceps')}
                 onMouseEnter={() => setHovered('triceps')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -345,7 +374,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="14" ry="26"
                 {...getAreaStyle('triceps')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('triceps')}
+                onClick={(e) => handleAreaClick('triceps')}
                 onMouseEnter={() => setHovered('triceps')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -356,7 +385,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="10" ry="32"
                 {...getAreaStyle('antebrazos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('antebrazos')}
+                onClick={(e) => handleAreaClick('antebrazos')}
                 onMouseEnter={() => setHovered('antebrazos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -365,7 +394,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="10" ry="32"
                 {...getAreaStyle('antebrazos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('antebrazos')}
+                onClick={(e) => handleAreaClick('antebrazos')}
                 onMouseEnter={() => setHovered('antebrazos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -375,7 +404,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="310" y="210" width="40" height="32"
                 {...getAreaStyle('core')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('core')}
+                onClick={(e) => handleAreaClick('core')}
                 onMouseEnter={() => setHovered('core')}
                 onMouseLeave={() => setHovered(null)}
                 rx="8"
@@ -387,7 +416,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="25" ry="36"
                 {...getAreaStyle('gluteos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('gluteos')}
+                onClick={(e) => handleAreaClick('gluteos')}
                 onMouseEnter={() => setHovered('gluteos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -396,7 +425,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="25" ry="36"
                 {...getAreaStyle('gluteos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('gluteos')}
+                onClick={(e) => handleAreaClick('gluteos')}
                 onMouseEnter={() => setHovered('gluteos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -406,7 +435,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="290" y="260" width="28" height="190"
                 {...getAreaStyle('piernas')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('piernas')}
+                onClick={(e) => handleAreaClick('piernas')}
                 onMouseEnter={() => setHovered('piernas')}
                 onMouseLeave={() => setHovered(null)}
                 rx="6"
@@ -415,7 +444,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 x="340" y="260" width="28" height="190"
                 {...getAreaStyle('piernas')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('piernas')}
+                onClick={(e) => handleAreaClick('piernas')}
                 onMouseEnter={() => setHovered('piernas')}
                 onMouseLeave={() => setHovered(null)}
                 rx="6"
@@ -427,7 +456,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="12" ry="52"
                 {...getAreaStyle('gemelos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('gemelos')}
+                onClick={(e) => handleAreaClick('gemelos')}
                 onMouseEnter={() => setHovered('gemelos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -436,7 +465,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="12" ry="52"
                 {...getAreaStyle('gemelos')}
                 className="cursor-pointer transition-all duration-200"
-                onClick={() => handleAreaClick('gemelos')}
+                onClick={(e) => handleAreaClick('gemelos')}
                 onMouseEnter={() => setHovered('gemelos')}
                 onMouseLeave={() => setHovered(null)}
               />
@@ -444,7 +473,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
           </div>
           
           <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
-            Haz clic en un grupo muscular
+            Toca para ver el nombre, toca de nuevo para seleccionar
           </p>
         </div>
       </div>
