@@ -187,6 +187,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   };
 
   const handleSelectExercises = (exerciseTemplates: ExerciseTemplate[]) => {
+    console.log('[RoutineForm] handleSelectExercises called with:', exerciseTemplates.length, 'exercises');
+    console.log('[RoutineForm] Exercise names:', exerciseTemplates.map(e => e.name));
+    
     const newExercises: Omit<Exercise, 'id'>[] = exerciseTemplates.map(template => {
       let defaultRestSecs: number | undefined;
       if (template.restTime) {
@@ -210,7 +213,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         restBetweenSets: defaultRestSecs
       };
     });
+    
+    console.log('[RoutineForm] Created', newExercises.length, 'new exercises');
+    console.log('[RoutineForm] Current exercises:', exercises.length);
+    
     setExercises([...exercises, ...newExercises]);
+    
+    console.log('[RoutineForm] After setExercises, total should be:', exercises.length + newExercises.length);
+    
     setIsExerciseSelectorOpen(false);
   };
 
@@ -886,19 +896,24 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
                       {/* Botones de acción */}
                       <div className="flex items-center gap-2">
-                        {exercises.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (exercises.length === 1) {
+                              // Si es el último ejercicio, mostrar confirmación
+                              if (confirm('¿Estás seguro de eliminar el último ejercicio? La rutina quedará vacía.')) {
+                                handleRemoveExercise(exerciseIndex);
+                              }
+                            } else {
                               handleRemoveExercise(exerciseIndex);
-                            }}
-                            className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
-                            title="Eliminar ejercicio"
-                          >
-                            <span className="text-lg">🗑️</span>
-                          </button>
-                        )}
+                            }
+                          }}
+                          className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
+                          title="Eliminar ejercicio"
+                        >
+                          <span className="text-lg">🗑️</span>
+                        </button>
                         
                         {/* Icono de expandir/colapsar */}
                         <div className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>

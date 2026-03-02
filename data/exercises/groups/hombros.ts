@@ -165,7 +165,7 @@ export const hombrosExercises: ExerciseTemplate[] = [
     restTime: '60-90 segundos'
   },
   {
-    id: 'dumbbell-shrugs',
+    id: 'dumbbell-shrugs-shoulders',
     name: 'Encogimientos con Mancuernas',
     muscleGroup: 'hombros',
     equipment: 'Mancuernas',
