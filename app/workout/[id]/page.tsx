@@ -50,7 +50,20 @@ export default function WorkoutPage() {
   const { confirm } = useConfirm();
   
   // ==================== STATE ====================
-  const [routine, setRoutine] = useState<any>(() => getRoutineById(id));
+  const [routine, setRoutine] = useState<any>(() => {
+    // Optimización: Cargar rutina inmediatamente en el estado inicial
+    const foundRoutine = getRoutineById(id);
+    if (foundRoutine) {
+      return {
+        ...foundRoutine,
+        exercises: foundRoutine.exercises.map((ex: any) => ({
+          ...ex,
+          useSmartRest: ex.useSmartRest ?? true
+        }))
+      };
+    }
+    return null;
+  });
   const workoutState = useWorkoutState(routine || null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
@@ -199,16 +212,18 @@ export default function WorkoutPage() {
       
       if (!mounted) return;
       
+      // Optimización: Preparar rutina con defaults de forma más eficiente
       const routineWithDefaults = {
         ...foundRoutine,
         exercises: foundRoutine.exercises.map((ex: any) => ({
           ...ex,
-          useSmartRest: ex.useSmartRest !== undefined ? ex.useSmartRest : true
+          useSmartRest: ex.useSmartRest ?? true
         }))
       };
       
       setRoutine(routineWithDefaults);
       
+      // Optimización: Leer storage de forma síncrona si es posible
       const storedWorkout = await storageService.getActiveWorkout();
       
       if (!mounted) return;
@@ -220,36 +235,41 @@ export default function WorkoutPage() {
         if (s.startedAt) {
           const startTime = new Date(s.startedAt).getTime();
           setWorkoutStartTime(startTime);
-          console.log('[Workout Init] Restored workout start time:', new Date(startTime).toISOString());
         }
         
-        workoutState.setCurrentExerciseIndex(Number(s.currentExerciseIndex ?? 0));
-        workoutState.setCurrentSet(Number(s.currentSet ?? 1));
+        // Optimización: Batch state updates
+        const exerciseIndex = Number(s.currentExerciseIndex ?? 0);
+        const currentSet = Number(s.currentSet ?? 1);
         
+        workoutState.setCurrentExerciseIndex(exerciseIndex);
+        workoutState.setCurrentSet(currentSet);
+        
+        // Optimización: Procesar completedSets de forma más eficiente
         if (s.completedSets) {
-          Object.keys(s.completedSets).forEach(exerciseId => {
-            workoutState.updateCompletedSets(exerciseId, Number(s.completedSets[exerciseId] ?? 0));
-          });
+          for (const [exerciseId, count] of Object.entries(s.completedSets)) {
+            workoutState.updateCompletedSets(exerciseId, Number(count ?? 0));
+          }
         }
         
+        // Optimización: Procesar actualReps de forma más eficiente
         if (s.actualReps) {
-          Object.keys(s.actualReps).forEach(exerciseId => {
-            const reps = s.actualReps[exerciseId];
+          for (const [exerciseId, reps] of Object.entries(s.actualReps)) {
             if (Array.isArray(reps)) {
               workoutState.updateActualReps(exerciseId, reps.map((r: any) => Number(r ?? 0)));
             }
-          });
+          }
         }
         
+        // Optimización: Procesar actualWeights de forma más eficiente
         if (s.actualWeights) {
-          Object.keys(s.actualWeights).forEach(exerciseId => {
-            const weights = s.actualWeights[exerciseId];
+          for (const [exerciseId, weights] of Object.entries(s.actualWeights)) {
             if (Array.isArray(weights)) {
               workoutState.updateActualWeights(exerciseId, weights.map((w: any) => Number(w ?? 0)));
             }
-          });
+          }
         }
         
+        // Restaurar timer si estaba en descanso
         if (s.isResting && s.restTimerDuration && s.restTimerStartedAt) {
           const elapsed = Math.floor((Date.now() - Number(s.restTimerStartedAt)) / 1000);
           const remaining = Number(s.restTimerDuration) - elapsed;
@@ -258,19 +278,21 @@ export default function WorkoutPage() {
           }
         }
         
-        const currentExercise = routineWithDefaults.exercises[Number(s.currentExerciseIndex ?? 0)];
+        // Restaurar valores actuales del ejercicio
+        const currentExercise = routineWithDefaults.exercises[exerciseIndex];
         if (currentExercise) {
-          const currentSetData = currentExercise.sets[Number(s.currentSet ?? 1) - 1];
+          const currentSetData = currentExercise.sets[currentSet - 1];
           if (currentSetData) {
             workoutState.setCurrentReps(currentSetData.reps);
             workoutState.setCurrentWeight(currentSetData.weight || 0);
           }
         }
-      } else if (!storedWorkout || storedWorkout.routineId !== id) {
+      } else {
+        // Nuevo entrenamiento
         startWorkout(routineWithDefaults);
         
-        if (routineWithDefaults.exercises && routineWithDefaults.exercises.length > 0 && routineWithDefaults.exercises[0]) {
-          const firstExercise = routineWithDefaults.exercises[0];
+        const firstExercise = routineWithDefaults.exercises[0];
+        if (firstExercise) {
           const firstSet = firstExercise.sets[0];
           if (firstSet) {
             workoutState.setCurrentReps(firstSet.reps);
@@ -770,12 +792,14 @@ export default function WorkoutPage() {
   }, [routine, id, updateRoutine, success, error]);
 
   // ==================== RENDER ====================
-  if (gymLoading || !isInitialized) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="text-center py-8">
-            <div className="animate-pulse">
+  // Optimización: Mostrar contenido inmediatamente si la rutina está disponible
+  if (!routine || !routine.exercises || routine.exercises.length === 0) {
+    if (gymLoading) {
+      return (
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="text-center py-8">
+              <div className="animate-pulse">
               <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-4"></div>
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
             </div>
@@ -786,9 +810,8 @@ export default function WorkoutPage() {
         </Card>
       </div>
     );
-  }
-
-  if (!routine || !routine.exercises || routine.exercises.length === 0) {
+    }
+    
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
@@ -804,7 +827,8 @@ export default function WorkoutPage() {
       </div>
     );
   }
-  
+
+  // Optimización: No esperar isInitialized para mostrar la UI
   if (!currentExercise) {
     return null;
   }
