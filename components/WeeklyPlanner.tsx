@@ -57,36 +57,39 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
+    const loadPlans = async () => {
       try {
-        // Cargar plan semanal
-        const stored = await getWeeklyPlan();
+        // Cargar ambos planes en paralelo
+        const [storedWeekly, storedMonthly] = await Promise.all([
+          getWeeklyPlan(),
+          getMonthlyPlan()
+        ]);
+        
         if (!mounted) return;
-        if (!stored) {
-          setIsLoadingPlan(false);
-          return;
-        }
-        const parsed = stored as any;
-        if (Array.isArray(parsed) === false && Object.values(parsed).every((v: any) => Array.isArray(v))) {
-          const converted = DAYS.reduce((acc, d) => ({ ...acc, [d]: { routines: parsed[d] || [] } }), {} as any) as Plan;
-          setPlan(converted);
-        } else {
-          const normalized = DAYS.reduce((acc, d) => ({
-            ...acc,
-            [d]: {
-              routines: (parsed[d]?.routines as string[]) || (parsed[d] as string[]) || [],
-              blocked: parsed[d]?.blocked || false,
-              note: parsed[d]?.note || ''
-            }
-          }), {} as any) as Plan;
-          setPlan(normalized);
+        
+        // Procesar plan semanal
+        if (storedWeekly) {
+          const parsed = storedWeekly as any;
+          if (Array.isArray(parsed) === false && Object.values(parsed).every((v: any) => Array.isArray(v))) {
+            const converted = DAYS.reduce((acc, d) => ({ ...acc, [d]: { routines: parsed[d] || [] } }), {} as any) as Plan;
+            setPlan(converted);
+          } else {
+            const normalized = DAYS.reduce((acc, d) => ({
+              ...acc,
+              [d]: {
+                routines: (parsed[d]?.routines as string[]) || (parsed[d] as string[]) || [],
+                blocked: parsed[d]?.blocked || false,
+                note: parsed[d]?.note || ''
+              }
+            }), {} as any) as Plan;
+            setPlan(normalized);
+          }
         }
         
-        // Cargar plan mensual (normalizar estructura porque el storage puede devolver tipos flexibles)
-        const monthlyStored = await getMonthlyPlan();
-        if (mounted && monthlyStored) {
+        // Procesar plan mensual
+        if (storedMonthly) {
           try {
-            const raw = monthlyStored as Record<string, any>;
+            const raw = storedMonthly as Record<string, any>;
             const normalized = Object.keys(raw).reduce((acc, k) => {
               const v = raw[k];
               if (v && typeof v === 'object') {
@@ -102,8 +105,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
             }, {} as MonthlyPlan);
             setMonthlyPlan(normalized);
           } catch (e) {
-            // Si falla la normalización, castear como respaldo
-            setMonthlyPlan(monthlyStored as unknown as MonthlyPlan);
+            setMonthlyPlan(storedMonthly as unknown as MonthlyPlan);
           }
         }
       } catch (e) {
@@ -111,18 +113,27 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       } finally {
         if (mounted) setIsLoadingPlan(false);
       }
-    })();
+    };
+    
+    loadPlans();
     return () => { mounted = false; };
   }, []);
 
+  // Debounce para guardar planes (evitar escrituras excesivas)
   useEffect(() => {
     if (isLoadingPlan) return;
-    try { saveWeeklyPlan(plan); } catch (e) { /* ignore */ }
+    const timeoutId = setTimeout(() => {
+      try { saveWeeklyPlan(plan); } catch (e) { /* ignore */ }
+    }, 500);
+    return () => clearTimeout(timeoutId);
   }, [plan, isLoadingPlan]);
 
   useEffect(() => {
     if (isLoadingPlan) return;
-    try { saveMonthlyPlan(monthlyPlan); } catch (e) { /* ignore */ }
+    const timeoutId = setTimeout(() => {
+      try { saveMonthlyPlan(monthlyPlan); } catch (e) { /* ignore */ }
+    }, 500);
+    return () => clearTimeout(timeoutId);
   }, [monthlyPlan, isLoadingPlan]);
 
   const updateIndicators = () => {
@@ -264,13 +275,23 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     }));
   };
 
-  const filteredRoutines = routines.filter(r => {
-    if (!searchQuery) return true;
-    return (r.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (r.description || '').toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // Memoizar rutinas filtradas para evitar recalcular en cada render
+  const filteredRoutines = React.useMemo(() => {
+    if (!searchQuery) return routines;
+    const query = searchQuery.toLowerCase();
+    return routines.filter(r => 
+      (r.name || '').toLowerCase().includes(query) || 
+      (r.description || '').toLowerCase().includes(query)
+    );
+  }, [routines, searchQuery]);
 
   // Todas las rutinas están disponibles para asignar a cualquier día (pueden repetirse)
   const availableRoutines = filteredRoutines;
+
+  // Memoizar el mapa de rutinas para búsqueda rápida
+  const routinesMap = React.useMemo(() => {
+    return routines.reduce((acc, r) => ({ ...acc, [r.id]: r }), {} as Record<string, typeof routines[0]>);
+  }, [routines]);
 
   const addRoutineToDay = (routineId: string, day: DayKey | '') => {
     if (!day) {
@@ -487,7 +508,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                   <div className="space-y-2">
                     {/* Rutinas del día */}
                     {(plan[day]?.routines || []).map(rid => {
-                      const r = routines.find(x => x.id === rid);
+                      const r = routinesMap[rid];
                       if (!r) return null;
                       return (
                         <div key={rid} className="flex items-center justify-between bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left overflow-auto max-h-20">
