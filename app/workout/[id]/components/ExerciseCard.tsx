@@ -66,18 +66,35 @@ export function ExerciseCard({
 
   // Timer for set execution
   const [elapsedTime, setElapsedTime] = React.useState(0);
+  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
+    // Limpiar intervalo anterior
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     if (!setStartTime) {
       setElapsedTime(0);
       return;
     }
 
-    const interval = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - setStartTime) / 1000));
-    }, 1000);
+    // Actualizar inmediatamente
+    setElapsedTime(Math.floor((Date.now() - setStartTime) / 1000));
 
-    return () => clearInterval(interval);
+    // Crear nuevo intervalo
+    intervalRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - setStartTime) / 1000);
+      setElapsedTime(elapsed);
+    }, 100); // Actualizar cada 100ms para mayor precisión visual
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [setStartTime]);
 
   const formatTime = (seconds: number) => {

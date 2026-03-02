@@ -16,6 +16,7 @@ export interface UseWorkoutTimerReturn extends TimerState {
   minimizeTimer: (timeLeft: number) => void;
   expandTimer: () => void;
   skipTimer: () => void;
+  skipAndAdvance: () => void; // ✨ NEW: Skip timer and advance to next set/exercise
   setCurrentTimeLeft: (time: number) => void;
 }
 
@@ -81,6 +82,21 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   }, []);
   
   const skipTimer = useCallback(() => {
+    // Cerrar el timer sin ejecutar el callback completo
+    setShowTimer(false);
+    setTimerMinimized(false);
+    setTimerDuration(0);
+    setCurrentTimeLeft(0);
+  }, []);
+  
+  const skipAndAdvance = useCallback(() => {
+    // Cerrar el timer Y ejecutar el callback para avanzar
+    setShowTimer(false);
+    setTimerMinimized(false);
+    setTimerDuration(0);
+    setCurrentTimeLeft(0);
+    
+    // Ejecutar el callback después de cerrar el timer
     if (timerCompleteRef.current) {
       timerCompleteRef.current();
     }
@@ -99,6 +115,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     minimizeTimer,
     expandTimer,
     skipTimer,
+    skipAndAdvance,
     setCurrentTimeLeft
   };
 }

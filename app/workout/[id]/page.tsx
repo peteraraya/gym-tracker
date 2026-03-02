@@ -704,6 +704,7 @@ export default function WorkoutPage() {
           title={timerHandlers.timerTitle}
           nextExerciseName={timerHandlers.nextExerciseName}
           onComplete={handleTimerComplete}
+          onSkip={timerHandlers.skipAndAdvance}
           autoStart={true}
           showMotivation={true}
           onMinimize={timerHandlers.minimizeTimer}
@@ -737,7 +738,7 @@ export default function WorkoutPage() {
             timeLeft={timerHandlers.currentTimeLeft}
             title={timerHandlers.timerTitle}
             onExpand={timerHandlers.expandTimer}
-            onSkip={timerHandlers.skipTimer}
+            onSkip={timerHandlers.skipAndAdvance}
           />
         )}
 
