@@ -24,7 +24,6 @@ import { useWorkoutCompletion } from './hooks/useWorkoutCompletion';
 import { useWorkoutSuggestions } from './hooks/useWorkoutSuggestions';
 import { CompactWorkoutHeader } from './components/CompactWorkoutHeader';
 import { ExerciseCard } from './components/ExerciseCard';
-import { SetControls } from './components/SetControls';
 import { SeriesTable } from './components/SeriesTable';
 import { ExerciseList } from './components/ExerciseList';
 import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
@@ -902,12 +901,6 @@ export default function WorkoutPage() {
               }}
             />
           }
-        />
-
-        <SetControls
-          currentSet={workoutState.currentSet}
-          totalSets={currentExercise.sets.length}
-          onSetChange={workoutState.setCurrentSet}
         />
 
         <div className="mb-4">
