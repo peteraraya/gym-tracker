@@ -234,155 +234,122 @@ export default function RoutinesPage() {
               .map((routine) => (
               <div 
                 key={routine.id} 
-                className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 p-0"
+                className="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col relative"
               >
-                {/* Imagen de la rutina (si existe) */}
+                {/* Imagen de fondo con opacidad (si existe) */}
                 {routine.image && (
-                  <div className="w-full h-40 overflow-hidden relative">
+                  <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={routine.image} 
-                      alt={routine.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      alt=""
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    
-                    {/* Badge de estado activo sobre la imagen */}
-                    {activeWorkout?.routineId === routine.id && (
-                      <div className="absolute top-2 right-2 z-20">
-                        <span className="flex items-center gap-1 px-2 py-1 bg-orange-500 text-white text-xs font-semibold rounded-full shadow-lg animate-pulse">
-                          <Flame className="w-3 h-3" />
-                          Activo
-                        </span>
-                      </div>
-                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90 backdrop-blur-[2px]" />
                   </div>
                 )}
                 
-                {/* Header con gradiente (solo si no hay imagen) */}
-                {!routine.image && (
-                  <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-4 relative overflow-hidden rounded-t-2xl group-hover:from-blue-700 group-hover:to-purple-700 transition-colors">
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-                    <div className="relative z-10">
-                      <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">
-                        {routine.name}
-                      </h3>
-                      {routine.description && (
-                        <p className="text-sm text-blue-100 line-clamp-2">
-                          {routine.description}
-                        </p>
-                      )}
-                    </div>
-                    
-                    {/* Badge de estado activo */}
-                    {activeWorkout?.routineId === routine.id && (
-                      <div className="absolute top-2 right-2 z-20">
-                        <span className="flex items-center gap-1 px-2 py-1 bg-orange-500 text-white text-xs font-semibold rounded-full shadow-lg animate-pulse">
-                          <Flame className="w-3 h-3" />
-                          Activo
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="p-4 space-y-4">
-                  {/* Título y descripción (si hay imagen) */}
-                  {routine.image && (
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 line-clamp-2">
-                        {routine.name}
-                      </h3>
-                      {routine.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                          {routine.description}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  {/* Stats rápidos */}
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                      <Dumbbell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <span className="font-medium">{routine.exercises.length} ejercicios</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-gray-500 dark:text-gray-500">
-                      <span className="text-xs">
-                        {routine.exercises.reduce((total, ex) => total + ex.sets.length, 0)} series
+                {/* Header compacto con gradiente */}
+                <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-3 relative z-10">
+                  {/* Badge de estado activo */}
+                  {activeWorkout?.routineId === routine.id && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-lg animate-pulse">
+                        <Flame className="w-2.5 h-2.5" />
+                        Activo
                       </span>
                     </div>
+                  )}
+                  
+                  <h3 className="text-base font-bold text-white line-clamp-1 pr-16">
+                    {routine.name}
+                  </h3>
+                  {routine.description && (
+                    <p className="text-xs text-blue-100 line-clamp-1 mt-0.5">
+                      {routine.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Contenido compacto */}
+                <div className="p-3 flex-1 flex flex-col relative z-10">
+                  {/* Stats en una línea */}
+                  <div className="flex items-center justify-between text-xs mb-2 pb-2 border-b border-gray-200 dark:border-gray-700 group-hover:border-gray-300/50 dark:group-hover:border-gray-600/50 transition-colors">
+                    <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                      <Dumbbell className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                      <span className="font-semibold">{routine.exercises.length} ejercicios</span>
+                    </div>
+                    <span className="text-gray-500 dark:text-gray-500 font-medium">
+                      {routine.exercises.reduce((total, ex) => total + ex.sets.length, 0)} series
+                    </span>
                   </div>
 
-                  {/* Preview de ejercicios */}
-                  <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 mb-2 uppercase tracking-wide">
-                      Vista previa
-                    </p>
-                    <div className="space-y-1.5">
-                      {routine.exercises.slice(0, 3).map((exercise) => (
+                  {/* Preview compacto de ejercicios */}
+                  <div className="flex-1 mb-3">
+                    <div className="space-y-1">
+                      {routine.exercises.slice(0, 3).map((exercise, idx) => (
                         <div
                           key={exercise.id}
-                          className="flex items-start gap-2 text-sm"
+                          className="flex items-center gap-1.5 text-xs"
                         >
-                          <span className="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-gray-900 dark:text-gray-100 font-medium line-clamp-1">
-                              {exercise.name}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-500">
-                              {exercise.sets.length}x{exercise.sets[0]?.reps || '?'} reps
-                            </span>
-                          </div>
+                          <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
+                          <span className="text-gray-900 dark:text-gray-100 font-medium line-clamp-1 flex-1">
+                            {exercise.name}
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-500 text-[10px] shrink-0">
+                            {exercise.sets.length}×{exercise.sets[0]?.reps || '?'}
+                          </span>
                         </div>
                       ))}
                       {routine.exercises.length > 3 && (
-                        <div className="text-xs text-gray-500 dark:text-gray-500 pl-4 pt-1">
+                        <div className="text-[10px] text-gray-400 dark:text-gray-500 pl-4">
                           +{routine.exercises.length - 3} más
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Botón principal grande */}
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="w-full shadow-md group-hover:shadow-lg transition-shadow"
-                    onClick={() => handleStartWorkout(routine.id)}
-                  >
-                    {activeWorkout?.routineId === routine.id ? (
-                      <>
-                        <Flame className="w-4 h-4" />
-                        Continuar Entrenamiento
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4" />
-                        Iniciar Entrenamiento
-                      </>
-                    )}
-                  </Button>
-                  
-                  {/* Botones secundarios */}
-                  <div className="flex gap-2">
+                  {/* Botones compactos */}
+                  <div className="space-y-1.5">
                     <Button
-                      variant="secondary"
+                      variant="primary"
                       size="sm"
-                      className="flex-1"
-                      onClick={() => handleEdit(routine.id)}
+                      className="w-full h-9 text-sm shadow-md group-hover:shadow-lg transition-shadow"
+                      onClick={() => handleStartWorkout(routine.id)}
                     >
-                      <Pencil className="w-4 h-4" />
-                      Editar
+                      {activeWorkout?.routineId === routine.id ? (
+                        <>
+                          <Flame className="w-3.5 h-3.5" />
+                          Continuar
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5" />
+                          Iniciar
+                        </>
+                      )}
                     </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleDelete(routine.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Eliminar
-                    </Button>
+                    
+                    <div className="flex gap-1.5">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1 h-8 text-xs"
+                        onClick={() => handleEdit(routine.id)}
+                      >
+                        <Pencil className="w-3 h-3" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        className="flex-1 h-8 text-xs"
+                        onClick={() => handleDelete(routine.id)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Eliminar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>  
