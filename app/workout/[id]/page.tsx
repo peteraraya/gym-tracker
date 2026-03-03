@@ -59,20 +59,7 @@ export default function WorkoutPage() {
   const { confirm } = useConfirm();
   
   // ==================== STATE ====================
-  const [routine, setRoutine] = useState<any>(() => {
-    // Optimización: Cargar rutina inmediatamente en el estado inicial
-    const foundRoutine = getRoutineById(id);
-    if (foundRoutine) {
-      return {
-        ...foundRoutine,
-        exercises: foundRoutine.exercises.map((ex: any) => ({
-          ...ex,
-          useSmartRest: ex.useSmartRest ?? true
-        }))
-      };
-    }
-    return null;
-  });
+  const [routine, setRoutine] = useState<any>(null);
   const workoutState = useWorkoutState(routine || null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
@@ -81,6 +68,11 @@ export default function WorkoutPage() {
   const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
+    // Solo acceder a localStorage en el cliente
+    if (typeof window === 'undefined') {
+      return Date.now();
+    }
+    
     // Intentar leer el tiempo de inicio guardado para evitar el flash
     try {
       const stored = localStorage.getItem('gym-tracker-active-workout');
@@ -207,12 +199,16 @@ export default function WorkoutPage() {
   const haptic = useHapticFeedback();
 
   // ==================== INITIALIZATION ====================
+  const lastSyncedRoutineRef = useRef<string | null>(null);
+  
   useEffect(() => {
     if (gymLoading) return;
     
     let mounted = true;
     
     const initializeWorkout = async () => {
+      console.log('[Init] Starting initialization');
+      
       const foundRoutine = getRoutineById(id);
       
       if (!foundRoutine) {
@@ -230,6 +226,8 @@ export default function WorkoutPage() {
           useSmartRest: ex.useSmartRest ?? true
         }))
       };
+      
+      console.log('[Init] Loaded routine with', routineWithDefaults.exercises.map((ex: any) => `${ex.id}:${ex.sets.length}`).join('|'));
       
       setRoutine(routineWithDefaults);
       
@@ -318,6 +316,7 @@ export default function WorkoutPage() {
       
       if (mounted) {
         setIsInitialized(true);
+        console.log('[Init] Initialization complete');
       }
     };
     
@@ -948,15 +947,23 @@ export default function WorkoutPage() {
       )
     };
     
+    console.log('[handleAddSet] Adding set:', {
+      exerciseId,
+      oldSetsCount: currentExercise.sets.length,
+      newSetsCount: updatedSets.length,
+      updatedRoutine
+    });
+    
     setRoutine(updatedRoutine);
     
     // Persistir la rutina actualizada
     try {
       await updateRoutine(id, updatedRoutine);
+      console.log('[handleAddSet] Successfully saved to storage');
       success('Serie agregada', 2000);
     } catch (err) {
+      console.error('[handleAddSet] Error saving:', err);
       error('Error al agregar serie');
-      console.error('Error adding set:', err);
     }
   }, [currentExercise, routine, id, updateRoutine, success, error]);
 

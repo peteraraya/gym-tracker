@@ -163,11 +163,20 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw new Error('Rutina no encontrada');
       }
 
-      await storageService.updateRoutine(id, {
+      const updatedRoutine = {
         ...routine,
         ...updatedData,
-      } as storageService.CreateRoutineData);
+      } as storageService.CreateRoutineData;
 
+      await storageService.updateRoutine(id, updatedRoutine);
+
+      // ✅ Actualizar el estado local inmediatamente sin esperar a refreshRoutines
+      // Esto asegura que la rutina actualizada esté disponible de inmediato
+      setRoutines(prevRoutines => 
+        prevRoutines.map(r => r.id === id ? updatedRoutine as Routine : r)
+      );
+
+      // Refrescar desde storage para asegurar consistencia
       await refreshRoutines();
     } catch (error) {
       console.error('Error updating routine:', error);
