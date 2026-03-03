@@ -9,6 +9,8 @@ import { useToast } from '@/context/ToastContext';
 import { getWeeklyPlan, saveWeeklyPlan, getMonthlyPlan, saveMonthlyPlan } from '@/lib/storage/storage';
 import MonthlyCalendar from '@/components/MonthlyCalendar';
 import DayPlanModal from '@/components/DayPlanModal';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { Plus } from 'lucide-react';
 
 type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 type ViewMode = 'weekly' | 'monthly';
@@ -51,6 +53,8 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
   const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<Record<string, DayKey | ''>>({});
   const [selectedWeekDay, setSelectedWeekDay] = useState<DayKey | null>(null);
   const [selectedMonthDay, setSelectedMonthDay] = useState<string | null>(null);
+  const [isRoutineSheetOpen, setIsRoutineSheetOpen] = useState(false);
+  const [selectedDayForQuickAdd, setSelectedDayForQuickAdd] = useState<DayKey | null>(null);
   const daysRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -315,6 +319,11 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       }
       return next;
     });
+    // Cerrar bottom sheet después de agregar
+    if (isRoutineSheetOpen) {
+      setIsRoutineSheetOpen(false);
+      setSelectedDayForQuickAdd(null);
+    }
     // NO limpiar la selección para permitir agregar a más días
     // setSelectedDayByRoutine(prev => ({ ...prev, [routineId]: '' }));
   };
@@ -459,26 +468,59 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         /* Vista Semanal */
         <>
       <div className="mb-2 relative">
-        <div ref={daysRef} onScroll={updateIndicators} className="flex gap-3 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-3 touch-pan-x">
-          {DAYS.map(day => (
-            <button
+        <div ref={daysRef} onScroll={updateIndicators} className="flex gap-3 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-3 touch-pan-x snap-x snap-mandatory">
+          {DAYS.map(day => {
+            const routineCount = plan[day]?.routines?.length || 0;
+            const isBlocked = plan[day]?.blocked;
+            
+            return (
+            <div
               key={day}
               onClick={() => setSelectedWeekDay(day)}
               onDrop={(e) => onDropToDay(e as any, day)}
               onDragOver={onDragOver as any}
-              className={`min-w-[120px] md:min-w-0 flex-shrink-0 md:flex-shrink p-4 rounded-lg shadow-sm min-h-[150px] text-left transition-all hover:scale-[1.02] ${plan[day]?.blocked ? 'bg-gradient-to-b from-red-800/10 to-red-800/5 border border-red-600/30' : ((plan[day]?.routines?.length || 0) > 0 ? 'border border-emerald-500 bg-gray-900/60 dark:bg-gray-800' : 'border border-gray-700 bg-gray-900/60 dark:bg-gray-800')}`}
+              className={`min-w-[140px] md:min-w-0 flex-shrink-0 md:flex-shrink snap-center p-4 rounded-xl shadow-md min-h-[160px] text-left transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
+                isBlocked 
+                  ? 'bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-600/50' 
+                  : routineCount > 0 
+                    ? 'bg-gradient-to-br from-emerald-900/40 to-emerald-800/30 border-2 border-emerald-500/60' 
+                    : 'bg-gradient-to-br from-gray-900/60 to-gray-800/50 border-2 border-gray-700'
+              }`}
             >
               <div className="mb-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-xs text-gray-400 uppercase tracking-wider ">{LABELS[day]}</div>
-                    <div className="text-sm font-semibold text-white truncate">{plan[day]?.blocked ? `Descanso` :''}</div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{LABELS[day]}</div>
+                    {isBlocked && (
+                      <div className="text-sm font-bold text-red-300 mt-1">🔒 Descanso</div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`${(plan[day]?.routines?.length || 0) > 0 ? 'bg-emerald-600 text-white' : 'bg-gray-800/60 text-gray-400'} text-xs px-2 py-0.5 rounded-md`}>{plan[day]?.routines?.length || 0}</span>
+                    {/* Botón de quick add primero (izquierda) */}
+                    {!isBlocked && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDayForQuickAdd(day);
+                          setIsRoutineSheetOpen(true);
+                        }}
+                        className="p-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg transition-all active:scale-90"
+                        title="Agregar rutina rápida"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    )}
+                    {/* Badge con número */}
+                    <span className={`text-sm font-bold px-3 py-1.5 rounded-full shadow-lg ${
+                      routineCount > 0 
+                        ? 'bg-emerald-500 text-white' 
+                        : 'bg-gray-700/80 text-gray-400'
+                    }`}>
+                      {routineCount}
+                    </span>
                   </div>
                 </div>
-                <div className="mt-2 border-b border-gray-700/30" />
+                <div className="mt-2 border-b border-gray-700/50" />
               </div>
 
               {/* Dia bloqueado */}
@@ -510,9 +552,10 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     {(plan[day]?.routines || []).map(rid => {
                       const r = routinesMap[rid];
                       if (!r) return null;
+                      const displayName = r.name.length > 30 ? r.name.substring(0, 30) + '...' : r.name;
                       return (
-                        <div key={rid} className="flex items-center justify-between bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left overflow-auto max-h-20">
-                          <p className="text-xs text-gray-100 ">{r.name}</p>
+                        <div key={rid} className="flex items-center gap-2 bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left " title={r.name}>
+                          <p className="text-xs text-gray-100 truncate flex-1 min-w-0 gap-0">{displayName}</p>
                         </div>
                       );
                     })}
@@ -526,20 +569,125 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                   </div>
                 )
               )}
-            </button>
-          ))}
+            </div>
+            );
+          })}
         </div>
 
-        {/* Scroll indicators */}
-        <div className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 flex items-center transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="h-full w-full bg-gradient-to-r from-white/90 to-transparent dark:from-gray-900/80" />
+        {/* Scroll indicators mejorados */}
+        <div className={`md:hidden pointer-events-none absolute left-0 top-0 bottom-0 w-8 flex items-center transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="h-full w-full bg-gradient-to-r from-gray-900 to-transparent" />
         </div>
-        <div className={`pointer-events-none absolute right-0 top-0 bottom-0 w-6 flex items-center transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="h-full w-full bg-gradient-to-l from-white/90 to-transparent dark:from-gray-900/80" />
+        <div className={`md:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-8 flex items-center transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="h-full w-full bg-gradient-to-l from-gray-900 to-transparent" />
         </div>
       </div>
 
-      <div className="mt-4">
+      {/* Botón flotante para agregar rutinas (móvil) */}
+      <div className="md:hidden fixed bottom-0 left-4 z-30 w-[calc(100%-32px)]">
+        <button
+          onClick={() => setIsRoutineSheetOpen(true)}
+          className="flex items-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-2xl hover:shadow-emerald-500/50 transition-all active:scale-95 w-full"
+        >
+          <Plus className="w-5 h-5" />
+          <span className="font-semibold">Agregar Rutina al planificador</span>
+        </button>
+      </div>
+
+      {/* Bottom Sheet para rutinas (móvil) */}
+      <BottomSheet
+        isOpen={isRoutineSheetOpen}
+        onClose={() => {
+          setIsRoutineSheetOpen(false);
+          setSelectedDayForQuickAdd(null);
+        }}
+        title={selectedDayForQuickAdd ? `Agregar a ${LABELS[selectedDayForQuickAdd]}` : "Selecciona una rutina"}
+        maxHeight="85vh"
+      >
+        <div className="p-4">
+          {selectedDayForQuickAdd && (
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                📅 Agregando a: <span className="font-bold">{LABELS[selectedDayForQuickAdd]}</span>
+              </p>
+            </div>
+          )}
+
+          {(isLoadingPlan || routinesLoading) ? (
+            <div className="flex items-center justify-center py-12">
+              <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+            </div>
+          ) : availableRoutines.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-3">🏋️</div>
+              <p className="text-gray-500 dark:text-gray-400">No hay rutinas disponibles</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {availableRoutines.map(r => {
+                const alreadyAdded = selectedDayForQuickAdd && plan[selectedDayForQuickAdd]?.routines?.includes(r.id);
+                const displayName = r.name.length > 35 ? r.name.substring(0, 35) + '...' : r.name;
+                
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => {
+                      if (selectedDayForQuickAdd) {
+                        addRoutineToDay(r.id, selectedDayForQuickAdd);
+                      } else {
+                        // Si no hay día seleccionado, mostrar selector
+                        setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: '' }));
+                      }
+                    }}
+                    disabled={alreadyAdded}
+                    title={r.name}
+                    className={`w-full text-left p-3 rounded-lg transition-all ${
+                      alreadyAdded
+                        ? 'bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 opacity-60 cursor-not-allowed'
+                        : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg active:scale-[0.98]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {!alreadyAdded && (
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <Plus className="w-5 h-5 text-white" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-semibold mb-0.5 ${alreadyAdded ? 'text-gray-700 dark:text-gray-300' : 'text-white'}`}>
+                          {displayName}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            alreadyAdded 
+                              ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                              : 'bg-white/20 text-white backdrop-blur-sm'
+                          }`}>
+                            {r.exercises.length} ejercicios
+                          </span>
+                          {alreadyAdded && (
+                            <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full font-medium">
+                              ✓ Agregada
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </BottomSheet>
+
+      {/* Desktop: Mostrar rutinas disponibles abajo */}
+      <div className="mt-4 hidden md:block">
         <h3 className="text-sm font-medium mb-2">Rutinas disponibles (arrastra al día o usa el selector)</h3>
 
         {/* El input de búsqueda principal está en la página de Rutinas; este componente usa la prop `searchQuery`. */}
