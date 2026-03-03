@@ -18,6 +18,7 @@ interface QuickEditModeProps {
   onEditWeight: (exerciseId: string, setIndex: number, weight: number) => void;
   onEditSetType: (exerciseId: string, setIndex: number, type: SetType) => void;
   onToggleSetComplete: (exerciseId: string, setIndex: number, isComplete: boolean) => void;
+  onDeleteSet?: (exerciseId: string, setIndex: number) => void;
   onFinishWorkout?: () => void;
 }
 
@@ -32,6 +33,7 @@ export function QuickEditMode({
   onEditWeight,
   onEditSetType,
   onToggleSetComplete,
+  onDeleteSet,
   onFinishWorkout,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{exerciseId: string, setIndex: number, field: 'reps' | 'weight'} | null>(null);
@@ -126,6 +128,9 @@ export function QuickEditMode({
                       <th className="text-center py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Peso (kg)</th>
                       <th className="hidden sm:table-cell text-center py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Tipo</th>
                       <th className="text-center py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 w-16">✓</th>
+                      {onDeleteSet && exercise.sets.length > 1 && (
+                        <th className="text-center py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 w-12"></th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -280,6 +285,23 @@ export function QuickEditMode({
                               </button>
                             </div>
                           </td>
+
+                          {/* Delete button */}
+                          {onDeleteSet && exercise.sets.length > 1 && (
+                            <td className="py-3 px-3">
+                              <div className="flex justify-center">
+                                <button
+                                  onClick={() => onDeleteSet(exerciseId, setIdx)}
+                                  className="w-7 h-7 rounded-full flex items-center justify-center transition-all bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400"
+                                  title="Eliminar serie"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       );
                     })}

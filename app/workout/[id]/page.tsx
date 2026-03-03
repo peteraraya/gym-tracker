@@ -753,6 +753,104 @@ export default function WorkoutPage() {
     success('Descanso inteligente aplicado a todas las series', 2000);
   }, [currentExercise, smartRestTime, workoutState, success]);
 
+  const handleDeleteSet = useCallback(async (setIndex: number) => {
+    if (!currentExercise || !routine) return;
+    
+    // No permitir eliminar si solo hay una serie
+    if (currentExercise.sets.length <= 1) {
+      error('No puedes eliminar la última serie');
+      return;
+    }
+    
+    const exerciseId = currentExercise.id;
+    
+    // Eliminar la serie del ejercicio
+    const updatedSets = currentExercise.sets.filter((_: any, idx: number) => idx !== setIndex);
+    const updatedExercise = { ...currentExercise, sets: updatedSets };
+    
+    // Actualizar la rutina
+    const updatedRoutine = {
+      ...routine,
+      exercises: routine.exercises.map((ex: Exercise) => 
+        ex.id === exerciseId ? updatedExercise : ex
+      )
+    };
+    
+    setRoutine(updatedRoutine);
+    
+    // Limpiar datos de la serie eliminada
+    const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
+    const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
+    
+    workoutState.updateActualReps(exerciseId, currentReps.filter((_, idx) => idx !== setIndex));
+    workoutState.updateActualWeights(exerciseId, currentWeights.filter((_, idx) => idx !== setIndex));
+    
+    // Recalcular series completadas
+    const newReps = currentReps.filter((_, idx) => idx !== setIndex);
+    const completedCount = newReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+    workoutState.updateCompletedSets(exerciseId, completedCount);
+    
+    // Ajustar currentSet si es necesario
+    if (workoutState.currentSet > updatedSets.length) {
+      workoutState.setCurrentSet(updatedSets.length);
+    }
+    
+    // Persistir la rutina actualizada
+    try {
+      await updateRoutine(id, updatedRoutine);
+      success('Serie eliminada', 2000);
+    } catch (err) {
+      error('Error al eliminar serie');
+      console.error('Error deleting set:', err);
+    }
+  }, [currentExercise, routine, workoutState, id, updateRoutine, success, error]);
+
+  const handleQuickDeleteSet = useCallback(async (exerciseId: string, setIndex: number) => {
+    const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
+    if (!exercise || !routine) return;
+    
+    // No permitir eliminar si solo hay una serie
+    if (exercise.sets.length <= 1) {
+      error('No puedes eliminar la última serie');
+      return;
+    }
+    
+    // Eliminar la serie del ejercicio
+    const updatedSets = exercise.sets.filter((_: any, idx: number) => idx !== setIndex);
+    const updatedExercise = { ...exercise, sets: updatedSets };
+    
+    // Actualizar la rutina
+    const updatedRoutine = {
+      ...routine,
+      exercises: routine.exercises.map((ex: Exercise) => 
+        ex.id === exerciseId ? updatedExercise : ex
+      )
+    };
+    
+    setRoutine(updatedRoutine);
+    
+    // Limpiar datos de la serie eliminada
+    const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
+    const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
+    
+    workoutState.updateActualReps(exerciseId, currentReps.filter((_, idx) => idx !== setIndex));
+    workoutState.updateActualWeights(exerciseId, currentWeights.filter((_, idx) => idx !== setIndex));
+    
+    // Recalcular series completadas
+    const newReps = currentReps.filter((_, idx) => idx !== setIndex);
+    const completedCount = newReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+    workoutState.updateCompletedSets(exerciseId, completedCount);
+    
+    // Persistir la rutina actualizada
+    try {
+      await updateRoutine(id, updatedRoutine);
+      success('Serie eliminada', 2000);
+    } catch (err) {
+      error('Error al eliminar serie');
+      console.error('Error deleting set:', err);
+    }
+  }, [routine, workoutState, id, updateRoutine, success, error]);
+
   const handleToggleSetComplete = useCallback((setIndex: number, isComplete: boolean) => {
     if (!currentExercise || !routine) return;
     
@@ -823,33 +921,44 @@ export default function WorkoutPage() {
     }
   }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, timerHandlers, completion]);
 
-  const handleAddSet = useCallback(() => {
-    if (!routine || !currentExercise) return;
+  const handleAddSet = useCallback(async () => {
+    if (!currentExercise || !routine) return;
     
+    const exerciseId = currentExercise.id;
+    
+    // Obtener la última serie como referencia
     const lastSet = currentExercise.sets[currentExercise.sets.length - 1];
+    
+    // Crear nueva serie con los mismos valores que la última
     const newSet = {
-      reps: lastSet?.reps || 10,
-      weight: lastSet?.weight || 0,
-      type: 'normal' as const
+      reps: lastSet.reps,
+      weight: lastSet.weight || 0,
+      restAfter: lastSet.restAfter || currentExercise.restBetweenSets || 90
     };
     
-    const updatedExercises = routine.exercises.map((ex: any, idx: any) => {
-      if (idx === workoutState.currentExerciseIndex) {
-        return {
-          ...ex,
-          sets: [...ex.sets, newSet]
-        };
-      }
-      return ex;
-    });
+    // Agregar la serie al ejercicio
+    const updatedSets = [...currentExercise.sets, newSet];
+    const updatedExercise = { ...currentExercise, sets: updatedSets };
     
-    setRoutine({
+    // Actualizar la rutina
+    const updatedRoutine = {
       ...routine,
-      exercises: updatedExercises
-    });
+      exercises: routine.exercises.map((ex: Exercise) => 
+        ex.id === exerciseId ? updatedExercise : ex
+      )
+    };
     
-    success('Serie agregada', 2000);
-  }, [routine, currentExercise, workoutState, success]);
+    setRoutine(updatedRoutine);
+    
+    // Persistir la rutina actualizada
+    try {
+      await updateRoutine(id, updatedRoutine);
+      success('Serie agregada', 2000);
+    } catch (err) {
+      error('Error al agregar serie');
+      console.error('Error adding set:', err);
+    }
+  }, [currentExercise, routine, id, updateRoutine, success, error]);
 
   const handleSelectExercise = useCallback((index: number) => {
     workoutState.setCurrentExerciseIndex(index);
@@ -1124,6 +1233,7 @@ export default function WorkoutPage() {
             onEditWeight={handleQuickEditWeight}
             onEditSetType={handleQuickEditSetType}
             onToggleSetComplete={handleQuickToggleSetComplete}
+            onDeleteSet={handleQuickDeleteSet}
             onFinishWorkout={() => completion.setShowNotesModal(true)}
           />
         ) : (
@@ -1228,14 +1338,15 @@ export default function WorkoutPage() {
               onEditSetType={handleEditSetType}
               onToggleSetComplete={handleToggleSetComplete}
               onAddSet={handleAddSet}
+              onDeleteSet={handleDeleteSet}
               perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
               onEditRestTime={handleEditRestTime}
               onApplySmartRest={handleApplySmartRest}
               smartRestTime={smartRestTime}
-            routine={routine}
-            restOverrides={workoutState.workoutData.restOverrides}
-            useSmartRest={useSmartRest}
-          />
+              routine={routine}
+              restOverrides={workoutState.workoutData.restOverrides}
+              useSmartRest={useSmartRest}
+            />
           </Suspense>
         )}
 
