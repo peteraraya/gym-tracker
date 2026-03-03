@@ -35,7 +35,9 @@ export function useWorkoutCompletion({
   
   const openCompletionModal = useCallback((duration?: number) => {
     const calculatedDuration = duration || Math.floor((Date.now() - workoutStartTime) / 1000);
-    setProposedDuration(Math.max(calculatedDuration, 60));
+    // Redondear a intervalos de 5 segundos
+    const roundedDuration = Math.round(calculatedDuration / 5) * 5;
+    setProposedDuration(Math.max(roundedDuration, 60));
     setShowNotesModal(true);
   }, [workoutStartTime]);
   

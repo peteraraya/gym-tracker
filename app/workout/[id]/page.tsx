@@ -27,7 +27,9 @@ import { ExerciseCard } from './components/ExerciseCard';
 import { ExerciseList } from './components/ExerciseList';
 import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
 import { AddExerciseButton } from './components/AddExerciseButton';
+import { QuickEditMode } from './components/QuickEditMode';
 import type { ExerciseTemplate } from '@/data/exercises';
+import type { Exercise } from '@/types';
 import { 
   calculateNextRestTime, 
   calculateExerciseRestTime,
@@ -75,6 +77,7 @@ export default function WorkoutPage() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
+  const [isQuickEditMode, setIsQuickEditMode] = useState(false);
   const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
@@ -391,6 +394,101 @@ export default function WorkoutPage() {
     };
   }, [timerHandlers.showTimer]);
 
+  // Sincronizar estado cuando se cambia de modo de edición rápida a modo guiado
+  useEffect(() => {
+    if (!isQuickEditMode && currentExercise && isInitialized) {
+      const exerciseId = currentExercise.id;
+      
+      // Calcular cuántas series están realmente completadas
+      const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
+      const completedCount = actualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+      
+      // Si todas las series están completadas, avanzar al siguiente ejercicio
+      if (completedCount >= currentExercise.sets.length) {
+        const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
+        
+        if (isLastExercise) {
+          // Último ejercicio completado - abrir modal de finalización
+          const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+          completion.openCompletionModal(duration);
+        } else {
+          // Avanzar al siguiente ejercicio
+          const nextIndex = workoutState.currentExerciseIndex + 1;
+          workoutState.setCurrentExerciseIndex(nextIndex);
+          workoutState.setCurrentSet(1);
+          
+          const nextExercise = routine.exercises[nextIndex];
+          if (nextExercise && nextExercise.sets[0]) {
+            workoutState.setCurrentReps(nextExercise.sets[0].reps);
+            workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
+          }
+        }
+        return;
+      }
+      
+      // Encontrar la siguiente serie no completada
+      const nextIncompleteIndex = actualReps.findIndex((r: number) => !r || r === 0);
+      const nextSet = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : completedCount + 1;
+      
+      // Actualizar currentSet si es diferente
+      if (nextSet !== workoutState.currentSet && nextSet <= currentExercise.sets.length) {
+        workoutState.setCurrentSet(nextSet);
+        
+        // Cargar datos de la siguiente serie
+        const nextSetData = currentExercise.sets[nextSet - 1];
+        if (nextSetData) {
+          const savedReps = actualReps[nextSet - 1];
+          const savedWeight = workoutState.workoutData.actualWeights[exerciseId]?.[nextSet - 1];
+          
+          workoutState.setCurrentReps(savedReps && savedReps > 0 ? savedReps : nextSetData.reps);
+          workoutState.setCurrentWeight(savedWeight !== undefined ? savedWeight : (nextSetData.weight || 0));
+        }
+      }
+    }
+  }, [isQuickEditMode, currentExercise?.id, isInitialized, workoutState.currentExerciseIndex, workoutState.currentSet, routine?.exercises.length, workoutStartTime]);
+
+  // Limpiar datos residuales de series que ya no existen y corregir currentSet
+  useEffect(() => {
+    if (!routine || !isInitialized || !currentExercise) return;
+    
+    routine.exercises.forEach((exercise: Exercise) => {
+      const exerciseId = exercise.id;
+      const maxSets = exercise.sets.length;
+      
+      // Limpiar actualReps
+      const currentReps = workoutState.workoutData.actualReps[exerciseId];
+      if (currentReps && currentReps.length > maxSets) {
+        workoutState.updateActualReps(exerciseId, currentReps.slice(0, maxSets));
+      }
+      
+      // Limpiar actualWeights
+      const currentWeights = workoutState.workoutData.actualWeights[exerciseId];
+      if (currentWeights && currentWeights.length > maxSets) {
+        workoutState.updateActualWeights(exerciseId, currentWeights.slice(0, maxSets));
+      }
+      
+      // Recalcular completedSets correctamente
+      const validReps = (currentReps || []).slice(0, maxSets);
+      const actualCompleted = validReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+      const storedCompleted = workoutState.workoutData.completedSets[exerciseId] || 0;
+      
+      if (actualCompleted !== storedCompleted) {
+        workoutState.updateCompletedSets(exerciseId, actualCompleted);
+      }
+      
+      // Si es el ejercicio actual, corregir currentSet si está fuera de rango
+      if (exerciseId === currentExercise.id) {
+        if (workoutState.currentSet > maxSets) {
+          // Si currentSet es mayor que el máximo, ponerlo en el máximo
+          workoutState.setCurrentSet(maxSets);
+        } else if (workoutState.currentSet < 1) {
+          // Si es menor que 1, ponerlo en 1
+          workoutState.setCurrentSet(1);
+        }
+      }
+    });
+  }, [routine, isInitialized, currentExercise, workoutState]);
+
   // Activar Wake Lock cuando el entrenamiento está activo
   useEffect(() => {
     if (isInitialized && wakeLock.isSupported) {
@@ -452,10 +550,19 @@ export default function WorkoutPage() {
   const handleCompleteSet = useCallback(() => {
     if (!currentExercise || !routine) return;
     
-    setExecution.completeSet();
-    
     const exerciseId = currentExercise.id;
     const setIndex = workoutState.currentSet - 1;
+    
+    // Verificar si esta serie ya está completada
+    const existingReps = workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
+    if (existingReps && existingReps > 0) {
+      // Serie ya completada, no hacer nada
+      console.log('[Workout] Serie ya completada, ignorando');
+      return;
+    }
+    
+    setExecution.completeSet();
+    
     const repsValue = typeof workoutState.currentReps === 'number' ? workoutState.currentReps : currentExercise.sets[setIndex]?.reps || 0;
     const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
 
@@ -791,12 +898,93 @@ export default function WorkoutPage() {
       // Guardar la rutina actualizada en el storage
       await updateRoutine(id, updatedRoutine);
 
+      // IMPORTANTE: Actualizar el activeWorkout para mantener los registros existentes
+      // Los nuevos ejercicios no tendrán registros aún, pero los existentes se preservan
+      updateWorkoutProgress(
+        workoutState.currentExerciseIndex,
+        workoutState.currentSet,
+        workoutState.workoutData.completedSets,
+        workoutState.workoutData.actualReps,
+        workoutState.workoutData.actualWeights
+      );
+
       success(`${exercises.length} ejercicio${exercises.length > 1 ? 's' : ''} agregado${exercises.length > 1 ? 's' : ''} a la rutina`, 3000);
     } catch (err) {
       console.error('Error adding exercises:', err);
       error('Error al agregar ejercicios');
     }
-  }, [routine, id, updateRoutine, success, error]);
+  }, [routine, id, updateRoutine, success, error, workoutState, updateWorkoutProgress]);
+
+  // ==================== QUICK EDIT MODE HANDLERS ====================
+  const handleQuickEditReps = useCallback((exerciseId: string, setIndex: number, reps: number) => {
+    const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
+    const newReps = [...currentReps];
+    newReps[setIndex] = reps;
+    workoutState.updateActualReps(exerciseId, newReps);
+    
+    // Actualizar completed sets si es necesario
+    const completedCount = newReps.filter(r => r > 0).length;
+    workoutState.updateCompletedSets(exerciseId, completedCount);
+  }, [workoutState]);
+
+  const handleQuickEditWeight = useCallback((exerciseId: string, setIndex: number, weight: number) => {
+    const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
+    const newWeights = [...currentWeights];
+    newWeights[setIndex] = weight;
+    workoutState.updateActualWeights(exerciseId, newWeights);
+  }, [workoutState]);
+
+  const handleQuickEditSetType = useCallback((exerciseId: string, setIndex: number, type: any) => {
+    workoutState.updateSetType(exerciseId, setIndex, type);
+  }, [workoutState]);
+
+  const handleQuickToggleSetComplete = useCallback((exerciseId: string, setIndex: number, isComplete: boolean) => {
+    const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
+    if (!exercise) return;
+
+    const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
+    const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
+    
+    const newReps = [...currentReps];
+    const newWeights = [...currentWeights];
+    
+    if (isComplete) {
+      // Marcar como completada - usar valores actuales o defaults
+      if (!newReps[setIndex] || newReps[setIndex] === 0) {
+        newReps[setIndex] = exercise.sets[setIndex]?.reps || 10;
+      }
+      if (!newWeights[setIndex]) {
+        newWeights[setIndex] = exercise.sets[setIndex]?.weight || 0;
+      }
+    } else {
+      // Desmarcar - poner en 0
+      newReps[setIndex] = 0;
+    }
+    
+    workoutState.updateActualReps(exerciseId, newReps);
+    workoutState.updateActualWeights(exerciseId, newWeights);
+    
+    // Actualizar completed sets - contar solo las series con reps > 0
+    const completedCount = newReps.filter(r => r > 0).length;
+    workoutState.updateCompletedSets(exerciseId, completedCount);
+    
+    // Si estamos en el ejercicio actual, actualizar también currentSet
+    if (currentExercise && currentExercise.id === exerciseId) {
+      // Encontrar la siguiente serie no completada
+      const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
+      if (nextIncompleteSet !== -1) {
+        workoutState.setCurrentSet(nextIncompleteSet + 1);
+      } else {
+        // Todas completadas, ir a la última
+        workoutState.setCurrentSet(exercise.sets.length);
+      }
+    }
+    
+    // Feedback háptico
+    if (isComplete) {
+      haptic.success();
+    }
+  }, [routine, workoutState, haptic, currentExercise]);
 
   // ==================== RENDER ====================
   // Optimización: Mostrar contenido inmediatamente si la rutina está disponible
@@ -903,6 +1091,44 @@ export default function WorkoutPage() {
           </div>
         </div>
 
+        {/* Toggle entre modo guiado y modo edición rápida */}
+        <div className="mb-4 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+          <button
+            onClick={() => setIsQuickEditMode(false)}
+            className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+              !isQuickEditMode
+                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            🎯 Modo Guiado
+          </button>
+          <button
+            onClick={() => setIsQuickEditMode(true)}
+            className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+              isQuickEditMode
+                ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            📝 Edición Rápida
+          </button>
+        </div>
+
+        {isQuickEditMode ? (
+          /* Modo de edición rápida - Vista tipo Excel */
+          <QuickEditMode
+            routine={routine}
+            workoutData={workoutState.workoutData}
+            onEditReps={handleQuickEditReps}
+            onEditWeight={handleQuickEditWeight}
+            onEditSetType={handleQuickEditSetType}
+            onToggleSetComplete={handleQuickToggleSetComplete}
+            onFinishWorkout={() => completion.setShowNotesModal(true)}
+          />
+        ) : (
+          /* Modo guiado - Flujo normal */
+          <>
         {/* Botón flotante grande - Iniciar o Completar Serie */}
         <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
         
@@ -916,7 +1142,7 @@ export default function WorkoutPage() {
             >
               <span className="text-2xl">▶️</span>
               <div className="flex flex-col items-start">
-                <span>Iniciar Serie {workoutState.currentSet}</span>
+                <span>Iniciar Serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}</span>
                 <span className="text-xs font-normal opacity-90">
                   {workoutState.currentReps} reps × {workoutState.currentWeight}kg
                 </span>
@@ -932,7 +1158,7 @@ export default function WorkoutPage() {
             >
               <span className="text-2xl">✅</span>
               <div className="flex flex-col items-start">
-                <span>Completar Serie {workoutState.currentSet}</span>
+                <span>Completar Serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}</span>
                 <span className="text-xs font-normal opacity-90">
                   {workoutState.currentReps} reps × {workoutState.currentWeight}kg
                 </span>
@@ -1024,7 +1250,10 @@ export default function WorkoutPage() {
         <div className="mb-6">
           <AddExerciseButton onAddExercises={handleAddExercises} />
         </div>
+          </>
+        )}
 
+        {/* Modales compartidos entre ambos modos */}
         <Modal
           isOpen={completion.showNotesModal}
           onClose={() => completion.setShowNotesModal(false)}
@@ -1040,20 +1269,41 @@ export default function WorkoutPage() {
                 Duración del entrenamiento
               </label>
               <select
-                value={Math.floor(completion.proposedDuration / 60)}
+                value={completion.proposedDuration}
                 onChange={(e) => {
-                  const minutes = parseInt(e.target.value || '0', 10);
-                  completion.setProposedDuration(Math.max(0, isNaN(minutes) ? 0 : minutes) * 60);
+                  const seconds = parseInt(e.target.value || '0', 10);
+                  completion.setProposedDuration(Math.max(0, isNaN(seconds) ? 0 : seconds));
                 }}
                 className="w-full p-2 border rounded bg-white dark:bg-gray-700"
               >
-                {Array.from({ length: 59 }, (_, i) => i + 1).map(m => (
-                  <option key={`m-${m}`} value={m}>{m} min</option>
-                ))}
-                {Array.from({ length: 5 }, (_, i) => i + 1).map(h => (
-                  <option key={`h-${h}`} value={h * 60}>{h} h</option>
-                ))}
+                {/* Generar opciones en intervalos de 5 segundos hasta 5 horas (18000 segundos) */}
+                {Array.from({ length: 3600 }, (_, i) => (i + 1) * 5).map(s => {
+                  const hours = Math.floor(s / 3600);
+                  const mins = Math.floor((s % 3600) / 60);
+                  const secs = s % 60;
+                  
+                  let label = '';
+                  if (hours > 0) {
+                    label = `${hours}h`;
+                    if (mins > 0) label += ` ${mins}m`;
+                    if (secs > 0) label += ` ${secs}s`;
+                  } else if (mins > 0) {
+                    label = `${mins}m`;
+                    if (secs > 0) label += ` ${secs}s`;
+                  } else {
+                    label = `${s}s`;
+                  }
+                  
+                  return (
+                    <option key={`s-${s}`} value={s}>{label}</option>
+                  );
+                })}
               </select>
+              {completion.proposedDuration < 300 && (
+                <p className="mt-2 text-sm text-orange-600 dark:text-orange-400">
+                  ⚠️ La duración es menor a 5 minutos. ¿Estás seguro que es correcta?
+                </p>
+              )}
             </div>
 
             <div>

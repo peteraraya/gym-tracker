@@ -67,6 +67,9 @@ export function SeriesTable({
   // ✅ State for mobile editing - one state for all sets
   const [mobileEditingField, setMobileEditingField] = useState<{setIndex: number, field: 'reps' | 'weight'} | null>(null);
 
+  // Calcular series completadas correctamente desde actualReps
+  const actualCompletedSets = actualReps.filter(r => typeof r === 'number' && r > 0).length;
+
   // Calculate correct rest time for each set using the same logic as the timer
   const getRestTimeForSet = (setIndex: number): number => {
     if (!routine) return exercise.restBetweenSets || 90;
@@ -99,7 +102,7 @@ export function SeriesTable({
       <CardHeader>
         <CardTitle className="text-lg">Series del ejercicio</CardTitle>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {completedSets} de {exercise.sets.length} series completadas
+          {actualCompletedSets} de {exercise.sets.length} series completadas
         </p>
       </CardHeader>
 

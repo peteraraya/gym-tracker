@@ -628,7 +628,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           ) : (
             <div className="space-y-2">
               {availableRoutines.map(r => {
-                const alreadyAdded = selectedDayForQuickAdd && plan[selectedDayForQuickAdd]?.routines?.includes(r.id);
+                const alreadyAdded = !!(selectedDayForQuickAdd && plan[selectedDayForQuickAdd]?.routines?.includes(r.id));
                 const displayName = r.name.length > 35 ? r.name.substring(0, 35) + '...' : r.name;
                 
                 return (

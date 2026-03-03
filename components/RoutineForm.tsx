@@ -901,10 +901,19 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                           onClick={(e) => {
                             e.stopPropagation();
                             if (exercises.length === 1) {
-                              // Si es el último ejercicio, mostrar confirmación
-                              if (confirm('¿Estás seguro de eliminar el último ejercicio? La rutina quedará vacía.')) {
-                                handleRemoveExercise(exerciseIndex);
-                              }
+                              // Si es el último ejercicio, mostrar confirmación (confirm devuelve Promise<boolean>)
+                              (async () => {
+                                try {
+                                  const confirmed = await confirm({
+                                    title: 'Eliminar ejercicio',
+                                    message: '¿Estás seguro de eliminar el último ejercicio? La rutina quedará vacía.',
+                                    confirmText: 'Eliminar',
+                                    cancelText: 'Cancelar',
+                                    variant: 'warning'
+                                  });
+                                  if (confirmed) handleRemoveExercise(exerciseIndex);
+                                } catch (e) { /* ignore */ }
+                              })();
                             } else {
                               handleRemoveExercise(exerciseIndex);
                             }
