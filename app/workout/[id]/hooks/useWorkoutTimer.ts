@@ -101,9 +101,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     // Persistir estado del temporizador
     if (activeWorkout && updateWorkoutProgress) {
       updateWorkoutProgress(
-        activeWorkout.routineId,
         activeWorkout.currentExerciseIndex,
         activeWorkout.currentSet,
+        activeWorkout.completedSets,
         activeWorkout.actualReps,
         activeWorkout.actualWeights,
         {
@@ -126,9 +126,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     // Limpiar estado persistido
     if (activeWorkout && updateWorkoutProgress) {
       updateWorkoutProgress(
-        activeWorkout.routineId,
         activeWorkout.currentExerciseIndex,
         activeWorkout.currentSet,
+        activeWorkout.completedSets,
         activeWorkout.actualReps,
         activeWorkout.actualWeights,
         {
@@ -162,9 +162,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     // Limpiar estado persistido
     if (activeWorkout && updateWorkoutProgress) {
       updateWorkoutProgress(
-        activeWorkout.routineId,
         activeWorkout.currentExerciseIndex,
         activeWorkout.currentSet,
+        activeWorkout.completedSets,
         activeWorkout.actualReps,
         activeWorkout.actualWeights,
         {
@@ -188,9 +188,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     // Limpiar estado persistido
     if (activeWorkout && updateWorkoutProgress) {
       updateWorkoutProgress(
-        activeWorkout.routineId,
         activeWorkout.currentExerciseIndex,
         activeWorkout.currentSet,
+        activeWorkout.completedSets,
         activeWorkout.actualReps,
         activeWorkout.actualWeights,
         {
