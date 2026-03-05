@@ -72,14 +72,24 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
+    
+    // Actualizar el input visual inmediatamente (sin validación estricta)
     setInputValue(val);
     
-    if (val === '') {
+    // Intentar parsear el valor
+    if (val === '' || val === '.' || val === ',') {
       onChange(0);
-    } else {
-      const num = parseFloat(val);
+      return;
+    }
+    
+    // Convertir coma a punto para parseFloat
+    const normalizedVal = val.replace(',', '.');
+    
+    // Validar que sea un número válido
+    if (/^[0-9]*\.?[0-9]*$/.test(normalizedVal)) {
+      const num = parseFloat(normalizedVal);
       if (!isNaN(num) && num >= 0) {
-        onChange(Math.max(0, num)); // Asegurar que nunca sea negativo
+        onChange(num);
       }
     }
   };
@@ -107,14 +117,13 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
   return (
     <div ref={containerRef} className="relative">
       <input
-        type="number"
+        type="text"
+        inputMode="decimal"
         className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 ${className}`}
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
         onFocus={handleInputFocus}
-        step="0.5"
-        min="0"
         placeholder={placeholder}
         aria-label="Peso"
       />

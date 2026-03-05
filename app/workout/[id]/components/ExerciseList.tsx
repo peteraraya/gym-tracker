@@ -11,6 +11,7 @@ interface ExerciseListProps {
   completedSets: { [key: string]: number };
   onSelectExercise: (index: number) => void;
   onMoveExercise: (fromIndex: number, toIndex: number) => void;
+  onDeleteExercise?: (index: number) => void;
 }
 
 /**
@@ -28,6 +29,7 @@ export function ExerciseList({
   completedSets,
   onSelectExercise,
   onMoveExercise,
+  onDeleteExercise,
 }: ExerciseListProps) {
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
@@ -157,17 +159,33 @@ export function ExerciseList({
                     </div>
                   </div>
 
-                  {/* Action button */}
-                  {!isCurrentExercise && isCompleted && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onSelectExercise(idx)}
-                      className="flex-shrink-0"
-                    >
-                      Editar
-                    </Button>
-                  )}
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {!isCurrentExercise && isCompleted && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onSelectExercise(idx)}
+                      >
+                        Editar
+                      </Button>
+                    )}
+                    {onDeleteExercise && routine.exercises.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteExercise(idx);
+                        }}
+                        className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Eliminar ejercicio"
+                        aria-label={`Eliminar ${exercise.name}`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );

@@ -1061,21 +1061,25 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                                   <div>
                                     <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Peso (kg)</label>
                                     <Input
-                                      type="number"
+                                      type="text"
+                                      inputMode="decimal"
                                       name={`weight-${exerciseIndex}-${setIndex}`}
                                       placeholder={t('weight')}
                                       value={set.weight === 0 ? '' : set.weight ?? ''}
                                       onChange={(e) => {
                                         const val = e.target.value;
-                                        if (val === '') {
-                                          handleSetChange(exerciseIndex, setIndex, 'weight', 0);
-                                        } else {
-                                          const num = parseFloat(val);
-                                          handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
+                                        // Permitir números, punto decimal y coma
+                                        if (val === '' || /^[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                          if (val === '') {
+                                            handleSetChange(exerciseIndex, setIndex, 'weight', 0);
+                                          } else {
+                                            // Convertir coma a punto para parseFloat
+                                            const normalizedVal = val.replace(',', '.');
+                                            const num = parseFloat(normalizedVal);
+                                            handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
+                                          }
                                         }
                                       }}
-                                      min="0"
-                                      step="0.5"
                                       className={`text-center font-semibold h-8 text-sm ${
                                         touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
                                         validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso'))

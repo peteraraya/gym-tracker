@@ -898,6 +898,81 @@ export default function WorkoutPage() {
     }
     
     // Persistir la rutina actualizada
+  }, [currentExercise, routine, workoutState, updateModifiedRoutine, error]);
+
+  const handleDeleteExercise = useCallback(async (exerciseIndex: number) => {
+    if (!routine) return;
+    
+    // No permitir eliminar si solo hay un ejercicio
+    if (routine.exercises.length <= 1) {
+      error('No puedes eliminar el último ejercicio');
+      return;
+    }
+    
+    const exerciseToDelete = routine.exercises[exerciseIndex];
+    
+    // Confirmar eliminación
+    const confirmed = await confirm({
+      title: 'Eliminar ejercicio',
+      message: `¿Estás seguro de que quieres eliminar "${exerciseToDelete.name}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger'
+    });
+    
+    if (!confirmed) return;
+    
+    // Eliminar el ejercicio
+    const updatedExercises = routine.exercises.filter((_: Exercise, idx: number) => idx !== exerciseIndex);
+    const updatedRoutine = { ...routine, exercises: updatedExercises };
+    
+    setRoutine(updatedRoutine);
+    updateModifiedRoutine(updatedRoutine);
+    
+    // Limpiar datos del ejercicio eliminado
+    const exerciseId = exerciseToDelete.id;
+    const newActualReps = { ...workoutState.workoutData.actualReps };
+    const newActualWeights = { ...workoutState.workoutData.actualWeights };
+    const newCompletedSets = { ...workoutState.workoutData.completedSets };
+    
+    delete newActualReps[exerciseId];
+    delete newActualWeights[exerciseId];
+    delete newCompletedSets[exerciseId];
+    
+    workoutState.updateActualReps(exerciseId, []);
+    workoutState.updateActualWeights(exerciseId, []);
+    workoutState.updateCompletedSets(exerciseId, 0);
+    
+    // Ajustar currentExerciseIndex si es necesario
+    if (workoutState.currentExerciseIndex >= updatedExercises.length) {
+      // Si estábamos en el último ejercicio, retroceder
+      workoutState.setCurrentExerciseIndex(Math.max(0, updatedExercises.length - 1));
+      workoutState.setCurrentSet(1);
+      
+      // Actualizar valores del nuevo ejercicio actual
+      const newCurrentExercise = updatedExercises[Math.max(0, updatedExercises.length - 1)];
+      if (newCurrentExercise && newCurrentExercise.sets[0]) {
+        workoutState.setCurrentReps(newCurrentExercise.sets[0].reps);
+        workoutState.setCurrentWeight(newCurrentExercise.sets[0].weight || 0);
+      }
+    } else if (exerciseIndex < workoutState.currentExerciseIndex) {
+      // Si eliminamos un ejercicio anterior, ajustar el índice
+      workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex - 1);
+    } else if (exerciseIndex === workoutState.currentExerciseIndex) {
+      // Si eliminamos el ejercicio actual, mantener el índice pero actualizar datos
+      const newCurrentExercise = updatedExercises[exerciseIndex];
+      if (newCurrentExercise && newCurrentExercise.sets[0]) {
+        workoutState.setCurrentSet(1);
+        workoutState.setCurrentReps(newCurrentExercise.sets[0].reps);
+        workoutState.setCurrentWeight(newCurrentExercise.sets[0].weight || 0);
+      }
+    }
+    
+    success(`Ejercicio "${exerciseToDelete.name}" eliminado`, 2000);
+    
+    // Haptic feedback
+    haptic.error();
+  }, [routine, workoutState, updateModifiedRoutine, confirm, success, error, haptic]);
     try {
       await updateRoutine(id, updatedRoutine);
       success('Serie eliminada', 2000);

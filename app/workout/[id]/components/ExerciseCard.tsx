@@ -336,7 +336,11 @@ export function ExerciseCard({
         field="weight"
         currentValue={currentWeight}
         onSave={(value) => onWeightChange(value)}
-        historicalWeights={exercise.sets.map(s => s.weight).filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i).sort((a, b) => (b || 0) - (a || 0))}
+        historicalWeights={exercise.sets
+          .map(s => s.weight)
+          .filter((w, i, arr): w is number => typeof w === 'number' && w > 0 && arr.indexOf(w) === i)
+          .sort((a, b) => b - a)
+        }
       />
     </Card>
   );
