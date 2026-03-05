@@ -898,7 +898,14 @@ export default function WorkoutPage() {
     }
     
     // Persistir la rutina actualizada
-  }, [currentExercise, routine, workoutState, updateModifiedRoutine, error]);
+    try {
+      await updateRoutine(id, updatedRoutine);
+      success('Serie eliminada', 2000);
+    } catch (err) {
+      error('Error al eliminar serie');
+      console.error('Error deleting set:', err);
+    }
+  }, [currentExercise, routine, workoutState, id, updateRoutine, updateModifiedRoutine, success, error]);
 
   const handleDeleteExercise = useCallback(async (exerciseIndex: number) => {
     if (!routine) return;

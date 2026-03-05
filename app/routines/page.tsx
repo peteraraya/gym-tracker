@@ -388,12 +388,13 @@ export default function RoutinesPage() {
       </div>
 
       {/* Floating Free Workout button */}
-      <div className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-40">
+        <div className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-40">
         <button
           onClick={() => router.push('/workout/free')}
           aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"
           title="Entrenamiento Libre"
           className="group flex items-center gap-2 px-4 py-3 sm:w-14 sm:h-14 sm:p-0 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+
         >
           <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="text-sm font-semibold sm:hidden">Libre</span>
