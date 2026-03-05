@@ -59,36 +59,50 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
   // Normalizar datos validados a WorkoutState (convierte tipos robustamente)
   const normalizeActiveWorkout = (data: any): WorkoutState => {
+    // Manejar caso donde completedSets es un número (dato corrupto)
+    let completedSets: { [key: string]: number } = {};
+    if (typeof data.completedSets === 'object' && data.completedSets !== null && !Array.isArray(data.completedSets)) {
+      const src = data.completedSets;
+      Object.keys(src).forEach(k => {
+        const v = (src as any)[k];
+        completedSets[String(k)] = typeof v === 'number' ? v : Number(v ?? 0);
+      });
+    } else if (typeof data.completedSets === 'number') {
+      // Dato corrupto: completedSets es un número en lugar de un objeto
+      console.warn('[WorkoutContext] completedSets is a number, resetting to empty object');
+      completedSets = {};
+    }
+
     return {
       routineId: String(data.routineId),
       routineName: String(data.routineName),
-      currentExerciseIndex: Number(data.currentExerciseIndex ?? 0),
-      currentSet: Number(data.currentSet ?? 1),
-      completedSets: (() => {
-        const out: { [key: string]: number } = {};
-        const src = data.completedSets || {};
-        Object.keys(src).forEach(k => {
-          const v = (src as any)[k];
-          out[String(k)] = typeof v === 'number' ? v : Number(v ?? 0);
-        });
-        return out;
-      })(),
+      currentExerciseIndex: typeof data.currentExerciseIndex === 'string' 
+        ? parseInt(data.currentExerciseIndex) || 0 
+        : Number(data.currentExerciseIndex ?? 0),
+      currentSet: typeof data.currentSet === 'string'
+        ? parseInt(data.currentSet) || 1
+        : Number(data.currentSet ?? 1),
+      completedSets,
       actualReps: (() => {
         const out: { [key: string]: number[] } = {};
         const src = data.actualReps || {};
-        Object.keys(src).forEach(k => {
-          const arr = (src as any)[k];
-          out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
-        });
+        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach(k => {
+            const arr = (src as any)[k];
+            out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+          });
+        }
         return out;
       })(),
       actualWeights: (() => {
         const out: { [key: string]: number[] } = {};
         const src = data.actualWeights || {};
-        Object.keys(src).forEach(k => {
-          const arr = (src as any)[k];
-          out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
-        });
+        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach(k => {
+            const arr = (src as any)[k];
+            out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+          });
+        }
         return out;
       })(),
       startedAt: data.startedAt ? new Date(data.startedAt) : new Date(),
@@ -117,18 +131,28 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
         
         if (stored) {
-          // ✅ Validar con Zod
-          const validationResult = validateDataWithLogging(
-            WorkoutStateSchema,
-            stored,
-            '[WorkoutContext] Loading active workout'
-          );
+          // ✅ Intentar normalizar primero, luego validar
+          try {
+            const normalized = normalizeActiveWorkout(stored);
+            
+            // Validar el dato normalizado
+            const validationResult = validateDataWithLogging(
+              WorkoutStateSchema,
+              normalized,
+              '[WorkoutContext] Loading active workout'
+            );
 
-          if (validationResult.success && validationResult.data) {
-            setActiveWorkout(normalizeActiveWorkout(validationResult.data));
-          } else {
-            // Datos corruptos - limpiar
-            console.error('[WorkoutContext] Invalid workout state, clearing:', validationResult.error);
+            if (validationResult.success && validationResult.data) {
+              setActiveWorkout(normalized);
+            } else {
+              // Datos corruptos incluso después de normalizar - limpiar
+              console.error('[WorkoutContext] Invalid workout state after normalization, clearing:', validationResult.error);
+              await storageService.clearActiveWorkout();
+              setActiveWorkout(null);
+            }
+          } catch (normalizeError) {
+            // Error durante normalización - datos muy corruptos
+            console.error('[WorkoutContext] Error normalizing workout state, clearing:', normalizeError);
             await storageService.clearActiveWorkout();
             setActiveWorkout(null);
           }
@@ -398,20 +422,28 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
               console.debug('[WorkoutContext] Restoring workout from storage');
             }
             
-            // ✅ Validar con Zod
-            const validationResult = validateDataWithLogging(
-              WorkoutStateSchema,
-              stored,
-              '[WorkoutContext] Restoring workout on resume'
-            );
+            // ✅ Intentar normalizar primero, luego validar
+            try {
+              const normalized = normalizeActiveWorkout(stored);
+              
+              // Validar el dato normalizado
+              const validationResult = validateDataWithLogging(
+                WorkoutStateSchema,
+                normalized,
+                '[WorkoutContext] Restoring workout on resume'
+              );
 
-            if (validationResult.success && validationResult.data) {
-              const normalized = normalizeActiveWorkout(validationResult.data);
-              setActiveWorkout(normalized);
-              activeWorkoutRef.current = normalized;
-            } else {
-              // Datos corruptos - limpiar
-              console.error('[WorkoutContext] Invalid workout state on resume, clearing:', validationResult.error);
+              if (validationResult.success && validationResult.data) {
+                setActiveWorkout(normalized);
+                activeWorkoutRef.current = normalized;
+              } else {
+                // Datos corruptos incluso después de normalizar - limpiar
+                console.error('[WorkoutContext] Invalid workout state on resume after normalization, clearing:', validationResult.error);
+                await storageService.clearActiveWorkout();
+              }
+            } catch (normalizeError) {
+              // Error durante normalización - datos muy corruptos
+              console.error('[WorkoutContext] Error normalizing workout state on resume, clearing:', normalizeError);
               await storageService.clearActiveWorkout();
             }
           }

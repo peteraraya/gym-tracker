@@ -15,6 +15,9 @@ interface CompactWorkoutHeaderProps {
   actualWeights: Record<string, number[]>;
   exercises: any[];
   onCancel?: () => void;
+  isPaused?: boolean;
+  onPauseToggle?: () => void;
+  onEditTime?: () => void;
 }
 
 /**
@@ -31,6 +34,9 @@ export function CompactWorkoutHeader({
   actualWeights,
   exercises,
   onCancel,
+  isPaused = false,
+  onPauseToggle,
+  onEditTime,
 }: CompactWorkoutHeaderProps) {
   
   // Calcular progreso
@@ -109,14 +115,51 @@ export function CompactWorkoutHeader({
 
       {/* Fila 2: Estadísticas compactas */}
       <div className="grid grid-cols-4 gap-2 px-4 pb-2">
-        {/* Tiempo */}
+        {/* Tiempo con botón de pausa y edición */}
         <div className="flex flex-col items-center">
-          <Clock className="w-3.5 h-3.5 text-green-600 dark:text-green-400 mb-0.5" />
-          <div className="text-sm font-bold text-green-600 dark:text-green-400 font-mono tabular-nums">
-            {formattedTime}
+          <div className="flex items-center gap-1 mb-0.5">
+            <button
+              onClick={onPauseToggle}
+              className={`flex items-center justify-center transition-colors ${
+                isPaused 
+                  ? 'text-yellow-600 dark:text-yellow-400' 
+                  : 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
+              }`}
+              title={isPaused ? 'Reanudar' : 'Pausar'}
+            >
+              {isPaused ? (
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              ) : (
+                <Clock className="w-3.5 h-3.5" />
+              )}
+            </button>
+            {onEditTime && (
+              <button
+                onClick={onEditTime}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Editar tiempo"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+            )}
           </div>
+          <button
+            onClick={onEditTime}
+            className={`text-sm font-bold font-mono tabular-nums hover:underline ${
+              isPaused 
+                ? 'text-yellow-600 dark:text-yellow-400' 
+                : 'text-green-600 dark:text-green-400'
+            }`}
+            title="Click para editar"
+          >
+            {formattedTime}
+          </button>
           <div className="text-[10px] text-gray-600 dark:text-gray-400">
-            Tiempo
+            {isPaused ? 'Pausado' : 'Tiempo'}
           </div>
         </div>
 

@@ -89,8 +89,27 @@ export default function WorkoutPage() {
     }
     return Date.now();
   });
-  const [totalPausedTime] = useState(0);
+  const [totalPausedTime, setTotalPausedTime] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseStartTime, setPauseStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [showEditTimeModal, setShowEditTimeModal] = useState(false);
+  const [editingTime, setEditingTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  
+  // Actualizar tiempo transcurrido cada segundo SOLO si NO está pausado
+  useEffect(() => {
+    if (isPaused) {
+      // Si está pausado, no actualizar el tiempo
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+      setElapsedTime(elapsed);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [workoutStartTime, totalPausedTime, isPaused]);
   
   // ==================== COMPUTED VALUES ====================
   const currentExercise = useMemo(() => {
@@ -320,10 +339,8 @@ export default function WorkoutPage() {
             workoutState.setCurrentWeight(firstSet.weight || 0);
           }
           
-          // Iniciar automáticamente la primera serie
-          setTimeout(() => {
-            setExecution.startSet();
-          }, 500);
+          // NO iniciar automáticamente la primera serie en modo guiado
+          // El usuario presionará el botón "Iniciar Serie" cuando esté listo
         }
       }
       
@@ -602,7 +619,8 @@ export default function WorkoutPage() {
       return;
     }
     
-    setExecution.completeSet();
+    // NO llamar a setExecution.completeSet() para evitar la preparación
+    // setExecution.completeSet();
     
     const repsValue = typeof workoutState.currentReps === 'number' ? workoutState.currentReps : currentExercise.sets[setIndex]?.reps || 0;
     const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
@@ -629,7 +647,7 @@ export default function WorkoutPage() {
 
     if (isLastSet) {
       if (isLastExercise) {
-        const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+        const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
         completion.openCompletionModal(duration);
       } else {
         const nextExercise = routine.exercises[workoutState.currentExerciseIndex + 1];
@@ -660,7 +678,7 @@ export default function WorkoutPage() {
       haptic.restStart();
       timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, weightPrediction.weightSuggestion, timerHandlers, setExecution, completion]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, totalPausedTime, useSmartRest, weightPrediction.weightSuggestion, timerHandlers, haptic, completion]);
 
   const handleTimerComplete = useCallback(() => {
     timerHandlers.stopTimer();
@@ -678,7 +696,7 @@ export default function WorkoutPage() {
     const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
     
     if (isLastSet && isLastExercise) {
-      const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+      const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
       completion.openCompletionModal(duration);
     } else if (isLastSet && !isLastExercise) {
       const nextIndex = workoutState.currentExerciseIndex + 1;
@@ -695,10 +713,8 @@ export default function WorkoutPage() {
           workoutState.setCurrentWeight(firstSet.weight || 0);
         }
         
-        // Iniciar automáticamente la siguiente serie después del descanso
-        setTimeout(() => {
-          setExecution.startSet();
-        }, 500);
+        // NO iniciar automáticamente la preparación en modo guiado
+        // El usuario presionará el botón "Iniciar Serie" cuando esté listo
       }
     } else if (!isLastSet) {
       const newSet = workoutState.currentSet + 1;
@@ -709,12 +725,10 @@ export default function WorkoutPage() {
         workoutState.setCurrentWeight(nextSetData.weight || 0);
       }
       
-      // Iniciar automáticamente la siguiente serie después del descanso
-      setTimeout(() => {
-        setExecution.startSet();
-      }, 500);
+      // NO iniciar automáticamente la preparación en modo guiado
+      // El usuario presionará el botón "Iniciar Serie" cuando esté listo
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, clearRestState, timerHandlers, completion, setExecution]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, totalPausedTime, clearRestState, timerHandlers, completion, haptic]);
 
   useEffect(() => {
     // keep the ref updated so the timer hook can call the latest handler
@@ -734,6 +748,48 @@ export default function WorkoutPage() {
       router.push('/routines');
     }
   }, [confirm, cancelWorkout, router]);
+
+  const handlePauseWorkout = useCallback(() => {
+    if (isPaused) {
+      // Reanudar
+      if (pauseStartTime) {
+        const pauseDuration = Date.now() - pauseStartTime;
+        setTotalPausedTime(prev => prev + pauseDuration);
+        console.log('[Workout] Resuming - pause duration:', Math.floor(pauseDuration / 1000), 'seconds');
+      }
+      setIsPaused(false);
+      setPauseStartTime(null);
+      success('⏯️ Entrenamiento reanudado', 2000);
+    } else {
+      // Pausar
+      setPauseStartTime(Date.now());
+      setIsPaused(true);
+      console.log('[Workout] Paused at:', new Date().toISOString());
+      success('⏸️ Entrenamiento pausado', 2000);
+    }
+  }, [isPaused, pauseStartTime, success]);
+
+  const handleOpenEditTime = useCallback(() => {
+    const hours = Math.floor(elapsedTime / 3600);
+    const minutes = Math.floor((elapsedTime % 3600) / 60);
+    const seconds = elapsedTime % 60;
+    setEditingTime({ hours, minutes, seconds });
+    setShowEditTimeModal(true);
+  }, [elapsedTime]);
+
+  const handleSaveEditedTime = useCallback(() => {
+    const newElapsedSeconds = editingTime.hours * 3600 + editingTime.minutes * 60 + editingTime.seconds;
+    
+    // Ajustar workoutStartTime y totalPausedTime para que elapsedTime sea el nuevo valor
+    const now = Date.now();
+    const newStartTime = now - (newElapsedSeconds * 1000);
+    setWorkoutStartTime(newStartTime);
+    setTotalPausedTime(0);
+    setElapsedTime(newElapsedSeconds);
+    
+    setShowEditTimeModal(false);
+    success('⏱️ Tiempo actualizado', 2000);
+  }, [editingTime, success]);
 
   const handleMoveExercise = useCallback((fromIndex: number, toIndex: number) => {
     if (!routine || fromIndex === toIndex) return;
@@ -1352,6 +1408,9 @@ export default function WorkoutPage() {
               actualWeights={workoutState.workoutData.actualWeights}
               exercises={routine.exercises}
               onCancel={handleCancelWorkout}
+              isPaused={isPaused}
+              onPauseToggle={handlePauseWorkout}
+              onEditTime={handleOpenEditTime}
             />
           </div>
         </div>
@@ -1522,6 +1581,79 @@ export default function WorkoutPage() {
         )}
 
         {/* Modales compartidos entre ambos modos */}
+        <Modal
+          isOpen={showEditTimeModal}
+          onClose={() => setShowEditTimeModal(false)}
+          title="⏱️ Editar tiempo de entrenamiento"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Ajusta el tiempo transcurrido del entrenamiento
+            </p>
+            
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Horas
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={editingTime.hours}
+                  onChange={(e) => setEditingTime(prev => ({ ...prev, hours: Math.max(0, Math.min(23, parseInt(e.target.value) || 0)) }))}
+                  className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Minutos
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={editingTime.minutes}
+                  onChange={(e) => setEditingTime(prev => ({ ...prev, minutes: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)) }))}
+                  className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Segundos
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={editingTime.seconds}
+                  onChange={(e) => setEditingTime(prev => ({ ...prev, seconds: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)) }))}
+                  className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="secondary"
+                onClick={() => setShowEditTimeModal(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSaveEditedTime}
+                className="flex-1"
+              >
+                Guardar
+              </Button>
+            </div>
+          </div>
+        </Modal>
+        
         <Modal
           isOpen={completion.showNotesModal}
           onClose={() => completion.setShowNotesModal(false)}

@@ -46,6 +46,7 @@ export function QuickEditMode({
     exerciseName: string;
   } | null>(null);
   const [tempValue, setTempValue] = useState<string>('');
+  const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
 
   // Función para iniciar edición con el valor actual
   const startEditing = (
@@ -81,6 +82,19 @@ export function QuickEditMode({
   const cancelEdit = () => {
     setEditingCell(null);
     setTempValue('');
+  };
+
+  // Función para toggle collapse de un ejercicio
+  const toggleCollapse = (exerciseId: string) => {
+    setCollapsedExercises(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(exerciseId)) {
+        newSet.delete(exerciseId);
+      } else {
+        newSet.add(exerciseId);
+      }
+      return newSet;
+    });
   };
 
   // Calcular progreso total - memoizado para evitar recalcular en cada render
@@ -126,36 +140,65 @@ export function QuickEditMode({
         
         // Calcular completadas correctamente - solo contar las que tienen reps > 0
         const completedCount = actualReps.filter(r => typeof r === 'number' && r > 0).length;
+        const isFullyCompleted = completedCount === exercise.sets.length;
+        const isCollapsed = collapsedExercises.has(exerciseId);
+
+        // Auto-colapsar cuando se completa (solo si no está ya colapsado manualmente)
+        if (isFullyCompleted && !isCollapsed && completedCount > 0) {
+          // Usar setTimeout para evitar actualizar estado durante render
+          setTimeout(() => {
+            setCollapsedExercises(prev => {
+              const newSet = new Set(prev);
+              newSet.add(exerciseId);
+              return newSet;
+            });
+          }, 0);
+        }
 
         return (
           <Card key={exerciseId} className="overflow-hidden">
-            {/* Header del ejercicio */}
-            <div className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 p-2.5 border-b border-gray-200 dark:border-gray-700">
+            {/* Header del ejercicio - clickeable para collapse */}
+            <button
+              onClick={() => toggleCollapse(exerciseId)}
+              className="w-full bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 p-2.5 border-b border-gray-200 dark:border-gray-700 hover:from-gray-150 hover:to-gray-100 dark:hover:from-gray-750 dark:hover:to-gray-850 transition-colors"
+            >
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
-                    {exIdx + 1}. {exercise.name}
-                  </h3>
-                  <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
-                    {completedCount} de {exercise.sets.length} series completadas
-                  </p>
+                <div className="flex items-center gap-2">
+                  {/* Icono de collapse */}
+                  <svg 
+                    className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <div className="text-left">
+                    <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                      {exIdx + 1}. {exercise.name}
+                    </h3>
+                    <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
+                      {completedCount} de {exercise.sets.length} series completadas
+                    </p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    completedCount === exercise.sets.length
+                    isFullyCompleted
                       ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                       : completedCount > 0
                       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                   }`}>
-                    {completedCount === exercise.sets.length ? '✓' : completedCount > 0 ? '⏳' : '○'} 
+                    {isFullyCompleted ? '✓' : completedCount > 0 ? '⏳' : '○'} 
                     {completedCount}/{exercise.sets.length}
                   </div>
                 </div>
               </div>
-            </div>
+            </button>
 
-            <CardContent className="p-0">
+            {!isCollapsed && (
+              <CardContent className="p-0">
               {/* Tabla de series */}
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
@@ -301,7 +344,10 @@ export function QuickEditMode({
               {onAddSet && (
                 <div className="mt-2 px-2">
                   <button
-                    onClick={() => onAddSet(exerciseId)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddSet(exerciseId);
+                    }}
                     className="w-full py-2 px-3 bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all font-medium text-xs flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,7 +357,8 @@ export function QuickEditMode({
                   </button>
                 </div>
               )}
-            </CardContent>
+              </CardContent>
+            )}
           </Card>
         );
       })}
@@ -388,7 +435,7 @@ export function QuickEditMode({
                 <button
                   onClick={() => {
                     if (!tempValue.includes('.')) {
-                      setTempValue(prev => prev || '0' + '.');
+                      setTempValue(prev => (prev || '0') + '.');
                     }
                   }}
                   className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
@@ -452,6 +499,32 @@ export function QuickEditMode({
             {/* Atajos rápidos para pesos comunes */}
             {editingCell.field === 'weight' && (
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Pesos anteriores</p>
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {(() => {
+                    // Obtener pesos únicos del ejercicio actual
+                    const exercise = routine.exercises.find(ex => ex.id === editingCell.exerciseId);
+                    const historicalWeights = exercise?.sets
+                      .map(set => set.weight)
+                      .filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i)
+                      .sort((a, b) => (b || 0) - (a || 0))
+                      .slice(0, 4) || [];
+                    
+                    return historicalWeights.length > 0 ? historicalWeights.map((weight) => (
+                      <button
+                        key={weight}
+                        onClick={() => setTempValue(String(weight))}
+                        className="py-2 text-sm font-semibold bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors"
+                      >
+                        {weight}kg
+                      </button>
+                    )) : (
+                      <p className="col-span-4 text-xs text-gray-400 text-center py-2">
+                        No hay pesos anteriores
+                      </p>
+                    );
+                  })()}
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Incrementos rápidos</p>
                 <div className="grid grid-cols-4 gap-2">
                   {[2.5, 5, 10, 20].map((increment) => (
@@ -461,7 +534,7 @@ export function QuickEditMode({
                         const current = parseFloat(tempValue) || 0;
                         setTempValue(String(current + increment));
                       }}
-                      className="py-2 text-sm font-semibold bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors"
+                      className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
                     >
                       +{increment}
                     </button>
