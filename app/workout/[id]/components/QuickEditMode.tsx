@@ -402,64 +402,147 @@ export function QuickEditMode({
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 {editingCell.field === 'reps' ? 'Repeticiones' : 'Peso (kg)'}
               </p>
-              {/* Input editable grande */}
+              {/* Input editable grande - SIEMPRE VISIBLE Y ENFOCADO */}
               <input
-                type="number"
+                type="text"
                 inputMode={editingCell.field === 'reps' ? 'numeric' : 'decimal'}
-                step={editingCell.field === 'weight' ? '0.5' : '1'}
                 value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Permitir solo números y punto decimal para peso
+                  if (editingCell.field === 'weight') {
+                    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                      setTempValue(value);
+                    }
+                  } else {
+                    // Solo números para reps
+                    if (value === '' || /^\d+$/.test(value)) {
+                      setTempValue(value);
+                    }
+                  }
+                }}
                 onFocus={(e) => e.target.select()}
-                placeholder="0"
-                className="w-full text-5xl font-bold text-center bg-transparent border-b-4 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors py-2 mb-4"
+                autoFocus
+                placeholder="Escribe aquí"
+                className="w-full text-5xl font-bold text-center bg-transparent border-b-4 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors py-2 mb-2"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Escribe directamente o usa el teclado numérico
+                Escribe directamente o usa los botones
               </p>
             </div>
 
-            {/* Teclado numérico personalizado */}
-            <div className="grid grid-cols-3 gap-3">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            {/* Atajos rápidos para repeticiones comunes */}
+            {editingCell.field === 'reps' && (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Atajos rápidos</p>
+                <div className="grid grid-cols-5 gap-2">
+                  {[8, 10, 12, 15, 20].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setTempValue(String(num))}
+                      className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pesos anteriores y atajos para peso */}
+            {editingCell.field === 'weight' && (
+              <>
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Pesos anteriores</p>
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {(() => {
+                      // Obtener pesos únicos del ejercicio actual
+                      const exercise = routine.exercises.find(ex => ex.id === editingCell.exerciseId);
+                      const historicalWeights = exercise?.sets
+                        .map(set => set.weight)
+                        .filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i)
+                        .sort((a, b) => (b || 0) - (a || 0))
+                        .slice(0, 4) || [];
+                      
+                      return historicalWeights.length > 0 ? historicalWeights.map((weight) => (
+                        <button
+                          key={weight}
+                          onClick={() => setTempValue(String(weight))}
+                          className="py-2 text-sm font-semibold bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors"
+                        >
+                          {weight}kg
+                        </button>
+                      )) : (
+                        <p className="col-span-4 text-xs text-gray-400 text-center py-2">
+                          No hay pesos anteriores
+                        </p>
+                      );
+                    })()}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Incrementos rápidos</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[2.5, 5, 10, 20].map((increment) => (
+                      <button
+                        key={increment}
+                        onClick={() => {
+                          const current = parseFloat(tempValue) || 0;
+                          setTempValue(String(current + increment));
+                        }}
+                        className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
+                      >
+                        +{increment}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Teclado numérico personalizado - OPCIONAL */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Teclado numérico</p>
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setTempValue(prev => prev === '0' ? String(num) : prev + num)}
+                    className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
+                  >
+                    {num}
+                  </button>
+                ))}
+                
+                {/* Botón decimal solo para peso */}
+                {editingCell.field === 'weight' ? (
+                  <button
+                    onClick={() => {
+                      if (!tempValue.includes('.')) {
+                        setTempValue(prev => (prev || '0') + '.');
+                      }
+                    }}
+                    className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
+                  >
+                    .
+                  </button>
+                ) : (
+                  <div className="h-16" />
+                )}
+                
                 <button
-                  key={num}
-                  onClick={() => setTempValue(prev => prev === '0' ? String(num) : prev + num)}
+                  onClick={() => setTempValue(prev => prev === '0' ? '0' : prev + '0')}
                   className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
                 >
-                  {num}
+                  0
                 </button>
-              ))}
-              
-              {/* Botón decimal solo para peso */}
-              {editingCell.field === 'weight' ? (
+                
+                {/* Botón borrar */}
                 <button
-                  onClick={() => {
-                    if (!tempValue.includes('.')) {
-                      setTempValue(prev => (prev || '0') + '.');
-                    }
-                  }}
-                  className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
+                  onClick={() => setTempValue(prev => prev.length > 1 ? prev.slice(0, -1) : '')}
+                  className="h-16 text-xl font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-colors active:scale-95"
                 >
-                  .
+                  ⌫
                 </button>
-              ) : (
-                <div className="h-16" />
-              )}
-              
-              <button
-                onClick={() => setTempValue(prev => prev === '0' ? '0' : prev + '0')}
-                className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
-              >
-                0
-              </button>
-              
-              {/* Botón borrar */}
-              <button
-                onClick={() => setTempValue(prev => prev.length > 1 ? prev.slice(0, -1) : '')}
-                className="h-16 text-xl font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-colors active:scale-95"
-              >
-                ⌫
-              </button>
+              </div>
             </div>
 
             {/* Botones de acción */}
@@ -477,71 +560,6 @@ export function QuickEditMode({
                 Guardar
               </button>
             </div>
-
-            {/* Atajos rápidos para repeticiones comunes */}
-            {editingCell.field === 'reps' && (
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Atajos rápidos</p>
-                <div className="grid grid-cols-5 gap-2">
-                  {[8, 10, 12, 15, 20].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setTempValue(String(num))}
-                      className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Atajos rápidos para pesos comunes */}
-            {editingCell.field === 'weight' && (
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Pesos anteriores</p>
-                <div className="grid grid-cols-4 gap-2 mb-3">
-                  {(() => {
-                    // Obtener pesos únicos del ejercicio actual
-                    const exercise = routine.exercises.find(ex => ex.id === editingCell.exerciseId);
-                    const historicalWeights = exercise?.sets
-                      .map(set => set.weight)
-                      .filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i)
-                      .sort((a, b) => (b || 0) - (a || 0))
-                      .slice(0, 4) || [];
-                    
-                    return historicalWeights.length > 0 ? historicalWeights.map((weight) => (
-                      <button
-                        key={weight}
-                        onClick={() => setTempValue(String(weight))}
-                        className="py-2 text-sm font-semibold bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors"
-                      >
-                        {weight}kg
-                      </button>
-                    )) : (
-                      <p className="col-span-4 text-xs text-gray-400 text-center py-2">
-                        No hay pesos anteriores
-                      </p>
-                    );
-                  })()}
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Incrementos rápidos</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {[2.5, 5, 10, 20].map((increment) => (
-                    <button
-                      key={increment}
-                      onClick={() => {
-                        const current = parseFloat(tempValue) || 0;
-                        setTempValue(String(current + increment));
-                      }}
-                      className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
-                    >
-                      +{increment}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </BottomSheet>
