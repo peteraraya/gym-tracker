@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import SetTypeCycleButton from '@/components/SetTypeCycleButton';
@@ -47,6 +47,49 @@ export function QuickEditMode({
   } | null>(null);
   const [tempValue, setTempValue] = useState<string>('');
   const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
+  const inputRef = useRef<HTMLInputElement>(null);
+  const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Mantener el foco en el input cuando se abre el modal
+  useEffect(() => {
+    if (editingCell && inputRef.current) {
+      // Pequeño delay para asegurar que el modal esté completamente renderizado
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [editingCell]);
+
+  // Scroll automático al ejercicio con series pendientes al montar o cuando cambian los datos
+  useEffect(() => {
+    // Encontrar el primer ejercicio con series incompletas
+    const firstIncompleteExercise = routine.exercises.find((exercise) => {
+      const exerciseId = exercise.id;
+      const actualReps = workoutData.actualReps[exerciseId] || [];
+      const completedCount = actualReps.filter(r => typeof r === 'number' && r > 0).length;
+      return completedCount < exercise.sets.length;
+    });
+
+    if (firstIncompleteExercise) {
+      const exerciseElement = exerciseRefs.current[firstIncompleteExercise.id];
+      if (exerciseElement) {
+        // Scroll suave al ejercicio con un pequeño offset para el header
+        setTimeout(() => {
+          const headerOffset = 180; // Altura del header sticky
+          const elementPosition = exerciseElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }, 300);
+      }
+    }
+  }, [routine.exercises, workoutData.actualReps]);
 
   // Función para iniciar edición con el valor actual
   const startEditing = (
@@ -156,7 +199,13 @@ export function QuickEditMode({
         }
 
         return (
-          <Card key={exerciseId} className="overflow-hidden">
+          <div 
+            key={exerciseId}
+            ref={(el) => {
+              exerciseRefs.current[exerciseId] = el;
+            }}
+          >
+            <Card className="overflow-hidden">
             {/* Header del ejercicio - clickeable para collapse */}
             <button
               onClick={() => toggleCollapse(exerciseId)}
@@ -360,6 +409,7 @@ export function QuickEditMode({
               </CardContent>
             )}
           </Card>
+          </div>
         );
       })}
 
@@ -404,6 +454,7 @@ export function QuickEditMode({
               </p>
               {/* Input editable grande - SIEMPRE VISIBLE Y ENFOCADO */}
               <input
+                ref={inputRef}
                 type="text"
                 inputMode={editingCell.field === 'reps' ? 'numeric' : 'decimal'}
                 value={tempValue}
