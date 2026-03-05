@@ -34,19 +34,19 @@ export function useWorkoutCompletion({
   const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
   
   const openCompletionModal = useCallback((duration?: number) => {
-    const calculatedDuration = duration || Math.floor((Date.now() - workoutStartTime) / 1000);
+    const calculatedDuration = duration || Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
     // Redondear a intervalos de 5 segundos
     const roundedDuration = Math.round(calculatedDuration / 5) * 5;
     setProposedDuration(Math.max(roundedDuration, 60));
     setShowNotesModal(true);
-  }, [workoutStartTime]);
+  }, [workoutStartTime, totalPausedTime]);
   
   const finishWorkout = useCallback(async (workoutData: any) => {
     if (!routine) return;
 
     const totalDuration = proposedDuration && proposedDuration > 0
       ? proposedDuration
-      : Math.floor((Date.now() - workoutStartTime) / 1000);
+      : Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
 
     // Calculate total volume
     let totalVolume = 0;
