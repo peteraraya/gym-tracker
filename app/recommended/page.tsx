@@ -9,6 +9,7 @@ import { useToast } from '@/context/ToastContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Exercise, UserProfile } from '@/types';
 import { getRecommendedRoutines, getRecommendationReason, type RoutineRecommendation } from '@/lib/recommendations';
+import { formatRestTime } from '@/lib/formatTime';
 import Link from 'next/link';
 
 export default function RecommendedRoutinesPage() {
@@ -502,7 +503,7 @@ export default function RecommendedRoutinesPage() {
                     Descanso entre series
                   </div>
                   <div className="text-xl font-bold text-blue-900 dark:text-blue-200">
-                    {selectedRoutine.restBetweenSets}s
+                    {formatRestTime(selectedRoutine.restBetweenSets)}
                   </div>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">

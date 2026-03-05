@@ -92,6 +92,10 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
     setEditedSession({ ...editedSession, notes });
   };
 
+  const updateDate = (dateString: string) => {
+    setEditedSession({ ...editedSession, date: dateString });
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -99,6 +103,22 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
       title="✏️ Editar Sesión"
     >
       <div className="space-y-6 max-h-[70vh] overflow-y-auto p-4">
+        {/* Fecha */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            📅 Fecha del entrenamiento
+          </label>
+          <input
+            type="date"
+            value={editedSession.date ? new Date(editedSession.date).toISOString().split('T')[0] : ''}
+            onChange={(e) => updateDate(e.target.value)}
+            className="w-full p-3 text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Fecha en que se realizó el entrenamiento
+          </p>
+        </div>
+
         {/* Duración */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

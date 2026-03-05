@@ -63,6 +63,20 @@ export function EditValueModal({
   const handleCancel = () => {
     onClose();
   };
+  
+  // Guardar con Enter (para teclados físicos)
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+  
+  // Botón de limpiar todo
+  const handleClear = () => {
+    setTempValue('');
+  };
 
   return (
     <BottomSheet
@@ -70,9 +84,9 @@ export function EditValueModal({
       onClose={handleCancel}
       title={title}
     >
-      <div className="space-y-3 p-4 pb-2 overflow-x-hidden max-w-full">
-        {/* Input editable compacto */}
-        <div className="text-center w-full">
+      <div className="space-y-3 p-4 pb-2 overflow-x-hidden max-w-full" onKeyDown={handleKeyDown}>
+        {/* Input editable compacto con botón de limpiar */}
+        <div className="text-center w-full relative">
           <input
             ref={inputRef}
             type="text"
@@ -97,18 +111,34 @@ export function EditValueModal({
             placeholder={field === 'reps' ? 'Reps' : 'Peso (kg)'}
             className="w-full text-4xl font-bold text-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-300 dark:border-blue-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 py-3 rounded-xl touch-manipulation"
           />
+          {/* Botón de limpiar flotante */}
+          {tempValue && (
+            <button
+              onClick={handleClear}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full active:scale-95 touch-manipulation"
+              aria-label="Limpiar"
+            >
+              <svg className="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Atajos rápidos para repeticiones */}
         {field === 'reps' && (
           <div>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium">ATAJOS RÁPIDOS</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium uppercase tracking-wide">Atajos Rápidos</p>
             <div className="grid grid-cols-5 gap-1.5">
               {[8, 10, 12, 15, 20].map((num) => (
                 <button
                   key={num}
                   onClick={() => setTempValue(String(num))}
-                  className="py-1.5 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg active:scale-95"
+                  className={`py-2 text-sm font-semibold rounded-lg active:scale-95 ${
+                    tempValue === String(num)
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                  }`}
                 >
                   {num}
                 </button>
@@ -122,13 +152,17 @@ export function EditValueModal({
           <>
             {historicalWeights.length > 0 && (
               <div>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium">PESOS ANTERIORES</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium uppercase tracking-wide">Pesos Anteriores</p>
                 <div className="grid grid-cols-4 gap-1.5">
                   {historicalWeights.slice(0, 4).map((weight, idx) => (
                     <button
                       key={idx}
                       onClick={() => setTempValue(String(weight))}
-                      className="py-1.5 text-sm font-semibold bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg active:scale-95"
+                      className={`py-2 text-sm font-semibold rounded-lg active:scale-95 ${
+                        tempValue === String(weight)
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                      }`}
                     >
                       {weight}kg
                     </button>
@@ -137,7 +171,7 @@ export function EditValueModal({
               </div>
             )}
             <div>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium">INCREMENTOS</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium uppercase tracking-wide">Incrementos</p>
               <div className="grid grid-cols-4 gap-1.5">
                 {[2.5, 5, 10, 20].map((increment) => (
                   <button
@@ -146,7 +180,7 @@ export function EditValueModal({
                       const current = parseFloat(tempValue) || 0;
                       setTempValue(String(current + increment));
                     }}
-                    className="py-1.5 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg active:scale-95"
+                    className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg active:scale-95"
                   >
                     +{increment}
                   </button>
@@ -158,13 +192,13 @@ export function EditValueModal({
 
         {/* Teclado numérico compacto */}
         <div className="w-full">
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium">TECLADO</p>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 text-center font-medium uppercase tracking-wide">Teclado</p>
           <div className="grid grid-cols-3 gap-2 w-full">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
               <button
                 key={num}
                 onClick={() => setTempValue(prev => prev === '0' ? String(num) : prev + num)}
-                className="h-14 text-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation"
+                className="h-14 text-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation select-none"
               >
                 {num}
               </button>
@@ -178,12 +212,18 @@ export function EditValueModal({
                     setTempValue(prev => (prev || '0') + '.');
                   }
                 }}
-                className="h-14 text-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation"
+                disabled={tempValue.includes('.')}
+                className="h-14 text-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 .
               </button>
             ) : (
-              <div className="h-14" />
+              <button
+                onClick={handleClear}
+                className="h-14 text-sm font-bold bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400 rounded-lg active:scale-95 touch-manipulation"
+              >
+                C
+              </button>
             )}
             
             <button
@@ -203,18 +243,25 @@ export function EditValueModal({
           </div>
         </div>
 
-        {/* Botones de acción compactos */}
+        {/* Botones de acción compactos con indicador visual */}
         <div className="grid grid-cols-2 gap-2 pt-2 w-full">
           <button
             onClick={handleCancel}
-            className="py-3 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg active:scale-95 touch-manipulation"
+            className="py-3 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg active:scale-95 touch-manipulation flex items-center justify-center gap-2"
           >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            className="py-3 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg active:scale-95 touch-manipulation"
+            disabled={!tempValue || tempValue === '0'}
+            className="py-3 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
             Guardar
           </button>
         </div>

@@ -5,6 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { WeightSuggestionBanner } from '@/components/WeightSuggestionBanner';
 import { EditValueModal } from './EditValueModal';
+import { useToast } from '@/context/ToastContext';
+import { formatRestTime } from '@/lib/formatTime';
 import type { Exercise } from '@/types';
 import type { WeightSuggestion } from '@/lib/weightSuggestions';
 
@@ -59,12 +61,23 @@ export function ExerciseCard({
   setStartTime,
   quickSwitcher,
 }: ExerciseCardProps) {
+  const { success } = useToast();
   const totalSets = exercise.sets.length;
   const isLastSet = currentSet === totalSets;
   const isSetComplete = currentReps !== '' && currentWeight !== '';
 
   // Estado para modales de edición
   const [editingField, setEditingField] = useState<'reps' | 'weight' | null>(null);
+  
+  // Estado local para controlar la visibilidad de la sugerencia
+  const [showSuggestion, setShowSuggestion] = useState(true);
+  
+  // Resetear showSuggestion cuando cambia weightSuggestion
+  React.useEffect(() => {
+    if (weightSuggestion) {
+      setShowSuggestion(true);
+    }
+  }, [weightSuggestion]);
 
   // Timer for set execution
   const [elapsedTime, setElapsedTime] = React.useState(0);
@@ -177,12 +190,26 @@ export function ExerciseCard({
           </div>
         )}
 
-        {/* Weight suggestion banner - Solo si hay sugerencia */}
-        {weightSuggestion && (
+        {/* Weight suggestion banner - Solo si hay sugerencia Y showSuggestion es true */}
+        {weightSuggestion && showSuggestion && (
           <WeightSuggestionBanner
             suggestion={weightSuggestion}
-            onAccept={() => onWeightChange(weightSuggestion.suggested)}
-            onDismiss={() => onDismissWeightSuggestion?.()}
+            onAccept={() => {
+              setShowSuggestion(false);
+              onWeightChange(weightSuggestion.suggested);
+              success(`✅ Peso actualizado a ${weightSuggestion.suggested}kg`, 2000);
+              // Llamar onDismiss después de la animación
+              setTimeout(() => {
+                onDismissWeightSuggestion?.();
+              }, 350);
+            }}
+            onDismiss={() => {
+              setShowSuggestion(false);
+              // Llamar onDismiss después de la animación
+              setTimeout(() => {
+                onDismissWeightSuggestion?.();
+              }, 350);
+            }}
           />
         )}
 
@@ -197,7 +224,7 @@ export function ExerciseCard({
           {exercise.restBetweenSets && (
             <span className="flex items-center gap-1">
               <span>⏸️</span>
-              <span>{exercise.restBetweenSets}s</span>
+              <span>{formatRestTime(exercise.restBetweenSets)}</span>
             </span>
           )}
         </div>
