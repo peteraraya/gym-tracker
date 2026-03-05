@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { WeightSelector } from '@/components/WeightSelector';
 import { WeightSuggestionBanner } from '@/components/WeightSuggestionBanner';
-import { Input } from '@/components/ui/Input';
+import { EditValueModal } from './EditValueModal';
 import type { Exercise } from '@/types';
 import type { WeightSuggestion } from '@/lib/weightSuggestions';
 
@@ -63,6 +62,9 @@ export function ExerciseCard({
   const totalSets = exercise.sets.length;
   const isLastSet = currentSet === totalSets;
   const isSetComplete = currentReps !== '' && currentWeight !== '';
+
+  // Estado para modales de edición
+  const [editingField, setEditingField] = useState<'reps' | 'weight' | null>(null);
 
   // Timer for set execution
   const [elapsedTime, setElapsedTime] = React.useState(0);
@@ -200,33 +202,37 @@ export function ExerciseCard({
           )}
         </div>
 
-        {/* Inputs de reps y peso - Mismo tamaño */}
+        {/* Inputs de reps y peso - Botones que abren modal */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
               Repeticiones
             </label>
-            <Input
-              type="number"
-              value={currentReps}
-              onChange={(e) => onRepsChange(e.target.value === '' ? '' : parseInt(e.target.value))}
-              placeholder="0"
-              min="0"
-              max="100"
-              className="text-center text-xl font-bold h-14"
-              aria-label="Repeticiones"
-            />
+            <button
+              onClick={() => setEditingField('reps')}
+              className={`w-full min-h-[56px] px-3 py-2 rounded-lg transition-colors font-bold text-xl border-2 ${
+                currentReps === '' || currentReps === 0
+                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+              }`}
+            >
+              {currentReps === '' || currentReps === 0 ? '-' : currentReps}
+            </button>
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
               Peso (kg)
             </label>
-            <WeightSelector
-              value={currentWeight}
-              onChange={onWeightChange}
-              exerciseId={exercise.id}
-              className="text-center text-xl font-bold h-14"
-            />
+            <button
+              onClick={() => setEditingField('weight')}
+              className={`w-full min-h-[56px] px-3 py-2 rounded-lg transition-colors font-bold text-xl border-2 ${
+                currentWeight === '' || currentWeight === 0
+                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+              }`}
+            >
+              {currentWeight === '' || currentWeight === 0 ? '-' : `${currentWeight} kg`}
+            </button>
           </div>
         </div>
 
@@ -284,6 +290,27 @@ export function ExerciseCard({
           </div>
         )}
       </CardContent>
+
+      {/* Modal de edición de repeticiones */}
+      <EditValueModal
+        isOpen={editingField === 'reps'}
+        onClose={() => setEditingField(null)}
+        title={`${exercise.name} - Serie ${currentSet}`}
+        field="reps"
+        currentValue={currentReps}
+        onSave={(value) => onRepsChange(value)}
+      />
+
+      {/* Modal de edición de peso */}
+      <EditValueModal
+        isOpen={editingField === 'weight'}
+        onClose={() => setEditingField(null)}
+        title={`${exercise.name} - Serie ${currentSet}`}
+        field="weight"
+        currentValue={currentWeight}
+        onSave={(value) => onWeightChange(value)}
+        historicalWeights={exercise.sets.map(s => s.weight).filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i).sort((a, b) => (b || 0) - (a || 0))}
+      />
     </Card>
   );
 }

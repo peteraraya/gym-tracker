@@ -1472,20 +1472,25 @@ export default function WorkoutPage() {
             }}
             onApplySmartRest={(exerciseId) => {
               const exercise = routine.exercises.find((ex: Exercise) => ex.id === exerciseId);
-              if (exercise && smartRestTime) {
-                workoutState.updateRestOverride(exerciseId, smartRestTime);
-                
+              if (!exercise) return;
+              
+              // Aplicar descanso inteligente a TODAS las series individuales
+              const appliedRestTime = applySmartRestToAllSets(exercise, workoutState.updatePerSetRestOverride);
+              
+              if (appliedRestTime) {
                 // Formatear tiempo en minutos y segundos para el toast
                 let timeDisplay;
-                if (smartRestTime >= 60) {
-                  const minutes = Math.floor(smartRestTime / 60);
-                  const seconds = smartRestTime % 60;
+                if (appliedRestTime >= 60) {
+                  const minutes = Math.floor(appliedRestTime / 60);
+                  const seconds = appliedRestTime % 60;
                   timeDisplay = seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
                 } else {
-                  timeDisplay = `${smartRestTime}s`;
+                  timeDisplay = `${appliedRestTime}s`;
                 }
                 
-                success(`⚡ Descanso inteligente aplicado: ${timeDisplay}`, 2000);
+                success(`⚡ Descanso inteligente aplicado a todas las series: ${timeDisplay}`, 2000);
+              } else {
+                error('No se pudo calcular el descanso inteligente para este ejercicio');
               }
             }}
           />
