@@ -102,9 +102,13 @@ export default function RoutinesPage() {
   }, []);
 
   const handleDelete = async (id: string) => {
+    // Encontrar el nombre de la rutina para mostrarlo en la confirmación
+    const routine = routines.find(r => r.id === id);
+    const routineName = routine?.name || 'esta rutina';
+    
     const confirmed = await confirm({
       title: t('confirmDelete.title'),
-      message: t('confirmDelete.message'),
+      message: `${t('confirmDelete.message')} "${routineName}"? Esta acción no se puede deshacer.`,
       confirmText: t('confirmDelete.confirmText'),
       cancelText: t('confirmDelete.cancelText'),
       variant: 'danger'

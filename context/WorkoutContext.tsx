@@ -16,6 +16,8 @@ interface WorkoutState {
   actualReps: { [key: string]: number[] };
   actualWeights: { [key: string]: number[] };
   startedAt: Date;
+  // ✅ Rutina modificada durante el entrenamiento (con series agregadas/eliminadas)
+  modifiedRoutine?: Routine;
   // Estado del timer de descanso para persistencia
   isResting?: boolean;
   restTimerDuration?: number;
@@ -41,6 +43,7 @@ interface WorkoutContextType {
       restTimerStartedAt?: number;
     }
   ) => void;
+  updateModifiedRoutine: (routine: Routine) => void;
   clearRestState: () => void;
   finishWorkout: () => Promise<void>;
   cancelWorkout: () => Promise<void>;
@@ -89,6 +92,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         return out;
       })(),
       startedAt: data.startedAt ? new Date(data.startedAt) : new Date(),
+      // ✅ Rutina modificada durante el entrenamiento
+      modifiedRoutine: data.modifiedRoutine || undefined,
       // Estado del timer de descanso para persistencia
       isResting: data.isResting ?? false,
       restTimerDuration: data.restTimerDuration,
@@ -239,6 +244,26 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
         } catch (e) {
           console.warn('[Workout] Failed to persist active workout on clearRestState:', e);
+        }
+      })();
+      return newState;
+    });
+  }, []);
+
+  const updateModifiedRoutine = useCallback((routine: Routine) => {
+    console.log('[WorkoutContext] updateModifiedRoutine called with', routine.exercises.map((ex: any) => `${ex.id}:${ex.sets.length}`).join('|'));
+    setActiveWorkout(prev => {
+      if (!prev) return null;
+      const newState = {
+        ...prev,
+        modifiedRoutine: routine
+      };
+      (async () => {
+        try {
+          await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
+          console.log('[WorkoutContext] Modified routine saved to storage');
+        } catch (e) {
+          console.warn('[Workout] Failed to persist modified routine:', e);
         }
       })();
       return newState;
@@ -401,11 +426,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     activeWorkout,
     startWorkout,
     updateWorkoutProgress,
+    updateModifiedRoutine,
     clearRestState,
     finishWorkout,
     cancelWorkout,
     isWorkoutActive: activeWorkout !== null
-  }), [activeWorkout, startWorkout, updateWorkoutProgress, clearRestState, finishWorkout, cancelWorkout]);
+  }), [activeWorkout, startWorkout, updateWorkoutProgress, updateModifiedRoutine, clearRestState, finishWorkout, cancelWorkout]);
 
   return (
     <WorkoutContext.Provider value={value}>
