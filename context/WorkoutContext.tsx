@@ -24,6 +24,8 @@ interface WorkoutState {
   restTimerTitle?: string;
   restTimerNextExercise?: string;
   restTimerStartedAt?: number; // timestamp de cuando empezó el descanso
+  // Tiempo total pausado en el entrenamiento (en milisegundos)
+  totalPausedTime?: number;
 }
 
 interface WorkoutContextType {
@@ -41,7 +43,8 @@ interface WorkoutContextType {
       restTimerTitle?: string;
       restTimerNextExercise?: string;
       restTimerStartedAt?: number;
-    }
+    },
+    totalPausedTime?: number
   ) => void;
   updateModifiedRoutine: (routine: Routine) => void;
   clearRestState: () => void;
@@ -220,7 +223,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restTimerTitle?: string;
       restTimerNextExercise?: string;
       restTimerStartedAt?: number;
-    }
+    },
+    totalPausedTime?: number
   ) => {
     setActiveWorkout(prev => {
       if (!prev) return null;
@@ -236,7 +240,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         restTimerDuration: restState?.restTimerDuration,
         restTimerTitle: restState?.restTimerTitle,
         restTimerNextExercise: restState?.restTimerNextExercise,
-        restTimerStartedAt: restState?.restTimerStartedAt
+        restTimerStartedAt: restState?.restTimerStartedAt,
+        // Persistir tiempo pausado
+        totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0
       };
 
       // Guardar inmediatamente en storage unificado

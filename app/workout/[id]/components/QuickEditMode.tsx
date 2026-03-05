@@ -13,6 +13,8 @@ interface QuickEditModeProps {
     actualReps: { [key: string]: number[] };
     actualWeights: { [key: string]: number[] };
     setTypes: { [key: string]: string[] };
+    restOverrides?: { [key: string]: number };
+    perSetRestOverrides?: { [key: string]: number[] };
   };
   onEditReps: (exerciseId: string, setIndex: number, reps: number) => void;
   onEditWeight: (exerciseId: string, setIndex: number, weight: number) => void;
@@ -21,6 +23,8 @@ interface QuickEditModeProps {
   onAddSet?: (exerciseId: string) => void;
   onDeleteSet?: (exerciseId: string, setIndex: number) => void;
   onFinishWorkout?: () => void;
+  onEditRestTime?: (exerciseId: string, restTime: number) => void;
+  onApplySmartRest?: (exerciseId: string) => void;
 }
 
 /**
@@ -37,6 +41,8 @@ export function QuickEditMode({
   onAddSet,
   onDeleteSet,
   onFinishWorkout,
+  onEditRestTime,
+  onApplySmartRest,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -45,9 +51,16 @@ export function QuickEditMode({
     currentValue: number;
     exerciseName: string;
   } | null>(null);
+  const [editingRestTime, setEditingRestTime] = useState<{
+    exerciseId: string;
+    exerciseName: string;
+    currentRestTime: number;
+  } | null>(null);
   const [tempValue, setTempValue] = useState<string>('');
+  const [tempRestTime, setTempRestTime] = useState<string>('');
   const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
+  const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Mantener el foco en el input cuando se abre el modal
@@ -62,6 +75,18 @@ export function QuickEditMode({
       return () => clearTimeout(timer);
     }
   }, [editingCell]);
+
+  // Mantener el foco en el input de descanso cuando se abre el modal
+  useEffect(() => {
+    if (editingRestTime && restInputRef.current) {
+      const timer = setTimeout(() => {
+        restInputRef.current?.focus();
+        restInputRef.current?.select();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [editingRestTime]);
 
   // Scroll automático al ejercicio con series pendientes al montar o cuando cambian los datos
   useEffect(() => {
@@ -140,6 +165,32 @@ export function QuickEditMode({
     });
   };
 
+  // Función para abrir modal de edición de descanso
+  const startEditingRestTime = (exerciseId: string, exerciseName: string, currentRestTime: number) => {
+    setEditingRestTime({ exerciseId, exerciseName, currentRestTime });
+    setTempRestTime(String(currentRestTime));
+  };
+
+  // Función para guardar el tiempo de descanso editado
+  const saveRestTime = () => {
+    if (!editingRestTime || !onEditRestTime) return;
+    
+    const value = parseInt(tempRestTime);
+    
+    if (!isNaN(value) && value >= 0) {
+      onEditRestTime(editingRestTime.exerciseId, value);
+    }
+    
+    setEditingRestTime(null);
+    setTempRestTime('');
+  };
+
+  // Función para cancelar edición de descanso
+  const cancelRestEdit = () => {
+    setEditingRestTime(null);
+    setTempRestTime('');
+  };
+
   // Calcular progreso total - memoizado para evitar recalcular en cada render
   const { totalSets, completedSets, progressPercent } = useMemo(() => {
     const total = routine.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
@@ -207,44 +258,85 @@ export function QuickEditMode({
           >
             <Card className="overflow-hidden">
             {/* Header del ejercicio - clickeable para collapse */}
-            <button
-              onClick={() => toggleCollapse(exerciseId)}
-              className="w-full bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 p-2.5 border-b border-gray-200 dark:border-gray-700 hover:from-gray-150 hover:to-gray-100 dark:hover:from-gray-750 dark:hover:to-gray-850 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {/* Icono de collapse */}
-                  <svg 
-                    className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <div className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => toggleCollapse(exerciseId)}
+                className="w-full p-2.5 hover:from-gray-150 hover:to-gray-100 dark:hover:from-gray-750 dark:hover:to-gray-850 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {/* Icono de collapse */}
+                    <svg 
+                      className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <div className="text-left">
+                      <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                        {exIdx + 1}. {exercise.name}
+                      </h3>
+                      <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
+                        {completedCount} de {exercise.sets.length} series completadas
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      isFullyCompleted
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        : completedCount > 0
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {isFullyCompleted ? '✓' : completedCount > 0 ? '⏳' : '○'} 
+                      {completedCount}/{exercise.sets.length}
+                    </div>
+                  </div>
+                </div>
+              </button>
+              
+              {/* Indicador de descanso - siempre visible */}
+              <div className="px-2.5 pb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div className="text-left">
-                    <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
-                      {exIdx + 1}. {exercise.name}
-                    </h3>
-                    <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
-                      {completedCount} de {exercise.sets.length} series completadas
-                    </p>
-                  </div>
+                  <span className="font-medium">
+                    Descanso: {(() => {
+                      const override = workoutData.restOverrides?.[exerciseId];
+                      const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
+                      
+                      // Formatear en minutos y segundos
+                      if (restTime >= 60) {
+                        const minutes = Math.floor(restTime / 60);
+                        const seconds = restTime % 60;
+                        return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+                      }
+                      return `${restTime}s`;
+                    })()}
+                  </span>
                 </div>
-                <div className="text-right">
-                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    isFullyCompleted
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                      : completedCount > 0
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                  }`}>
-                    {isFullyCompleted ? '✓' : completedCount > 0 ? '⏳' : '○'} 
-                    {completedCount}/{exercise.sets.length}
-                  </div>
-                </div>
+                {onEditRestTime && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const override = workoutData.restOverrides?.[exerciseId];
+                      const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
+                      startEditingRestTime(exerciseId, exercise.name, restTime);
+                    }}
+                    className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded text-[10px] font-medium transition-colors flex items-center gap-1"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    Editar
+                  </button>
+                )}
               </div>
-            </button>
+            </div>
 
             {!isCollapsed && (
               <CardContent className="p-0">
@@ -391,7 +483,7 @@ export function QuickEditMode({
               
               {/* Botón para agregar serie */}
               {onAddSet && (
-                <div className="mt-2 px-2">
+                <div className="mt-2 px-2 space-y-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -404,6 +496,23 @@ export function QuickEditMode({
                     </svg>
                     Agregar Serie
                   </button>
+                  
+                  {/* Botón para aplicar descanso inteligente */}
+                  {onApplySmartRest && exercise.useSmartRest !== false && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onApplySmartRest(exerciseId);
+                      }}
+                      className="w-full py-2 px-3 bg-white dark:bg-gray-800 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-lg text-purple-600 dark:text-purple-400 hover:border-purple-500 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all font-medium text-xs flex items-center justify-center gap-1.5"
+                      title="Aplicar descanso inteligente basado en el tipo de ejercicio"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Aplicar Descanso Inteligente
+                    </button>
+                  )}
                 </div>
               )}
               </CardContent>
@@ -607,6 +716,108 @@ export function QuickEditMode({
               <button
                 onClick={saveEdit}
                 className="py-4 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-colors"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* Modal de edición de tiempo de descanso */}
+      <BottomSheet
+        isOpen={editingRestTime !== null}
+        onClose={cancelRestEdit}
+        title={editingRestTime ? `${editingRestTime.exerciseName} - Descanso` : ''}
+      >
+        {editingRestTime && (
+          <div className="space-y-6 p-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Tiempo de descanso entre series (segundos)
+              </p>
+              {/* Input editable grande */}
+              <input
+                ref={restInputRef}
+                type="text"
+                inputMode="numeric"
+                value={tempRestTime}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || /^\d+$/.test(value)) {
+                    setTempRestTime(value);
+                  }
+                }}
+                onFocus={(e) => e.target.select()}
+                autoFocus
+                placeholder="Segundos"
+                className="w-full text-5xl font-bold text-center bg-transparent border-b-4 border-purple-500 dark:border-purple-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors py-2 mb-2"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Escribe directamente o usa los botones
+              </p>
+            </div>
+
+            {/* Atajos rápidos para tiempos comunes */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Tiempos comunes</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[30, 60, 90, 120, 180, 240, 300, 360].map((seconds) => (
+                  <button
+                    key={seconds}
+                    onClick={() => setTempRestTime(String(seconds))}
+                    className="py-2 text-sm font-semibold bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-lg transition-colors"
+                  >
+                    {seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Teclado numérico */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Teclado numérico</p>
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setTempRestTime(prev => prev === '0' ? String(num) : prev + num)}
+                    className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
+                  >
+                    {num}
+                  </button>
+                ))}
+                
+                <div className="h-16" />
+                
+                <button
+                  onClick={() => setTempRestTime(prev => prev === '0' ? '0' : prev + '0')}
+                  className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
+                >
+                  0
+                </button>
+                
+                {/* Botón borrar */}
+                <button
+                  onClick={() => setTempRestTime(prev => prev.length > 1 ? prev.slice(0, -1) : '')}
+                  className="h-16 text-xl font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-colors active:scale-95"
+                >
+                  ⌫
+                </button>
+              </div>
+            </div>
+
+            {/* Botones de acción */}
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <button
+                onClick={cancelRestEdit}
+                className="py-4 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveRestTime}
+                className="py-4 text-base font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-colors"
               >
                 Guardar
               </button>

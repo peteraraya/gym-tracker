@@ -398,7 +398,8 @@ export default function WorkoutPage() {
         restTimerTitle: timerHandlers.timerTitle,
         restTimerNextExercise: timerHandlers.nextExerciseName,
         restTimerStartedAt: Date.now()
-      } : undefined
+      } : undefined,
+      totalPausedTime
     );
   }, [
     workoutState.currentExerciseIndex,
@@ -408,7 +409,8 @@ export default function WorkoutPage() {
     workoutState.workoutData.actualWeights,
     timerHandlers.showTimer,
     routine,
-    isInitialized
+    isInitialized,
+    totalPausedTime
   ]);
   
   useEffect(() => {
@@ -1128,7 +1130,9 @@ export default function WorkoutPage() {
         workoutState.currentSet,
         workoutState.workoutData.completedSets,
         workoutState.workoutData.actualReps,
-        workoutState.workoutData.actualWeights
+        workoutState.workoutData.actualWeights,
+        undefined,
+        totalPausedTime
       );
 
       success(`${exercises.length} ejercicio${exercises.length > 1 ? 's' : ''} agregado${exercises.length > 1 ? 's' : ''} a la rutina`, 3000);
@@ -1451,6 +1455,39 @@ export default function WorkoutPage() {
             onAddSet={handleQuickAddSet}
             onDeleteSet={handleQuickDeleteSet}
             onFinishWorkout={() => completion.setShowNotesModal(true)}
+            onEditRestTime={(exerciseId, restTime) => {
+              workoutState.updateRestOverride(exerciseId, restTime);
+              
+              // Formatear tiempo en minutos y segundos para el toast
+              let timeDisplay;
+              if (restTime >= 60) {
+                const minutes = Math.floor(restTime / 60);
+                const seconds = restTime % 60;
+                timeDisplay = seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+              } else {
+                timeDisplay = `${restTime}s`;
+              }
+              
+              success(`⏱️ Descanso actualizado a ${timeDisplay}`, 2000);
+            }}
+            onApplySmartRest={(exerciseId) => {
+              const exercise = routine.exercises.find((ex: Exercise) => ex.id === exerciseId);
+              if (exercise && smartRestTime) {
+                workoutState.updateRestOverride(exerciseId, smartRestTime);
+                
+                // Formatear tiempo en minutos y segundos para el toast
+                let timeDisplay;
+                if (smartRestTime >= 60) {
+                  const minutes = Math.floor(smartRestTime / 60);
+                  const seconds = smartRestTime % 60;
+                  timeDisplay = seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+                } else {
+                  timeDisplay = `${smartRestTime}s`;
+                }
+                
+                success(`⚡ Descanso inteligente aplicado: ${timeDisplay}`, 2000);
+              }
+            }}
           />
         ) : (
           /* Modo guiado - Flujo normal */
