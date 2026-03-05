@@ -389,6 +389,71 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
   }
 }
 
+/**
+ * Update an existing workout session
+ */
+export async function updateSession(session: WorkoutSession): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  if (!session.id) throw new Error('Session ID is required for update');
+
+  // Update session
+  const { error: sessionError } = await supabase
+    .from('workout_sessions')
+    .update({
+      total_duration: session.totalDuration,
+      total_paused_time: session.totalPausedTime,
+      notes: session.notes
+    })
+    .eq('id', session.id)
+    .eq('user_id', user.id);
+
+  if (sessionError) throw new Error(`Error al actualizar sesión: ${sessionError.message}`);
+
+  // Delete existing exercises
+  const { error: deleteError } = await supabase
+    .from('session_exercises')
+    .delete()
+    .eq('session_id', session.id);
+
+  if (deleteError) throw new Error(`Error al eliminar ejercicios antiguos: ${deleteError.message}`);
+
+  // Insert updated exercises
+  if (!session.exercises || !Array.isArray(session.exercises) || session.exercises.length === 0) {
+    throw new Error('La sesión debe contener al menos un ejercicio');
+  }
+
+  const exercisesData = session.exercises.map(ex => {
+    const reps = Array.isArray(ex.actualReps) ? ex.actualReps : [];
+    const weights = Array.isArray(ex.actualWeight) ? ex.actualWeight : [];
+
+    const sets_completed = reps.map((r, idx) => ({
+      reps: typeof r === 'number' ? r : 0,
+      weight: typeof weights[idx] === 'number' ? weights[idx] : 0
+    }));
+
+    return {
+      session_id: session.id,
+      exercise_name: (ex.exerciseName as any) || (ex.exerciseId as any) || null,
+      sets_completed,
+      set_durations: ex.setDurations || [],
+      pause_durations: ex.pauseDurations || [],
+      notes: ex.notes
+    };
+  });
+
+  const { error: exercisesError } = await supabase
+    .from('session_exercises')
+    .insert(exercisesData);
+
+  if (exercisesError) {
+    throw new Error(`Error al guardar ejercicios actualizados: ${exercisesError.message}`);
+  }
+}
+
 // ==================== PROFILE ====================
 
 // Import unified UserProfile type

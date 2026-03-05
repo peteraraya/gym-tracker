@@ -302,6 +302,29 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
     }
 }
 
+export async function updateSession(session: WorkoutSession): Promise<void> {
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las sesiones solo se pueden actualizar con Supabase habilitado.');
+    }
+
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { updateSession?: (s: WorkoutSession) => Promise<void> };
+        
+        if (!supabaseService.updateSession) {
+            throw new Error('Servicio de actualización de sesiones no disponible');
+        }
+        
+        await supabaseService.updateSession(session);
+        handleStorageSuccess();
+        
+        logger.info('Sesión actualizada exitosamente', { sessionId: session.id });
+    } catch (err) {
+        logger.error('Error al actualizar sesión en Supabase', { critical: true, sessionId: session.id }, err instanceof Error ? err : undefined);
+        throw new Error('No se pudo actualizar la sesión de entrenamiento. Verifica tu conexión.');
+    }
+}
+
 // ==================== PROFILE ====================
 // CRITICAL_SUPABASE_ONLY: Perfil es dato crítico, solo Supabase (sin fallback)
 

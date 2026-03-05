@@ -2,11 +2,13 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useGym } from '@/context/GymContext';
+import { useToast } from '@/context/ToastContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ClientOnly } from '@/components/ClientOnly';
 import { SessionFilters } from '@/components/SessionFilters';
 import { SessionComparison } from '@/components/SessionComparison';
+import { EditSessionModal } from '@/components/EditSessionModal';
 import type { WorkoutSession } from '@/types';
 import * as storageService from '@/lib/storage/storage';
 import { useSessionStats } from '@/hooks/useSessionStats';
@@ -15,9 +17,12 @@ import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
 
 export default function SessionsPage() {
-  const { sessions: serverSessions, routines, loading } = useGym();
+  const { sessions: serverSessions, routines, loading, updateSession } = useGym();
+  const { success, error: showError } = useToast();
   
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
+  const [editingSession, setEditingSession] = useState<WorkoutSession | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -99,6 +104,23 @@ export default function SessionsPage() {
   const getRoutineName = (routineId: string) => {
     const routine = routines.find((r) => r.id === routineId);
     return routine ? routine.name : 'Rutina eliminada';
+  };
+
+  const handleEditSession = (session: WorkoutSession) => {
+    setEditingSession(session);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveSession = async (updatedSession: WorkoutSession) => {
+    try {
+      await updateSession(updatedSession);
+      success('✅ Sesión actualizada exitosamente');
+      setIsEditModalOpen(false);
+      setEditingSession(null);
+    } catch (err) {
+      console.error('Error updating session:', err);
+      showError('Error al actualizar la sesión');
+    }
   };
 
   if (loading) {
@@ -266,14 +288,28 @@ export default function SessionsPage() {
                               </ClientOnly>
                             </div>
                             
-                            {session.totalDuration !== undefined && (
-                              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                <span className="text-blue-600 dark:text-blue-400">⏱️</span>
-                                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                                  {formatDuration(session.totalDuration)}
-                                </span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {session.totalDuration !== undefined && (
+                                <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                  <span className="text-blue-600 dark:text-blue-400">⏱️</span>
+                                  <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                                    {formatDuration(session.totalDuration)}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Botón Editar */}
+                              <button
+                                onClick={() => handleEditSession(session)}
+                                className="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                                title="Editar sesión"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                <span className="hidden sm:inline">Editar</span>
+                              </button>
+                            </div>
                           </div>
 
                           <div className="flex flex-wrap gap-3 mb-4">
@@ -339,6 +375,17 @@ export default function SessionsPage() {
           </div>
         )}
       </div>
+      
+      {/* Modal de edición */}
+      <EditSessionModal
+        session={editingSession}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingSession(null);
+        }}
+        onSave={handleSaveSession}
+      />
     </div>
     </ProtectedRoute>
   );

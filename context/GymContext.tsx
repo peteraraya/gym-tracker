@@ -20,6 +20,7 @@ interface SessionsContextType {
   sessions: WorkoutSession[];
   loading: boolean;
   addSession: (session: Omit<WorkoutSession, 'id'>) => Promise<void>;
+  updateSession: (session: WorkoutSession) => Promise<void>;
   refreshSessions: () => Promise<void>;
 }
 
@@ -269,6 +270,23 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [refreshSessions]);
 
+  const updateSession = useCallback(async (updatedSession: WorkoutSession) => {
+    try {
+      console.log('[GymContext] updateSession called for session:', updatedSession.id);
+      
+      // Actualizar sesión en storage
+      await storageService.updateSession(updatedSession);
+      
+      // Refrescar sesiones para obtener la lista actualizada
+      await refreshSessions();
+      
+      console.log('[GymContext] Session updated successfully');
+    } catch (error) {
+      console.error('Error updating session:', error);
+      throw error;
+    }
+  }, [refreshSessions]);
+
   const getRoutineById = useCallback((id: string) => {
     return routines.find(routine => routine.id === id);
   }, [routines]);
@@ -287,8 +305,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     sessions,
     loading,
     addSession,
+    updateSession,
     refreshSessions,
-  }), [sessions, loading, addSession, refreshSessions]);
+  }), [sessions, loading, addSession, updateSession, refreshSessions]);
 
   const value = useMemo<GymContextType>(() => ({
     ...routinesValue,
