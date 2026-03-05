@@ -975,19 +975,18 @@ export default function WorkoutPage() {
       }
     }
     
-    success(`Ejercicio "${exerciseToDelete.name}" eliminado`, 2000);
+    // Persistir la rutina actualizada
+    try {
+      await updateRoutine(id, updatedRoutine);
+      success(`Ejercicio "${exerciseToDelete.name}" eliminado`, 2000);
+    } catch (err) {
+      error('Error al eliminar ejercicio');
+      console.error('Error deleting exercise:', err);
+    }
     
     // Haptic feedback
     haptic.error();
   }, [routine, workoutState, updateModifiedRoutine, confirm, success, error, haptic]);
-    try {
-      await updateRoutine(id, updatedRoutine);
-      success('Serie eliminada', 2000);
-    } catch (err) {
-      error('Error al eliminar serie');
-      console.error('Error deleting set:', err);
-    }
-  }, [currentExercise, routine, workoutState, id, updateRoutine, updateModifiedRoutine, success, error]);
 
   const handleQuickDeleteSet = useCallback(async (exerciseId: string, setIndex: number) => {
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
