@@ -256,7 +256,7 @@ export function QuickEditMode({
                       <th className="text-left py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-8">#</th>
                       <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">Reps</th>
                       <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">Peso</th>
-                      <th className="hidden sm:table-cell text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">Tipo</th>
+                      <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-10">Tipo</th>
                       <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-12">✓</th>
                       {onDeleteSet && exercise.sets.length > 1 && (
                         <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-8"></th>
@@ -328,8 +328,8 @@ export function QuickEditMode({
                             </button>
                           </td>
 
-                          {/* Tipo de serie */}
-                          <td className="hidden sm:table-cell py-2 px-2">
+                          {/* Tipo de serie - visible en todas las pantallas */}
+                          <td className="py-2 px-2">
                             <div className="flex justify-center">
                               <SetTypeCycleButton
                                 value={setType as SetType}
