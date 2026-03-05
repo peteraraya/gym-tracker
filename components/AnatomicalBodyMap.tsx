@@ -85,7 +85,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
             <svg
               viewBox="70 0 180 500"
               className="w-full h-auto"
-              style={{ maxWidth: '220px', maxHeight: '500px' }}
+              style={{ width: '100%', maxWidth: '180px', height: 'auto', aspectRatio: '180/500' }}
             >
               <defs>
                 {/* Efecto de brillo */}
@@ -269,9 +269,9 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
           <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg overflow-hidden">
             {/* SVG anatómico con áreas clicables */}
             <svg
-              viewBox="245 0 200 500"
+              viewBox="245 0 180 500"
               className="w-full h-auto"
-              style={{ maxWidth: '220px', maxHeight: '500px' }}
+              style={{ width: '100%', maxWidth: '180px', height: 'auto', aspectRatio: '180/500' }}
             >
               <defs>
                 {/* Efecto de brillo para vista trasera */}
@@ -299,7 +299,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
               
               {/* Cuello */}
               <rect
-                x="310" y="90" width="40" height="18"
+                x="300" y="90" width="40" height="18"
                 {...getAreaStyle('cuello')}
                 className="cursor-pointer transition-all duration-200"
                 onClick={(e) => handleAreaClick('cuello')}
@@ -310,7 +310,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Trapecio */}
               <rect
-                x="290" y="110" width="80" height="32"
+                x="280" y="110" width="80" height="32"
                 {...getAreaStyle('trapecio')}
                 className="cursor-pointer transition-all duration-200"
                 onClick={(e) => handleAreaClick('trapecio')}
@@ -321,7 +321,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Hombros traseros */}
               <ellipse
-                cx="280" cy="120"
+                cx="270" cy="120"
                 rx="20" ry="18"
                 {...getAreaStyle('hombros')}
                 className="cursor-pointer transition-all duration-200"
@@ -330,7 +330,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 onMouseLeave={() => setHovered(null)}
               />
               <ellipse
-                cx="375" cy="120"
+                cx="365" cy="120"
                 rx="20" ry="18"
                 {...getAreaStyle('hombros')}
                 className="cursor-pointer transition-all duration-200"
@@ -341,7 +341,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Espalda (dorsales) */}
               <rect
-                x="290" y="122" width="35" height="88"
+                x="280" y="122" width="35" height="88"
                 {...getAreaStyle('espalda')}
                 className="cursor-pointer transition-all duration-200"
                 onClick={(e) => handleAreaClick('espalda')}
@@ -350,7 +350,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="6"
               />
               <rect
-                x="330" y="122" width="35" height="88"
+                x="320" y="122" width="35" height="88"
                 {...getAreaStyle('espalda')}
                 className="cursor-pointer transition-all duration-200"
                 onClick={(e) => handleAreaClick('espalda')}
@@ -361,7 +361,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Tríceps */}
               <ellipse
-                cx="275" cy="170"
+                cx="265" cy="170"
                 rx="14" ry="26"
                 {...getAreaStyle('triceps')}
                 className="cursor-pointer transition-all duration-200"
@@ -370,7 +370,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 onMouseLeave={() => setHovered(null)}
               />
               <ellipse
-                cx="385" cy="170"
+                cx="375" cy="170"
                 rx="14" ry="26"
                 {...getAreaStyle('triceps')}
                 className="cursor-pointer transition-all duration-200"
@@ -381,7 +381,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Antebrazos traseros */}
               <ellipse
-                cx="265" cy="205"
+                cx="255" cy="205"
                 rx="10" ry="32"
                 {...getAreaStyle('antebrazos')}
                 className="cursor-pointer transition-all duration-200"
@@ -390,7 +390,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 onMouseLeave={() => setHovered(null)}
               />
               <ellipse
-                cx="390" cy="205"
+                cx="380" cy="205"
                 rx="10" ry="32"
                 {...getAreaStyle('antebrazos')}
                 className="cursor-pointer transition-all duration-200"
@@ -401,7 +401,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Zona lumbar */}
               <rect
-                x="310" y="210" width="40" height="32"
+                x="300" y="210" width="40" height="32"
                 {...getAreaStyle('core')}
                 className="cursor-pointer transition-all duration-200"
                 onClick={(e) => handleAreaClick('core')}
@@ -412,7 +412,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Glúteos */}
               <ellipse
-                cx="310" cy="245"
+                cx="300" cy="245"
                 rx="25" ry="36"
                 {...getAreaStyle('gluteos')}
                 className="cursor-pointer transition-all duration-200"
@@ -421,7 +421,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 onMouseLeave={() => setHovered(null)}
               />
               <ellipse
-                cx="355" cy="245"
+                cx="345" cy="245"
                 rx="25" ry="36"
                 {...getAreaStyle('gluteos')}
                 className="cursor-pointer transition-all duration-200"
@@ -432,7 +432,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Piernas traseras (isquiotibiales) */}
               <rect
-                x="290" y="260" width="28" height="190"
+                x="280" y="260" width="28" height="190"
                 {...getAreaStyle('piernas')}
                 className="cursor-pointer transition-all duration-200"
                 onClick={(e) => handleAreaClick('piernas')}
@@ -441,7 +441,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 rx="6"
               />
               <rect
-                x="340" y="260" width="28" height="190"
+                x="330" y="260" width="28" height="190"
                 {...getAreaStyle('piernas')}
                 className="cursor-pointer transition-all duration-200"
                 onClick={(e) => handleAreaClick('piernas')}
@@ -452,7 +452,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
 
               {/* Gemelos traseros */}
               <ellipse
-                cx="295" cy="400"
+                cx="285" cy="400"
                 rx="12" ry="52"
                 {...getAreaStyle('gemelos')}
                 className="cursor-pointer transition-all duration-200"
@@ -461,7 +461,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
                 onMouseLeave={() => setHovered(null)}
               />
               <ellipse
-                cx="365" cy="400"
+                cx="355" cy="400"
                 rx="12" ry="52"
                 {...getAreaStyle('gemelos')}
                 className="cursor-pointer transition-all duration-200"
