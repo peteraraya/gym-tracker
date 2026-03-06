@@ -68,6 +68,7 @@ export function QuickEditMode({
   const inputRef = useRef<HTMLInputElement>(null);
   const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mantener el foco en el input cuando se abre el modal
   useEffect(() => {
@@ -155,6 +156,11 @@ export function QuickEditMode({
 
   // Función para cancelar edición (ahora también guarda si hay cambios)
   const cancelEdit = () => {
+    // Limpiar timer de auto-cierre
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+    }
+    
     // Si hay un valor válido, guardarlo antes de cerrar
     if (editingCell && tempValue) {
       const value = editingCell.field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue);
@@ -170,6 +176,47 @@ export function QuickEditMode({
     
     setEditingCell(null);
     setTempValue('');
+  };
+
+  // Función para actualizar valor con auto-cierre
+  const updateValueWithAutoClose = (newValue: string, immediate: boolean = false) => {
+    setTempValue(newValue);
+
+    // Limpiar timer anterior
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+    }
+
+    if (!editingCell) return;
+
+    // Si es inmediato (atajo rápido), guardar y cerrar ahora
+    if (immediate) {
+      const value = editingCell.field === 'reps' ? parseInt(newValue) : parseFloat(newValue);
+      if (!isNaN(value) && value > 0) {
+        if (editingCell.field === 'reps') {
+          onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
+        } else {
+          onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
+        }
+        setEditingCell(null);
+        setTempValue('');
+      }
+      return;
+    }
+
+    // Si no es inmediato (teclado), programar auto-cierre en 2 segundos
+    autoCloseTimerRef.current = setTimeout(() => {
+      const value = editingCell.field === 'reps' ? parseInt(newValue) : parseFloat(newValue);
+      if (!isNaN(value) && value > 0) {
+        if (editingCell.field === 'reps') {
+          onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
+        } else {
+          onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
+        }
+        setEditingCell(null);
+        setTempValue('');
+      }
+    }, 2000);
   };
 
   // Función para toggle collapse de un ejercicio
@@ -719,12 +766,12 @@ export function QuickEditMode({
                   // Permitir solo números y punto decimal para peso
                   if (editingCell.field === 'weight') {
                     if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                      setTempValue(value);
+                      updateValueWithAutoClose(value, false);
                     }
                   } else {
                     // Solo números para reps
                     if (value === '' || /^\d+$/.test(value)) {
-                      setTempValue(value);
+                      updateValueWithAutoClose(value, false);
                     }
                   }
                 }}
@@ -746,7 +793,7 @@ export function QuickEditMode({
                   {[8, 10, 12, 15, 20].map((num) => (
                     <button
                       key={num}
-                      onClick={() => setTempValue(String(num))}
+                      onClick={() => updateValueWithAutoClose(String(num), true)}
                       className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
                     >
                       {num}
@@ -774,7 +821,7 @@ export function QuickEditMode({
                       return historicalWeights.length > 0 ? historicalWeights.map((weight) => (
                         <button
                           key={weight}
-                          onClick={() => setTempValue(String(weight))}
+                          onClick={() => updateValueWithAutoClose(String(weight), true)}
                           className="py-2 text-sm font-semibold bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors"
                         >
                           {weight}kg
@@ -793,7 +840,7 @@ export function QuickEditMode({
                         key={increment}
                         onClick={() => {
                           const current = parseFloat(tempValue) || 0;
-                          setTempValue(String(current + increment));
+                          updateValueWithAutoClose(String(current + increment), false);
                         }}
                         className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
                       >
@@ -807,12 +854,15 @@ export function QuickEditMode({
 
             {/* Teclado numérico personalizado - OPCIONAL */}
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Teclado numérico</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Atajos: cierre inmediato • Teclado: 2s</p>
               <div className="grid grid-cols-3 gap-3">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                   <button
                     key={num}
-                    onClick={() => setTempValue(prev => prev === '0' ? String(num) : prev + num)}
+                    onClick={() => {
+                      const newValue = tempValue === '0' ? String(num) : tempValue + num;
+                      updateValueWithAutoClose(newValue, false);
+                    }}
                     className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
                   >
                     {num}
@@ -824,7 +874,8 @@ export function QuickEditMode({
                   <button
                     onClick={() => {
                       if (!tempValue.includes('.')) {
-                        setTempValue(prev => (prev || '0') + '.');
+                        const newValue = (tempValue || '0') + '.';
+                        updateValueWithAutoClose(newValue, false);
                       }
                     }}
                     className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
@@ -836,7 +887,10 @@ export function QuickEditMode({
                 )}
                 
                 <button
-                  onClick={() => setTempValue(prev => prev === '0' ? '0' : prev + '0')}
+                  onClick={() => {
+                    const newValue = tempValue === '0' ? '0' : tempValue + '0';
+                    updateValueWithAutoClose(newValue, false);
+                  }}
                   className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
                 >
                   0
@@ -844,7 +898,10 @@ export function QuickEditMode({
                 
                 {/* Botón borrar */}
                 <button
-                  onClick={() => setTempValue(prev => prev.length > 1 ? prev.slice(0, -1) : '')}
+                  onClick={() => {
+                    const newValue = tempValue.length > 1 ? tempValue.slice(0, -1) : '';
+                    updateValueWithAutoClose(newValue, false);
+                  }}
                   className="h-16 text-xl font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-colors active:scale-95"
                 >
                   ⌫

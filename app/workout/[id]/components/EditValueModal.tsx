@@ -15,7 +15,8 @@ interface EditValueModalProps {
 
 /**
  * Modal reutilizable para editar reps o peso con teclado numérico
- * Guarda automáticamente cuando el usuario cambia el valor
+ * - Atajos rápidos: guardan y cierran inmediatamente
+ * - Teclado numérico: auto-cierre después de 2 segundos de inactividad
  */
 export function EditValueModal({
   isOpen,
@@ -29,6 +30,7 @@ export function EditValueModal({
   const [tempValue, setTempValue] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const hasChangedRef = useRef(false);
+  const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Inicializar valor cuando se abre el modal
   useEffect(() => {
@@ -52,25 +54,61 @@ export function EditValueModal({
     }
   }, [isOpen]);
 
-  // Función para actualizar el valor localmente (sin guardar aún)
-  const updateValue = (newValue: string) => {
-    setTempValue(newValue);
-    hasChangedRef.current = true;
-  };
-
   // Guardar cuando se cierra el modal
   useEffect(() => {
     if (!isOpen && hasChangedRef.current && tempValue) {
       const numValue = field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue);
       if (!isNaN(numValue) && numValue > 0) {
-        console.log('[EditValueModal] Guardando al cerrar:', { field, value: numValue, tempValue });
         onSave(numValue);
       }
       hasChangedRef.current = false;
     }
   }, [isOpen, tempValue, field, onSave]);
 
+  // Limpiar timer al desmontar
+  useEffect(() => {
+    return () => {
+      if (autoCloseTimerRef.current) {
+        clearTimeout(autoCloseTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Función para actualizar valor con auto-cierre
+  const updateValueWithAutoClose = (newValue: string, immediate: boolean = false) => {
+    setTempValue(newValue);
+    hasChangedRef.current = true;
+
+    // Limpiar timer anterior
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+    }
+
+    // Si es inmediato (atajo rápido), guardar y cerrar ahora
+    if (immediate) {
+      const numValue = field === 'reps' ? parseInt(newValue) : parseFloat(newValue);
+      if (!isNaN(numValue) && numValue > 0) {
+        onSave(numValue);
+        onClose();
+      }
+      return;
+    }
+
+    // Si no es inmediato (teclado), programar auto-cierre en 2 segundos
+    autoCloseTimerRef.current = setTimeout(() => {
+      const numValue = field === 'reps' ? parseInt(newValue) : parseFloat(newValue);
+      if (!isNaN(numValue) && numValue > 0) {
+        onSave(numValue);
+        onClose();
+      }
+    }, 2000);
+  };
+
   const handleCancel = () => {
+    // Limpiar timer
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+    }
     onClose();
   };
   
@@ -91,6 +129,10 @@ export function EditValueModal({
   const handleClear = () => {
     setTempValue('');
     hasChangedRef.current = true;
+    // Limpiar timer al borrar
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+    }
   };
 
   return (
@@ -103,7 +145,7 @@ export function EditValueModal({
         {/* Header con botón cerrar */}
         <div className="flex items-center justify-between pb-2">
           <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-            Toca fuera para guardar
+            Atajos: cierre inmediato • Teclado: 2s
           </div>
           <button
             onClick={handleCancel}
@@ -127,11 +169,11 @@ export function EditValueModal({
               const value = e.target.value;
               if (field === 'weight') {
                 if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                  updateValue(value);
+                  setTempValue(value);
                 }
               } else {
                 if (value === '' || /^\d+$/.test(value)) {
-                  updateValue(value);
+                  setTempValue(value);
                 }
               }
             }}
@@ -164,7 +206,7 @@ export function EditValueModal({
               {[8, 10, 12, 15, 20].map((num) => (
                 <button
                   key={num}
-                  onClick={() => updateValue(String(num))}
+                  onClick={() => updateValueWithAutoClose(String(num), true)}
                   className={`py-1.5 text-sm font-semibold rounded-lg active:scale-95 ${
                     tempValue === String(num)
                       ? 'bg-blue-500 text-white'
@@ -188,7 +230,7 @@ export function EditValueModal({
                   {historicalWeights.slice(0, 4).map((weight, idx) => (
                     <button
                       key={idx}
-                      onClick={() => updateValue(String(weight))}
+                      onClick={() => updateValueWithAutoClose(String(weight), true)}
                       className={`py-1.5 text-sm font-semibold rounded-lg active:scale-95 ${
                         tempValue === String(weight)
                           ? 'bg-emerald-500 text-white'
@@ -209,7 +251,7 @@ export function EditValueModal({
                     key={increment}
                     onClick={() => {
                       const current = parseFloat(tempValue) || 0;
-                      updateValue(String(current + increment));
+                      updateValueWithAutoClose(String(current + increment), false);
                     }}
                     className="py-1.5 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg active:scale-95"
                   >
@@ -228,7 +270,7 @@ export function EditValueModal({
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
               <button
                 key={num}
-                onClick={() => updateValue(tempValue === '0' ? String(num) : tempValue + num)}
+                onClick={() => updateValueWithAutoClose(tempValue === '0' ? String(num) : tempValue + num, false)}
                 className="h-12 text-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation select-none"
               >
                 {num}
@@ -240,7 +282,7 @@ export function EditValueModal({
               <button
                 onClick={() => {
                   if (!tempValue.includes('.')) {
-                    updateValue((tempValue || '0') + '.');
+                    updateValueWithAutoClose((tempValue || '0') + '.', false);
                   }
                 }}
                 disabled={tempValue.includes('.')}
@@ -258,7 +300,7 @@ export function EditValueModal({
             )}
             
             <button
-              onClick={() => updateValue(tempValue === '0' ? '0' : tempValue + '0')}
+              onClick={() => updateValueWithAutoClose(tempValue === '0' ? '0' : tempValue + '0', false)}
               className="h-12 text-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation"
             >
               0
@@ -266,7 +308,7 @@ export function EditValueModal({
             
             {/* Botón borrar */}
             <button
-              onClick={() => updateValue(tempValue.length > 1 ? tempValue.slice(0, -1) : '')}
+              onClick={() => updateValueWithAutoClose(tempValue.length > 1 ? tempValue.slice(0, -1) : '', false)}
               className="h-12 text-base font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg active:scale-95 touch-manipulation"
             >
               ⌫
