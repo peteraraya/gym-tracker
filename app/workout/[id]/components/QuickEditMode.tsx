@@ -302,23 +302,26 @@ export function QuickEditMode({
 
   return (
     <div className="space-y-3 pb-32">
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-lg shadow-lg">
-        <div className="flex items-center justify-between mb-1">
-          <div>
-            <h2 className="text-base font-bold mb-0.5">📝 Modo Edición Rápida</h2>
+      {/* Header mejorado - sticky y más visual */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-xl shadow-lg sticky top-0 z-10">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex-1">
+            <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
+              📝 Edición Rápida
+            </h2>
             <p className="text-xs opacity-90">
-              Completa o edita cualquier serie directamente
+              Toca cualquier valor para editarlo
             </p>
           </div>
           <div className="text-right">
-            <div className="text-xl font-bold">{progressPercent}%</div>
-            <div className="text-[10px] opacity-90">{completedSets}/{totalSets} series</div>
+            <div className="text-3xl font-bold leading-none">{progressPercent}%</div>
+            <div className="text-xs opacity-90 mt-1">{completedSets}/{totalSets} series</div>
           </div>
         </div>
-        {/* Barra de progreso */}
-        <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
+        {/* Barra de progreso mejorada */}
+        <div className="w-full bg-white/20 rounded-full h-2 mt-3 overflow-hidden">
           <div 
-            className="bg-white rounded-full h-1.5 transition-all duration-300"
+            className="bg-white rounded-full h-2 transition-all duration-500 ease-out shadow-lg"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -335,6 +338,15 @@ export function QuickEditMode({
         const isFullyCompleted = completedCount === exercise.sets.length;
         const isCollapsed = collapsedExercises.has(exerciseId);
         const isManuallyExpanded = manuallyExpandedExercises.has(exerciseId);
+        
+        // Determinar si es el ejercicio actual (primer incompleto)
+        const firstIncompleteIndex = routine.exercises.findIndex((ex) => {
+          const exId = ex.id;
+          const count = workoutData.completedSets[exId] || 0;
+          return count < ex.sets.length;
+        });
+        const isCurrent = exIdx === firstIncompleteIndex;
+        const isNext = exIdx === firstIncompleteIndex + 1;
 
         // Auto-colapsar cuando se completa (solo si no está manualmente expandido)
         if (isFullyCompleted && !isCollapsed && completedCount > 0 && !isManuallyExpanded) {
@@ -389,56 +401,119 @@ export function QuickEditMode({
                 : ''
             }`}
           >
-            <Card className="overflow-hidden">
-            {/* Header del ejercicio - clickeable para collapse */}
-            <div className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700">
+            <Card className={`overflow-hidden ${
+              isCurrent 
+                ? 'ring-2 ring-blue-500 shadow-lg' 
+                : isNext 
+                ? 'ring-2 ring-orange-400 shadow-md' 
+                : isFullyCompleted
+                ? 'opacity-75'
+                : ''
+            }`}>
+            {/* Header del ejercicio mejorado */}
+            <div className={`border-b border-gray-200 dark:border-gray-700 ${
+              isCurrent
+                ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30'
+                : isNext
+                ? 'bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30'
+                : isFullyCompleted
+                ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20'
+                : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900'
+            }`}>
               <button
                 onClick={() => toggleCollapse(exerciseId)}
-                className="w-full p-2.5 hover:from-gray-150 hover:to-gray-100 dark:hover:from-gray-750 dark:hover:to-gray-850 transition-colors"
+                className="w-full p-3 hover:brightness-95 transition-all active:scale-[0.99]"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {/* Icono de drag handle */}
-                    {onMoveExercise && (
-                      <div className="cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                          <circle cx="4" cy="4" r="1.5" />
-                          <circle cx="4" cy="8" r="1.5" />
-                          <circle cx="4" cy="12" r="1.5" />
-                          <circle cx="12" cy="4" r="1.5" />
-                          <circle cx="12" cy="8" r="1.5" />
-                          <circle cx="12" cy="12" r="1.5" />
+                  <div className="flex items-center gap-3">
+                    {/* Número de ejercicio más grande y colorido */}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-md ${
+                      isCurrent
+                        ? 'bg-blue-500 text-white'
+                        : isNext
+                        ? 'bg-orange-500 text-white'
+                        : isFullyCompleted
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-400 dark:bg-gray-600 text-white'
+                    }`}>
+                      {exIdx + 1}
+                    </div>
+                    
+                    <div className="text-left flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-bold text-base text-gray-900 dark:text-gray-100">
+                          {exercise.name}
+                        </h3>
+                        {/* Badge de estado más prominente */}
+                        {isCurrent && (
+                          <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm">
+                            ACTUAL
+                          </span>
+                        )}
+                        {isNext && !isCurrent && (
+                          <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm">
+                            SIGUIENTE
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {completedCount} de {exercise.sets.length} series
+                        </p>
+                        {/* Icono de collapse */}
+                        <svg 
+                          className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
-                    )}
-                    {/* Icono de collapse */}
-                    <svg 
-                      className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                    <div className="text-left">
-                      <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">
-                        {exIdx + 1}. {exercise.name}
-                      </h3>
-                      <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
-                        {completedCount} de {exercise.sets.length} series completadas
-                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isFullyCompleted
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                        : completedCount > 0
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                    }`}>
-                      {isFullyCompleted ? '✓' : completedCount > 0 ? '⏳' : '○'} 
-                      {completedCount}/{exercise.sets.length}
+                  
+                  {/* Indicador de progreso circular */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-12 h-12">
+                      <svg className="w-12 h-12 transform -rotate-90">
+                        <circle
+                          cx="24"
+                          cy="24"
+                          r="20"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                          className="text-gray-200 dark:text-gray-700"
+                        />
+                        <circle
+                          cx="24"
+                          cy="24"
+                          r="20"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                          strokeDasharray={`${2 * Math.PI * 20}`}
+                          strokeDashoffset={`${2 * Math.PI * 20 * (1 - completedCount / exercise.sets.length)}`}
+                          className={`transition-all duration-500 ${
+                            isFullyCompleted
+                              ? 'text-green-500'
+                              : completedCount > 0
+                              ? 'text-blue-500'
+                              : 'text-gray-300 dark:text-gray-600'
+                          }`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className={`text-xs font-bold ${
+                          isFullyCompleted
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-gray-700 dark:text-gray-300'
+                        }`}>
+                          {isFullyCompleted ? '✓' : `${completedCount}/${exercise.sets.length}`}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
