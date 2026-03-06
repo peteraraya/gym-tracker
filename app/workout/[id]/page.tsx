@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, memo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
@@ -23,11 +23,11 @@ import { useWorkoutSuggestions } from './hooks/useWorkoutSuggestions';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useHapticFeedback } from './hooks/useHapticFeedback';
 import { CompactWorkoutHeader } from './components/CompactWorkoutHeader';
-import { ExerciseCard } from './components/ExerciseCard';
+import { ExerciseCard as ExerciseCardBase } from './components/ExerciseCard';
 import { ExerciseList } from './components/ExerciseList';
 import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
 import { AddExerciseButton } from './components/AddExerciseButton';
-import { QuickEditMode } from './components/QuickEditMode';
+import { QuickEditMode as QuickEditModeBase } from './components/QuickEditMode';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { Exercise } from '@/types';
 import { 
@@ -41,6 +41,10 @@ import {
 const SeriesTable = lazy(() => import('./components/SeriesTable').then(m => ({ default: m.SeriesTable })));
 const ExerciseInfoPanel = lazy(() => import('@/components/ExerciseInfoPanel').then(m => ({ default: m.ExerciseInfoPanel })));
 const SetExecutionModal = lazy(() => import('@/components/SetExecutionModal').then(m => ({ default: m.SetExecutionModal })));
+
+// ✅ Memoización de componentes pesados para evitar re-renders innecesarios
+const ExerciseCard = memo(ExerciseCardBase);
+const QuickEditMode = memo(QuickEditModeBase);
 
 // Lazy load de datos pesados
 let EXERCISE_DATABASE: any[] = [];
@@ -163,6 +167,22 @@ export default function WorkoutPage() {
     
     return null;
   }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);
+
+  // ✅ Memoizar cálculo de progreso total para evitar recalcular en cada render
+  const workoutProgress = useMemo(() => {
+    if (!routine?.exercises?.length) {
+      return { totalSets: 0, completedSets: 0, percentage: 0 };
+    }
+
+    const totalSets = routine.exercises.reduce((sum: number, ex: Exercise) => sum + ex.sets.length, 0);
+    const completedSets = routine.exercises.reduce((sum: number, ex: Exercise) => {
+      const exerciseCompletedSets = workoutState.workoutData.completedSets[ex.id] || 0;
+      return sum + Math.min(exerciseCompletedSets, ex.sets.length);
+    }, 0);
+    const percentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+
+    return { totalSets, completedSets, percentage };
+  }, [routine?.exercises, workoutState.workoutData.completedSets]);
 
   // ==================== CUSTOM HOOKS ====================
     const handleTimerCompleteRef = useRef(() => {});
