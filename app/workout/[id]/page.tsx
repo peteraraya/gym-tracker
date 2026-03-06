@@ -113,9 +113,9 @@ export default function WorkoutPage() {
   
   // ==================== COMPUTED VALUES ====================
   const currentExercise = useMemo(() => {
-    if (!routine || !routine.exercises || routine.exercises.length === 0) return null;
+    if (!routine?.exercises?.length) return null;
     return routine.exercises[workoutState.currentExerciseIndex] || null;
-  }, [routine, workoutState.currentExerciseIndex]);
+  }, [routine?.exercises, workoutState.currentExerciseIndex]);
 
   const lastSessionForExercise = useMemo(() => {
     if (!currentExercise || sessions.length === 0) return null;
@@ -680,7 +680,27 @@ export default function WorkoutPage() {
       haptic.restStart();
       timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, totalPausedTime, useSmartRest, weightPrediction.weightSuggestion, timerHandlers, haptic, completion]);
+  }, [
+    currentExercise, 
+    routine?.exercises, 
+    workoutState.currentSet,
+    workoutState.currentExerciseIndex,
+    workoutState.currentReps,
+    workoutState.currentWeight,
+    workoutState.workoutData.actualReps,
+    workoutState.workoutData.restOverrides,
+    workoutState.workoutData.perSetRestOverrides,
+    workoutState.completeSet,
+    workoutStartTime, 
+    totalPausedTime, 
+    useSmartRest, 
+    weightPrediction.weightSuggestion, 
+    timerHandlers.startTimer,
+    haptic.setComplete,
+    haptic.restStart,
+    completion.openCompletionModal,
+    setExecution.completeSet
+  ]);
 
   const handleTimerComplete = useCallback(() => {
     timerHandlers.stopTimer();
@@ -730,7 +750,25 @@ export default function WorkoutPage() {
       // ✅ Iniciar preparación automáticamente después del descanso
       setExecution.startSet();
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, totalPausedTime, clearRestState, timerHandlers, completion, haptic, setExecution]);
+  }, [
+    currentExercise, 
+    routine?.exercises, 
+    workoutState.currentExerciseIndex,
+    workoutState.workoutData.completedSets,
+    workoutState.currentSet,
+    workoutState.setCurrentExerciseIndex,
+    workoutState.setCurrentSet,
+    workoutState.setCurrentReps,
+    workoutState.setCurrentWeight,
+    workoutStartTime, 
+    totalPausedTime, 
+    clearRestState, 
+    timerHandlers.stopTimer,
+    completion.openCompletionModal, 
+    haptic.restComplete,
+    haptic.exerciseChange,
+    setExecution.startSet
+  ]);
 
   useEffect(() => {
     // keep the ref updated so the timer hook can call the latest handler
@@ -822,7 +860,7 @@ export default function WorkoutPage() {
       reps,
       ...(workoutState.workoutData.actualReps[exerciseId] || []).slice(setIndex + 1)
     ]);
-  }, [currentExercise, workoutState]);
+  }, [currentExercise?.id, workoutState.updateActualReps, workoutState.workoutData.actualReps]);
 
   const handleEditWeight = useCallback((setIndex: number, weight: number) => {
     if (!currentExercise) return;
@@ -832,25 +870,25 @@ export default function WorkoutPage() {
       weight,
       ...(workoutState.workoutData.actualWeights[exerciseId] || []).slice(setIndex + 1)
     ]);
-  }, [currentExercise, workoutState]);
+  }, [currentExercise?.id, workoutState.updateActualWeights, workoutState.workoutData.actualWeights]);
 
   const handleEditSetType = useCallback((setIndex: number, type: any) => {
     if (!currentExercise) return;
     const exerciseId = currentExercise.id;
     workoutState.updateSetType(exerciseId, setIndex, type);
-  }, [currentExercise, workoutState]);
+  }, [currentExercise?.id, workoutState.updateSetType]);
 
   const handleEditRestTime = useCallback((setIndex: number, restTime: number) => {
     if (!currentExercise) return;
     const exerciseId = currentExercise.id;
     workoutState.updatePerSetRestOverride(exerciseId, setIndex, restTime);
-  }, [currentExercise, workoutState]);
+  }, [currentExercise?.id, workoutState.updatePerSetRestOverride]);
 
   const handleApplySmartRest = useCallback(() => {
     if (!currentExercise || !smartRestTime) return;
     applySmartRestToAllSets(currentExercise, workoutState.updatePerSetRestOverride);
     success('Descanso inteligente aplicado a todas las series', 2000);
-  }, [currentExercise, smartRestTime, workoutState, success]);
+  }, [currentExercise, smartRestTime, workoutState.updatePerSetRestOverride, success]);
 
   const handleDeleteSet = useCallback(async (setIndex: number) => {
     if (!currentExercise || !routine) return;
@@ -1234,7 +1272,7 @@ export default function WorkoutPage() {
     console.log('[handleQuickEditReps] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
     // NO actualizar completed sets automáticamente - debe ser manual con el checkbox
     console.log('[handleQuickEditReps] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
-  }, [workoutState]);
+  }, [workoutState.workoutData.actualReps, workoutState.workoutData.completedSets, workoutState.updateActualReps]);
 
   const handleQuickEditWeight = useCallback((exerciseId: string, setIndex: number, weight: number) => {
     console.log('[handleQuickEditWeight] Called:', { exerciseId, setIndex, weight });
@@ -1245,11 +1283,11 @@ export default function WorkoutPage() {
     
     console.log('[handleQuickEditWeight] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
     console.log('[handleQuickEditWeight] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
-  }, [workoutState]);
+  }, [workoutState.workoutData.actualWeights, workoutState.workoutData.completedSets, workoutState.updateActualWeights]);
 
   const handleQuickEditSetType = useCallback((exerciseId: string, setIndex: number, type: any) => {
     workoutState.updateSetType(exerciseId, setIndex, type);
-  }, [workoutState]);
+  }, [workoutState.updateSetType]);
 
   const handleQuickToggleSetComplete = useCallback((exerciseId: string, setIndex: number, isComplete: boolean) => {
     console.log('[handleQuickToggleSetComplete] Called:', { exerciseId, setIndex, isComplete });
