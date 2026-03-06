@@ -229,14 +229,20 @@ export default function WorkoutPage() {
   // ==================== INITIALIZATION ====================
   const lastSyncedRoutineRef = useRef<string | null>(null);
   const hasLoadedModifiedRoutineRef = useRef(false);
+  const lastRoutineIdRef = useRef<string | null>(null);
   
   useEffect(() => {
     if (gymLoading) return;
     
+    // ✅ Resetear el flag cuando cambia el id del workout
+    if (lastRoutineIdRef.current !== id) {
+      hasLoadedModifiedRoutineRef.current = false;
+      lastRoutineIdRef.current = id;
+    }
+    
     let mounted = true;
     
     const initializeWorkout = async () => {
-      console.log('[Init] Starting initialization');
       
       // ✅ Priorizar la rutina modificada del activeWorkout si existe
       // Solo cargar una vez para evitar loops
@@ -245,7 +251,6 @@ export default function WorkoutPage() {
       if (activeWorkout?.modifiedRoutine && !hasLoadedModifiedRoutineRef.current) {
         foundRoutine = activeWorkout.modifiedRoutine;
         hasLoadedModifiedRoutineRef.current = true;
-        console.log('[Init] Using modified routine from activeWorkout');
       }
       
       if (!foundRoutine) {
@@ -267,8 +272,6 @@ export default function WorkoutPage() {
           useSmartRest: ex.useSmartRest ?? true
         }))
       };
-      
-      console.log('[Init] Loaded routine with', routineWithDefaults.exercises.map((ex: any) => `${ex.id}:${ex.sets.length}`).join('|'));
       
       setRoutine(routineWithDefaults);
       
@@ -443,16 +446,11 @@ export default function WorkoutPage() {
       const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
       const completedCount = actualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
       
-      console.log('[Sync] Mode change to guided:', {
-        exerciseId,
-        completedCount,
-        totalSets: currentExercise.sets.length,
-        currentSet: workoutState.currentSet,
-        actualReps: actualReps.map((r, i) => `${i + 1}:${r || 0}`)
-      });
+      // ✅ Usar un flag para evitar múltiples ejecuciones
+      const hasCompletedAllSets = completedCount >= currentExercise.sets.length;
       
       // Si todas las series están completadas, avanzar al siguiente ejercicio
-      if (completedCount >= currentExercise.sets.length) {
+      if (hasCompletedAllSets) {
         const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
         
         if (isLastExercise) {
@@ -462,36 +460,35 @@ export default function WorkoutPage() {
             completion.openCompletionModal(duration);
           }
         } else {
-          // Avanzar al siguiente ejercicio
-          const nextIndex = workoutState.currentExerciseIndex + 1;
-          workoutState.setCurrentExerciseIndex(nextIndex);
-          workoutState.setCurrentSet(1);
-          
-          const nextExercise = routine.exercises[nextIndex];
-          if (nextExercise && nextExercise.sets[0]) {
-            workoutState.setCurrentReps(nextExercise.sets[0].reps);
-            workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
-          }
+          // ✅ Usar setTimeout para evitar cambios de estado en cascada
+          setTimeout(() => {
+            const nextIndex = workoutState.currentExerciseIndex + 1;
+            const nextExercise = routine.exercises[nextIndex];
+            
+            if (nextExercise) {
+              workoutState.setCurrentExerciseIndex(nextIndex);
+              workoutState.setCurrentSet(1);
+              
+              // Cargar datos del siguiente ejercicio
+              if (nextExercise.sets[0]) {
+                workoutState.setCurrentReps(nextExercise.sets[0].reps);
+                workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
+              }
+            }
+          }, 0);
         }
         return;
       }
       
-      // Encontrar la siguiente serie no completada
+      // ✅ Sincronizar currentSet solo si es necesario
       const nextIncompleteIndex = actualReps.findIndex((r: number) => !r || r === 0);
       const nextSet = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : completedCount + 1;
       
-      console.log('[Sync] Next set calculation:', {
-        nextIncompleteIndex,
-        nextSet,
-        currentSetBefore: workoutState.currentSet
-      });
-      
       // Actualizar currentSet si es diferente
       if (nextSet !== workoutState.currentSet && nextSet <= currentExercise.sets.length) {
-        console.log('[Sync] Updating currentSet from', workoutState.currentSet, 'to', nextSet);
         workoutState.setCurrentSet(nextSet);
         
-        // Cargar datos de la siguiente serie
+        // ✅ Cargar datos de la serie actual
         const nextSetData = currentExercise.sets[nextSet - 1];
         if (nextSetData) {
           const savedReps = actualReps[nextSet - 1];

@@ -93,7 +93,7 @@ export function useAutoAdvance(params: UseAutoAdvanceParams) {
     isExecutingSet,
     showPreparation,
     currentExerciseIndex,
-    routine,
+    routine?.exercises?.length,  // ✅ Agregado para detectar cambios en la rutina
     onAdvanceToNextExercise,
     onShowFinishModal
   ]);
