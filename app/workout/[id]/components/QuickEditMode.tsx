@@ -153,8 +153,21 @@ export function QuickEditMode({
     setTempValue('');
   };
 
-  // Función para cancelar edición
+  // Función para cancelar edición (ahora también guarda si hay cambios)
   const cancelEdit = () => {
+    // Si hay un valor válido, guardarlo antes de cerrar
+    if (editingCell && tempValue) {
+      const value = editingCell.field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue);
+      
+      if (!isNaN(value) && value >= 0) {
+        if (editingCell.field === 'reps') {
+          onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
+        } else {
+          onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
+        }
+      }
+    }
+    
     setEditingCell(null);
     setTempValue('');
   };
@@ -204,8 +217,17 @@ export function QuickEditMode({
     setTempRestTime('');
   };
 
-  // Función para cancelar edición de descanso
+  // Función para cancelar edición de descanso (ahora también guarda si hay cambios)
   const cancelRestEdit = () => {
+    // Si hay un valor válido, guardarlo antes de cerrar
+    if (editingRestTime && tempRestTime && onEditRestTime) {
+      const value = parseInt(tempRestTime);
+      
+      if (!isNaN(value) && value >= 0) {
+        onEditRestTime(editingRestTime.exerciseId, value);
+      }
+    }
+    
     setEditingRestTime(null);
     setTempRestTime('');
   };
@@ -261,8 +283,8 @@ export function QuickEditMode({
         const actualWeights = workoutData.actualWeights[exerciseId] || [];
         const setTypes = workoutData.setTypes[exerciseId] || [];
         
-        // Calcular completadas correctamente - solo contar las que tienen reps > 0
-        const completedCount = actualReps.filter(r => typeof r === 'number' && r > 0).length;
+        // Obtener el contador REAL de series completadas desde workoutData
+        const completedCount = workoutData.completedSets[exerciseId] || 0;
         const isFullyCompleted = completedCount === exercise.sets.length;
         const isCollapsed = collapsedExercises.has(exerciseId);
         const isManuallyExpanded = manuallyExpandedExercises.has(exerciseId);
@@ -480,12 +502,17 @@ export function QuickEditMode({
                       const doneReps = actualReps[setIdx];
                       const doneWeight = actualWeights[setIdx];
                       const setType = setTypes[setIdx] || 'normal';
-                      const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                      
+                      // Una serie está completada SOLO si está marcada explícitamente en completedSets
+                      // NO basarse en si tiene valores de reps/weight
+                      const completedCount = workoutData.completedSets[exerciseId] || 0;
+                      const isCompleted = setIdx < completedCount;
+                      
                       const isEditingReps = editingCell?.exerciseId === exerciseId && editingCell?.setIndex === setIdx && editingCell?.field === 'reps';
                       const isEditingWeight = editingCell?.exerciseId === exerciseId && editingCell?.setIndex === setIdx && editingCell?.field === 'weight';
 
-                      // Valores a mostrar: si está completada usar doneReps/doneWeight, sino usar defaults
-                      const displayReps = isCompleted ? doneReps : (doneReps || set.reps);
+                      // Valores a mostrar
+                      const displayReps = doneReps !== undefined ? doneReps : set.reps;
                       const displayWeight = doneWeight !== undefined ? doneWeight : (set.weight || 0);
 
                       return (
@@ -673,7 +700,7 @@ export function QuickEditMode({
       <BottomSheet
         isOpen={editingCell !== null}
         onClose={cancelEdit}
-        title={editingCell ? `${editingCell.exerciseName} - Serie ${editingCell.setIndex + 1}` : ''}
+        title={editingCell ? `${editingCell.field === 'reps' ? 'Repeticiones' : 'Peso'} - ${editingCell.exerciseName}` : ''}
       >
         {editingCell && (
           <div className="space-y-6 p-4">
@@ -825,19 +852,13 @@ export function QuickEditMode({
               </div>
             </div>
 
-            {/* Botones de acción */}
-            <div className="grid grid-cols-2 gap-3 pt-4">
+            {/* Botón de cerrar */}
+            <div className="pt-4">
               <button
                 onClick={cancelEdit}
-                className="py-4 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl transition-colors"
+                className="w-full py-4 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl transition-colors"
               >
-                Cancelar
-              </button>
-              <button
-                onClick={saveEdit}
-                className="py-4 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-colors"
-              >
-                Guardar
+                Cerrar
               </button>
             </div>
           </div>

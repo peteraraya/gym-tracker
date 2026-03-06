@@ -530,16 +530,8 @@ export default function WorkoutPage() {
         hasChanges = true;
       }
       
-      // Recalcular completedSets correctamente
-      const validReps = (currentReps || []).slice(0, maxSets);
-      const actualCompleted = validReps.filter((r: number) => typeof r === 'number' && r > 0).length;
-      const storedCompleted = workoutState.workoutData.completedSets[exerciseId] || 0;
-      
-      if (actualCompleted !== storedCompleted) {
-        console.log(`[Cleanup] Correcting completedSets for ${exerciseId} from ${storedCompleted} to ${actualCompleted}`);
-        workoutState.updateCompletedSets(exerciseId, actualCompleted);
-        hasChanges = true;
-      }
+      // NO recalcular completedSets automáticamente - debe ser manual con el checkbox
+      // El usuario controla explícitamente qué series están completadas
       
       // Si es el ejercicio actual, corregir currentSet si está fuera de rango
       if (exerciseId === currentExercise.id) {
@@ -1232,25 +1224,30 @@ export default function WorkoutPage() {
       console.error('Error adding exercises:', err);
       error('Error al agregar ejercicios');
     }
-  }, [routine, id, updateRoutine, success, error, workoutState, updateWorkoutProgress]);
+  }, [routine, id, updateRoutine, success, error, workoutState, updateWorkoutProgress, totalPausedTime]);
 
   // ==================== QUICK EDIT MODE HANDLERS ====================
   const handleQuickEditReps = useCallback((exerciseId: string, setIndex: number, reps: number) => {
+    console.log('[handleQuickEditReps] Called:', { exerciseId, setIndex, reps });
     const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
     const newReps = [...currentReps];
     newReps[setIndex] = reps;
     workoutState.updateActualReps(exerciseId, newReps);
     
-    // Actualizar completed sets si es necesario
-    const completedCount = newReps.filter(r => r > 0).length;
-    workoutState.updateCompletedSets(exerciseId, completedCount);
+    console.log('[handleQuickEditReps] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
+    // NO actualizar completed sets automáticamente - debe ser manual con el checkbox
+    console.log('[handleQuickEditReps] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
   }, [workoutState]);
 
   const handleQuickEditWeight = useCallback((exerciseId: string, setIndex: number, weight: number) => {
+    console.log('[handleQuickEditWeight] Called:', { exerciseId, setIndex, weight });
     const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
     const newWeights = [...currentWeights];
     newWeights[setIndex] = weight;
     workoutState.updateActualWeights(exerciseId, newWeights);
+    
+    console.log('[handleQuickEditWeight] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
+    console.log('[handleQuickEditWeight] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
   }, [workoutState]);
 
   const handleQuickEditSetType = useCallback((exerciseId: string, setIndex: number, type: any) => {
@@ -1258,6 +1255,7 @@ export default function WorkoutPage() {
   }, [workoutState]);
 
   const handleQuickToggleSetComplete = useCallback((exerciseId: string, setIndex: number, isComplete: boolean) => {
+    console.log('[handleQuickToggleSetComplete] Called:', { exerciseId, setIndex, isComplete });
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
     if (!exercise || !routine) return;
 

@@ -15,6 +15,7 @@ interface EditValueModalProps {
 
 /**
  * Modal reutilizable para editar reps o peso con teclado numérico
+ * Guarda automáticamente cuando el usuario cambia el valor
  */
 export function EditValueModal({
   isOpen,
@@ -27,12 +28,14 @@ export function EditValueModal({
 }: EditValueModalProps) {
   const [tempValue, setTempValue] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasChangedRef = useRef(false);
 
   // Inicializar valor cuando se abre el modal
   useEffect(() => {
     if (isOpen) {
       const value = currentValue === '' || currentValue === 0 ? '' : String(currentValue);
       setTempValue(value);
+      hasChangedRef.current = false;
     }
   }, [isOpen, currentValue]);
 
@@ -40,10 +43,8 @@ export function EditValueModal({
   useEffect(() => {
     if (isOpen && inputRef.current) {
       const timer = setTimeout(() => {
-        // Focus pero sin mostrar el teclado nativo
         inputRef.current?.focus();
         inputRef.current?.select();
-        // Blur inmediatamente para ocultar el teclado pero mantener el cursor
         inputRef.current?.blur();
       }, 100);
       
@@ -51,14 +52,23 @@ export function EditValueModal({
     }
   }, [isOpen]);
 
-  const handleSave = () => {
-    const value = tempValue === '' ? 0 : (field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue));
-    
-    if (!isNaN(value) && value >= 0) {
-      onSave(value);
-      onClose();
-    }
+  // Función para actualizar el valor localmente (sin guardar aún)
+  const updateValue = (newValue: string) => {
+    setTempValue(newValue);
+    hasChangedRef.current = true;
   };
+
+  // Guardar cuando se cierra el modal
+  useEffect(() => {
+    if (!isOpen && hasChangedRef.current && tempValue) {
+      const numValue = field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue);
+      if (!isNaN(numValue) && numValue > 0) {
+        console.log('[EditValueModal] Guardando al cerrar:', { field, value: numValue, tempValue });
+        onSave(numValue);
+      }
+      hasChangedRef.current = false;
+    }
+  }, [isOpen, tempValue, field, onSave]);
 
   const handleCancel = () => {
     onClose();
@@ -67,7 +77,11 @@ export function EditValueModal({
   // Guardar con Enter (para teclados físicos)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSave();
+      const value = tempValue === '' ? 0 : (field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue));
+      if (!isNaN(value) && value > 0) {
+        onSave(value);
+      }
+      onClose();
     } else if (e.key === 'Escape') {
       handleCancel();
     }
@@ -76,6 +90,7 @@ export function EditValueModal({
   // Botón de limpiar todo
   const handleClear = () => {
     setTempValue('');
+    hasChangedRef.current = true;
   };
 
   return (
@@ -85,29 +100,22 @@ export function EditValueModal({
       title={title}
     >
       <div className="space-y-2 p-3 pb-2 overflow-x-hidden max-w-full" onKeyDown={handleKeyDown}>
-        {/* Botones de acción en la parte superior - SIEMPRE VISIBLES */}
-        <div className="grid grid-cols-2 gap-2 w-full sticky top-0 bg-white dark:bg-gray-900 z-10 pb-2">
+        {/* Header con botón cerrar */}
+        <div className="flex items-center justify-between pb-2">
+          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+            Toca fuera para guardar
+          </div>
           <button
             onClick={handleCancel}
-            className="py-2.5 text-sm font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg active:scale-95 touch-manipulation flex items-center justify-center gap-1.5"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg active:scale-95 touch-manipulation"
+            aria-label="Cerrar"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-            Cancelar
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!tempValue || tempValue === '0'}
-            className="py-2.5 text-sm font-bold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            Guardar
           </button>
         </div>
-        
+
         {/* Input editable compacto con botón de limpiar */}
         <div className="text-center w-full relative">
           <input
@@ -119,11 +127,11 @@ export function EditValueModal({
               const value = e.target.value;
               if (field === 'weight') {
                 if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                  setTempValue(value);
+                  updateValue(value);
                 }
               } else {
                 if (value === '' || /^\d+$/.test(value)) {
-                  setTempValue(value);
+                  updateValue(value);
                 }
               }
             }}
@@ -156,7 +164,7 @@ export function EditValueModal({
               {[8, 10, 12, 15, 20].map((num) => (
                 <button
                   key={num}
-                  onClick={() => setTempValue(String(num))}
+                  onClick={() => updateValue(String(num))}
                   className={`py-1.5 text-sm font-semibold rounded-lg active:scale-95 ${
                     tempValue === String(num)
                       ? 'bg-blue-500 text-white'
@@ -180,7 +188,7 @@ export function EditValueModal({
                   {historicalWeights.slice(0, 4).map((weight, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setTempValue(String(weight))}
+                      onClick={() => updateValue(String(weight))}
                       className={`py-1.5 text-sm font-semibold rounded-lg active:scale-95 ${
                         tempValue === String(weight)
                           ? 'bg-emerald-500 text-white'
@@ -201,7 +209,7 @@ export function EditValueModal({
                     key={increment}
                     onClick={() => {
                       const current = parseFloat(tempValue) || 0;
-                      setTempValue(String(current + increment));
+                      updateValue(String(current + increment));
                     }}
                     className="py-1.5 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg active:scale-95"
                   >
@@ -220,7 +228,7 @@ export function EditValueModal({
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
               <button
                 key={num}
-                onClick={() => setTempValue(prev => prev === '0' ? String(num) : prev + num)}
+                onClick={() => updateValue(tempValue === '0' ? String(num) : tempValue + num)}
                 className="h-12 text-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation select-none"
               >
                 {num}
@@ -232,7 +240,7 @@ export function EditValueModal({
               <button
                 onClick={() => {
                   if (!tempValue.includes('.')) {
-                    setTempValue(prev => (prev || '0') + '.');
+                    updateValue((tempValue || '0') + '.');
                   }
                 }}
                 disabled={tempValue.includes('.')}
@@ -250,7 +258,7 @@ export function EditValueModal({
             )}
             
             <button
-              onClick={() => setTempValue(prev => prev === '0' ? '0' : prev + '0')}
+              onClick={() => updateValue(tempValue === '0' ? '0' : tempValue + '0')}
               className="h-12 text-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation"
             >
               0
@@ -258,7 +266,7 @@ export function EditValueModal({
             
             {/* Botón borrar */}
             <button
-              onClick={() => setTempValue(prev => prev.length > 1 ? prev.slice(0, -1) : '')}
+              onClick={() => updateValue(tempValue.length > 1 ? tempValue.slice(0, -1) : '')}
               className="h-12 text-base font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg active:scale-95 touch-manipulation"
             >
               ⌫
