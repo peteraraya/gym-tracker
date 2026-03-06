@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import SetTypeCycleButton from '@/components/SetTypeCycleButton';
+import { EditValueModal } from './EditValueModal';
 import type { SetType, Routine } from '@/types';
 
 interface QuickEditModeProps {
@@ -59,6 +60,7 @@ export function QuickEditMode({
   const [tempValue, setTempValue] = useState<string>('');
   const [tempRestTime, setTempRestTime] = useState<string>('');
   const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
+  const [manuallyExpandedExercises, setManuallyExpandedExercises] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
   const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -124,6 +126,7 @@ export function QuickEditMode({
     currentValue: number,
     exerciseName: string
   ) => {
+    console.log('[QuickEdit] startEditing called:', { exerciseId, setIndex, field, currentValue, exerciseName });
     setEditingCell({ exerciseId, setIndex, field, currentValue, exerciseName });
     setTempValue(currentValue === 0 ? '' : String(currentValue));
   };
@@ -158,8 +161,20 @@ export function QuickEditMode({
       const newSet = new Set(prev);
       if (newSet.has(exerciseId)) {
         newSet.delete(exerciseId);
+        // Marcar como manualmente expandido para evitar auto-collapse
+        setManuallyExpandedExercises(prevExpanded => {
+          const newExpanded = new Set(prevExpanded);
+          newExpanded.add(exerciseId);
+          return newExpanded;
+        });
       } else {
         newSet.add(exerciseId);
+        // Remover de manualmente expandido si se colapsa
+        setManuallyExpandedExercises(prevExpanded => {
+          const newExpanded = new Set(prevExpanded);
+          newExpanded.delete(exerciseId);
+          return newExpanded;
+        });
       }
       return newSet;
     });
@@ -194,12 +209,22 @@ export function QuickEditMode({
   // Calcular progreso total - memoizado para evitar recalcular en cada render
   const { totalSets, completedSets, progressPercent } = useMemo(() => {
     const total = routine.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-    const completed = Object.values(workoutData.actualReps).reduce((sum, reps) => 
-      sum + reps.filter(r => r > 0).length, 0
-    );
-    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
     
-    return { totalSets: total, completedSets: completed, progressPercent: percent };
+    // Solo contar series completadas de ejercicios que existen en la rutina actual
+    const completed = routine.exercises.reduce((sum, ex) => {
+      const exerciseReps = workoutData.actualReps[ex.id] || [];
+      // Solo contar hasta el número de series que tiene el ejercicio actualmente
+      const completedInExercise = exerciseReps
+        .slice(0, ex.sets.length)
+        .filter(r => r > 0).length;
+      return sum + completedInExercise;
+    }, 0);
+    
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    // Limitar a máximo 100%
+    const cappedPercent = Math.min(percent, 100);
+    
+    return { totalSets: total, completedSets: completed, progressPercent: cappedPercent };
   }, [routine.exercises, workoutData.actualReps]);
 
   return (
@@ -236,9 +261,10 @@ export function QuickEditMode({
         const completedCount = actualReps.filter(r => typeof r === 'number' && r > 0).length;
         const isFullyCompleted = completedCount === exercise.sets.length;
         const isCollapsed = collapsedExercises.has(exerciseId);
+        const isManuallyExpanded = manuallyExpandedExercises.has(exerciseId);
 
-        // Auto-colapsar cuando se completa (solo si no está ya colapsado manualmente)
-        if (isFullyCompleted && !isCollapsed && completedCount > 0) {
+        // Auto-colapsar cuando se completa (solo si no está manualmente expandido)
+        if (isFullyCompleted && !isCollapsed && completedCount > 0 && !isManuallyExpanded) {
           // Usar setTimeout para evitar actualizar estado durante render
           setTimeout(() => {
             setCollapsedExercises(prev => {

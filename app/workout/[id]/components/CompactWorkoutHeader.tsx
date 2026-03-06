@@ -41,10 +41,24 @@ export function CompactWorkoutHeader({
   onDeleteExercise,
 }: CompactWorkoutHeaderProps) {
   
-  // Calcular progreso
+  // Calcular progreso basado en series completadas vs total de series
   const progress = useMemo(() => {
-    return ((currentExerciseIndex + 1) / totalExercises) * 100;
-  }, [currentExerciseIndex, totalExercises]);
+    const totalSets = exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+    
+    // Solo contar series completadas de ejercicios que existen en la rutina actual
+    const completedSetsCount = exercises.reduce((sum, ex) => {
+      const exerciseReps = actualReps[ex.id] || [];
+      // Solo contar hasta el número de series que tiene el ejercicio actualmente
+      const completedInExercise = exerciseReps
+        .slice(0, ex.sets.length)
+        .filter(r => r > 0).length;
+      return sum + completedInExercise;
+    }, 0);
+    
+    const percent = totalSets > 0 ? Math.round((completedSetsCount / totalSets) * 100) : 0;
+    // Limitar a máximo 100%
+    return Math.min(percent, 100);
+  }, [exercises, actualReps]);
 
   // Formatear tiempo
   const formattedTime = useMemo(() => {
