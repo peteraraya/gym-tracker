@@ -621,8 +621,8 @@ export default function WorkoutPage() {
       return;
     }
     
-    // NO llamar a setExecution.completeSet() para evitar la preparación
-    // setExecution.completeSet();
+    // ✅ Resetear el timer de serie al completar
+    setExecution.completeSet();
     
     const repsValue = typeof workoutState.currentReps === 'number' ? workoutState.currentReps : currentExercise.sets[setIndex]?.reps || 0;
     const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
@@ -715,8 +715,8 @@ export default function WorkoutPage() {
           workoutState.setCurrentWeight(firstSet.weight || 0);
         }
         
-        // NO iniciar automáticamente la preparación en modo guiado
-        // El usuario presionará el botón "Iniciar Serie" cuando esté listo
+        // ✅ Iniciar preparación automáticamente después del descanso
+        setExecution.startSet();
       }
     } else if (!isLastSet) {
       const newSet = workoutState.currentSet + 1;
@@ -727,10 +727,10 @@ export default function WorkoutPage() {
         workoutState.setCurrentWeight(nextSetData.weight || 0);
       }
       
-      // NO iniciar automáticamente la preparación en modo guiado
-      // El usuario presionará el botón "Iniciar Serie" cuando esté listo
+      // ✅ Iniciar preparación automáticamente después del descanso
+      setExecution.startSet();
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, totalPausedTime, clearRestState, timerHandlers, completion, haptic]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, totalPausedTime, clearRestState, timerHandlers, completion, haptic, setExecution]);
 
   useEffect(() => {
     // keep the ref updated so the timer hook can call the latest handler
