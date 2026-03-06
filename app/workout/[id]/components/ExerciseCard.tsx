@@ -136,20 +136,63 @@ export function ExerciseCard({
 
   return (
     <Card className="mb-4 border-2 border-blue-200 dark:border-blue-900">
-      {/* Header con información del ejercicio */}
+      {/* Header con información del ejercicio - Mejorado */}
       <CardHeader className="pb-3">
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1">
-            <CardTitle className="text-2xl mb-2">{exercise.name}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-semibold">
+        <div className="flex items-center gap-3 mb-3">
+          {/* Número de ejercicio grande y colorido */}
+          <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-xl font-bold shadow-lg flex-shrink-0">
+            {exerciseIndex + 1}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-xl mb-1 truncate">{exercise.name}</CardTitle>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                 Serie {currentSet} de {totalSets}
               </span>
+              {/* Badge de estado */}
+              {isSetStarted && (
+                <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm">
+                  EN PROGRESO
+                </span>
+              )}
               {exercise.recommendedReps && (
-                <span className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">
+                <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                   {exercise.recommendedReps}
                 </span>
               )}
+            </div>
+          </div>
+          
+          {/* Progreso circular */}
+          <div className="relative w-14 h-14 flex-shrink-0">
+            <svg className="w-14 h-14 transform -rotate-90">
+              <circle
+                cx="28"
+                cy="28"
+                r="24"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+                className="text-gray-200 dark:text-gray-700"
+              />
+              <circle
+                cx="28"
+                cy="28"
+                r="24"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+                strokeDasharray={`${2 * Math.PI * 24}`}
+                strokeDashoffset={`${2 * Math.PI * 24 * (1 - progress / 100)}`}
+                className="text-blue-500 transition-all duration-500"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                {completedSets}/{totalSets}
+              </span>
             </div>
           </div>
           
@@ -159,15 +202,15 @@ export function ExerciseCard({
               variant="ghost"
               size="sm"
               onClick={onShowInfo}
-              className="text-blue-600 dark:text-blue-400"
+              className="text-blue-600 dark:text-blue-400 flex-shrink-0"
             >
-              ℹ️ Info
+              ℹ️
             </Button>
           )}
         </div>
 
-        {/* Barra de progreso */}
-        <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        {/* Barra de progreso lineal */}
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             className="bg-blue-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -177,15 +220,19 @@ export function ExerciseCard({
 
       {/* Contenido principal */}
       <CardContent className="space-y-3">
-        {/* Serie iniciada indicator - Compacto */}
+        {/* Serie iniciada indicator - Mejorado y más prominente */}
         {isSetStarted && setStartTime && (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-3 flex items-center justify-between text-white">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">⏱️</span>
-              <span className="text-sm font-semibold">En progreso</span>
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-4 shadow-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">⏱️</span>
+                <span className="text-sm font-semibold text-white/90">Serie en progreso</span>
+              </div>
             </div>
-            <div className="text-2xl font-bold tabular-nums">
-              {formatTime(elapsedTime)}
+            <div className="text-center">
+              <div className="text-5xl font-bold tabular-nums text-white">
+                {formatTime(elapsedTime)}
+              </div>
             </div>
           </div>
         )}
@@ -229,7 +276,7 @@ export function ExerciseCard({
           )}
         </div>
 
-        {/* Inputs de reps y peso - Botones que abren modal */}
+        {/* Inputs de reps y peso - Botones más grandes y táctiles */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
@@ -237,13 +284,20 @@ export function ExerciseCard({
             </label>
             <button
               onClick={() => setEditingField('reps')}
-              className={`w-full min-h-[56px] px-3 py-2 rounded-lg transition-colors font-bold text-xl border-2 ${
+              className={`w-full min-h-[64px] px-4 py-3 rounded-xl transition-all font-bold border-2 active:scale-95 ${
                 currentReps === '' || currentReps === 0
                   ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                  : 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-600 shadow-sm'
               }`}
             >
-              {currentReps === '' || currentReps === 0 ? '-' : currentReps}
+              <div className="flex flex-col items-center">
+                <span className="text-3xl font-bold">
+                  {currentReps === '' || currentReps === 0 ? '-' : currentReps}
+                </span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                  Toca para editar
+                </span>
+              </div>
             </button>
           </div>
           <div>
@@ -252,51 +306,55 @@ export function ExerciseCard({
             </label>
             <button
               onClick={() => setEditingField('weight')}
-              className={`w-full min-h-[56px] px-3 py-2 rounded-lg transition-colors font-bold text-xl border-2 ${
+              className={`w-full min-h-[64px] px-4 py-3 rounded-xl transition-all font-bold border-2 active:scale-95 ${
                 currentWeight === '' || currentWeight === 0
                   ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                  : 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-600 shadow-sm'
               }`}
             >
-              {currentWeight === '' || currentWeight === 0 ? '-' : `${currentWeight} kg`}
+              <div className="flex flex-col items-center">
+                <span className="text-3xl font-bold">
+                  {currentWeight === '' || currentWeight === 0 ? '-' : currentWeight}
+                </span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                  Toca para editar
+                </span>
+              </div>
             </button>
           </div>
         </div>
 
-        {/* Quick weight adjustment - Más compacto */}
-        <div className="grid grid-cols-4 gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => handleQuickWeightAdjustment(-5)}
-            className="text-xs py-2"
-          >
-            -5kg
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => handleQuickWeightAdjustment(-2.5)}
-            className="text-xs py-2"
-          >
-            -2.5kg
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => handleQuickWeightAdjustment(+2.5)}
-            className="text-xs py-2"
-          >
-            +2.5kg
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => handleQuickWeightAdjustment(+5)}
-            className="text-xs py-2"
-          >
-            +5kg
-          </Button>
+        {/* Quick weight adjustment - Botones más grandes y táctiles */}
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+            Ajuste rápido de peso
+          </p>
+          <div className="grid grid-cols-4 gap-2">
+            <button
+              onClick={() => handleQuickWeightAdjustment(-5)}
+              className="min-h-[48px] px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-red-200 dark:border-red-800"
+            >
+              -5
+            </button>
+            <button
+              onClick={() => handleQuickWeightAdjustment(-2.5)}
+              className="min-h-[48px] px-3 py-2 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-orange-200 dark:border-orange-800"
+            >
+              -2.5
+            </button>
+            <button
+              onClick={() => handleQuickWeightAdjustment(+2.5)}
+              className="min-h-[48px] px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-emerald-200 dark:border-emerald-800"
+            >
+              +2.5
+            </button>
+            <button
+              onClick={() => handleQuickWeightAdjustment(+5)}
+              className="min-h-[48px] px-3 py-2 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-green-200 dark:border-green-800"
+            >
+              +5
+            </button>
+          </div>
         </div>
 
         {/* Quick action: Repeat Previous - Más compacto */}
