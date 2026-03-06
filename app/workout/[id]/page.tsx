@@ -772,22 +772,15 @@ export default function WorkoutPage() {
     }
   }, [
     currentExercise, 
-    routine?.exercises, 
-    workoutState.currentExerciseIndex,
-    workoutState.workoutData.completedSets,
-    workoutState.currentSet,
-    workoutState.setCurrentExerciseIndex,
-    workoutState.setCurrentSet,
-    workoutState.setCurrentReps,
-    workoutState.setCurrentWeight,
+    routine, 
+    workoutState,
     workoutStartTime, 
     totalPausedTime, 
     clearRestState, 
-    timerHandlers.stopTimer,
-    completion.openCompletionModal, 
-    haptic.restComplete,
-    haptic.exerciseChange,
-    setExecution.startSet
+    timerHandlers,
+    completion, 
+    haptic,
+    setExecution
   ]);
 
   useEffect(() => {
@@ -1292,7 +1285,7 @@ export default function WorkoutPage() {
     console.log('[handleQuickEditReps] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
     // NO actualizar completed sets automáticamente - debe ser manual con el checkbox
     console.log('[handleQuickEditReps] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
-  }, [workoutState.workoutData.actualReps, workoutState.workoutData.completedSets, workoutState.updateActualReps]);
+  }, [workoutState]);
 
   const handleQuickEditWeight = useCallback((exerciseId: string, setIndex: number, weight: number) => {
     console.log('[handleQuickEditWeight] Called:', { exerciseId, setIndex, weight });
@@ -1303,11 +1296,11 @@ export default function WorkoutPage() {
     
     console.log('[handleQuickEditWeight] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
     console.log('[handleQuickEditWeight] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
-  }, [workoutState.workoutData.actualWeights, workoutState.workoutData.completedSets, workoutState.updateActualWeights]);
+  }, [workoutState]);
 
   const handleQuickEditSetType = useCallback((exerciseId: string, setIndex: number, type: any) => {
     workoutState.updateSetType(exerciseId, setIndex, type);
-  }, [workoutState.updateSetType]);
+  }, [workoutState]);
 
   const handleQuickToggleSetComplete = useCallback((exerciseId: string, setIndex: number, isComplete: boolean) => {
     console.log('[handleQuickToggleSetComplete] Called:', { exerciseId, setIndex, isComplete });

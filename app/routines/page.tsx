@@ -443,11 +443,11 @@ export default function RoutinesPage() {
                       )}
                     </Button>
                     
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="secondary"
                         size="sm"
-                        className="flex-1 h-9 text-sm"
+                        className="w-full sm:flex-1 h-10 sm:h-9 text-sm"
                         onClick={() => handleEdit(routine.id)}
                         aria-label={`Editar rutina ${routine.name}`}
                       >
@@ -457,7 +457,7 @@ export default function RoutinesPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="flex-1 h-9 text-sm"
+                        className="w-full sm:flex-1 h-10 sm:h-9 text-sm"
                         onClick={() => handleDuplicate(routine.id)}
                         disabled={duplicatingId === routine.id}
                         aria-label={`Duplicar rutina ${routine.name}`}
@@ -469,6 +469,7 @@ export default function RoutinesPage() {
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                             </svg>
                             <span className="hidden sm:inline">Duplicando...</span>
+                            <span className="sm:hidden">Duplicando...</span>
                           </>
                         ) : (
                           <>
@@ -480,7 +481,7 @@ export default function RoutinesPage() {
                       <Button
                         variant="danger"
                         size="sm"
-                        className="flex-1 h-9 text-sm"
+                        className="w-full sm:flex-1 h-10 sm:h-9 text-sm"
                         onClick={() => handleDelete(routine.id)}
                         aria-label={`Eliminar rutina ${routine.name}`}
                       >
