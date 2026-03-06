@@ -26,6 +26,7 @@ interface QuickEditModeProps {
   onFinishWorkout?: () => void;
   onEditRestTime?: (exerciseId: string, restTime: number) => void;
   onApplySmartRest?: (exerciseId: string) => void;
+  onMoveExercise?: (fromIndex: number, toIndex: number) => void;
 }
 
 /**
@@ -44,6 +45,7 @@ export function QuickEditMode({
   onFinishWorkout,
   onEditRestTime,
   onApplySmartRest,
+  onMoveExercise,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -61,6 +63,8 @@ export function QuickEditMode({
   const [tempRestTime, setTempRestTime] = useState<string>('');
   const [collapsedExercises, setCollapsedExercises] = useState<Set<string>>(new Set());
   const [manuallyExpandedExercises, setManuallyExpandedExercises] = useState<Set<string>>(new Set());
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -281,6 +285,40 @@ export function QuickEditMode({
             ref={(el) => {
               exerciseRefs.current[exerciseId] = el;
             }}
+            draggable={onMoveExercise !== undefined}
+            onDragStart={() => {
+              if (onMoveExercise) {
+                setDraggedIndex(exIdx);
+              }
+            }}
+            onDragEnd={() => {
+              setDraggedIndex(null);
+              setDragOverIndex(null);
+            }}
+            onDragOver={(e) => {
+              if (onMoveExercise) {
+                e.preventDefault();
+                setDragOverIndex(exIdx);
+              }
+            }}
+            onDragLeave={() => {
+              setDragOverIndex(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (onMoveExercise && draggedIndex !== null && draggedIndex !== exIdx) {
+                onMoveExercise(draggedIndex, exIdx);
+              }
+              setDraggedIndex(null);
+              setDragOverIndex(null);
+            }}
+            className={`transition-all ${
+              dragOverIndex === exIdx && draggedIndex !== exIdx
+                ? 'scale-105 ring-2 ring-blue-500'
+                : draggedIndex === exIdx
+                ? 'opacity-50'
+                : ''
+            }`}
           >
             <Card className="overflow-hidden">
             {/* Header del ejercicio - clickeable para collapse */}
@@ -291,6 +329,19 @@ export function QuickEditMode({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
+                    {/* Icono de drag handle */}
+                    {onMoveExercise && (
+                      <div className="cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="4" cy="4" r="1.5" />
+                          <circle cx="4" cy="8" r="1.5" />
+                          <circle cx="4" cy="12" r="1.5" />
+                          <circle cx="12" cy="4" r="1.5" />
+                          <circle cx="12" cy="8" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                        </svg>
+                      </div>
+                    )}
                     {/* Icono de collapse */}
                     <svg 
                       className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
@@ -345,23 +396,66 @@ export function QuickEditMode({
                     })()}
                   </span>
                 </div>
-                {onEditRestTime && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const override = workoutData.restOverrides?.[exerciseId];
-                      const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
-                      startEditingRestTime(exerciseId, exercise.name, restTime);
-                    }}
-                    className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded text-[10px] font-medium transition-colors flex items-center gap-1"
-                  >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                    Editar
-                  </button>
-                )}
+                <div className="flex items-center gap-1">
+                  {onEditRestTime && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const override = workoutData.restOverrides?.[exerciseId];
+                        const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
+                        startEditingRestTime(exerciseId, exercise.name, restTime);
+                      }}
+                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded text-[10px] font-medium transition-colors flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Editar
+                    </button>
+                  )}
+                </div>
               </div>
+              
+              {/* Botones de reordenar */}
+              {onMoveExercise && routine.exercises.length > 1 && (
+                <div className="px-2.5 pb-2 flex items-center gap-2">
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Reordenar:</span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (exIdx > 0) {
+                          onMoveExercise(exIdx, exIdx - 1);
+                        }
+                      }}
+                      disabled={exIdx === 0}
+                      className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Mover arriba"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                      Subir
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (exIdx < routine.exercises.length - 1) {
+                          onMoveExercise(exIdx, exIdx + 1);
+                        }
+                      }}
+                      disabled={exIdx === routine.exercises.length - 1}
+                      className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Mover abajo"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      Bajar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {!isCollapsed && (

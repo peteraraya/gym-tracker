@@ -456,9 +456,11 @@ export default function WorkoutPage() {
         const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
         
         if (isLastExercise) {
-          // Último ejercicio completado - abrir modal de finalización
-          const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-          completion.openCompletionModal(duration);
+          // Último ejercicio completado - abrir modal de finalización solo si no está ya abierto
+          if (!completion.showNotesModal) {
+            const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+            completion.openCompletionModal(duration);
+          }
         } else {
           // Avanzar al siguiente ejercicio
           const nextIndex = workoutState.currentExerciseIndex + 1;
@@ -1546,6 +1548,7 @@ export default function WorkoutPage() {
             onAddSet={handleQuickAddSet}
             onDeleteSet={handleQuickDeleteSet}
             onFinishWorkout={() => completion.setShowNotesModal(true)}
+            onMoveExercise={handleMoveExercise}
             onEditRestTime={(exerciseId, restTime) => {
               workoutState.updateRestOverride(exerciseId, restTime);
               
@@ -1883,6 +1886,15 @@ export default function WorkoutPage() {
             </div>
 
             <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  completion.setShowNotesModal(false);
+                }}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
               <Button
                 variant="secondary"
                 onClick={() => {

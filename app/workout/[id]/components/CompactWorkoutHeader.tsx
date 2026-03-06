@@ -145,15 +145,19 @@ export function CompactWorkoutHeader({
 
       {/* Fila 2: Estadísticas compactas */}
       <div className="grid grid-cols-4 gap-2 px-4 pb-2">
-        {/* Tiempo con botón de pausa y edición */}
+        {/* Tiempo con botón de pausa separado */}
         <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1 mb-0.5">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            {/* Botón de pausa separado - no abre el modal */}
             <button
-              onClick={onPauseToggle}
-              className={`flex items-center justify-center transition-colors ${
+              onClick={(e) => {
+                e.stopPropagation();
+                onPauseToggle?.();
+              }}
+              className={`flex items-center justify-center p-1 rounded transition-colors ${
                 isPaused 
-                  ? 'text-yellow-600 dark:text-yellow-400' 
-                  : 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
+                  ? 'text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20' 
+                  : 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
               }`}
               title={isPaused ? 'Reanudar' : 'Pausar'}
             >
@@ -162,13 +166,20 @@ export function CompactWorkoutHeader({
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               ) : (
-                <Clock className="w-3.5 h-3.5" />
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
+                </svg>
               )}
             </button>
+            
+            {/* Botón de editar tiempo separado */}
             {onEditTime && (
               <button
-                onClick={onEditTime}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditTime();
+                }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded transition-colors"
                 title="Editar tiempo"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,17 +188,17 @@ export function CompactWorkoutHeader({
               </button>
             )}
           </div>
-          <button
-            onClick={onEditTime}
-            className={`text-sm font-bold font-mono tabular-nums hover:underline ${
+          
+          {/* Tiempo - solo muestra, no es clickeable */}
+          <div
+            className={`text-sm font-bold font-mono tabular-nums ${
               isPaused 
                 ? 'text-yellow-600 dark:text-yellow-400' 
                 : 'text-green-600 dark:text-green-400'
             }`}
-            title="Click para editar"
           >
             {formattedTime}
-          </button>
+          </div>
           <div className="text-[10px] text-gray-600 dark:text-gray-400">
             {isPaused ? 'Pausado' : 'Tiempo'}
           </div>
