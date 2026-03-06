@@ -3,7 +3,7 @@
 // Evita prerender estático para esta página (usa hooks de navegación del cliente)
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGym } from '@/context/GymContext';
 import { useWorkout } from '@/context/WorkoutContext';
@@ -41,17 +41,18 @@ export default function RoutinesPage() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>('');
-  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [startingWorkoutId, setStartingWorkoutId] = useState<string | null>(null);
 
-  const handleEdit = (id: string) => {
+  const handleEdit = useCallback((id: string) => {
     setEditingRoutine(id);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingRoutine(null);
-  };
+  }, []);
 
   const handleWizardComplete = async (data: any) => {
     try {
@@ -90,17 +91,25 @@ export default function RoutinesPage() {
 
   // Escuchar cambios en localStorage para sincronizar el filtro (cuando se modifica desde WeeklyPlanner)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const handler = (e: StorageEvent) => {
       if (e.key === 'weekly_routines_search') {
         setSearchFilter(e.newValue || '');
       }
     };
-    if (typeof window !== 'undefined') window.addEventListener('storage', handler);
-    const customHandler = (e: any) => {
-      setSearchFilter(e?.detail || '');
+    
+    const customHandler = (e: CustomEvent) => {
+      setSearchFilter(e.detail || '');
     };
-    if (typeof window !== 'undefined') window.addEventListener('weekly_routines_search_changed', customHandler as EventListener);
-    return () => { if (typeof window !== 'undefined') window.removeEventListener('storage', handler); };
+    
+    window.addEventListener('storage', handler);
+    window.addEventListener('weekly_routines_search_changed', customHandler as EventListener);
+    
+    return () => {
+      window.removeEventListener('storage', handler);
+      window.removeEventListener('weekly_routines_search_changed', customHandler as EventListener);
+    };
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -127,12 +136,15 @@ export default function RoutinesPage() {
     }
   };
 
-  const handleDuplicate = async (id: string) => {
-    if (isDuplicating) return; // Evitar duplicaciones múltiples
+  const handleDuplicate = useCallback(async (id: string) => {
+    if (duplicatingId) return; // Evitar duplicaciones múltiples
     
     try {
       const routineToDuplicate = routines.find(r => r.id === id);
-      if (!routineToDuplicate) return;
+      if (!routineToDuplicate) {
+        error('Rutina no encontrada');
+        return;
+      }
 
       const confirmed = await confirm({
         title: 'Duplicar Rutina',
@@ -142,10 +154,9 @@ export default function RoutinesPage() {
       });
 
       if (confirmed) {
-        setIsDuplicating(true);
+        setDuplicatingId(id);
         
         // Toast de progreso
-        const toastId = Date.now();
         success('⏳ Duplicando rutina...');
 
         // Pequeño delay para que el usuario vea el feedback
@@ -153,11 +164,11 @@ export default function RoutinesPage() {
 
         const duplicatedRoutine = {
           ...routineToDuplicate,
-          id: `routine_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: `routine_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
           name: `${routineToDuplicate.name} (Copia)`,
           exercises: routineToDuplicate.exercises.map(ex => ({
             ...ex,
-            id: `exercise_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            id: `exercise_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
           }))
         };
 
@@ -180,32 +191,40 @@ export default function RoutinesPage() {
       console.error('Error duplicating routine:', e);
       error('❌ Error al duplicar la rutina');
     } finally {
-      setIsDuplicating(false);
+      setDuplicatingId(null);
     }
-  };
+  }, [duplicatingId, routines, confirm, addRoutine, success, error]);
 
-  const handleStartWorkout = async (routineId: string) => {
-    // Si hay un workout activo, preguntar si quiere cancelarlo
-    if (isWorkoutActive && activeWorkout?.routineId !== routineId) {
-      const confirmed = await confirm({
-        title: t('confirmActive.title'),
-        message: t('confirmActive.message'),
-        confirmText: t('confirmActive.confirmText'),
-        cancelText: t('confirmActive.cancelText'),
-        variant: 'warning'
-      });
-      
-      if (!confirmed) {
-        return;
-      }
-    }
+  const handleStartWorkout = useCallback(async (routineId: string) => {
+    if (startingWorkoutId) return; // Prevenir clicks múltiples
     
-    const routine = routines.find(r => r.id === routineId);
-    if (routine) {
-      startWorkout(routine);
-      router.push(`/workout/${routineId}`);
+    try {
+      // Si hay un workout activo, preguntar si quiere cancelarlo
+      if (isWorkoutActive && activeWorkout?.routineId !== routineId) {
+        const confirmed = await confirm({
+          title: t('confirmActive.title'),
+          message: t('confirmActive.message'),
+          confirmText: t('confirmActive.confirmText'),
+          cancelText: t('confirmActive.cancelText'),
+          variant: 'warning'
+        });
+        
+        if (!confirmed) {
+          return;
+        }
+      }
+      
+      const routine = routines.find(r => r.id === routineId);
+      if (routine) {
+        setStartingWorkoutId(routineId);
+        startWorkout(routine);
+        router.push(`/workout/${routineId}`);
+      }
+    } catch (e) {
+      console.error('Error starting workout:', e);
+      setStartingWorkoutId(null);
     }
-  };
+  }, [startingWorkoutId, isWorkoutActive, activeWorkout, routines, confirm, startWorkout, router, t]);
 
   // Filtrado optimizado con useMemo
   const filteredRoutines = useMemo(() => {
@@ -371,7 +390,7 @@ export default function RoutinesPage() {
                   {/* Preview de ejercicios */}
                   <div className="flex-1 mb-4">
                     <div className="space-y-1.5">
-                      {routine.exercises.slice(0, 3).map((exercise, idx) => (
+                      {routine.exercises.slice(0, 3).map((exercise) => (
                         <div
                           key={exercise.id}
                           className="flex items-center gap-2 text-sm"
@@ -400,9 +419,18 @@ export default function RoutinesPage() {
                       size="sm"
                       className="w-full h-11 text-sm font-semibold shadow-md group-hover:shadow-lg transition-shadow"
                       onClick={() => handleStartWorkout(routine.id)}
+                      disabled={startingWorkoutId === routine.id}
                       aria-label={activeWorkout?.routineId === routine.id ? `Continuar entrenamiento ${routine.name}` : `Iniciar entrenamiento ${routine.name}`}
                     >
-                      {activeWorkout?.routineId === routine.id ? (
+                      {startingWorkoutId === routine.id ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                          </svg>
+                          Iniciando...
+                        </>
+                      ) : activeWorkout?.routineId === routine.id ? (
                         <>
                           <Flame className="w-4 h-4" />
                           Continuar
@@ -431,10 +459,10 @@ export default function RoutinesPage() {
                         size="sm"
                         className="flex-1 h-9 text-sm"
                         onClick={() => handleDuplicate(routine.id)}
-                        disabled={isDuplicating}
+                        disabled={duplicatingId === routine.id}
                         aria-label={`Duplicar rutina ${routine.name}`}
                       >
-                        {isDuplicating ? (
+                        {duplicatingId === routine.id ? (
                           <>
                             <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

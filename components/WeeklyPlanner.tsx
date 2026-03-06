@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, DragEvent, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { GripVertical, ChevronLeft, ChevronRight } from '@/components/icons/lucide';
 import { useRoutines } from '@/context/GymContext';
+import { useWorkout } from '@/context/WorkoutContext';
 import { Button } from '@/components/ui/Button';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useToast } from '@/context/ToastContext';
@@ -10,7 +12,7 @@ import { getWeeklyPlan, saveWeeklyPlan, getMonthlyPlan, saveMonthlyPlan } from '
 import MonthlyCalendar from '@/components/MonthlyCalendar';
 import DayPlanModal from '@/components/DayPlanModal';
 import { BottomSheet } from '@/components/ui/BottomSheet';
-import { Plus } from 'lucide-react';
+import { Plus, Play } from 'lucide-react';
 
 type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 type ViewMode = 'weekly' | 'monthly';
@@ -40,7 +42,9 @@ type Plan = Record<DayKey, DayPlan>;
 type MonthlyPlan = Record<string, DayPlan>; // key: 'YYYY-MM-DD'
 
 export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: string }) {
+  const router = useRouter();
   const { routines, loading: routinesLoading } = useRoutines();
+  const { startWorkout } = useWorkout();
   const { confirm } = useConfirm();
   const { info } = useToast();
 
@@ -199,6 +203,14 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     const dayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const dayMap: DayKey[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     return dayMap[dayIndex];
+  };
+
+  const handleStartRoutine = (routineId: string) => {
+    const routine = routines.find(r => r.id === routineId);
+    if (routine) {
+      startWorkout(routine);
+      router.push(`/workout/${routineId}`);
+    }
   };
 
   const addRoutineToMonthDay = (routineId: string, dateKey: string) => {
@@ -626,7 +638,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                                   {/* Info de la rutina */}
                                   <div className="flex-1 min-w-0">
                                     <h4 className="text-white font-bold text-lg mb-1">{routine.name}</h4>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2 mb-3">
                                       <span className="inline-flex items-center gap-1 text-xs bg-white/20 text-white px-2 py-1 rounded-full">
                                         <span>💪</span>
                                         {routine.exercises.length} ejercicios
@@ -637,6 +649,15 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                                         </span>
                                       )}
                                     </div>
+                                    
+                                    {/* Botón Iniciar */}
+                                    <button
+                                      onClick={() => handleStartRoutine(routine.id)}
+                                      className="w-full py-2.5 bg-white text-blue-600 hover:bg-blue-50 rounded-lg font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg"
+                                    >
+                                      <Play className="w-4 h-4" />
+                                      <span>Iniciar Entrenamiento</span>
+                                    </button>
                                   </div>
                                 </div>
                               </div>
