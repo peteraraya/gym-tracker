@@ -1114,8 +1114,12 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           )}
         </div>
       </div>
+        </>
+      )}
+        </>
+      )}
 
-      {/* Modal para gestionar día de la semana */}
+      {/* Modal para gestionar día de la semana - DISPONIBLE EN TODOS LOS MODOS */}
       {selectedWeekDay && (
         <DayPlanModal
           isOpen={!!selectedWeekDay}
@@ -1129,10 +1133,6 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           onSaveNote={(note) => saveWeekDayNote(selectedWeekDay, note)}
           isWeeklyView={true}
         />
-      )}
-        </>
-      )}
-        </>
       )}
     </div>
   );

@@ -24,7 +24,8 @@ import {
   ClipboardList, 
   Dumbbell,
   Flame,
-  Zap
+  Zap,
+  Copy
 } from 'lucide-react';
 
 import { useTranslations } from '@/context/LocaleContext';
@@ -40,6 +41,7 @@ export default function RoutinesPage() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>('');
+  const [isDuplicating, setIsDuplicating] = useState(false);
 
   const handleEdit = (id: string) => {
     setEditingRoutine(id);
@@ -122,6 +124,63 @@ export default function RoutinesPage() {
         console.error('Error deleting routine:', err);
         error(t('toast.deleteError'));
       }
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    if (isDuplicating) return; // Evitar duplicaciones múltiples
+    
+    try {
+      const routineToDuplicate = routines.find(r => r.id === id);
+      if (!routineToDuplicate) return;
+
+      const confirmed = await confirm({
+        title: 'Duplicar Rutina',
+        message: `¿Deseas crear una copia de "${routineToDuplicate.name}"?`,
+        confirmText: 'Duplicar',
+        cancelText: 'Cancelar'
+      });
+
+      if (confirmed) {
+        setIsDuplicating(true);
+        
+        // Toast de progreso
+        const toastId = Date.now();
+        success('⏳ Duplicando rutina...');
+
+        // Pequeño delay para que el usuario vea el feedback
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const duplicatedRoutine = {
+          ...routineToDuplicate,
+          id: `routine_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: `${routineToDuplicate.name} (Copia)`,
+          exercises: routineToDuplicate.exercises.map(ex => ({
+            ...ex,
+            id: `exercise_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          }))
+        };
+
+        await addRoutine(duplicatedRoutine);
+        
+        // Toast de éxito
+        success('✅ Rutina duplicada exitosamente');
+        
+        try {
+          if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'routine_duplicated', {
+              routine_name: routineToDuplicate.name
+            });
+          }
+        } catch (e) {
+          // ignore analytics errors
+        }
+      }
+    } catch (e) {
+      console.error('Error duplicating routine:', e);
+      error('❌ Error al duplicar la rutina');
+    } finally {
+      setIsDuplicating(false);
     }
   };
 
@@ -366,6 +425,29 @@ export default function RoutinesPage() {
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         Editar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 h-9 text-sm"
+                        onClick={() => handleDuplicate(routine.id)}
+                        disabled={isDuplicating}
+                        aria-label={`Duplicar rutina ${routine.name}`}
+                      >
+                        {isDuplicating ? (
+                          <>
+                            <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span className="hidden sm:inline">Duplicando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            Duplicar
+                          </>
+                        )}
                       </Button>
                       <Button
                         variant="danger"
