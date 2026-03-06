@@ -180,6 +180,15 @@ export default function WorkoutPage() {
     onSetStart: () => haptic.setStart(),
   });
   
+  // Debug: Log setExecution state changes
+  useEffect(() => {
+    console.log('[Workout] setExecution state:', {
+      showPreparation: setExecution.showPreparation,
+      showSetExecution: setExecution.showSetExecution,
+      isExecutingSet: setExecution.isExecutingSet
+    });
+  }, [setExecution.showPreparation, setExecution.showSetExecution, setExecution.isExecutingSet]);
+  
   const completion = useWorkoutCompletion({
     routine,
     workoutStartTime,
@@ -1453,6 +1462,7 @@ export default function WorkoutPage() {
   }
 
   if (setExecution.showPreparation) {
+    console.log('[Workout] Rendering PreparationCountdown - showPreparation:', setExecution.showPreparation);
     return (
       <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
         <PreparationCountdown
@@ -1586,7 +1596,10 @@ export default function WorkoutPage() {
             // Botón Iniciar Serie
             <Button
               variant="primary"
-              onClick={setExecution.startSet}
+              onClick={() => {
+                console.log('[Workout] Iniciar Serie button clicked');
+                setExecution.startSet();
+              }}
               className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
             >
               <span className="text-2xl">▶️</span>

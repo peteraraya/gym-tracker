@@ -18,6 +18,7 @@ export function useSetExecution(callbacks?: SetExecutionCallbacks) {
   const [setStartTime, setSetStartTime] = useState<number | null>(null);
   
   const startSet = useCallback(() => {
+    console.log('[SetExecution] startSet called - setting showPreparation to true');
     setShowPreparation(true);
   }, []);
   
