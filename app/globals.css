@@ -339,3 +339,22 @@ body.hide-navbar {
 .muscle-pulse {
   animation: pulse-muscle 2s ease-in-out infinite;
 }
+
+/* ✅ Animación para celebración de récord personal */
+@keyframes bounce-in {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}

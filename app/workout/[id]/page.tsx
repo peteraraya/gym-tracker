@@ -36,6 +36,12 @@ import {
   calculateSmartRestTime,
   applySmartRestToAllSets
 } from './services/restCalculationService';
+import { 
+  getPersonalRecord, 
+  compareWithRecord,
+  type PersonalRecord,
+  type RecordComparison
+} from '@/lib/personalRecords';
 
 // Lazy load componentes pesados que no se usan inmediatamente
 const SeriesTable = lazy(() => import('./components/SeriesTable').then(m => ({ default: m.SeriesTable })));
@@ -71,6 +77,8 @@ export default function WorkoutPage() {
   const [isQuickEditMode, setIsQuickEditMode] = useState(false);
   const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
+  const [newRecord, setNewRecord] = useState<{exerciseId: string, exerciseName: string, weight: number, previousRecord: number} | null>(null);
+  const [showRecordCelebration, setShowRecordCelebration] = useState(false);
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
     // Solo acceder a localStorage en el cliente
     if (typeof window === 'undefined') {
@@ -137,6 +145,11 @@ export default function WorkoutPage() {
     if (!useSmartRestForExercise) return undefined;
     return calculateSmartRestTime(currentExercise);
   }, [currentExercise]);
+
+  const currentExerciseRecord = useMemo(() => {
+    if (!currentExercise || sessions.length === 0) return null;
+    return getPersonalRecord(currentExercise.id, sessions);
+  }, [currentExercise?.id, sessions]);
 
   const lastSetData = useMemo(() => {
     if (!currentExercise) return null;
@@ -627,6 +640,43 @@ export default function WorkoutPage() {
   }, [currentExercise, workoutState.currentSet, isInitialized]);
 
   // ==================== HANDLERS ====================
+  const checkAndCelebrateRecord = useCallback((exerciseId: string, exerciseName: string, weight: number) => {
+    if (weight <= 0) return; // No celebrar peso 0
+    
+    const comparison = compareWithRecord(exerciseId, weight, sessions);
+    
+    if (comparison.isNewRecord) {
+      // Haptic feedback especial para récord
+      haptic.achievement();
+      
+      // Guardar datos del récord para mostrar celebración
+      setNewRecord({
+        exerciseId,
+        exerciseName,
+        weight,
+        previousRecord: comparison.previousRecord || 0
+      });
+      setShowRecordCelebration(true);
+      
+      // Ocultar celebración después de 4 segundos
+      setTimeout(() => {
+        setShowRecordCelebration(false);
+      }, 4000);
+      
+      // Toast motivacional
+      if (comparison.previousRecord) {
+        const improvement = comparison.improvement || 0;
+        const improvementPercent = comparison.improvementPercentage || 0;
+        success(
+          `🏆 ¡NUEVO RÉCORD! ${weight}kg (+${improvement.toFixed(1)}kg, +${improvementPercent.toFixed(1)}%)`,
+          5000
+        );
+      } else {
+        success(`🏆 ¡PRIMER RÉCORD! ${weight}kg en ${exerciseName}`, 5000);
+      }
+    }
+  }, [sessions, haptic, success]);
+
   const handleCompleteSet = useCallback(() => {
     if (!currentExercise || !routine) return;
     
@@ -648,6 +698,9 @@ export default function WorkoutPage() {
     const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
 
     workoutState.completeSet(exerciseId, repsValue, weightValue);
+
+    // ✅ Detectar récord personal
+    checkAndCelebrateRecord(exerciseId, currentExercise.name, weightValue);
 
     // Haptic feedback al completar serie
     haptic.setComplete();
@@ -719,7 +772,8 @@ export default function WorkoutPage() {
     haptic.setComplete,
     haptic.restStart,
     completion.openCompletionModal,
-    setExecution.completeSet
+    setExecution.completeSet,
+    checkAndCelebrateRecord
   ]);
 
   const handleTimerComplete = useCallback(() => {
@@ -883,7 +937,10 @@ export default function WorkoutPage() {
       weight,
       ...(workoutState.workoutData.actualWeights[exerciseId] || []).slice(setIndex + 1)
     ]);
-  }, [currentExercise?.id, workoutState.updateActualWeights, workoutState.workoutData.actualWeights]);
+    
+    // ✅ Detectar récord personal al editar peso
+    checkAndCelebrateRecord(exerciseId, currentExercise.name, weight);
+  }, [currentExercise?.id, currentExercise?.name, workoutState.updateActualWeights, workoutState.workoutData.actualWeights, checkAndCelebrateRecord]);
 
   const handleEditSetType = useCallback((setIndex: number, type: any) => {
     if (!currentExercise) return;
@@ -1294,9 +1351,15 @@ export default function WorkoutPage() {
     newWeights[setIndex] = weight;
     workoutState.updateActualWeights(exerciseId, newWeights);
     
+    // ✅ Detectar récord personal al editar peso en modo rápido
+    const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
+    if (exercise) {
+      checkAndCelebrateRecord(exerciseId, exercise.name, weight);
+    }
+    
     console.log('[handleQuickEditWeight] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
     console.log('[handleQuickEditWeight] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
-  }, [workoutState]);
+  }, [workoutState, routine?.exercises, checkAndCelebrateRecord]);
 
   const handleQuickEditSetType = useCallback((exerciseId: string, setIndex: number, type: any) => {
     workoutState.updateSetType(exerciseId, setIndex, type);
@@ -1695,6 +1758,7 @@ export default function WorkoutPage() {
           lastSetData={lastSetData}
           onRepeatPrevious={handleRepeatPrevious}
           setStartTime={setExecution.setStartTime}
+          personalRecord={currentExerciseRecord}
           quickSwitcher={
             <QuickExerciseSwitcher
               routine={routine}
@@ -1977,6 +2041,52 @@ export default function WorkoutPage() {
               onClose={() => setShowExerciseInfo(false)}
             />
           </Suspense>
+        )}
+
+        {/* ✅ Celebración de récord personal */}
+        {showRecordCelebration && newRecord && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="animate-bounce-in pointer-events-auto">
+              <div className="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 text-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 transform scale-110">
+                <div className="text-center space-y-4">
+                  {/* Trofeo animado */}
+                  <div className="text-8xl animate-pulse">
+                    🏆
+                  </div>
+                  
+                  {/* Título */}
+                  <h2 className="text-3xl font-bold tracking-tight">
+                    ¡NUEVO RÉCORD!
+                  </h2>
+                  
+                  {/* Ejercicio */}
+                  <p className="text-xl font-semibold opacity-90">
+                    {newRecord.exerciseName}
+                  </p>
+                  
+                  {/* Peso */}
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                    <div className="text-5xl font-black">
+                      {newRecord.weight}kg
+                    </div>
+                    {newRecord.previousRecord > 0 && (
+                      <div className="text-sm mt-2 opacity-90">
+                        Anterior: {newRecord.previousRecord}kg
+                        <span className="ml-2 text-green-200">
+                          (+{(newRecord.weight - newRecord.previousRecord).toFixed(1)}kg)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Mensaje motivacional */}
+                  <p className="text-lg font-medium opacity-90">
+                    ¡Sigue así, campeón! 💪
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         <Suspense fallback={<div />}>

@@ -31,6 +31,8 @@ interface ExerciseCardProps {
   setStartTime?: number | null;
   // Quick exercise switcher (rendered as children)
   quickSwitcher?: React.ReactNode;
+  // ✅ Personal record for this exercise
+  personalRecord?: { maxWeight: number; reps: number; date: Date } | null;
 }
 
 /**
@@ -60,6 +62,7 @@ export function ExerciseCard({
   onRepeatPrevious,
   setStartTime,
   quickSwitcher,
+  personalRecord,
 }: ExerciseCardProps) {
   const { success } = useToast();
   const totalSets = exercise.sets.length;
@@ -154,6 +157,12 @@ export function ExerciseCard({
               {isSetStarted && (
                 <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm">
                   EN PROGRESO
+                </span>
+              )}
+              {/* ✅ Badge de récord personal */}
+              {personalRecord && personalRecord.maxWeight > 0 && (
+                <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1">
+                  🏆 {personalRecord.maxWeight}kg
                 </span>
               )}
               {exercise.recommendedReps && (
