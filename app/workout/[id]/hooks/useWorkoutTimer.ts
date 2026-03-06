@@ -49,13 +49,6 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
       const remaining = Math.max(0, activeWorkout.restTimerDuration - elapsed);
       
       if (remaining > 0) {
-        console.log('[Timer] Restoring timer state:', {
-          duration: activeWorkout.restTimerDuration,
-          elapsed,
-          remaining,
-          title: activeWorkout.restTimerTitle
-        });
-        
         setShowTimer(true);
         setTimerDuration(activeWorkout.restTimerDuration);
         setTimerStartTime(activeWorkout.restTimerStartedAt);

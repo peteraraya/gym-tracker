@@ -18,7 +18,6 @@ export function useWakeLock() {
 
   const requestWakeLock = async () => {
     if (!isSupported) {
-      console.log('[WakeLock] API no disponible en este navegador');
       return false;
     }
 
@@ -26,12 +25,9 @@ export function useWakeLock() {
       // Solicitar wake lock
       wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
       setIsActive(true);
-      
-      console.log('[WakeLock] Activado - La pantalla permanecerá encendida');
 
       // Listener para cuando se libera el wake lock (ej: cambio de pestaña)
       wakeLockRef.current.addEventListener('release', () => {
-        console.log('[WakeLock] Liberado');
         setIsActive(false);
       });
 

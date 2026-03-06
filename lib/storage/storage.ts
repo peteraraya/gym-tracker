@@ -545,7 +545,6 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
                 // Si Supabase tiene datos, usarlos
                 if (supabaseResult !== null) {
                     handleStorageSuccess();
-                    console.log('[DUAL_READ] Active workout loaded from Supabase');
                     return supabaseResult;
                 }
             }

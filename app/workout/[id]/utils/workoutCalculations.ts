@@ -17,47 +17,24 @@ export function calculateNextRestTime(params: {
   const { currentExercise, routine, restOverrides, perSetOverrides, currentSet, useSmartRest } = params;
   const setIndex = currentSet - 1;
   
-  console.log('[calculateNextRestTime] Debug:', {
-    exerciseName: currentExercise.name,
-    currentSet,
-    perSetOverride: perSetOverrides?.[currentExercise.id]?.[setIndex],
-    exerciseOverride: restOverrides?.[currentExercise.id],
-    routineRestBetweenSets: routine.restBetweenSets,
-    exerciseRestBetweenSets: currentExercise.restBetweenSets,
-    useSmartRest
-  });
-  
   // 1. Override individual de la serie (edición manual en workout)
   if (perSetOverrides?.[currentExercise.id]?.[setIndex]) {
-    console.log('[calculateNextRestTime] Using perSetOverride:', perSetOverrides[currentExercise.id][setIndex]);
     return perSetOverrides[currentExercise.id][setIndex];
   }
   
   // 2. Override del ejercicio (edición manual en workout)
   if (restOverrides?.[currentExercise.id]) {
-    console.log('[calculateNextRestTime] Using exerciseOverride:', restOverrides[currentExercise.id]);
     return restOverrides[currentExercise.id];
   }
   
   // 3. Configurado en el ejercicio (manual o descanso inteligente aplicado)
   // Tiene prioridad sobre el tiempo global de la rutina
   if (currentExercise.restBetweenSets) {
-    console.log('[calculateNextRestTime] Using exercise.restBetweenSets:', currentExercise.restBetweenSets);
     return currentExercise.restBetweenSets;
   }
   
-  console.log('[calculateNextRestTime] exercise.restBetweenSets check failed:', {
-    value: currentExercise.restBetweenSets,
-    type: typeof currentExercise.restBetweenSets,
-    isTruthy: !!currentExercise.restBetweenSets,
-    isUndefined: currentExercise.restBetweenSets === undefined,
-    isNull: currentExercise.restBetweenSets === null,
-    is0: currentExercise.restBetweenSets === 0
-  });
-  
   // 4. Configurado en la rutina (tiempo global)
   if (routine.restBetweenSets) {
-    console.log('[calculateNextRestTime] Using routine.restBetweenSets:', routine.restBetweenSets);
     return routine.restBetweenSets;
   }
   
@@ -72,13 +49,11 @@ export function calculateNextRestTime(params: {
         currentSetData?.reps || 10,
         'intermediate'
       );
-      console.log('[calculateNextRestTime] Using smart rest:', restRecommendation.recommended);
       return restRecommendation.recommended;
     }
   }
   
   // 6. Default
-  console.log('[calculateNextRestTime] Using default: 60');
   return 60;
 }
 
