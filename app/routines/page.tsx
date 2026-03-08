@@ -26,7 +26,7 @@ import {
   Flame,
   Zap,
   Copy
-} from 'lucide-react';
+} from '@/components/icons/lucide';
 
 import { useTranslations } from '@/context/LocaleContext';
 

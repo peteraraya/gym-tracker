@@ -26,6 +26,8 @@ interface WorkoutState {
   restTimerStartedAt?: number; // timestamp de cuando empezó el descanso
   // Tiempo total pausado en el entrenamiento (en milisegundos)
   totalPausedTime?: number;
+  // Ejercicios omitidos en esta sesión (no se eliminan, solo se saltan)
+  skippedExercises?: string[]; // Array de exerciseIds
 }
 
 interface WorkoutContextType {
@@ -51,6 +53,8 @@ interface WorkoutContextType {
   finishWorkout: () => Promise<void>;
   cancelWorkout: () => Promise<void>;
   isWorkoutActive: boolean;
+  skipExercise: (exerciseId: string) => void;
+  unskipExercise: (exerciseId: string) => void;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -116,7 +120,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restTimerDuration: data.restTimerDuration,
       restTimerTitle: data.restTimerTitle,
       restTimerNextExercise: data.restTimerNextExercise,
-      restTimerStartedAt: data.restTimerStartedAt
+      restTimerStartedAt: data.restTimerStartedAt,
+      // Ejercicios omitidos en esta sesión
+      skippedExercises: Array.isArray(data.skippedExercises) ? data.skippedExercises : []
     };
   };
 
@@ -500,6 +506,47 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     }, [])
   });
 
+  const skipExercise = useCallback((exerciseId: string) => {
+    setActiveWorkout(prev => {
+      if (!prev) return null;
+      const skippedExercises = prev.skippedExercises || [];
+      if (skippedExercises.includes(exerciseId)) {
+        return prev; // Ya está omitido
+      }
+      const newState = {
+        ...prev,
+        skippedExercises: [...skippedExercises, exerciseId]
+      };
+      (async () => {
+        try {
+          await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
+        } catch (e) {
+          console.warn('[Workout] Failed to persist skipped exercise:', e);
+        }
+      })();
+      return newState;
+    });
+  }, []);
+
+  const unskipExercise = useCallback((exerciseId: string) => {
+    setActiveWorkout(prev => {
+      if (!prev) return null;
+      const skippedExercises = prev.skippedExercises || [];
+      const newState = {
+        ...prev,
+        skippedExercises: skippedExercises.filter(id => id !== exerciseId)
+      };
+      (async () => {
+        try {
+          await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
+        } catch (e) {
+          console.warn('[Workout] Failed to persist unskipped exercise:', e);
+        }
+      })();
+      return newState;
+    });
+  }, []);
+
   const value = useMemo(() => ({
     activeWorkout,
     startWorkout,
@@ -508,8 +555,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     clearRestState,
     finishWorkout,
     cancelWorkout,
-    isWorkoutActive: activeWorkout !== null
-  }), [activeWorkout, startWorkout, updateWorkoutProgress, updateModifiedRoutine, clearRestState, finishWorkout, cancelWorkout]);
+    isWorkoutActive: activeWorkout !== null,
+    skipExercise,
+    unskipExercise
+  }), [activeWorkout, startWorkout, updateWorkoutProgress, updateModifiedRoutine, clearRestState, finishWorkout, cancelWorkout, skipExercise, unskipExercise]);
 
   return (
     <WorkoutContext.Provider value={value}>

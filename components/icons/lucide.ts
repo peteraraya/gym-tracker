@@ -34,6 +34,7 @@ export {
   Plus,
   Minus,
   Edit,
+  Pencil,
   Trash2,
   Save,
   Copy,

@@ -16,6 +16,7 @@ interface QuickEditModeProps {
     setTypes: { [key: string]: string[] };
     restOverrides?: { [key: string]: number };
     perSetRestOverrides?: { [key: string]: number[] };
+    skippedExercises?: string[];
   };
   onEditReps: (exerciseId: string, setIndex: number, reps: number) => void;
   onEditWeight: (exerciseId: string, setIndex: number, weight: number) => void;
@@ -27,6 +28,8 @@ interface QuickEditModeProps {
   onEditRestTime?: (exerciseId: string, restTime: number) => void;
   onApplySmartRest?: (exerciseId: string) => void;
   onMoveExercise?: (fromIndex: number, toIndex: number) => void;
+  onSkipExercise?: (exerciseId: string) => void;
+  onUnskipExercise?: (exerciseId: string) => void;
 }
 
 /**
@@ -46,6 +49,8 @@ export function QuickEditMode({
   onEditRestTime,
   onApplySmartRest,
   onMoveExercise,
+  onSkipExercise,
+  onUnskipExercise,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -69,6 +74,7 @@ export function QuickEditMode({
   const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const setInputRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Mantener el foco en el input cuando se abre el modal
   useEffect(() => {
@@ -97,9 +103,12 @@ export function QuickEditMode({
 
   // Scroll automático al ejercicio con series pendientes al montar o cuando cambian los datos
   useEffect(() => {
-    // Encontrar el primer ejercicio con series incompletas
+    const skippedExercises = workoutData.skippedExercises || [];
+    
+    // Encontrar el primer ejercicio con series incompletas que no esté omitido
     const firstIncompleteExercise = routine.exercises.find((exercise) => {
       const exerciseId = exercise.id;
+      if (skippedExercises.includes(exerciseId)) return false; // Saltar omitidos
       const actualReps = workoutData.actualReps[exerciseId] || [];
       const completedCount = actualReps.filter(r => typeof r === 'number' && r > 0).length;
       return completedCount < exercise.sets.length;
@@ -121,7 +130,7 @@ export function QuickEditMode({
         }, 300);
       }
     }
-  }, [routine.exercises, workoutData.actualReps]);
+  }, [routine.exercises, workoutData.actualReps, workoutData.skippedExercises]);
 
   // Función para iniciar edición con el valor actual
   const startEditing = (
@@ -134,6 +143,105 @@ export function QuickEditMode({
     console.log('[QuickEdit] startEditing called:', { exerciseId, setIndex, field, currentValue, exerciseName });
     setEditingCell({ exerciseId, setIndex, field, currentValue, exerciseName });
     setTempValue(currentValue === 0 ? '' : String(currentValue));
+  };
+
+  // Función para encontrar la siguiente serie incompleta
+  const findNextIncompleteSet = (currentExerciseId: string, currentSetIndex: number): { exerciseId: string; setIndex: number; field: 'reps' | 'weight' } | null => {
+    const skippedExercises = workoutData.skippedExercises || [];
+    
+    // Buscar en el ejercicio actual primero (si no está omitido)
+    const currentExercise = routine.exercises.find(ex => ex.id === currentExerciseId);
+    if (currentExercise && !skippedExercises.includes(currentExerciseId)) {
+      const completedCount = workoutData.completedSets[currentExerciseId] || 0;
+      
+      // Buscar la siguiente serie incompleta en el mismo ejercicio
+      for (let i = currentSetIndex + 1; i < currentExercise.sets.length; i++) {
+        if (i >= completedCount) {
+          // Determinar si necesita editar reps o peso
+          const actualReps = workoutData.actualReps[currentExerciseId]?.[i];
+          const actualWeight = workoutData.actualWeights[currentExerciseId]?.[i];
+          
+          // Si no tiene reps, enfocar en reps; si tiene reps pero no peso, enfocar en peso
+          if (actualReps === undefined || actualReps === 0) {
+            return { exerciseId: currentExerciseId, setIndex: i, field: 'reps' };
+          } else if (actualWeight === undefined || actualWeight === 0) {
+            return { exerciseId: currentExerciseId, setIndex: i, field: 'weight' };
+          }
+        }
+      }
+    }
+    
+    // Si no hay más series en el ejercicio actual, buscar en los siguientes ejercicios (no omitidos)
+    const currentExerciseIndex = routine.exercises.findIndex(ex => ex.id === currentExerciseId);
+    for (let exIdx = currentExerciseIndex + 1; exIdx < routine.exercises.length; exIdx++) {
+      const exercise = routine.exercises[exIdx];
+      
+      // Saltar ejercicios omitidos
+      if (skippedExercises.includes(exercise.id)) continue;
+      
+      const completedCount = workoutData.completedSets[exercise.id] || 0;
+      
+      for (let setIdx = 0; setIdx < exercise.sets.length; setIdx++) {
+        if (setIdx >= completedCount) {
+          const actualReps = workoutData.actualReps[exercise.id]?.[setIdx];
+          const actualWeight = workoutData.actualWeights[exercise.id]?.[setIdx];
+          
+          if (actualReps === undefined || actualReps === 0) {
+            return { exerciseId: exercise.id, setIndex: setIdx, field: 'reps' };
+          } else if (actualWeight === undefined || actualWeight === 0) {
+            return { exerciseId: exercise.id, setIndex: setIdx, field: 'weight' };
+          }
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  // Función para mover el foco a la siguiente serie
+  const focusNextIncompleteSet = (currentExerciseId: string, currentSetIndex: number) => {
+    const nextSet = findNextIncompleteSet(currentExerciseId, currentSetIndex);
+    
+    if (nextSet) {
+      // Expandir el ejercicio si está colapsado
+      setCollapsedExercises(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(nextSet.exerciseId);
+        return newSet;
+      });
+      
+      // Marcar como manualmente expandido
+      setManuallyExpandedExercises(prev => {
+        const newExpanded = new Set(prev);
+        newExpanded.add(nextSet.exerciseId);
+        return newExpanded;
+      });
+      
+      // Esperar un momento para que el DOM se actualice
+      setTimeout(() => {
+        // Scroll al ejercicio si es necesario
+        const exerciseElement = exerciseRefs.current[nextSet.exerciseId];
+        if (exerciseElement) {
+          const headerOffset = 180;
+          const elementPosition = exerciseElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+        
+        // Hacer click en el botón de la siguiente serie para abrir el modal de edición
+        setTimeout(() => {
+          const refKey = `${nextSet.exerciseId}-${nextSet.setIndex}-${nextSet.field}`;
+          const buttonElement = setInputRefs.current[refKey];
+          if (buttonElement) {
+            buttonElement.click();
+          }
+        }, 300);
+      }, 100);
+    }
   };
 
   // Función para guardar el valor editado
@@ -281,10 +389,15 @@ export function QuickEditMode({
 
   // Calcular progreso total - memoizado para evitar recalcular en cada render
   const { totalSets, completedSets, progressPercent } = useMemo(() => {
-    const total = routine.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+    const skippedExercises = workoutData.skippedExercises || [];
     
-    // Solo contar series completadas de ejercicios que existen en la rutina actual
-    const completed = routine.exercises.reduce((sum, ex) => {
+    // Filtrar ejercicios omitidos
+    const activeExercises = routine.exercises.filter(ex => !skippedExercises.includes(ex.id));
+    
+    const total = activeExercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+    
+    // Solo contar series completadas de ejercicios activos (no omitidos)
+    const completed = activeExercises.reduce((sum, ex) => {
       const exerciseReps = workoutData.actualReps[ex.id] || [];
       // Solo contar hasta el número de series que tiene el ejercicio actualmente
       const completedInExercise = exerciseReps
@@ -298,7 +411,7 @@ export function QuickEditMode({
     const cappedPercent = Math.min(percent, 100);
     
     return { totalSets: total, completedSets: completed, progressPercent: cappedPercent };
-  }, [routine.exercises, workoutData.actualReps]);
+  }, [routine.exercises, workoutData.actualReps, workoutData.skippedExercises]);
 
   return (
     <div className="space-y-3 pb-32">
@@ -332,6 +445,7 @@ export function QuickEditMode({
         const actualReps = workoutData.actualReps[exerciseId] || [];
         const actualWeights = workoutData.actualWeights[exerciseId] || [];
         const setTypes = workoutData.setTypes[exerciseId] || [];
+        const isSkipped = workoutData.skippedExercises?.includes(exerciseId) || false;
         
         // Obtener el contador REAL de series completadas desde workoutData
         const completedCount = workoutData.completedSets[exerciseId] || 0;
@@ -339,9 +453,11 @@ export function QuickEditMode({
         const isCollapsed = collapsedExercises.has(exerciseId);
         const isManuallyExpanded = manuallyExpandedExercises.has(exerciseId);
         
-        // Determinar si es el ejercicio actual (primer incompleto)
+        // Determinar si es el ejercicio actual (primer incompleto no omitido)
         const firstIncompleteIndex = routine.exercises.findIndex((ex) => {
           const exId = ex.id;
+          const isExSkipped = workoutData.skippedExercises?.includes(exId) || false;
+          if (isExSkipped) return false; // Saltar ejercicios omitidos
           const count = workoutData.completedSets[exId] || 0;
           return count < ex.sets.length;
         });
@@ -402,7 +518,9 @@ export function QuickEditMode({
             }`}
           >
             <Card className={`overflow-hidden ${
-              isCurrent 
+              isSkipped
+                ? 'opacity-40 ring-2 ring-yellow-400 dark:ring-yellow-600'
+                : isCurrent 
                 ? 'ring-2 ring-blue-500 shadow-lg' 
                 : isNext 
                 ? 'ring-2 ring-orange-400 shadow-md' 
@@ -444,13 +562,19 @@ export function QuickEditMode({
                         <h3 className="font-bold text-base text-gray-900 dark:text-gray-100">
                           {exercise.name}
                         </h3>
+                        {/* Badge de omitido */}
+                        {isSkipped && (
+                          <span className="px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full shadow-sm">
+                            OMITIDO
+                          </span>
+                        )}
                         {/* Badge de estado más prominente */}
-                        {isCurrent && (
+                        {!isSkipped && isCurrent && (
                           <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm">
                             ACTUAL
                           </span>
                         )}
-                        {isNext && !isCurrent && (
+                        {!isSkipped && isNext && !isCurrent && (
                           <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm">
                             SIGUIENTE
                           </span>
@@ -557,6 +681,41 @@ export function QuickEditMode({
                       Editar
                     </button>
                   )}
+                  {/* Botón de omitir/restaurar ejercicio */}
+                  {(onSkipExercise || onUnskipExercise) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isSkipped && onUnskipExercise) {
+                          onUnskipExercise(exerciseId);
+                        } else if (!isSkipped && onSkipExercise) {
+                          onSkipExercise(exerciseId);
+                        }
+                      }}
+                      className={`px-2 py-1 rounded text-[10px] font-medium transition-colors flex items-center gap-1 ${
+                        isSkipped
+                          ? 'bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400'
+                          : 'bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 text-yellow-600 dark:text-yellow-400'
+                      }`}
+                      title={isSkipped ? 'Restaurar ejercicio' : 'Omitir ejercicio en esta sesión'}
+                    >
+                      {isSkipped ? (
+                        <>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Restaurar
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
+                          </svg>
+                          Omitir
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
               
@@ -660,6 +819,9 @@ export function QuickEditMode({
                           {/* Reps - editable */}
                           <td className="py-2 px-2">
                             <button
+                              ref={(el) => {
+                                setInputRefs.current[`${exerciseId}-${setIdx}-reps`] = el;
+                              }}
                               onClick={() => startEditing(exerciseId, setIdx, 'reps', displayReps, exercise.name)}
                               className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-base border-2 ${
                                 displayReps === 0
@@ -676,6 +838,9 @@ export function QuickEditMode({
                           {/* Peso - editable */}
                           <td className="py-2 px-2">
                             <button
+                              ref={(el) => {
+                                setInputRefs.current[`${exerciseId}-${setIdx}-weight`] = el;
+                              }}
                               onClick={() => startEditing(exerciseId, setIdx, 'weight', displayWeight, exercise.name)}
                               className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-sm border-2 ${
                                 displayWeight === 0
@@ -706,7 +871,15 @@ export function QuickEditMode({
                             <div className="flex justify-center">
                               <button
                                 onClick={() => {
-                                  onToggleSetComplete(exerciseId, setIdx, !isCompleted);
+                                  const newIsCompleted = !isCompleted;
+                                  onToggleSetComplete(exerciseId, setIdx, newIsCompleted);
+                                  
+                                  // Si se marca como completada, mover foco a la siguiente serie
+                                  if (newIsCompleted) {
+                                    setTimeout(() => {
+                                      focusNextIncompleteSet(exerciseId, setIdx);
+                                    }, 100);
+                                  }
                                 }}
                                 className={`w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm ${
                                   isCompleted
