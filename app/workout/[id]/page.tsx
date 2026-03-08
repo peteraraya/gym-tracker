@@ -28,6 +28,7 @@ import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
 import { AddExerciseButton } from './components/AddExerciseButton';
 import { QuickEditMode as QuickEditModeBase } from './components/QuickEditMode';
 import { FinishWorkoutModal } from './components/FinishWorkoutModal';
+import { EditValueModal } from '@/components/EditValueModal';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { Exercise } from '@/types';
 import { 

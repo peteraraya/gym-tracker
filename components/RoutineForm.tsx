@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRoutines } from '@/context/GymContext';
 import { useToast } from '@/context/ToastContext';
 import { Exercise } from '@/types';
@@ -8,6 +8,7 @@ import { Input, TextArea } from '@/components/ui/Input';
 import { useTranslations } from '@/context/LocaleContext';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { EditValueModal } from '@/components/EditValueModal';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
 import { EquipmentDropdown } from '@/components/EquipmentDropdown';
 import { RestTimeSelector, RestTimeSelectorCompact } from '@/components/RestTimeSelector';
@@ -16,6 +17,7 @@ import { ExerciseTemplate, getExerciseByName, MuscleGroup } from '@/data/exercis
 import { WarmupExercise } from '@/data/warmupExercises';
 import { WarmupRecommendation } from '@/components/WarmupRecommendation';
 import { useConfirm } from '@/context/ConfirmContext';
+import { getRoutineStats } from '@/lib/routineEstimation';
 
 interface RoutineFormProps {
   routineId?: string | null;
@@ -44,6 +46,17 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [expandedExercises, setExpandedExercises] = useState<Set<number>>(new Set());
+  const [editingValue, setEditingValue] = useState<{
+    exerciseIndex: number;
+    setIndex: number;
+    field: 'reps' | 'weight';
+    currentValue: number;
+  } | null>(null);
+
+  // Calcular estadísticas de la rutina
+  const routineStats = useMemo(() => {
+    return getRoutineStats(exercises, restBetweenSets, restBetweenExercises);
+  }, [exercises, restBetweenSets, restBetweenExercises]);
 
   const toggleExerciseExpanded = (index: number) => {
     setExpandedExercises(prev => {
@@ -750,6 +763,47 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               </p>
             </div>
 
+            {/* Estadísticas de la rutina */}
+            {exercises.length > 0 && (
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">⏱️</span>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                    Duración Estimada
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Tiempo estimado</div>
+                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {routineStats.estimatedDurationFormatted}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Rango</div>
+                    <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      {routineStats.durationRange.minFormatted} - {routineStats.durationRange.maxFormatted}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Ejercicios</div>
+                    <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                      {routineStats.totalExercises}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Series totales</div>
+                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                      {routineStats.totalSets}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                  💡 Estimación basada en ~30s por serie + descansos configurados
+                </p>
+              </div>
+            )}
+
             {exercises.length > 0 && (
               <WarmupRecommendation
                 routineMuscleGroups={routineMuscleGroups}
@@ -1029,28 +1083,27 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                                 <div className="grid grid-cols-2 gap-2">
                                   <div>
                                     <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Reps</label>
-                                    <Input
-                                      type="number"
-                                      placeholder={t('reps')}
-                                      value={set.reps || ''}
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (val === '') {
-                                          handleSetChange(exerciseIndex, setIndex, 'reps', 0);
-                                        } else {
-                                          const num = parseInt(val);
-                                          handleSetChange(exerciseIndex, setIndex, 'reps', isNaN(num) ? 0 : Math.max(0, num));
-                                        }
-                                      }}
-                                      min="1"
-                                      required
-                                      className={`text-center font-semibold h-8 text-sm ${
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingValue({
+                                        exerciseIndex,
+                                        setIndex,
+                                        field: 'reps',
+                                        currentValue: set.reps || 0
+                                      })}
+                                      className={`w-full text-center font-semibold h-8 text-sm rounded-md border-2 transition-colors ${
+                                        set.reps && set.reps > 0
+                                          ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                                          : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600'
+                                      } ${
                                         touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
                                         validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps'))
                                           ? 'border-red-500 dark:border-red-500'
                                           : ''
                                       }`}
-                                    />
+                                    >
+                                      {set.reps || '-'}
+                                    </button>
                                     {touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
                                      validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')) && (
                                       <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
@@ -1060,33 +1113,27 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                                   </div>
                                   <div>
                                     <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Peso (kg)</label>
-                                    <Input
-                                      type="text"
-                                      inputMode="decimal"
-                                      name={`weight-${exerciseIndex}-${setIndex}`}
-                                      placeholder={t('weight')}
-                                      value={set.weight === 0 ? '' : set.weight ?? ''}
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        // Permitir números, punto decimal y coma
-                                        if (val === '' || /^[0-9]*[.,]?[0-9]*$/.test(val)) {
-                                          if (val === '') {
-                                            handleSetChange(exerciseIndex, setIndex, 'weight', 0);
-                                          } else {
-                                            // Convertir coma a punto para parseFloat
-                                            const normalizedVal = val.replace(',', '.');
-                                            const num = parseFloat(normalizedVal);
-                                            handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
-                                          }
-                                        }
-                                      }}
-                                      className={`text-center font-semibold h-8 text-sm ${
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingValue({
+                                        exerciseIndex,
+                                        setIndex,
+                                        field: 'weight',
+                                        currentValue: set.weight || 0
+                                      })}
+                                      className={`w-full text-center font-semibold h-8 text-sm rounded-md border-2 transition-colors ${
+                                        set.weight && set.weight > 0
+                                          ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                                          : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600'
+                                      } ${
                                         touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
                                         validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso'))
                                           ? 'border-red-500 dark:border-red-500'
                                           : ''
                                       }`}
-                                    />
+                                    >
+                                      {set.weight ? `${set.weight} kg` : '-'}
+                                    </button>
                                     {touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
                                      validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')) && (
                                       <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
@@ -1403,6 +1450,29 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           onClose={() => setIsExerciseSelectorOpen(false)}
         />
       </Modal>
+
+      {/* Modal de edición de valores con teclado numérico */}
+      {editingValue && (
+        <EditValueModal
+          isOpen={true}
+          onClose={() => setEditingValue(null)}
+          title={`${exercises[editingValue.exerciseIndex]?.name || 'Ejercicio'} - Serie ${editingValue.setIndex + 1}`}
+          field={editingValue.field}
+          currentValue={editingValue.currentValue}
+          onSave={(value) => {
+            handleSetChange(editingValue.exerciseIndex, editingValue.setIndex, editingValue.field, value);
+            setEditingValue(null);
+          }}
+          historicalWeights={
+            editingValue.field === 'weight'
+              ? exercises[editingValue.exerciseIndex]?.sets
+                  .map(s => s.weight)
+                  .filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i)
+                  .sort((a, b) => (b || 0) - (a || 0)) || []
+              : []
+          }
+        />
+      )}
     </div>
   );
 };

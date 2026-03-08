@@ -169,18 +169,20 @@ export function EditValueModal({
               const value = e.target.value;
               if (field === 'weight') {
                 if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                  setTempValue(value);
+                  updateValueWithAutoClose(value, false);
                 }
               } else {
                 if (value === '' || /^\d+$/.test(value)) {
-                  setTempValue(value);
+                  updateValueWithAutoClose(value, false);
                 }
               }
             }}
             onFocus={(e) => {
-              e.target.blur(); // Prevenir teclado nativo
+              // Solo prevenir teclado en dispositivos táctiles
+              if ('ontouchstart' in window) {
+                e.target.blur();
+              }
             }}
-            readOnly
             placeholder={field === 'reps' ? 'Reps' : 'Peso (kg)'}
             className="w-full text-3xl font-bold text-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-300 dark:border-blue-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 py-2 rounded-xl touch-manipulation"
           />

@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { WeightSuggestionBanner } from '@/components/WeightSuggestionBanner';
-import { EditValueModal } from './EditValueModal';
+import { EditValueModal } from '@/components/EditValueModal';
 import { useToast } from '@/context/ToastContext';
 import { formatRestTime } from '@/lib/formatTime';
 import type { Exercise } from '@/types';
