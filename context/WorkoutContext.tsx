@@ -28,6 +28,10 @@ interface WorkoutState {
   totalPausedTime?: number;
   // Ejercicios omitidos en esta sesión (no se eliminan, solo se saltan)
   skippedExercises?: string[]; // Array de exerciseIds
+  // ✅ Campos adicionales para persistencia completa
+  setTypes?: { [key: string]: string[] };
+  restOverrides?: { [key: string]: number };
+  perSetRestOverrides?: { [key: string]: number[] };
 }
 
 interface WorkoutContextType {
@@ -46,7 +50,12 @@ interface WorkoutContextType {
       restTimerNextExercise?: string;
       restTimerStartedAt?: number;
     },
-    totalPausedTime?: number
+    totalPausedTime?: number,
+    additionalData?: {
+      setTypes?: { [key: string]: string[] };
+      restOverrides?: { [key: string]: number };
+      perSetRestOverrides?: { [key: string]: number[] };
+    }
   ) => void;
   updateModifiedRoutine: (routine: Routine) => Promise<void>;
   clearRestState: () => void;
@@ -122,7 +131,41 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restTimerNextExercise: data.restTimerNextExercise,
       restTimerStartedAt: data.restTimerStartedAt,
       // Ejercicios omitidos en esta sesión
-      skippedExercises: Array.isArray(data.skippedExercises) ? data.skippedExercises : []
+      skippedExercises: Array.isArray(data.skippedExercises) ? data.skippedExercises : [],
+      // ✅ Campos adicionales para persistencia completa
+      setTypes: (() => {
+        const out: { [key: string]: string[] } = {};
+        const src = data.setTypes || {};
+        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach(k => {
+            const arr = (src as any)[k];
+            out[String(k)] = Array.isArray(arr) ? arr.map(s => String(s ?? '')) : [];
+          });
+        }
+        return out;
+      })(),
+      restOverrides: (() => {
+        const out: { [key: string]: number } = {};
+        const src = data.restOverrides || {};
+        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach(k => {
+            const v = (src as any)[k];
+            out[String(k)] = typeof v === 'number' ? v : Number(v ?? 0);
+          });
+        }
+        return out;
+      })(),
+      perSetRestOverrides: (() => {
+        const out: { [key: string]: number[] } = {};
+        const src = data.perSetRestOverrides || {};
+        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach(k => {
+            const arr = (src as any)[k];
+            out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+          });
+        }
+        return out;
+      })()
     };
   };
 
@@ -230,8 +273,22 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restTimerNextExercise?: string;
       restTimerStartedAt?: number;
     },
-    totalPausedTime?: number
+    totalPausedTime?: number,
+    additionalData?: {
+      setTypes?: { [key: string]: string[] };
+      restOverrides?: { [key: string]: number };
+      perSetRestOverrides?: { [key: string]: number[] };
+    }
   ) => {
+    console.log('[WorkoutContext] updateWorkoutProgress called with:', {
+      exerciseIndex,
+      set,
+      completedSets,
+      actualReps,
+      actualWeights,
+      additionalData
+    });
+    
     setActiveWorkout(prev => {
       if (!prev) return null;
       const newState: WorkoutState = {
@@ -248,15 +305,21 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         restTimerNextExercise: restState?.restTimerNextExercise,
         restTimerStartedAt: restState?.restTimerStartedAt,
         // Persistir tiempo pausado
-        totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0
+        totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
+        // ✅ Persistir campos adicionales
+        setTypes: additionalData?.setTypes ?? prev.setTypes,
+        restOverrides: additionalData?.restOverrides ?? prev.restOverrides,
+        perSetRestOverrides: additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides
       };
 
       // Guardar inmediatamente en storage unificado
       (async () => {
         try {
+          console.log('[WorkoutContext] Saving to storage:', newState);
           await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
+          console.log('[WorkoutContext] Successfully saved to storage');
         } catch (e) {
-          console.warn('[Workout] Failed to persist active workout on update:', e);
+          console.error('[WorkoutContext] Failed to persist active workout on update:', e);
         }
       })();
 

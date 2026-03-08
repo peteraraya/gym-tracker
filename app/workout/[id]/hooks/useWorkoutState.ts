@@ -24,6 +24,8 @@ interface WorkoutData {
   actualSetDurations: { [key: string]: number[] };
   actualPauseDurations: { [key: string]: number[] };
   actualRestTimes: { [key: string]: number[] };
+  // ✅ Timestamp para forzar re-renders cuando cambia el estado
+  _lastUpdate?: number;
 }
 
 interface UseWorkoutStateReturn {
@@ -107,7 +109,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
         ...prev,
         actualReps: { ...prev.actualReps, [exerciseId]: newReps },
         actualWeights: { ...prev.actualWeights, [exerciseId]: newWeights },
-        completedSets: { ...prev.completedSets, [exerciseId]: newReps.length }
+        completedSets: { ...prev.completedSets, [exerciseId]: newReps.length },
+        _lastUpdate: Date.now() // ✅ Forzar detección de cambios
       };
     });
   }, []);
@@ -118,7 +121,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
   const updateCompletedSets = useCallback((exerciseId: string, count: number) => {
     setWorkoutData(prev => ({
       ...prev,
-      completedSets: { ...prev.completedSets, [exerciseId]: count }
+      completedSets: { ...prev.completedSets, [exerciseId]: count },
+      _lastUpdate: Date.now()
     }));
   }, []);
 
@@ -128,7 +132,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
   const updateActualReps = useCallback((exerciseId: string, reps: number[]) => {
     setWorkoutData(prev => ({
       ...prev,
-      actualReps: { ...prev.actualReps, [exerciseId]: reps }
+      actualReps: { ...prev.actualReps, [exerciseId]: reps },
+      _lastUpdate: Date.now()
     }));
   }, []);
 
@@ -138,7 +143,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
   const updateActualWeights = useCallback((exerciseId: string, weights: number[]) => {
     setWorkoutData(prev => ({
       ...prev,
-      actualWeights: { ...prev.actualWeights, [exerciseId]: weights }
+      actualWeights: { ...prev.actualWeights, [exerciseId]: weights },
+      _lastUpdate: Date.now()
     }));
   }, []);
 
@@ -151,7 +157,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
       types[setIndex] = type;
       return {
         ...prev,
-        setTypes: { ...prev.setTypes, [exerciseId]: types }
+        setTypes: { ...prev.setTypes, [exerciseId]: types },
+        _lastUpdate: Date.now()
       };
     });
   }, []);
@@ -162,7 +169,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
   const updateRestOverride = useCallback((exerciseId: string, duration: number) => {
     setWorkoutData(prev => ({
       ...prev,
-      restOverrides: { ...prev.restOverrides, [exerciseId]: duration }
+      restOverrides: { ...prev.restOverrides, [exerciseId]: duration },
+      _lastUpdate: Date.now()
     }));
   }, []);
 
@@ -175,7 +183,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
       overrides[setIndex] = duration;
       return {
         ...prev,
-        perSetRestOverrides: { ...prev.perSetRestOverrides, [exerciseId]: overrides }
+        perSetRestOverrides: { ...prev.perSetRestOverrides, [exerciseId]: overrides },
+        _lastUpdate: Date.now()
       };
     });
   }, []);
@@ -189,7 +198,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
       durations[setIndex] = duration;
       return {
         ...prev,
-        actualSetDurations: { ...prev.actualSetDurations, [exerciseId]: durations }
+        actualSetDurations: { ...prev.actualSetDurations, [exerciseId]: durations },
+        _lastUpdate: Date.now()
       };
     });
   }, []);
@@ -203,7 +213,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
       durations[setIndex] = duration;
       return {
         ...prev,
-        actualPauseDurations: { ...prev.actualPauseDurations, [exerciseId]: durations }
+        actualPauseDurations: { ...prev.actualPauseDurations, [exerciseId]: durations },
+        _lastUpdate: Date.now()
       };
     });
   }, []);
@@ -217,7 +228,8 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
       times[setIndex] = duration;
       return {
         ...prev,
-        actualRestTimes: { ...prev.actualRestTimes, [exerciseId]: times }
+        actualRestTimes: { ...prev.actualRestTimes, [exerciseId]: times },
+        _lastUpdate: Date.now()
       };
     });
   }, []);
