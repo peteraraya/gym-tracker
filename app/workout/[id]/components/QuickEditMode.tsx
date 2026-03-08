@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import SetTypeCycleButton from '@/components/SetTypeCycleButton';
-import { EditValueModal } from './EditValueModal';
+import { EditValueModal } from '@/components/EditValueModal';
 import type { SetType, Routine } from '@/types';
 
 interface QuickEditModeProps {

@@ -1467,8 +1467,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
             editingValue.field === 'weight'
               ? exercises[editingValue.exerciseIndex]?.sets
                   .map(s => s.weight)
-                  .filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i)
-                  .sort((a, b) => (b || 0) - (a || 0)) || []
+                  .filter((w): w is number => typeof w === 'number' && w > 0)
+                  .filter((w, i, arr) => arr.indexOf(w) === i)
+                  .sort((a, b) => b - a) || []
               : []
           }
         />

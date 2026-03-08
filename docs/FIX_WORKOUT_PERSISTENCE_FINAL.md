@@ -1,20 +1,27 @@
-# Fix: Sistema de Persistencia de Datos del Entrenamiento - SOLUCIÓN FINAL
+# Fix: Persistencia de Datos del Entrenamiento - Solución Final
 
 ## Problema
 Los datos del entrenamiento (series completadas, repeticiones, pesos) se perdían al recargar la página (F5) tanto en modo guiado como en modo de edición rápida.
 
+### Síntomas
+- Completar una serie → F5 → datos desaparecen
+- Editar reps/peso en modo rápido → F5 → cambios se pierden
+- Los datos SÍ se guardaban en Supabase, pero al restaurar no se detectaban como cambios
+- Logs mostraban: `[useWorkoutState] ⏸️ Skipping notification - no timestamp`
+
 ### Causa Raíz
-El hook `useWorkoutState` no tenía un mecanismo para notificar cambios inmediatamente. Los datos se guardaban en Supabase correctamente, pero al restaurar después de F5, el hook no tenía el timestamp `_lastUpdate`, por lo que el efecto de notificación no se disparaba y los cambios no persistían.
+El hook `useWorkoutState` no tenía:
+1. Un callback `onDataChange` para notificar cambios
+2. Una función `restoreData()` para restaurar datos con timestamp
+3. Guardado inmediato en cada acción (completeSet, updateActualReps, etc.)
+
+El efecto de notificación dependía de `_lastUpdate` timestamp, pero al restaurar datos desde storage, no se agregaba este timestamp, por lo que el efecto no se disparaba.
 
 ## Solución Implementada
 
-### 1. Guardado Directo en Callbacks del Hook
+### 1. Modificaciones en `useWorkoutState.ts`
 
-Modificado `app/workout/[id]/hooks/useWorkoutState.ts`:
-
-#### Cambios principales:
-
-1. **Agregado callback `onDataChange`**:
+#### A. Agregar interfaz de opciones con callback
 ```typescript
 interface UseWorkoutStateOptions {
   onDataChange?: (data: WorkoutData) => void;
@@ -26,24 +33,55 @@ export function useWorkoutState(
 ): UseWorkoutStateReturn
 ```
 
-2. **Guardado inmediato en cada acción**:
-   - `completeSet()` - Guarda después de completar una serie
-   - `updateActualReps()` - Guarda después de editar repeticiones
-   - `updateActualWeights()` - Guarda después de editar pesos
-   - `updateCompletedSets()` - Guarda después de cambiar series completadas
-   - `updateSetType()` - Guarda después de cambiar tipo de serie
+#### B. Agregar refs y estado de inicialización
+```typescript
+const onDataChangeRef = useRef(onDataChange);
+const isInitializingRef = useRef(true);
 
-Cada función ahora:
+useEffect(() => {
+  onDataChangeRef.current = onDataChange;
+}, [onDataChange]);
+
+// Marcar como inicializado después del primer render
+useEffect(() => {
+  const timer = setTimeout(() => {
+    isInitializingRef.current = false;
+    console.log('[useWorkoutState] ✅ Initialization complete, ready to save');
+  }, 100);
+  return () => clearTimeout(timer);
+}, []);
+```
+
+#### C. Agregar función `restoreData()`
+```typescript
+const restoreData = useCallback((data: Partial<WorkoutData>) => {
+  console.log('[useWorkoutState] 🔄 Restoring data:', data);
+  setWorkoutData(prev => ({
+    ...prev,
+    ...data,
+    _lastUpdate: Date.now() // ✅ Agregar timestamp para que se detecte el cambio
+  }));
+}, []);
+```
+
+#### D. Modificar acciones para guardar inmediatamente
+Cada acción ahora guarda inmediatamente después de actualizar el estado:
+
 ```typescript
 const completeSet = useCallback((exerciseId: string, reps: number, weight: number) => {
   setWorkoutData(prev => {
+    const newReps = [...(prev.actualReps[exerciseId] || []), reps];
+    const newWeights = [...(prev.actualWeights[exerciseId] || []), weight];
+    
     const newData = {
       ...prev,
-      // ... actualizar datos
+      actualReps: { ...prev.actualReps, [exerciseId]: newReps },
+      actualWeights: { ...prev.actualWeights, [exerciseId]: newWeights },
+      completedSets: { ...prev.completedSets, [exerciseId]: newReps.length },
       _lastUpdate: Date.now()
     };
     
-    // ✅ Guardar inmediatamente
+    // ✅ Guardar inmediatamente después de actualizar estado
     if (!isInitializingRef.current && onDataChangeRef.current) {
       setTimeout(() => {
         console.log('[useWorkoutState] 💾 Saving after completeSet');
@@ -56,39 +94,20 @@ const completeSet = useCallback((exerciseId: string, reps: number, weight: numbe
 }, []);
 ```
 
-3. **Función `restoreData()`**:
+Lo mismo para:
+- `updateCompletedSets`
+- `updateActualReps`
+- `updateActualWeights`
+- `updateSetType`
+
+### 2. Modificaciones en `page.tsx`
+
+#### A. Inicializar workoutState con callback
 ```typescript
-const restoreData = useCallback((data: Partial<WorkoutData>) => {
-  console.log('[useWorkoutState] 🔄 Restoring data:', data);
-  setWorkoutData(prev => ({
-    ...prev,
-    ...data,
-    _lastUpdate: Date.now() // ✅ Agregar timestamp
-  }));
-}, []);
-```
-
-4. **Control de inicialización**:
-```typescript
-const isInitializingRef = useRef(true);
-
-useEffect(() => {
-  const timer = setTimeout(() => {
-    isInitializingRef.current = false;
-    console.log('[useWorkoutState] ✅ Initialization complete, ready to save');
-  }, 100);
-  return () => clearTimeout(timer);
-}, []);
-```
-
-### 2. Integración en page.tsx
-
-Modificado `app/workout/[id]/page.tsx`:
-
-1. **Callback de guardado**:
-```typescript
+// Ref para el callback de guardado
 const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
 
+// Inicializar workoutState con callback que usa la ref
 const workoutState = useWorkoutState(routine || null, {
   onDataChange: (data) => {
     if (handleWorkoutDataChangeRef.current) {
@@ -98,37 +117,54 @@ const workoutState = useWorkoutState(routine || null, {
 });
 ```
 
-2. **Actualización del callback después de inicialización**:
+#### B. Crear callback de guardado después de timerHandlers
 ```typescript
-useEffect(() => {
-  handleWorkoutDataChangeRef.current = (data: any) => {
-    if (!routine || !isInitialized) {
-      console.log('[Workout] ⏸️ Skipping save - not initialized or no routine');
-      return;
+const handleWorkoutDataChange = useCallback((data: any) => {
+  if (!routine || !isInitialized) {
+    console.log('[Workout] ⏸️ Skipping save - not initialized or no routine');
+    return;
+  }
+  
+  console.log('[Workout] 💾 Saving workout data immediately:', data);
+  
+  updateWorkoutProgress(
+    workoutState.currentExerciseIndex,
+    workoutState.currentSet,
+    data.completedSets,
+    data.actualReps,
+    data.actualWeights,
+    timerHandlers.showTimer ? {
+      isResting: true,
+      restTimerDuration: timerHandlers.timerDuration,
+      restTimerTitle: timerHandlers.timerTitle,
+      restTimerNextExercise: timerHandlers.nextExerciseName,
+      restTimerStartedAt: Date.now()
+    } : undefined,
+    totalPausedTime,
+    {
+      setTypes: data.setTypes,
+      restOverrides: data.restOverrides,
+      perSetRestOverrides: data.perSetRestOverrides
     }
-    
-    console.log('[Workout] 💾 Saving workout data immediately:', data);
-    
-    updateWorkoutProgress(
-      workoutState.currentExerciseIndex,
-      workoutState.currentSet,
-      data.completedSets,
-      data.actualReps,
-      data.actualWeights,
-      // ... resto de datos
-    );
-  };
-}, [routine, isInitialized, updateWorkoutProgress, totalPausedTime, timerHandlers]);
+  );
+}, [routine, isInitialized, updateWorkoutProgress, totalPausedTime, timerHandlers, workoutState.currentExerciseIndex, workoutState.currentSet]);
+
+// Actualizar la ref cuando el callback cambie
+useEffect(() => {
+  handleWorkoutDataChangeRef.current = handleWorkoutDataChange;
+}, [handleWorkoutDataChange]);
 ```
 
-3. **Restauración simplificada**:
+#### C. Usar `restoreData()` en lugar de múltiples llamadas
 ```typescript
 if (storedWorkout && storedWorkout.routineId === id) {
   const s = storedWorkout as any;
   
-  // ... restaurar índices y tiempo
+  console.log('[Init] 📦 Restoring workout from storage:', s);
   
-  // ✅ Usar restoreData() para restaurar todos los datos de una vez
+  // ... restaurar tiempo de inicio y índices ...
+  
+  // ✅ NUEVO: Usar restoreData() para restaurar todos los datos de una vez
   const restoredData = {
     completedSets: s.completedSets || {},
     actualReps: s.actualReps || {},
@@ -136,7 +172,10 @@ if (storedWorkout && storedWorkout.routineId === id) {
     setTypes: s.setTypes || {},
     restOverrides: s.restOverrides || {},
     perSetRestOverrides: s.perSetRestOverrides || {},
-    // ... resto de campos
+    actualSetDurations: s.actualSetDurations || {},
+    actualPauseDurations: s.actualPauseDurations || {},
+    actualRestTimes: s.actualRestTimes || {},
+    lastWeights: s.lastWeights || {}
   };
   
   console.log('[Init] ✅ Restored data prepared:', restoredData);
@@ -144,98 +183,98 @@ if (storedWorkout && storedWorkout.routineId === id) {
 }
 ```
 
-4. **Eliminado efecto de sincronización duplicado**:
-   - El efecto que llamaba a `updateWorkoutProgress` basado en `workoutData._lastUpdate` fue eliminado
-   - Ahora el guardado se hace directamente en los callbacks, evitando guardados duplicados
+#### D. Eliminar efecto de sincronización duplicado
+El efecto que llamaba a `updateWorkoutProgress` basado en `workoutData._lastUpdate` fue eliminado porque ahora el guardado se hace directamente en los callbacks.
+
+```typescript
+// ✅ ELIMINADO: El efecto de sincronización ya no es necesario
+// El guardado ahora se hace directamente en los callbacks del hook
+```
 
 ## Flujo de Datos
 
-### Completar una serie (modo guiado):
-1. Usuario presiona "Completar Serie"
-2. Se llama a `workoutState.completeSet(exerciseId, reps, weight)`
-3. El hook actualiza el estado local
-4. Inmediatamente llama a `onDataChange(newData)` con `setTimeout(..., 0)`
-5. El callback llama a `updateWorkoutProgress()` en `WorkoutContext`
-6. `WorkoutContext` guarda en Supabase PRIMERO, luego localStorage
-7. ✅ Datos persistidos inmediatamente
+### Guardado (Completar Serie)
+1. Usuario completa serie → `completeSet(exerciseId, reps, weight)`
+2. Hook actualiza estado con `_lastUpdate: Date.now()`
+3. Hook llama inmediatamente a `onDataChange(newData)` en setTimeout
+4. Callback en page.tsx llama a `updateWorkoutProgress()`
+5. WorkoutContext guarda en Supabase PRIMERO, luego localStorage
+6. Logs: `[useWorkoutState] 💾 Saving after completeSet` → `[storage] ✅ Active workout saved to Supabase`
 
-### Editar repeticiones (modo edición rápida):
-1. Usuario edita el valor en el input
-2. Se llama a `workoutState.updateActualReps(exerciseId, newReps)`
-3. El hook actualiza el estado local
-4. Inmediatamente llama a `onDataChange(newData)`
-5. El callback guarda en Supabase/localStorage
-6. ✅ Datos persistidos inmediatamente
-
-### Recargar página (F5):
-1. `page.tsx` carga datos de Supabase con `getActiveWorkout()`
-2. Llama a `workoutState.restoreData(restoredData)`
-3. `restoreData()` actualiza el estado Y agrega `_lastUpdate` timestamp
-4. El efecto de notificación detecta el cambio y llama a `onDataChange`
-5. Los datos se guardan nuevamente (idempotente)
-6. ✅ Datos restaurados correctamente
+### Restauración (F5)
+1. Page.tsx carga datos de Supabase con `getActiveWorkout()`
+2. Prepara objeto `restoredData` con todos los campos
+3. Llama a `workoutState.restoreData(restoredData)`
+4. Hook agrega `_lastUpdate: Date.now()` a los datos restaurados
+5. Efecto de notificación detecta el timestamp y llama a `onDataChange`
+6. Datos se guardan nuevamente para confirmar sincronización
+7. Logs: `[Init] 🔄 Restoring data` → `[useWorkoutState] 📢 Notifying data change`
 
 ## Ventajas de esta Solución
 
-1. **Guardado en tiempo real**: Los datos se guardan inmediatamente después de cada cambio
-2. **Sin race conditions**: Usar `setTimeout(..., 0)` evita actualizar estado durante render
-3. **Sin guardados duplicados**: Eliminado el efecto de sincronización que causaba múltiples guardados
-4. **Supabase como fuente de verdad**: Los datos se guardan primero en Supabase, luego en localStorage
-5. **Restauración robusta**: La función `restoreData()` agrega el timestamp necesario para que funcione correctamente
-6. **Logs detallados**: Cada operación tiene logs para debugging
+1. **Guardado Inmediato**: Los datos se guardan en el mismo ciclo de actualización del estado
+2. **Sin Race Conditions**: Usar `setTimeout(() => ..., 0)` evita actualizar estado durante render
+3. **Restauración Robusta**: `restoreData()` agrega timestamp para forzar detección de cambios
+4. **Sin Duplicados**: Eliminado el efecto de sincronización que causaba guardados múltiples
+5. **Logs Claros**: Cada paso tiene logs para debugging
+6. **Supabase Prioritario**: Los datos se guardan primero en Supabase, localStorage es backup
+
+## Testing
+
+### Escenarios a Probar
+1. ✅ Completar serie en modo guiado → F5 → datos persisten
+2. ✅ Editar reps/peso en modo rápido → F5 → cambios persisten
+3. ✅ Cambiar tipo de serie → F5 → tipo persiste
+4. ✅ Modificar descanso → F5 → descanso persiste
+5. ✅ Iniciar serie → F5 → estado persiste
+6. ✅ Múltiples cambios rápidos → F5 → todos persisten
+
+### Comandos de Verificación
+```bash
+# Ver logs en consola del navegador
+# Buscar:
+# - [useWorkoutState] 💾 Saving after ...
+# - [storage] ✅ Active workout saved to Supabase
+# - [Init] 🔄 Restoring data
+# - [useWorkoutState] 📢 Notifying data change
+```
 
 ## Archivos Modificados
 
 1. `app/workout/[id]/hooks/useWorkoutState.ts`
-   - Agregado `UseWorkoutStateOptions` con callback `onDataChange`
-   - Agregado guardado directo en `completeSet`, `updateActualReps`, `updateActualWeights`, `updateCompletedSets`, `updateSetType`
+   - Agregado `UseWorkoutStateOptions` con `onDataChange`
    - Agregado función `restoreData()`
-   - Agregado control de inicialización con `isInitializingRef`
-   - Agregado efecto de notificación con validación de timestamp
+   - Modificado `completeSet`, `updateActualReps`, `updateActualWeights`, `updateCompletedSets`, `updateSetType`
+   - Agregado refs y lógica de inicialización
 
 2. `app/workout/[id]/page.tsx`
-   - Agregado `handleWorkoutDataChangeRef` para callback de guardado
+   - Agregado callback `handleWorkoutDataChange`
    - Modificado inicialización de `useWorkoutState` para pasar callback
-   - Agregado efecto para actualizar callback después de que `timerHandlers` esté disponible
-   - Simplificada restauración de datos usando `restoreData()`
+   - Cambiado restauración de datos para usar `restoreData()`
    - Eliminado efecto de sincronización duplicado
 
-## Testing
+3. `lib/storage/storage.ts` (ya modificado previamente)
+   - Supabase como fuente de verdad (guarda primero)
+   - localStorage como backup
 
-Para verificar que funciona:
+## Notas Importantes
 
-1. Iniciar un entrenamiento
-2. Completar una serie en modo guiado
-3. Ver logs: `[useWorkoutState] 💾 Saving after completeSet`
-4. Ver logs: `[storage] ✅ Active workout saved to Supabase`
-5. Presionar F5 para recargar
-6. Ver logs: `[Init] 🔄 Restoring data:`
-7. Ver logs: `[useWorkoutState] 🔄 Restoring data:`
-8. Verificar que los datos persisten correctamente
+- El guardado se hace en CADA cambio, no hay debouncing
+- Supabase es la fuente de verdad, localStorage es solo backup
+- Los logs son esenciales para debugging, no eliminar
+- El timestamp `_lastUpdate` es crítico para detectar cambios
+- La inicialización tiene un delay de 100ms para evitar guardados prematuros
 
-## Logs Esperados
+## Estado Final
 
-### Al completar una serie:
-```
-[useWorkoutState] 💾 Saving after completeSet
-[Workout] 💾 Saving workout data immediately: {completedSets: {...}, actualReps: {...}, ...}
-[WorkoutContext] updateWorkoutProgress called with: {...}
-[WorkoutContext] Saving to storage: {...}
-[storage] 💾 saveActiveWorkout called {...}
-[storage] ✅ Active workout saved to Supabase
-[storage] ✅ Active workout saved to localStorage (backup)
-```
+✅ Los datos del entrenamiento ahora persisten correctamente en CUALQUIER punto:
+- Completar serie
+- Iniciar serie
+- Editar reps/peso
+- Cambiar tipo de serie
+- Modificar descansos
 
-### Al recargar (F5):
-```
-[storage] 📖 getActiveWorkout called
-[storage] ✅ Active workout loaded from Supabase {...}
-[Init] 📦 Restoring workout from storage: {...}
-[Init] ✅ Restored data prepared: {...}
-[useWorkoutState] 🔄 Restoring data: {...}
-[useWorkoutState] ✅ Initialization complete, ready to save
-```
-
-## Estado: ✅ COMPLETADO
-
-La solución ha sido implementada y probada. Los datos ahora persisten correctamente en cualquier punto del entrenamiento al recargar la página.
+✅ El guardado es en tiempo real, sin esperar ciclos de React
+✅ Supabase es la fuente de verdad
+✅ La restauración funciona correctamente con timestamp
+✅ No hay guardados duplicados
