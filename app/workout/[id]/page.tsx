@@ -27,6 +27,7 @@ import { ExerciseList } from './components/ExerciseList';
 import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
 import { AddExerciseButton } from './components/AddExerciseButton';
 import { QuickEditMode as QuickEditModeBase } from './components/QuickEditMode';
+import { FinishWorkoutModal } from './components/FinishWorkoutModal';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { Exercise } from '@/types';
 import { 
@@ -63,7 +64,7 @@ export default function WorkoutPage() {
   const id = params.id as string;
   
   const { getRoutineById, addSession, sessions, loading: gymLoading, updateRoutine } = useGym();
-  const { activeWorkout, startWorkout, updateWorkoutProgress, updateModifiedRoutine, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout } = useWorkout();
+  const { activeWorkout, startWorkout, updateWorkoutProgress, updateModifiedRoutine, clearRestState, finishWorkout: finishWorkoutContext, cancelWorkout, skipExercise, unskipExercise } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
   
@@ -1635,8 +1636,10 @@ export default function WorkoutPage() {
             onToggleSetComplete={handleQuickToggleSetComplete}
             onAddSet={handleQuickAddSet}
             onDeleteSet={handleQuickDeleteSet}
-            onFinishWorkout={() => completion.setShowNotesModal(true)}
+            onFinishWorkout={() => completion.openCompletionModal()}
             onMoveExercise={handleMoveExercise}
+            onSkipExercise={skipExercise}
+            onUnskipExercise={unskipExercise}
             onEditRestTime={(exerciseId, restTime) => {
               workoutState.updateRestOverride(exerciseId, restTime);
               
@@ -1882,132 +1885,16 @@ export default function WorkoutPage() {
           </div>
         </Modal>
         
-        <Modal
+        <FinishWorkoutModal
           isOpen={completion.showNotesModal}
           onClose={() => completion.setShowNotesModal(false)}
-          title="¡Entrenamiento completado! 🎉"
-        >
-          <div className="space-y-4">
-            <p className="text-gray-600 dark:text-gray-400">
-              Revisa la duración y agrega una nota antes de guardar la sesión.
-            </p>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Duración del entrenamiento
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
-                    Horas
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={Math.floor(completion.proposedDuration / 3600)}
-                    onChange={(e) => {
-                      const hours = Math.max(0, Math.min(23, parseInt(e.target.value) || 0));
-                      const currentMinutes = Math.floor((completion.proposedDuration % 3600) / 60);
-                      const currentSeconds = completion.proposedDuration % 60;
-                      completion.setProposedDuration(hours * 3600 + currentMinutes * 60 + currentSeconds);
-                    }}
-                    className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
-                    Minutos
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={Math.floor((completion.proposedDuration % 3600) / 60)}
-                    onChange={(e) => {
-                      const minutes = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
-                      const currentHours = Math.floor(completion.proposedDuration / 3600);
-                      const currentSeconds = completion.proposedDuration % 60;
-                      completion.setProposedDuration(currentHours * 3600 + minutes * 60 + currentSeconds);
-                    }}
-                    className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 text-center">
-                    Segundos
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={completion.proposedDuration % 60}
-                    onChange={(e) => {
-                      const seconds = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
-                      const currentHours = Math.floor(completion.proposedDuration / 3600);
-                      const currentMinutes = Math.floor((completion.proposedDuration % 3600) / 60);
-                      completion.setProposedDuration(currentHours * 3600 + currentMinutes * 60 + seconds);
-                    }}
-                    className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              {completion.proposedDuration < 300 && (
-                <p className="mt-2 text-sm text-orange-600 dark:text-orange-400">
-                  ⚠️ La duración es menor a 5 minutos. ¿Estás seguro que es correcta?
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Notas (opcional)
-              </label>
-              <textarea
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={4}
-                placeholder="Ej: Me sentí muy fuerte hoy, aumentar peso la próxima vez..."
-                value={completion.sessionNotes}
-                onChange={(e) => completion.setSessionNotes(e.target.value)}
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  completion.setShowNotesModal(false);
-                }}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  completion.setSessionNotes('');
-                  completion.setShowNotesModal(false);
-                  completion.finishWorkout(workoutState.workoutData);
-                }}
-                className="flex-1"
-              >
-                Omitir
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  completion.setShowNotesModal(false);
-                  completion.finishWorkout(workoutState.workoutData);
-                }}
-                className="flex-1"
-              >
-                Guardar y finalizar
-              </Button>
-            </div>
-          </div>
-        </Modal>
+          proposedDuration={completion.proposedDuration}
+          onDurationChange={completion.setProposedDuration}
+          sessionNotes={completion.sessionNotes}
+          onNotesChange={completion.setSessionNotes}
+          onFinish={() => completion.finishWorkout(workoutState.workoutData)}
+          isSaving={false}
+        />
 
         {showExerciseInfo && currentExercise && (
           <Suspense fallback={<div />}>
