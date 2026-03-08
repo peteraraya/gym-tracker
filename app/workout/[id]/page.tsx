@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
-import { PreparationCountdown } from '@/components/PreparationCountdown';
 import { MinimizedTimer } from '@/components/MinimizedTimer';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import * as storageService from '@/lib/storage/storage';
@@ -216,11 +215,10 @@ export default function WorkoutPage() {
   // Debug: Log setExecution state changes
   useEffect(() => {
     console.log('[Workout] setExecution state:', {
-      showPreparation: setExecution.showPreparation,
       showSetExecution: setExecution.showSetExecution,
       isExecutingSet: setExecution.isExecutingSet
     });
-  }, [setExecution.showPreparation, setExecution.showSetExecution, setExecution.isExecutingSet]);
+  }, [setExecution.showSetExecution, setExecution.isExecutingSet]);
   
   const completion = useWorkoutCompletion({
     routine,
@@ -247,7 +245,6 @@ export default function WorkoutPage() {
     useSmartRest,
     smartRestTime,
     showTimer: timerHandlers.showTimer,
-    showPreparation: setExecution.showPreparation,
     isExecutingSet: setExecution.isExecutingSet,
     onSuccess: success,
     onError: error
@@ -1567,24 +1564,6 @@ export default function WorkoutPage() {
           autoStart={true}
           showMotivation={true}
           onMinimize={timerHandlers.minimizeTimer}
-        />
-      </div>
-    );
-  }
-
-  if (setExecution.showPreparation) {
-    console.log('[Workout] Rendering PreparationCountdown - showPreparation:', setExecution.showPreparation);
-    return (
-      <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-        <PreparationCountdown
-          exerciseName={currentExercise.name}
-          setNumber={workoutState.currentSet}
-          onComplete={() => {
-            const useExecutionModal = typeof window !== 'undefined' 
-              ? localStorage.getItem('useExecutionModal') === 'true'
-              : false;
-            setExecution.completePreparation(useExecutionModal, success);
-          }}
         />
       </div>
     );
