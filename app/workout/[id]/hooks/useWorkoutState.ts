@@ -28,6 +28,10 @@ interface WorkoutData {
   _lastUpdate?: number;
 }
 
+interface UseWorkoutStateOptions {
+  onDataChange?: (data: WorkoutData) => void;
+}
+
 interface UseWorkoutStateReturn {
   // Estado
   workoutData: WorkoutData;
@@ -58,6 +62,7 @@ interface UseWorkoutStateReturn {
   
   // Utilidades
   reset: () => void;
+  restoreData: (data: Partial<WorkoutData>) => void;
   getExerciseData: (exerciseId: string) => {
     completedSets: number;
     actualReps: number[];
@@ -67,7 +72,12 @@ interface UseWorkoutStateReturn {
   };
 }
 
-export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn {
+export function useWorkoutState(
+  routine: Routine | null,
+  options: UseWorkoutStateOptions = {}
+): UseWorkoutStateReturn {
+  const { onDataChange } = options;
+  
   // Estado principal
   const [workoutData, setWorkoutData] = useState<WorkoutData>({
     completedSets: {},
@@ -90,9 +100,42 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
 
   // Refs para evitar closures stale
   const workoutDataRef = useRef(workoutData);
+  const onDataChangeRef = useRef(onDataChange);
+  const isInitializingRef = useRef(true);
 
   useEffect(() => {
     workoutDataRef.current = workoutData;
+  }, [workoutData]);
+
+  useEffect(() => {
+    onDataChangeRef.current = onDataChange;
+  }, [onDataChange]);
+
+  // Marcar como inicializado después del primer render
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      isInitializingRef.current = false;
+      console.log('[useWorkoutState] ✅ Initialization complete, ready to save');
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Notificar cambios cuando workoutData cambia (después de inicialización)
+  useEffect(() => {
+    if (isInitializingRef.current) {
+      console.log('[useWorkoutState] ⏸️ Skipping notification - initializing');
+      return;
+    }
+    
+    if (!workoutData._lastUpdate) {
+      console.log('[useWorkoutState] ⏸️ Skipping notification - no timestamp');
+      return;
+    }
+
+    if (onDataChangeRef.current) {
+      console.log('[useWorkoutState] 📢 Notifying data change:', workoutData);
+      onDataChangeRef.current(workoutData);
+    }
   }, [workoutData]);
 
   // ==================== ACCIONES ====================
@@ -105,13 +148,23 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
       const newReps = [...(prev.actualReps[exerciseId] || []), reps];
       const newWeights = [...(prev.actualWeights[exerciseId] || []), weight];
       
-      return {
+      const newData = {
         ...prev,
         actualReps: { ...prev.actualReps, [exerciseId]: newReps },
         actualWeights: { ...prev.actualWeights, [exerciseId]: newWeights },
         completedSets: { ...prev.completedSets, [exerciseId]: newReps.length },
         _lastUpdate: Date.now() // ✅ Forzar detección de cambios
       };
+      
+      // ✅ Guardar inmediatamente después de actualizar estado
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        setTimeout(() => {
+          console.log('[useWorkoutState] 💾 Saving after completeSet');
+          onDataChangeRef.current?.(newData);
+        }, 0);
+      }
+      
+      return newData;
     });
   }, []);
 
@@ -119,33 +172,69 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
    * Actualiza el número de series completadas
    */
   const updateCompletedSets = useCallback((exerciseId: string, count: number) => {
-    setWorkoutData(prev => ({
-      ...prev,
-      completedSets: { ...prev.completedSets, [exerciseId]: count },
-      _lastUpdate: Date.now()
-    }));
+    setWorkoutData(prev => {
+      const newData = {
+        ...prev,
+        completedSets: { ...prev.completedSets, [exerciseId]: count },
+        _lastUpdate: Date.now()
+      };
+      
+      // ✅ Guardar inmediatamente
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        setTimeout(() => {
+          console.log('[useWorkoutState] 💾 Saving after updateCompletedSets');
+          onDataChangeRef.current?.(newData);
+        }, 0);
+      }
+      
+      return newData;
+    });
   }, []);
 
   /**
    * Actualiza las repeticiones reales
    */
   const updateActualReps = useCallback((exerciseId: string, reps: number[]) => {
-    setWorkoutData(prev => ({
-      ...prev,
-      actualReps: { ...prev.actualReps, [exerciseId]: reps },
-      _lastUpdate: Date.now()
-    }));
+    setWorkoutData(prev => {
+      const newData = {
+        ...prev,
+        actualReps: { ...prev.actualReps, [exerciseId]: reps },
+        _lastUpdate: Date.now()
+      };
+      
+      // ✅ Guardar inmediatamente
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        setTimeout(() => {
+          console.log('[useWorkoutState] 💾 Saving after updateActualReps');
+          onDataChangeRef.current?.(newData);
+        }, 0);
+      }
+      
+      return newData;
+    });
   }, []);
 
   /**
    * Actualiza los pesos reales
    */
   const updateActualWeights = useCallback((exerciseId: string, weights: number[]) => {
-    setWorkoutData(prev => ({
-      ...prev,
-      actualWeights: { ...prev.actualWeights, [exerciseId]: weights },
-      _lastUpdate: Date.now()
-    }));
+    setWorkoutData(prev => {
+      const newData = {
+        ...prev,
+        actualWeights: { ...prev.actualWeights, [exerciseId]: weights },
+        _lastUpdate: Date.now()
+      };
+      
+      // ✅ Guardar inmediatamente
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        setTimeout(() => {
+          console.log('[useWorkoutState] 💾 Saving after updateActualWeights');
+          onDataChangeRef.current?.(newData);
+        }, 0);
+      }
+      
+      return newData;
+    });
   }, []);
 
   /**
@@ -155,11 +244,21 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
     setWorkoutData(prev => {
       const types = [...(prev.setTypes[exerciseId] || [])];
       types[setIndex] = type;
-      return {
+      const newData = {
         ...prev,
         setTypes: { ...prev.setTypes, [exerciseId]: types },
         _lastUpdate: Date.now()
       };
+      
+      // ✅ Guardar inmediatamente
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        setTimeout(() => {
+          console.log('[useWorkoutState] 💾 Saving after updateSetType');
+          onDataChangeRef.current?.(newData);
+        }, 0);
+      }
+      
+      return newData;
     });
   }, []);
 
@@ -235,6 +334,18 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
   }, []);
 
   /**
+   * Restaura datos desde storage
+   */
+  const restoreData = useCallback((data: Partial<WorkoutData>) => {
+    console.log('[useWorkoutState] 🔄 Restoring data:', data);
+    setWorkoutData(prev => ({
+      ...prev,
+      ...data,
+      _lastUpdate: Date.now() // ✅ Agregar timestamp para que se detecte el cambio
+    }));
+  }, []);
+
+  /**
    * Resetea todo el estado
    */
   const reset = useCallback(() => {
@@ -300,6 +411,7 @@ export function useWorkoutState(routine: Routine | null): UseWorkoutStateReturn 
     
     // Utilidades
     reset,
+    restoreData,
     getExerciseData,
   };
 }

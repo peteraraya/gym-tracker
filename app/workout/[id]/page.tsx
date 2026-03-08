@@ -71,8 +71,19 @@ export default function WorkoutPage() {
   
   // ==================== STATE ====================
   const [routine, setRoutine] = useState<any>(null);
-  const workoutState = useWorkoutState(routine || null);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // ✅ Ref para el callback de guardado (se actualiza después de que timerHandlers esté disponible)
+  const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
+  
+  // Inicializar workoutState con callback que usa la ref
+  const workoutState = useWorkoutState(routine || null, {
+    onDataChange: (data) => {
+      if (handleWorkoutDataChangeRef.current) {
+        handleWorkoutDataChangeRef.current(data);
+      }
+    }
+  });
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
   const [isQuickEditMode, setIsQuickEditMode] = useState(false);
@@ -202,6 +213,42 @@ export default function WorkoutPage() {
     const handleTimerCompleteRef = useRef(() => {});
     const timerHandlers = useWorkoutTimer(() => handleTimerCompleteRef.current());
     
+    // ✅ Crear el callback de guardado usando useCallback
+    const handleWorkoutDataChange = useCallback((data: any) => {
+      if (!routine || !isInitialized) {
+        console.log('[Workout] ⏸️ Skipping save - not initialized or no routine');
+        return;
+      }
+      
+      console.log('[Workout] 💾 Saving workout data immediately:', data);
+      
+      updateWorkoutProgress(
+        workoutState.currentExerciseIndex,
+        workoutState.currentSet,
+        data.completedSets,
+        data.actualReps,
+        data.actualWeights,
+        timerHandlers.showTimer ? {
+          isResting: true,
+          restTimerDuration: timerHandlers.timerDuration,
+          restTimerTitle: timerHandlers.timerTitle,
+          restTimerNextExercise: timerHandlers.nextExerciseName,
+          restTimerStartedAt: Date.now()
+        } : undefined,
+        totalPausedTime,
+        {
+          setTypes: data.setTypes,
+          restOverrides: data.restOverrides,
+          perSetRestOverrides: data.perSetRestOverrides
+        }
+      );
+    }, [routine, isInitialized, updateWorkoutProgress, totalPausedTime, timerHandlers, workoutState.currentExerciseIndex, workoutState.currentSet]);
+    
+    // Actualizar la ref cuando el callback cambie
+    useEffect(() => {
+      handleWorkoutDataChangeRef.current = handleWorkoutDataChange;
+    }, [handleWorkoutDataChange]);
+    
     const weightPrediction = useWeightPrediction({
       currentExercise,
       currentSet: workoutState.currentSet,
@@ -315,6 +362,8 @@ export default function WorkoutPage() {
       if (storedWorkout && storedWorkout.routineId === id) {
         const s = storedWorkout as any;
         
+        console.log('[Init] 📦 Restoring workout from storage:', s);
+        
         // Restaurar el tiempo de inicio del entrenamiento
         if (s.startedAt) {
           const startTime = new Date(s.startedAt).getTime();
@@ -328,65 +377,23 @@ export default function WorkoutPage() {
         workoutState.setCurrentExerciseIndex(exerciseIndex);
         workoutState.setCurrentSet(currentSet);
         
-        // Optimización: Procesar completedSets de forma más eficiente
-        if (s.completedSets) {
-          for (const [exerciseId, count] of Object.entries(s.completedSets)) {
-            workoutState.updateCompletedSets(exerciseId, Number(count ?? 0));
-          }
-        }
+        // ✅ NUEVO: Usar restoreData() para restaurar todos los datos de una vez
+        // Esto agrega el timestamp _lastUpdate para que se detecte el cambio
+        const restoredData = {
+          completedSets: s.completedSets || {},
+          actualReps: s.actualReps || {},
+          actualWeights: s.actualWeights || {},
+          setTypes: s.setTypes || {},
+          restOverrides: s.restOverrides || {},
+          perSetRestOverrides: s.perSetRestOverrides || {},
+          actualSetDurations: s.actualSetDurations || {},
+          actualPauseDurations: s.actualPauseDurations || {},
+          actualRestTimes: s.actualRestTimes || {},
+          lastWeights: s.lastWeights || {}
+        };
         
-        // Optimización: Procesar actualReps de forma más eficiente
-        if (s.actualReps) {
-          for (const [exerciseId, reps] of Object.entries(s.actualReps)) {
-            if (Array.isArray(reps)) {
-              workoutState.updateActualReps(exerciseId, reps.map((r: any) => Number(r ?? 0)));
-            }
-          }
-        }
-        
-        // Optimización: Procesar actualWeights de forma más eficiente
-        if (s.actualWeights) {
-          for (const [exerciseId, weights] of Object.entries(s.actualWeights)) {
-            if (Array.isArray(weights)) {
-              workoutState.updateActualWeights(exerciseId, weights.map((w: any) => Number(w ?? 0)));
-            }
-          }
-        }
-        
-        // ✅ Restaurar setTypes
-        if (s.setTypes) {
-          for (const [exerciseId, types] of Object.entries(s.setTypes)) {
-            if (Array.isArray(types)) {
-              types.forEach((type: any, index: number) => {
-                if (type) {
-                  workoutState.updateSetType(exerciseId, index, String(type));
-                }
-              });
-            }
-          }
-        }
-        
-        // ✅ Restaurar restOverrides
-        if (s.restOverrides) {
-          for (const [exerciseId, duration] of Object.entries(s.restOverrides)) {
-            if (typeof duration === 'number' && duration > 0) {
-              workoutState.updateRestOverride(exerciseId, duration);
-            }
-          }
-        }
-        
-        // ✅ Restaurar perSetRestOverrides
-        if (s.perSetRestOverrides) {
-          for (const [exerciseId, overrides] of Object.entries(s.perSetRestOverrides)) {
-            if (Array.isArray(overrides)) {
-              overrides.forEach((duration: any, index: number) => {
-                if (typeof duration === 'number' && duration > 0) {
-                  workoutState.updatePerSetRestOverride(exerciseId, index, duration);
-                }
-              });
-            }
-          }
-        }
+        console.log('[Init] ✅ Restored data prepared:', restoredData);
+        workoutState.restoreData(restoredData);
         
         // Restaurar timer si estaba en descanso
         if (s.isResting && s.restTimerDuration && s.restTimerStartedAt) {
@@ -462,53 +469,9 @@ export default function WorkoutPage() {
     }
   }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, isInitialized]);
   
-  // ✅ SINCRONIZACIÓN CRÍTICA: Persistir workoutData en WorkoutContext
-  // Este efecto asegura que todos los cambios en el estado local se guarden en Supabase/localStorage
-  // Esto previene pérdida de datos al recargar (F5)
-  useEffect(() => {
-    if (!routine || !isInitialized) return;
-    
-    console.log('[Workout Sync] Syncing workout data to context:', {
-      exerciseIndex: workoutState.currentExerciseIndex,
-      currentSet: workoutState.currentSet,
-      completedSets: workoutState.workoutData.completedSets,
-      actualReps: workoutState.workoutData.actualReps,
-      actualWeights: workoutState.workoutData.actualWeights,
-      lastUpdate: workoutState.workoutData._lastUpdate
-    });
-    
-    updateWorkoutProgress(
-      workoutState.currentExerciseIndex,
-      workoutState.currentSet,
-      workoutState.workoutData.completedSets,
-      workoutState.workoutData.actualReps,
-      workoutState.workoutData.actualWeights,
-      timerHandlers.showTimer ? {
-        isResting: true,
-        restTimerDuration: timerHandlers.timerDuration,
-        restTimerTitle: timerHandlers.timerTitle,
-        restTimerNextExercise: timerHandlers.nextExerciseName,
-        restTimerStartedAt: Date.now()
-      } : undefined,
-      totalPausedTime,
-      // ✅ Pasar datos adicionales para persistencia completa
-      {
-        setTypes: workoutState.workoutData.setTypes,
-        restOverrides: workoutState.workoutData.restOverrides,
-        perSetRestOverrides: workoutState.workoutData.perSetRestOverrides
-      }
-    );
-  }, [
-    workoutState.currentExerciseIndex,
-    workoutState.currentSet,
-    // ✅ Usar timestamp para detectar cambios en workoutData
-    workoutState.workoutData._lastUpdate,
-    timerHandlers.showTimer,
-    routine,
-    isInitialized,
-    totalPausedTime,
-    updateWorkoutProgress
-  ]);
+  // ✅ ELIMINADO: El efecto de sincronización ya no es necesario
+  // El guardado ahora se hace directamente en los callbacks del hook (completeSet, updateActualReps, etc.)
+  // Esto evita guardados duplicados y asegura que los datos se persistan inmediatamente
   
   useEffect(() => {
     if (timerHandlers.showTimer) {
