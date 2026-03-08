@@ -4,6 +4,7 @@ import { Settings } from '@/components/icons/lucide';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import { PushNotificationTester } from '@/components/PushNotificationTester';
+import { DevTools } from '@/components/DevTools';
 import { PageLayout } from '@/components/PageLayout';
 
 export default function SettingsPage() {
@@ -87,6 +88,9 @@ export default function SettingsPage() {
                 </div>
               </div>
             </section>
+
+            {/* Herramientas de Desarrollo - Solo visible en dev */}
+            <DevTools />
           </div>
         </PageLayout>
       </ProtectedRoute>

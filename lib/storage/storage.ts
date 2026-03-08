@@ -797,3 +797,402 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
         return { synced: 0, errors: 0 };
     }
 }
+
+
+// ==================== DEVELOPMENT UTILITIES ====================
+// ⚠️ SOLO PARA DESARROLLO - NO USAR EN PRODUCCIÓN
+
+/**
+ * Verifica si las funciones de desarrollo están habilitadas
+ * Solo disponibles cuando NEXT_PUBLIC_ENABLE_DEV_TOOLS=true
+ */
+export function isDevToolsEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ENABLE_DEV_TOOLS === 'true';
+}
+
+/**
+ * Limpia TODAS las sesiones de entrenamiento del usuario actual
+ * ⚠️ PELIGROSO: Esta acción es irreversible
+ * Solo disponible en modo desarrollo
+ */
+export async function devClearAllSessions(): Promise<{ deleted: number; error?: string }> {
+  if (!isDevToolsEnabled()) {
+    throw new Error('Dev tools are not enabled. Set NEXT_PUBLIC_ENABLE_DEV_TOOLS=true');
+  }
+
+  try {
+    if (isDatabaseEnabled()) {
+      const supabaseService = await getSupabaseService();
+      
+      if (!supabaseService.getSessions) {
+        throw new Error('getSessions not available');
+      }
+      
+      const sessions = await supabaseService.getSessions();
+      
+      // Eliminar todas las sesiones
+      for (const session of sessions) {
+        // Nota: deleteSession puede no estar disponible en el tipo parcial
+        // Usar método alternativo si es necesario
+        if (typeof (supabaseService as any).deleteSession === 'function') {
+          await (supabaseService as any).deleteSession(session.id);
+        }
+      }
+      
+      logger.info('[DEV] Cleared all sessions from Supabase', { count: sessions.length });
+      return { deleted: sessions.length };
+    } else {
+      const localStorageService = await getLocalStorageService();
+      const sessions = await localStorageService.getSessions();
+      
+      // Limpiar localStorage
+      localStorage.removeItem('gym-tracker-sessions');
+      
+      logger.info('[DEV] Cleared all sessions from localStorage', { count: sessions.length });
+      return { deleted: sessions.length };
+    }
+  } catch (error) {
+    logger.error('[DEV] Error clearing sessions', {}, error instanceof Error ? error : undefined);
+    return { deleted: 0, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Limpia TODAS las rutinas del usuario actual
+ * ⚠️ PELIGROSO: Esta acción es irreversible
+ * Solo disponible en modo desarrollo
+ */
+export async function devClearAllRoutines(): Promise<{ deleted: number; error?: string }> {
+  if (!isDevToolsEnabled()) {
+    throw new Error('Dev tools are not enabled. Set NEXT_PUBLIC_ENABLE_DEV_TOOLS=true');
+  }
+
+  try {
+    if (isDatabaseEnabled()) {
+      const supabaseService = await getSupabaseService();
+      
+      if (!supabaseService.getRoutines) {
+        throw new Error('getRoutines not available');
+      }
+      
+      const routines = await supabaseService.getRoutines();
+      
+      // Eliminar todas las rutinas
+      if (supabaseService.deleteRoutine) {
+        for (const routine of routines) {
+          await supabaseService.deleteRoutine(routine.id);
+        }
+      }
+      
+      logger.info('[DEV] Cleared all routines from Supabase', { count: routines.length });
+      return { deleted: routines.length };
+    } else {
+      const localStorageService = await getLocalStorageService();
+      const routines = await localStorageService.getRoutines();
+      
+      // Limpiar localStorage
+      localStorage.removeItem('gym-tracker-routines');
+      
+      logger.info('[DEV] Cleared all routines from localStorage', { count: routines.length });
+      return { deleted: routines.length };
+    }
+  } catch (error) {
+    logger.error('[DEV] Error clearing routines', {}, error instanceof Error ? error : undefined);
+    return { deleted: 0, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Limpia el perfil del usuario
+ * ⚠️ PELIGROSO: Esta acción es irreversible
+ * Solo disponible en modo desarrollo
+ */
+export async function devClearProfile(): Promise<{ success: boolean; error?: string }> {
+  if (!isDevToolsEnabled()) {
+    throw new Error('Dev tools are not enabled. Set NEXT_PUBLIC_ENABLE_DEV_TOOLS=true');
+  }
+
+  try {
+    if (isDatabaseEnabled()) {
+      const supabaseService = await getSupabaseService();
+      
+      if (!supabaseService.updateProfile) {
+        throw new Error('updateProfile not available');
+      }
+      
+      // Resetear perfil a valores por defecto
+      await supabaseService.updateProfile({
+        age: undefined,
+        gender: undefined,
+        height: undefined,
+        weight: undefined,
+        fitnessGoal: undefined,
+        fitnessLevel: undefined,
+        weeklyWorkouts: undefined
+      });
+      
+      logger.info('[DEV] Cleared profile from Supabase');
+      return { success: true };
+    } else {
+      // Limpiar localStorage
+      localStorage.removeItem('gym-tracker-profile');
+      
+      logger.info('[DEV] Cleared profile from localStorage');
+      return { success: true };
+    }
+  } catch (error) {
+    logger.error('[DEV] Error clearing profile', {}, error instanceof Error ? error : undefined);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Limpia planes semanales y mensuales
+ * ⚠️ PELIGROSO: Esta acción es irreversible
+ * Solo disponible en modo desarrollo
+ */
+export async function devClearPlans(): Promise<{ success: boolean; error?: string }> {
+  if (!isDevToolsEnabled()) {
+    throw new Error('Dev tools are not enabled. Set NEXT_PUBLIC_ENABLE_DEV_TOOLS=true');
+  }
+
+  try {
+    if (isDatabaseEnabled()) {
+      const supabaseService = await getSupabaseService();
+      
+      if (!supabaseService.saveWeeklyPlan || !supabaseService.saveMonthlyPlan) {
+        throw new Error('Plan functions not available');
+      }
+      
+      // Limpiar planes
+      await supabaseService.saveWeeklyPlan({
+        monday: { routines: [] },
+        tuesday: { routines: [] },
+        wednesday: { routines: [] },
+        thursday: { routines: [] },
+        friday: { routines: [] },
+        saturday: { routines: [] },
+        sunday: { routines: [] }
+      });
+      
+      await supabaseService.saveMonthlyPlan({});
+      
+      logger.info('[DEV] Cleared plans from Supabase');
+      return { success: true };
+    } else {
+      // Limpiar localStorage
+      localStorage.removeItem('gym-tracker-weekly-plan');
+      localStorage.removeItem('gym-tracker-monthly-plan');
+      
+      logger.info('[DEV] Cleared plans from localStorage');
+      return { success: true };
+    }
+  } catch (error) {
+    logger.error('[DEV] Error clearing plans', {}, error instanceof Error ? error : undefined);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Limpia recomendaciones de progresión
+ * Solo disponible en modo desarrollo
+ */
+export async function devClearRecommendations(): Promise<{ success: boolean; error?: string }> {
+  if (!isDevToolsEnabled()) {
+    throw new Error('Dev tools are not enabled. Set NEXT_PUBLIC_ENABLE_DEV_TOOLS=true');
+  }
+
+  try {
+    if (isDatabaseEnabled()) {
+      const supabaseService = await getSupabaseService();
+      
+      if (!supabaseService.saveRecommendations) {
+        throw new Error('saveRecommendations not available');
+      }
+      
+      await supabaseService.saveRecommendations([]);
+      
+      logger.info('[DEV] Cleared recommendations from Supabase');
+      return { success: true };
+    } else {
+      localStorage.removeItem('gym-tracker-recommendations');
+      
+      logger.info('[DEV] Cleared recommendations from localStorage');
+      return { success: true };
+    }
+  } catch (error) {
+    logger.error('[DEV] Error clearing recommendations', {}, error instanceof Error ? error : undefined);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Limpia TODOS los datos del usuario
+ * ⚠️ MUY PELIGROSO: Esta acción es irreversible y elimina TODO
+ * Solo disponible en modo desarrollo
+ */
+export async function devClearAllData(): Promise<{
+  sessions: number;
+  routines: number;
+  profile: boolean;
+  plans: boolean;
+  recommendations: boolean;
+  errors: string[];
+}> {
+  if (!isDevToolsEnabled()) {
+    throw new Error('Dev tools are not enabled. Set NEXT_PUBLIC_ENABLE_DEV_TOOLS=true');
+  }
+
+  const errors: string[] = [];
+  let sessionsDeleted = 0;
+  let routinesDeleted = 0;
+  let profileCleared = false;
+  let plansCleared = false;
+  let recommendationsCleared = false;
+
+  // Limpiar sesiones
+  try {
+    const result = await devClearAllSessions();
+    sessionsDeleted = result.deleted;
+    if (result.error) errors.push(`Sessions: ${result.error}`);
+  } catch (error) {
+    errors.push(`Sessions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // Limpiar rutinas
+  try {
+    const result = await devClearAllRoutines();
+    routinesDeleted = result.deleted;
+    if (result.error) errors.push(`Routines: ${result.error}`);
+  } catch (error) {
+    errors.push(`Routines: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // Limpiar perfil
+  try {
+    const result = await devClearProfile();
+    profileCleared = result.success;
+    if (result.error) errors.push(`Profile: ${result.error}`);
+  } catch (error) {
+    errors.push(`Profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // Limpiar planes
+  try {
+    const result = await devClearPlans();
+    plansCleared = result.success;
+    if (result.error) errors.push(`Plans: ${result.error}`);
+  } catch (error) {
+    errors.push(`Plans: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // Limpiar recomendaciones
+  try {
+    const result = await devClearRecommendations();
+    recommendationsCleared = result.success;
+    if (result.error) errors.push(`Recommendations: ${result.error}`);
+  } catch (error) {
+    errors.push(`Recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  // Limpiar active workout
+  try {
+    await clearActiveWorkout();
+  } catch (error) {
+    errors.push(`Active workout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  logger.warn('[DEV] Cleared all user data', {
+    sessionsDeleted,
+    routinesDeleted,
+    profileCleared,
+    plansCleared,
+    recommendationsCleared,
+    errors
+  });
+
+  return {
+    sessions: sessionsDeleted,
+    routines: routinesDeleted,
+    profile: profileCleared,
+    plans: plansCleared,
+    recommendations: recommendationsCleared,
+    errors
+  };
+}
+
+/**
+ * Genera datos de prueba para desarrollo
+ * Solo disponible en modo desarrollo
+ */
+export async function devGenerateTestData(): Promise<{ success: boolean; error?: string }> {
+  if (!isDevToolsEnabled()) {
+    throw new Error('Dev tools are not enabled. Set NEXT_PUBLIC_ENABLE_DEV_TOOLS=true');
+  }
+
+  try {
+    // Crear rutina de prueba
+    const testRoutine = await createRoutine({
+      name: 'Rutina de Prueba',
+      description: 'Generada automáticamente para desarrollo',
+      exercises: [
+        {
+          id: 'test-exercise-1',
+          name: 'Press Banca',
+          sets: [
+            { reps: 10, weight: 50 },
+            { reps: 10, weight: 55 },
+            { reps: 8, weight: 60 }
+          ]
+        },
+        {
+          id: 'test-exercise-2',
+          name: 'Sentadillas',
+          sets: [
+            { reps: 12, weight: 80 },
+            { reps: 10, weight: 90 },
+            { reps: 8, weight: 100 }
+          ]
+        }
+      ],
+      restBetweenSets: 90,
+      restBetweenExercises: 120
+    });
+
+    // Crear sesión de prueba
+    const testSession: WorkoutSession = {
+      id: `test-session-${Date.now()}`,
+      routineId: testRoutine.id,
+      routineName: testRoutine.name,
+      date: new Date(),
+      startedAt: new Date(Date.now() - 3600000), // 1 hora atrás
+      completedAt: new Date(),
+      exercises: [
+        {
+          exerciseId: 'test-exercise-1',
+          exerciseName: 'Press Banca',
+          completedSets: 3,
+          actualReps: [10, 10, 8],
+          actualWeight: [50, 55, 60]
+        },
+        {
+          exerciseId: 'test-exercise-2',
+          exerciseName: 'Sentadillas',
+          completedSets: 3,
+          actualReps: [12, 10, 8],
+          actualWeight: [80, 90, 100]
+        }
+      ],
+      totalDuration: 3600,
+      notes: 'Sesión de prueba generada automáticamente'
+    };
+
+    await saveSession(testSession);
+
+    logger.info('[DEV] Generated test data', { routineId: testRoutine.id, sessionId: testSession.id });
+    return { success: true };
+  } catch (error) {
+    logger.error('[DEV] Error generating test data', {}, error instanceof Error ? error : undefined);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}

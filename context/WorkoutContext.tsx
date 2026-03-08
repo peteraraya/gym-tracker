@@ -46,7 +46,7 @@ interface WorkoutContextType {
     },
     totalPausedTime?: number
   ) => void;
-  updateModifiedRoutine: (routine: Routine) => void;
+  updateModifiedRoutine: (routine: Routine) => Promise<void>;
   clearRestState: () => void;
   finishWorkout: () => Promise<void>;
   cancelWorkout: () => Promise<void>;
@@ -280,8 +280,48 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const updateModifiedRoutine = useCallback((routine: Routine) => {
+  const updateModifiedRoutine = useCallback(async (routine: Routine) => {
     console.log('[WorkoutContext] updateModifiedRoutine called with', routine.exercises.map((ex: any) => `${ex.id}:${ex.sets.length}`).join('|'));
+    
+    // ✅ CRÍTICO: Guardar la rutina modificada en Supabase inmediatamente
+    // Esto asegura que al recargar (F5) se mantenga la rutina correcta
+    try {
+      // Importar updateRoutine dinámicamente para evitar dependencias circulares
+      const { updateRoutine } = await import('@/lib/storage/storage');
+      
+      await updateRoutine(routine.id, {
+        name: routine.name,
+        description: routine.description,
+        image: routine.image,
+        exercises: routine.exercises.map(ex => ({
+          id: ex.id,
+          name: ex.name,
+          sets: ex.sets.map(set => ({
+            reps: set.reps,
+            weight: set.weight || 0,
+            type: set.type,
+            notes: set.notes
+          })),
+          notes: ex.notes,
+          equipment: ex.equipment,
+          technique: ex.technique,
+          recommendedSets: ex.recommendedSets,
+          recommendedReps: ex.recommendedReps,
+          restTime: ex.restTime,
+          restBetweenSets: ex.restBetweenSets,
+          useSmartRest: ex.useSmartRest
+        })),
+        restBetweenSets: routine.restBetweenSets,
+        restBetweenExercises: routine.restBetweenExercises
+      });
+      
+      console.log('[WorkoutContext] Modified routine saved to Supabase');
+    } catch (error) {
+      console.error('[WorkoutContext] Error saving modified routine to Supabase:', error);
+      // No lanzar error, continuar con el guardado local
+    }
+    
+    // Guardar también en activeWorkout para persistencia local
     setActiveWorkout(prev => {
       if (!prev) return null;
       const newState = {
@@ -291,9 +331,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       (async () => {
         try {
           await storageService.saveActiveWorkout(newState as unknown as ActiveWorkout);
-          console.log('[WorkoutContext] Modified routine saved to storage');
+          console.log('[WorkoutContext] Modified routine saved to activeWorkout storage');
         } catch (e) {
-          console.warn('[Workout] Failed to persist modified routine:', e);
+          console.warn('[Workout] Failed to persist modified routine to activeWorkout:', e);
         }
       })();
       return newState;
