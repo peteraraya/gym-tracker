@@ -325,6 +325,29 @@ export async function updateSession(session: WorkoutSession): Promise<void> {
     }
 }
 
+export async function deleteSession(sessionId: string): Promise<void> {
+    if (!isDatabaseEnabled()) {
+        throw new Error('Base de datos requerida. Las sesiones solo se pueden eliminar con Supabase habilitado.');
+    }
+
+    try {
+        const supabaseModule = await import('@/lib/supabase/service');
+        const supabaseService = supabaseModule as unknown as SupabaseServicePartial & { deleteSession?: (id: string) => Promise<void> };
+        
+        if (!supabaseService.deleteSession) {
+            throw new Error('Servicio de eliminación de sesiones no disponible');
+        }
+        
+        await supabaseService.deleteSession(sessionId);
+        handleStorageSuccess();
+        
+        logger.info('Sesión eliminada exitosamente', { sessionId });
+    } catch (err) {
+        logger.error('Error al eliminar sesión en Supabase', { critical: true, sessionId }, err instanceof Error ? err : undefined);
+        throw new Error('No se pudo eliminar la sesión de entrenamiento. Verifica tu conexión.');
+    }
+}
+
 // ==================== PROFILE ====================
 // CRITICAL_SUPABASE_ONLY: Perfil es dato crítico, solo Supabase (sin fallback)
 

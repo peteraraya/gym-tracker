@@ -454,6 +454,39 @@ export async function updateSession(session: WorkoutSession): Promise<void> {
   }
 }
 
+/**
+ * Delete a workout session
+ */
+export async function deleteSession(sessionId: string): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  if (!sessionId) throw new Error('Session ID is required for deletion');
+
+  // Delete session exercises first (cascade should handle this, but being explicit)
+  const { error: exercisesError } = await supabase
+    .from('session_exercises')
+    .delete()
+    .eq('session_id', sessionId);
+
+  if (exercisesError) {
+    console.warn('Error al eliminar ejercicios de la sesión:', exercisesError.message);
+  }
+
+  // Delete the session
+  const { error: sessionError } = await supabase
+    .from('workout_sessions')
+    .delete()
+    .eq('id', sessionId)
+    .eq('user_id', user.id);
+
+  if (sessionError) {
+    throw new Error(`Error al eliminar sesión: ${sessionError.message}`);
+  }
+}
+
 // ==================== PROFILE ====================
 
 // Import unified UserProfile type

@@ -15,10 +15,12 @@ import { useSessionStats } from '@/hooks/useSessionStats';
 import { PageLayout } from '@/components/PageLayout';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function SessionsPage() {
-  const { sessions: serverSessions, routines, loading, updateSession } = useGym();
+  const { sessions: serverSessions, routines, loading, updateSession, deleteSession } = useGym();
   const { success, error: showError } = useToast();
+  const { confirm } = useConfirm();
   
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
   const [editingSession, setEditingSession] = useState<WorkoutSession | null>(null);
@@ -120,6 +122,33 @@ export default function SessionsPage() {
     } catch (err) {
       console.error('Error updating session:', err);
       showError('Error al actualizar la sesión');
+    }
+  };
+
+  const handleDeleteSession = async (session: WorkoutSession) => {
+    const routineName = getRoutineName(session.routineId);
+    const sessionDate = new Date(session.date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const confirmed = await confirm({
+      title: '¿Eliminar sesión?',
+      message: `¿Estás seguro de que quieres eliminar la sesión de "${routineName}" del ${sessionDate}? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteSession(session.id);
+      success('🗑️ Sesión eliminada exitosamente');
+    } catch (err) {
+      console.error('Error deleting session:', err);
+      showError('Error al eliminar la sesión');
     }
   };
 
@@ -308,6 +337,18 @@ export default function SessionsPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                                 <span className="hidden sm:inline">Editar</span>
+                              </button>
+                              
+                              {/* Botón Eliminar */}
+                              <button
+                                onClick={() => handleDeleteSession(session)}
+                                className="px-3 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                                title="Eliminar sesión"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                <span className="hidden sm:inline">Eliminar</span>
                               </button>
                             </div>
                           </div>

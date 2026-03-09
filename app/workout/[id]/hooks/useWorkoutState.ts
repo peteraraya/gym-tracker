@@ -120,23 +120,9 @@ export function useWorkoutState(
     return () => clearTimeout(timer);
   }, []);
 
-  // Notificar cambios cuando workoutData cambia (después de inicialización)
-  useEffect(() => {
-    if (isInitializingRef.current) {
-      console.log('[useWorkoutState] ⏸️ Skipping notification - initializing');
-      return;
-    }
-    
-    if (!workoutData._lastUpdate) {
-      console.log('[useWorkoutState] ⏸️ Skipping notification - no timestamp');
-      return;
-    }
-
-    if (onDataChangeRef.current) {
-      console.log('[useWorkoutState] 📢 Notifying data change:', workoutData);
-      onDataChangeRef.current(workoutData);
-    }
-  }, [workoutData]);
+  // ✅ ELIMINADO: El efecto de notificación ya no es necesario
+  // El guardado ahora se hace directamente en los callbacks de cada acción
+  // Esto evita guardados duplicados y loops infinitos
 
   // ==================== ACCIONES ====================
 

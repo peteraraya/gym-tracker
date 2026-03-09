@@ -89,8 +89,7 @@ export default function WorkoutPage() {
   const [isQuickEditMode, setIsQuickEditMode] = useState(false);
   const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
-  const [newRecord, setNewRecord] = useState<{exerciseId: string, exerciseName: string, weight: number, previousRecord: number} | null>(null);
-  const [showRecordCelebration, setShowRecordCelebration] = useState(false);
+  // ✅ Estados de récord personal eliminados - no se muestran durante el entrenamiento
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
     // Solo acceder a localStorage en el cliente
     if (typeof window === 'undefined') {

@@ -30,6 +30,8 @@ interface QuickEditModeProps {
   onMoveExercise?: (fromIndex: number, toIndex: number) => void;
   onSkipExercise?: (exerciseId: string) => void;
   onUnskipExercise?: (exerciseId: string) => void;
+  onSkipRestTimersChange?: (skip: boolean) => void; // ✅ NUEVO: Callback para notificar cambio
+  skipRestTimers?: boolean; // ✅ NUEVO: Estado controlado desde el padre
 }
 
 /**
@@ -51,6 +53,8 @@ export function QuickEditMode({
   onMoveExercise,
   onSkipExercise,
   onUnskipExercise,
+  onSkipRestTimersChange,
+  skipRestTimers: skipRestTimersProp,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -70,6 +74,16 @@ export function QuickEditMode({
   const [manuallyExpandedExercises, setManuallyExpandedExercises] = useState<Set<string>>(new Set());
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  // ✅ Usar estado controlado si se proporciona, sino usar estado local
+  const [skipRestTimersLocal, setSkipRestTimersLocal] = useState(false);
+  const skipRestTimers = skipRestTimersProp !== undefined ? skipRestTimersProp : skipRestTimersLocal;
+  const setSkipRestTimers = (value: boolean) => {
+    if (onSkipRestTimersChange) {
+      onSkipRestTimersChange(value);
+    } else {
+      setSkipRestTimersLocal(value);
+    }
+  };
   const inputRef = useRef<HTMLInputElement>(null);
   const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -431,6 +445,31 @@ export function QuickEditMode({
             <div className="text-xs opacity-90 mt-1">{completedSets}/{totalSets} series</div>
           </div>
         </div>
+        
+        {/* Switch para omitir descansos */}
+        <div className="flex items-center justify-between gap-3 mt-3 p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="text-sm font-medium">Omitir descansos</span>
+          </div>
+          <button
+            onClick={() => setSkipRestTimers(!skipRestTimers)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
+              skipRestTimers ? 'bg-green-500' : 'bg-white/30'
+            }`}
+            role="switch"
+            aria-checked={skipRestTimers}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                skipRestTimers ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+        
         {/* Barra de progreso mejorada */}
         <div className="w-full bg-white/20 rounded-full h-2 mt-3 overflow-hidden">
           <div 

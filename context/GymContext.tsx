@@ -21,6 +21,7 @@ interface SessionsContextType {
   loading: boolean;
   addSession: (session: Omit<WorkoutSession, 'id'>) => Promise<void>;
   updateSession: (session: WorkoutSession) => Promise<void>;
+  deleteSession: (sessionId: string) => Promise<void>;
   refreshSessions: () => Promise<void>;
 }
 
@@ -287,6 +288,23 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [refreshSessions]);
 
+  const deleteSession = useCallback(async (sessionId: string) => {
+    try {
+      console.log('[GymContext] deleteSession called for session:', sessionId);
+      
+      // Eliminar sesión del storage
+      await storageService.deleteSession(sessionId);
+      
+      // Refrescar sesiones para obtener la lista actualizada
+      await refreshSessions();
+      
+      console.log('[GymContext] Session deleted successfully');
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      throw error;
+    }
+  }, [refreshSessions]);
+
   const getRoutineById = useCallback((id: string) => {
     return routines.find(routine => routine.id === id);
   }, [routines]);
@@ -306,8 +324,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     loading,
     addSession,
     updateSession,
+    deleteSession,
     refreshSessions,
-  }), [sessions, loading, addSession, updateSession, refreshSessions]);
+  }), [sessions, loading, addSession, updateSession, deleteSession, refreshSessions]);
 
   const value = useMemo<GymContextType>(() => ({
     ...routinesValue,
