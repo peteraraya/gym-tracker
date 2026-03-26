@@ -73,6 +73,10 @@ export default function WorkoutPage() {
   const [routine, setRoutine] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   
+  // ✅ SIMPLIFICACIÓN: Forzar siempre modo de edición rápida (tabla)
+  // El modo guiado está oculto temporalmente para simplificar la funcionalidad
+  const [isQuickEditMode] = useState(true); // Siempre true, sin setter
+  
   // ✅ Ref para el callback de guardado (se actualiza después de que timerHandlers esté disponible)
   const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
   
@@ -85,8 +89,9 @@ export default function WorkoutPage() {
     }
   });
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
+  const [selectedExerciseName, setSelectedExerciseName] = useState<string>('');
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
-  const [isQuickEditMode, setIsQuickEditMode] = useState(false);
+  // ✅ isQuickEditMode ya está definido arriba como constante true
   const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
   // ✅ Estados de récord personal eliminados - no se muestran durante el entrenamiento
@@ -654,42 +659,8 @@ export default function WorkoutPage() {
   }, [currentExercise, workoutState.currentSet, isInitialized]);
 
   // ==================== HANDLERS ====================
-  const checkAndCelebrateRecord = useCallback((exerciseId: string, exerciseName: string, weight: number) => {
-    if (weight <= 0) return; // No celebrar peso 0
-    
-    const comparison = compareWithRecord(exerciseId, weight, sessions);
-    
-    if (comparison.isNewRecord) {
-      // Haptic feedback especial para récord
-      haptic.achievement();
-      
-      // Guardar datos del récord para mostrar celebración
-      setNewRecord({
-        exerciseId,
-        exerciseName,
-        weight,
-        previousRecord: comparison.previousRecord || 0
-      });
-      setShowRecordCelebration(true);
-      
-      // Ocultar celebración después de 4 segundos
-      setTimeout(() => {
-        setShowRecordCelebration(false);
-      }, 4000);
-      
-      // Toast motivacional
-      if (comparison.previousRecord) {
-        const improvement = comparison.improvement || 0;
-        const improvementPercent = comparison.improvementPercentage || 0;
-        success(
-          `🏆 ¡NUEVO RÉCORD! ${weight}kg (+${improvement.toFixed(1)}kg, +${improvementPercent.toFixed(1)}%)`,
-          5000
-        );
-      } else {
-        success(`🏆 ¡PRIMER RÉCORD! ${weight}kg en ${exerciseName}`, 5000);
-      }
-    }
-  }, [sessions, haptic, success]);
+  // ✅ Función de récord personal eliminada - no se muestran durante el entrenamiento
+  // Los récords aún se calculan y guardan, simplemente no se celebran en tiempo real
 
   const handleCompleteSet = useCallback(() => {
     if (!currentExercise || !routine) return;
@@ -713,8 +684,7 @@ export default function WorkoutPage() {
 
     workoutState.completeSet(exerciseId, repsValue, weightValue);
 
-    // ✅ Detectar récord personal
-    checkAndCelebrateRecord(exerciseId, currentExercise.name, weightValue);
+    // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
 
     // Haptic feedback al completar serie
     haptic.setComplete();
@@ -786,8 +756,7 @@ export default function WorkoutPage() {
     haptic.setComplete,
     haptic.restStart,
     completion.openCompletionModal,
-    setExecution.completeSet,
-    checkAndCelebrateRecord
+    setExecution.completeSet
   ]);
 
   const handleTimerComplete = useCallback(() => {
@@ -952,9 +921,8 @@ export default function WorkoutPage() {
       ...(workoutState.workoutData.actualWeights[exerciseId] || []).slice(setIndex + 1)
     ]);
     
-    // ✅ Detectar récord personal al editar peso
-    checkAndCelebrateRecord(exerciseId, currentExercise.name, weight);
-  }, [currentExercise?.id, currentExercise?.name, workoutState.updateActualWeights, workoutState.workoutData.actualWeights, checkAndCelebrateRecord]);
+    // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
+  }, [currentExercise?.id, workoutState.updateActualWeights, workoutState.workoutData.actualWeights]);
 
   const handleEditSetType = useCallback((setIndex: number, type: any) => {
     if (!currentExercise) return;
@@ -1365,15 +1333,11 @@ export default function WorkoutPage() {
     newWeights[setIndex] = weight;
     workoutState.updateActualWeights(exerciseId, newWeights);
     
-    // ✅ Detectar récord personal al editar peso en modo rápido
-    const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
-    if (exercise) {
-      checkAndCelebrateRecord(exerciseId, exercise.name, weight);
-    }
+    // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
     
     console.log('[handleQuickEditWeight] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
     console.log('[handleQuickEditWeight] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
-  }, [workoutState, routine?.exercises, checkAndCelebrateRecord]);
+  }, [workoutState, routine?.exercises]);
 
   const handleQuickEditSetType = useCallback((exerciseId: string, setIndex: number, type: any) => {
     workoutState.updateSetType(exerciseId, setIndex, type);
@@ -1617,7 +1581,9 @@ export default function WorkoutPage() {
           </div>
         </div>
 
-        {/* Toggle entre modo guiado y modo edición rápida */}
+        {/* ✅ SIMPLIFICACIÓN: Toggle oculto - solo modo de edición rápida */}
+        {/* El modo guiado está temporalmente deshabilitado para simplificar la funcionalidad */}
+        {/* 
         <div className="mb-4 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
           <button
             onClick={() => setIsQuickEditMode(false)}
@@ -1640,12 +1606,13 @@ export default function WorkoutPage() {
             📝 Edición Rápida
           </button>
         </div>
+        */}
 
-        {isQuickEditMode ? (
-          /* Modo de edición rápida - Vista tipo Excel */
-          <QuickEditMode
+        {/* ✅ Siempre mostrar modo de edición rápida */}
+        <QuickEditMode
             routine={routine}
             workoutData={workoutState.workoutData}
+            sessions={sessions}
             onEditReps={handleQuickEditReps}
             onEditWeight={handleQuickEditWeight}
             onEditSetType={handleQuickEditSetType}
@@ -1656,6 +1623,11 @@ export default function WorkoutPage() {
             onMoveExercise={handleMoveExercise}
             onSkipExercise={skipExercise}
             onUnskipExercise={unskipExercise}
+            onShowExerciseInfo={(exerciseName) => {
+              // Guardar el nombre del ejercicio y mostrar el modal
+              setSelectedExerciseName(exerciseName);
+              setShowExerciseInfo(true);
+            }}
             onEditRestTime={(exerciseId, restTime) => {
               workoutState.updateRestOverride(exerciseId, restTime);
               
@@ -1695,138 +1667,7 @@ export default function WorkoutPage() {
               }
             }}
           />
-        ) : (
-          /* Modo guiado - Flujo normal */
-          <>
-        {/* Botón flotante grande - Iniciar o Completar Serie */}
-        <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
         
-        <div className="fixed bottom-0 left-0 right-0 z-30 px-0">
-          {!setExecution.isExecutingSet ? (
-            // Botón Iniciar Serie
-            <Button
-              variant="primary"
-              onClick={() => {
-                console.log('[Workout] Iniciar Serie button clicked');
-                setExecution.startSet();
-              }}
-              className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
-            >
-              <span className="text-2xl">▶️</span>
-              <div className="flex flex-col items-start">
-                <span>Iniciar Serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}</span>
-                <span className="text-xs font-normal opacity-90">
-                  {workoutState.currentReps} reps × {workoutState.currentWeight}kg
-                </span>
-              </div>
-            </Button>
-          ) : (
-            // Botón Completar Serie (cuando está en ejecución)
-            <Button
-              variant="primary"
-              onClick={handleCompleteSet}
-              disabled={workoutState.currentReps === '' || workoutState.currentWeight === ''}
-              className="w-full py-6 text-lg font-bold bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="text-2xl">✅</span>
-              <div className="flex flex-col items-start">
-                <span>Completar Serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}</span>
-                <span className="text-xs font-normal opacity-90">
-                  {workoutState.currentReps} reps × {workoutState.currentWeight}kg
-                </span>
-              </div>
-            </Button>
-          )}
-        </div>
-
-        <ExerciseCard
-          exercise={currentExercise}
-          exerciseIndex={workoutState.currentExerciseIndex}
-          currentSet={workoutState.currentSet}
-          completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
-          currentReps={workoutState.currentReps}
-          currentWeight={workoutState.currentWeight}
-          onRepsChange={workoutState.setCurrentReps}
-          onWeightChange={workoutState.setCurrentWeight}
-          onCompleteSet={handleCompleteSet}
-          onShowInfo={() => setShowExerciseInfo(true)}
-          isSetStarted={setExecution.isExecutingSet}
-          weightSuggestion={weightPrediction.weightSuggestion}
-          onDismissWeightSuggestion={() => weightPrediction.setDismissedWeightSuggestion(true)}
-          lastSetData={lastSetData}
-          onRepeatPrevious={handleRepeatPrevious}
-          setStartTime={setExecution.setStartTime}
-          personalRecord={currentExerciseRecord}
-          quickSwitcher={
-            <QuickExerciseSwitcher
-              routine={routine}
-              currentExerciseIndex={workoutState.currentExerciseIndex}
-              completedSets={workoutState.workoutData.completedSets}
-              onSelectExercise={(index) => {
-                workoutState.setCurrentExerciseIndex(index);
-                workoutState.setCurrentSet(1);
-              }}
-            />
-          }
-        />
-
-        <div className="mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => setIsSeriesTableExpanded(!isSeriesTableExpanded)}
-            className="w-full text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 py-2"
-          >
-            {isSeriesTableExpanded ? (
-              <>▼ Ocultar series ({currentExercise.sets.length})</>
-            ) : (
-              <>▶ Ver todas las series ({currentExercise.sets.length})</>
-            )}
-          </Button>
-        </div>
-
-        {isSeriesTableExpanded && (
-          <Suspense fallback={
-            <div className="animate-pulse bg-gray-100 dark:bg-gray-800 rounded-lg h-64 mb-4" />
-          }>
-            <SeriesTable
-              exercise={currentExercise}
-              exerciseId={currentExercise.id}
-              completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
-              actualReps={workoutState.workoutData.actualReps[currentExercise.id] || []}
-              actualWeights={workoutState.workoutData.actualWeights[currentExercise.id] || []}
-              setTypes={workoutState.workoutData.setTypes[currentExercise.id] || []}
-              currentSet={workoutState.currentSet}
-              onEditReps={handleEditReps}
-              onEditWeight={handleEditWeight}
-              onEditSetType={handleEditSetType}
-              onToggleSetComplete={handleToggleSetComplete}
-              onAddSet={handleAddSet}
-              onDeleteSet={handleDeleteSet}
-              perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
-              onEditRestTime={handleEditRestTime}
-              onApplySmartRest={handleApplySmartRest}
-              smartRestTime={smartRestTime}
-              routine={routine}
-              restOverrides={workoutState.workoutData.restOverrides}
-              useSmartRest={useSmartRest}
-            />
-          </Suspense>
-        )}
-
-        <ExerciseList
-          routine={routine}
-          currentExerciseIndex={workoutState.currentExerciseIndex}
-          completedSets={workoutState.workoutData.completedSets}
-          onSelectExercise={handleSelectExercise}
-          onMoveExercise={handleMoveExercise}
-        />
-
-        <div className="mb-6">
-          <AddExerciseButton onAddExercises={handleAddExercises} />
-        </div>
-          </>
-        )}
-
         {/* Modales compartidos entre ambos modos */}
         <Modal
           isOpen={showEditTimeModal}
@@ -1912,64 +1753,23 @@ export default function WorkoutPage() {
           isSaving={false}
         />
 
-        {showExerciseInfo && currentExercise && (
+        {showExerciseInfo && (
           <Suspense fallback={<div />}>
             <ExerciseInfoPanel
-              exercise={EXERCISE_DATABASE.find(e => e.name === currentExercise.name) || {
-                id: currentExercise.id,
-                name: currentExercise.name,
+              exercise={EXERCISE_DATABASE.find(e => e.name === selectedExerciseName) || {
+                id: selectedExerciseName,
+                name: selectedExerciseName,
                 muscleGroup: 'pecho'
               } as any}
-              onClose={() => setShowExerciseInfo(false)}
+              onClose={() => {
+                setShowExerciseInfo(false);
+                setSelectedExerciseName('');
+              }}
             />
           </Suspense>
         )}
 
-        {/* ✅ Celebración de récord personal */}
-        {showRecordCelebration && newRecord && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div className="animate-bounce-in pointer-events-auto">
-              <div className="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 text-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 transform scale-110">
-                <div className="text-center space-y-4">
-                  {/* Trofeo animado */}
-                  <div className="text-8xl animate-pulse">
-                    🏆
-                  </div>
-                  
-                  {/* Título */}
-                  <h2 className="text-3xl font-bold tracking-tight">
-                    ¡NUEVO RÉCORD!
-                  </h2>
-                  
-                  {/* Ejercicio */}
-                  <p className="text-xl font-semibold opacity-90">
-                    {newRecord.exerciseName}
-                  </p>
-                  
-                  {/* Peso */}
-                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                    <div className="text-5xl font-black">
-                      {newRecord.weight}kg
-                    </div>
-                    {newRecord.previousRecord > 0 && (
-                      <div className="text-sm mt-2 opacity-90">
-                        Anterior: {newRecord.previousRecord}kg
-                        <span className="ml-2 text-green-200">
-                          (+{(newRecord.weight - newRecord.previousRecord).toFixed(1)}kg)
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Mensaje motivacional */}
-                  <p className="text-lg font-medium opacity-90">
-                    ¡Sigue así, campeón! 💪
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* ✅ Celebración de récord personal eliminada - no se muestra durante el entrenamiento */}
 
         <Suspense fallback={<div />}>
           <SetExecutionModal

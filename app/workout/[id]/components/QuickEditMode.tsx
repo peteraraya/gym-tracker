@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import SetTypeCycleButton from '@/components/SetTypeCycleButton';
 import { EditValueModal } from '@/components/EditValueModal';
+import { FloatingRestTimer } from './FloatingRestTimer';
 import type { SetType, Routine } from '@/types';
 
 interface QuickEditModeProps {
@@ -32,6 +33,8 @@ interface QuickEditModeProps {
   onUnskipExercise?: (exerciseId: string) => void;
   onSkipRestTimersChange?: (skip: boolean) => void; // ✅ NUEVO: Callback para notificar cambio
   skipRestTimers?: boolean; // ✅ NUEVO: Estado controlado desde el padre
+  onShowExerciseInfo?: (exerciseName: string) => void; // ✅ NUEVO: Callback para mostrar info del ejercicio
+  sessions?: any[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
 }
 
 /**
@@ -55,6 +58,8 @@ export function QuickEditMode({
   onUnskipExercise,
   onSkipRestTimersChange,
   skipRestTimers: skipRestTimersProp,
+  onShowExerciseInfo,
+  sessions = [],
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -84,6 +89,9 @@ export function QuickEditMode({
       setSkipRestTimersLocal(value);
     }
   };
+  // ✅ Estado para el temporizador flotante
+  const [showFloatingTimer, setShowFloatingTimer] = useState(false);
+  const [floatingTimerDuration, setFloatingTimerDuration] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -429,6 +437,18 @@ export function QuickEditMode({
 
   return (
     <div className="space-y-3 pb-32">
+      {/* Temporizador flotante */}
+      {showFloatingTimer && (
+        <FloatingRestTimer
+          duration={floatingTimerDuration}
+          onComplete={() => {
+            setShowFloatingTimer(false);
+            // Opcional: Mostrar notificación o vibración
+          }}
+          onDismiss={() => setShowFloatingTimer(false)}
+        />
+      )}
+      
       {/* Header mejorado - sticky y más visual */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-xl shadow-lg sticky top-0 z-10">
         <div className="flex items-center justify-between mb-2">
@@ -567,7 +587,7 @@ export function QuickEditMode({
                 ? 'opacity-75'
                 : ''
             }`}>
-            {/* Header del ejercicio mejorado */}
+            {/* Header del ejercicio mejorado con más información */}
             <div className={`border-b border-gray-200 dark:border-gray-700 ${
               isCurrent
                 ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30'
@@ -577,14 +597,23 @@ export function QuickEditMode({
                 ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20'
                 : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900'
             }`}>
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => toggleCollapse(exerciseId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleCollapse(exerciseId);
+                  }
+                }}
+                aria-expanded={!isCollapsed}
                 className="w-full p-3 hover:brightness-95 transition-all active:scale-[0.99]"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     {/* Número de ejercicio más grande y colorido */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shadow-md ${
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-md flex-shrink-0 ${
                       isCurrent
                         ? 'bg-blue-500 text-white'
                         : isNext
@@ -596,68 +625,117 @@ export function QuickEditMode({
                       {exIdx + 1}
                     </div>
                     
-                    <div className="text-left flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-bold text-base text-gray-900 dark:text-gray-100">
+                    <div className="text-left flex-1 min-w-0">
+                      {/* Nombre y badges */}
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 truncate">
                           {exercise.name}
                         </h3>
                         {/* Badge de omitido */}
                         {isSkipped && (
-                          <span className="px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full shadow-sm">
+                          <span className="px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full shadow-sm flex-shrink-0">
                             OMITIDO
                           </span>
                         )}
                         {/* Badge de estado más prominente */}
                         {!isSkipped && isCurrent && (
-                          <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm">
+                          <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm flex-shrink-0">
                             ACTUAL
                           </span>
                         )}
                         {!isSkipped && isNext && !isCurrent && (
-                          <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm">
+                          <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm flex-shrink-0">
                             SIGUIENTE
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {completedCount} de {exercise.sets.length} series
-                        </p>
+                      
+                      {/* Información del ejercicio */}
+                      <div className="space-y-1">
+                        {/* Progreso y equipo */}
+                        <div className="flex items-center gap-3 flex-wrap text-xs">
+                          <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            <span className="font-medium">{completedCount}/{exercise.sets.length} series</span>
+                          </div>
+                          
+                          {exercise.equipment && (
+                            <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                              </svg>
+                              <span className="capitalize">{exercise.equipment}</span>
+                            </div>
+                          )}
+                          
+                          {/* Botón de información del ejercicio */}
+                          {onShowExerciseInfo && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onShowExerciseInfo(exercise.name);
+                              }}
+                              className="flex items-center gap-1.5 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-md transition-colors"
+                              title="Ver información del ejercicio"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span className="text-[10px] font-semibold">Info</span>
+                            </button>
+                          )}
+                        </div>
+                        
+                        {/* Notas del ejercicio si existen */}
+                        {exercise.notes && (
+                          <div className="flex items-start gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                            <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="line-clamp-1 italic">{exercise.notes}</span>
+                          </div>
+                        )}
+                        
                         {/* Icono de collapse */}
-                        <svg 
-                          className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <svg 
+                            className={`w-3.5 h-3.5 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                          <span className="font-medium">{isCollapsed ? 'Ver series' : 'Ocultar series'}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Indicador de progreso circular */}
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-12 h-12">
-                      <svg className="w-12 h-12 transform -rotate-90">
+                  {/* Indicador de progreso circular mejorado */}
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                    <div className="relative w-14 h-14">
+                      <svg className="w-14 h-14 transform -rotate-90">
                         <circle
-                          cx="24"
-                          cy="24"
-                          r="20"
+                          cx="28"
+                          cy="28"
+                          r="24"
                           stroke="currentColor"
-                          strokeWidth="4"
+                          strokeWidth="5"
                           fill="none"
                           className="text-gray-200 dark:text-gray-700"
                         />
                         <circle
-                          cx="24"
-                          cy="24"
-                          r="20"
+                          cx="28"
+                          cy="28"
+                          r="24"
                           stroke="currentColor"
-                          strokeWidth="4"
+                          strokeWidth="5"
                           fill="none"
-                          strokeDasharray={`${2 * Math.PI * 20}`}
-                          strokeDashoffset={`${2 * Math.PI * 20 * (1 - completedCount / exercise.sets.length)}`}
+                          strokeDasharray={`${2 * Math.PI * 24}`}
+                          strokeDashoffset={`${2 * Math.PI * 24 * (1 - completedCount / exercise.sets.length)}`}
                           className={`transition-all duration-500 ${
                             isFullyCompleted
                               ? 'text-green-500'
@@ -669,18 +747,25 @@ export function QuickEditMode({
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className={`text-xs font-bold ${
-                          isFullyCompleted
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-gray-700 dark:text-gray-300'
-                        }`}>
-                          {isFullyCompleted ? '✓' : `${completedCount}/${exercise.sets.length}`}
-                        </span>
+                        {isFullyCompleted ? (
+                          <svg className="w-7 h-7 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <div className="text-center">
+                            <div className="text-sm font-bold text-gray-700 dark:text-gray-300 leading-none">
+                              {completedCount}
+                            </div>
+                            <div className="text-[9px] text-gray-500 dark:text-gray-400 leading-none mt-0.5">
+                              de {exercise.sets.length}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
-              </button>
+              </div>
               
               {/* Indicador de descanso - siempre visible */}
               <div className="px-2.5 pb-2 flex items-center justify-between gap-2">
@@ -811,6 +896,7 @@ export function QuickEditMode({
                       <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">Reps</th>
                       <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">Peso</th>
                       <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-10">Tipo</th>
+                      <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-16">↻</th>
                       <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-12">✓</th>
                       {onDeleteSet && exercise.sets.length > 1 && (
                         <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-8"></th>
@@ -834,6 +920,30 @@ export function QuickEditMode({
                       // Valores a mostrar
                       const displayReps = doneReps !== undefined ? doneReps : set.reps;
                       const displayWeight = doneWeight !== undefined ? doneWeight : (set.weight || 0);
+                      
+                      // Obtener valores de la serie anterior para copiar
+                      const canCopyPrevious = setIdx > 0;
+                      const previousReps = canCopyPrevious ? (actualReps[setIdx - 1] || exercise.sets[setIdx - 1]?.reps) : null;
+                      const previousWeight = canCopyPrevious ? (actualWeights[setIdx - 1] || exercise.sets[setIdx - 1]?.weight) : null;
+                      
+                      // Calcular indicadores de progreso comparando con última sesión
+                      const lastSession = sessions.length > 0 
+                        ? sessions
+                            .filter(s => s.exercises.some((e: any) => e.exerciseName === exercise.name))
+                            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+                        : null;
+                      
+                      const lastExerciseData = lastSession?.exercises.find((e: any) => e.exerciseName === exercise.name);
+                      const lastReps = lastExerciseData?.actualReps?.[setIdx];
+                      const lastWeight = lastExerciseData?.actualWeight?.[setIdx];
+                      
+                      // Calcular diferencias
+                      const repsDiff = (displayReps && lastReps) ? displayReps - lastReps : null;
+                      const weightDiff = (displayWeight && lastWeight) ? displayWeight - lastWeight : null;
+                      
+                      // Determinar si hay progreso
+                      const hasRepsProgress = repsDiff !== null && repsDiff !== 0;
+                      const hasWeightProgress = weightDiff !== null && weightDiff !== 0;
 
                       return (
                         <tr
@@ -857,40 +967,64 @@ export function QuickEditMode({
 
                           {/* Reps - editable */}
                           <td className="py-2 px-2">
-                            <button
-                              ref={(el) => {
-                                setInputRefs.current[`${exerciseId}-${setIdx}-reps`] = el;
-                              }}
-                              onClick={() => startEditing(exerciseId, setIdx, 'reps', displayReps, exercise.name)}
-                              className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-base border-2 ${
-                                displayReps === 0
-                                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                  : isCompleted
-                                  ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700'
-                                  : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
-                              }`}
-                            >
-                              {displayReps === 0 ? '-' : displayReps}
-                            </button>
+                            <div className="relative">
+                              <button
+                                ref={(el) => {
+                                  setInputRefs.current[`${exerciseId}-${setIdx}-reps`] = el;
+                                }}
+                                onClick={() => startEditing(exerciseId, setIdx, 'reps', displayReps, exercise.name)}
+                                className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-base border-2 ${
+                                  displayReps === 0
+                                    ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                    : isCompleted
+                                    ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700'
+                                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                                }`}
+                              >
+                                {displayReps === 0 ? '-' : displayReps}
+                              </button>
+                              {/* Indicador de progreso */}
+                              {hasRepsProgress && displayReps > 0 && (
+                                <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm ${
+                                  repsDiff! > 0 
+                                    ? 'bg-green-500 text-white' 
+                                    : 'bg-orange-500 text-white'
+                                }`}>
+                                  {repsDiff! > 0 ? '↗' : '↘'}{Math.abs(repsDiff!)}
+                                </div>
+                              )}
+                            </div>
                           </td>
 
                           {/* Peso - editable */}
                           <td className="py-2 px-2">
-                            <button
-                              ref={(el) => {
-                                setInputRefs.current[`${exerciseId}-${setIdx}-weight`] = el;
-                              }}
-                              onClick={() => startEditing(exerciseId, setIdx, 'weight', displayWeight, exercise.name)}
-                              className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-sm border-2 ${
-                                displayWeight === 0
-                                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                  : isCompleted
-                                  ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700'
-                                  : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
-                              }`}
-                            >
-                              {displayWeight === 0 ? '-' : `${displayWeight} kg`}
-                            </button>
+                            <div className="relative">
+                              <button
+                                ref={(el) => {
+                                  setInputRefs.current[`${exerciseId}-${setIdx}-weight`] = el;
+                                }}
+                                onClick={() => startEditing(exerciseId, setIdx, 'weight', displayWeight, exercise.name)}
+                                className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-sm border-2 ${
+                                  displayWeight === 0
+                                    ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                    : isCompleted
+                                    ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700'
+                                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                                }`}
+                              >
+                                {displayWeight === 0 ? '-' : `${displayWeight} kg`}
+                              </button>
+                              {/* Indicador de progreso */}
+                              {hasWeightProgress && displayWeight > 0 && (
+                                <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm ${
+                                  weightDiff! > 0 
+                                    ? 'bg-green-500 text-white' 
+                                    : 'bg-orange-500 text-white'
+                                }`}>
+                                  {weightDiff! > 0 ? '↗' : '↘'}{Math.abs(weightDiff!)}kg
+                                </div>
+                              )}
+                            </div>
                           </td>
 
                           {/* Tipo de serie - visible en todas las pantallas */}
@@ -905,6 +1039,29 @@ export function QuickEditMode({
                             </div>
                           </td>
 
+                          {/* Botón copiar serie anterior */}
+                          <td className="py-2 px-2">
+                            <div className="flex justify-center">
+                              {canCopyPrevious && previousReps && previousWeight ? (
+                                <button
+                                  onClick={() => {
+                                    // Copiar reps y peso de la serie anterior
+                                    onEditReps(exerciseId, setIdx, previousReps);
+                                    onEditWeight(exerciseId, setIdx, previousWeight);
+                                  }}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400"
+                                  title={`Copiar serie anterior (${previousReps} reps × ${previousWeight}kg)`}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                </button>
+                              ) : (
+                                <div className="w-8 h-8" />
+                              )}
+                            </div>
+                          </td>
+
                           {/* Checkbox de completado */}
                           <td className="py-2 px-2">
                             <div className="flex justify-center">
@@ -915,6 +1072,17 @@ export function QuickEditMode({
                                   
                                   // Si se marca como completada, mover foco a la siguiente serie
                                   if (newIsCompleted) {
+                                    // ✅ Mostrar temporizador flotante si no se están omitiendo descansos
+                                    if (!skipRestTimers) {
+                                      // Calcular tiempo de descanso
+                                      const perSetOverride = workoutData.perSetRestOverrides?.[exerciseId]?.[setIdx];
+                                      const exerciseOverride = workoutData.restOverrides?.[exerciseId];
+                                      const restTime = perSetOverride ?? exerciseOverride ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
+                                      
+                                      setFloatingTimerDuration(restTime);
+                                      setShowFloatingTimer(true);
+                                    }
+                                    
                                     setTimeout(() => {
                                       focusNextIncompleteSet(exerciseId, setIdx);
                                     }, 100);
@@ -1003,31 +1171,28 @@ export function QuickEditMode({
         );
       })}
 
-      {/* Botón flotante para finalizar */}
+      {/* Botón flotante compacto para finalizar - esquina inferior derecha */}
       {onFinishWorkout && (
-        <>
-          <div className="fixed bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
-          
-          <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-3">
-            <button
-              onClick={onFinishWorkout}
-              disabled={completedSets === 0}
-              className={`w-full py-4 text-base font-bold rounded-xl shadow-2xl transition-all duration-200 flex items-center justify-center gap-2 border-2 border-white/20 ${
-                completedSets === 0
-                  ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-50'
-                  : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white transform hover:scale-[1.02]'
-              }`}
-            >
-              <span className="text-xl">✅</span>
-              <div className="flex flex-col items-start">
-                <span>Finalizar Entrenamiento</span>
-                <span className="text-[10px] font-normal opacity-90">
-                  {completedSets} series completadas
-                </span>
-              </div>
-            </button>
-          </div>
-        </>
+        <button
+          onClick={onFinishWorkout}
+          disabled={completedSets === 0}
+          className={`fixed bottom-6 right-6 z-30 p-4 rounded-full shadow-2xl transition-all duration-200 flex items-center justify-center gap-2 ${
+            completedSets === 0
+              ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-50'
+              : 'bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transform hover:scale-110 active:scale-95'
+          }`}
+          title={`Finalizar entrenamiento (${completedSets} series)`}
+        >
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          {/* Badge con contador de series */}
+          {completedSets > 0 && (
+            <span className="absolute -top-1 -right-1 bg-white text-green-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg border-2 border-green-500">
+              {completedSets}
+            </span>
+          )}
+        </button>
       )}
 
       {/* Modal de edición */}
