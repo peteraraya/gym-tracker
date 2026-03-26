@@ -59,6 +59,19 @@ import('@/data/exercises').then(m => {
   EXERCISE_DATABASE = m.EXERCISE_DATABASE;
 });
 
+/**
+ * ✅ FASE 2 - Problema #6: Función centralizada para calcular completedSets
+ * 
+ * Calcula el número de series completadas basándose ÚNICAMENTE en actualReps.
+ * Una serie está completada si tiene reps > 0.
+ * 
+ * Esto elimina la inconsistencia entre Quick Edit Mode y Guided Mode.
+ */
+function calculateCompletedSets(actualReps: number[]): number {
+  if (!Array.isArray(actualReps)) return 0;
+  return actualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+}
+
 export default function WorkoutPage() {
   const router = useRouter();
   const params = useParams();
@@ -1151,7 +1164,9 @@ export default function WorkoutPage() {
       
       workoutState.updateActualReps(exerciseId, newActualReps);
       workoutState.updateActualWeights(exerciseId, newActualWeights);
-      const newCompletedCount = (workoutState.workoutData.completedSets[exerciseId] || 0) + 1;
+      
+      // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
+      const newCompletedCount = calculateCompletedSets(newActualReps);
       workoutState.updateCompletedSets(exerciseId, newCompletedCount);
       
       const nextIncompleteSet = currentExercise.sets.findIndex((_: any, idx: number) => {
@@ -1189,7 +1204,10 @@ export default function WorkoutPage() {
       
       workoutState.updateActualReps(exerciseId, newActualReps);
       workoutState.updateActualWeights(exerciseId, newActualWeights);
-      workoutState.updateCompletedSets(exerciseId, Math.max(0, (workoutState.workoutData.completedSets[exerciseId] || 0) - 1));
+      
+      // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
+      const newCompletedCount = calculateCompletedSets(newActualReps);
+      workoutState.updateCompletedSets(exerciseId, newCompletedCount);
       
       if (setIndex + 1 < workoutState.currentSet) {
         workoutState.setCurrentSet(setIndex + 1);
@@ -1198,7 +1216,18 @@ export default function WorkoutPage() {
   }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, timerHandlers, completion]);
 
   const handleAddSet = useCallback(async () => {
-    if (!currentExercise || !routine) return;
+    // ✅ FASE 2 - Problema #8: Validar que existan currentExercise y routine
+    if (!currentExercise || !routine) {
+      console.warn('[Workout] Cannot add set: no current exercise or routine');
+      error('No se puede agregar serie');
+      return;
+    }
+    
+    // ✅ FASE 2 - Problema #8: Validar límite máximo de series
+    if (currentExercise.sets.length >= 20) {
+      error('Máximo 20 series por ejercicio');
+      return;
+    }
     
     const exerciseId = currentExercise.id;
     
@@ -1234,16 +1263,18 @@ export default function WorkoutPage() {
     setRoutine(updatedRoutine);
     
     // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-    updateModifiedRoutine(updatedRoutine);
-    
-    // Persistir la rutina actualizada
     try {
+      await updateModifiedRoutine(updatedRoutine);
+      
+      // Persistir la rutina actualizada
       await updateRoutine(id, updatedRoutine);
       console.log('[handleAddSet] Successfully saved to storage');
       success('Serie agregada', 2000);
     } catch (err) {
       console.error('[handleAddSet] Error saving:', err);
       error('Error al agregar serie');
+      // Revertir cambio local si falla
+      setRoutine(routine);
     }
   }, [currentExercise, routine, id, updateRoutine, updateModifiedRoutine, success, error]);
 
@@ -1371,8 +1402,8 @@ export default function WorkoutPage() {
     workoutState.updateActualReps(exerciseId, newReps);
     workoutState.updateActualWeights(exerciseId, newWeights);
     
-    // Actualizar completed sets - contar solo las series con reps > 0
-    const completedCount = newReps.filter(r => r > 0).length;
+    // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
+    const completedCount = calculateCompletedSets(newReps);
     workoutState.updateCompletedSets(exerciseId, completedCount);
     
     // Si estamos en el ejercicio actual, actualizar también currentSet
@@ -1449,7 +1480,19 @@ export default function WorkoutPage() {
 
   const handleQuickAddSet = useCallback(async (exerciseId: string) => {
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
-    if (!exercise || !routine) return;
+    
+    // ✅ FASE 2 - Problema #8: Validar que existan exercise y routine
+    if (!exercise || !routine) {
+      console.warn('[Workout] Cannot add set: no exercise or routine found');
+      error('No se puede agregar serie');
+      return;
+    }
+    
+    // ✅ FASE 2 - Problema #8: Validar límite máximo de series
+    if (exercise.sets.length >= 20) {
+      error('Máximo 20 series por ejercicio');
+      return;
+    }
     
     // Obtener la última serie como referencia
     const lastSet = exercise.sets[exercise.sets.length - 1];
@@ -1478,15 +1521,17 @@ export default function WorkoutPage() {
     setRoutine(updatedRoutine);
     
     // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-    updateModifiedRoutine(updatedRoutine);
-    
-    // Persistir la rutina actualizada
     try {
+      await updateModifiedRoutine(updatedRoutine);
+      
+      // Persistir la rutina actualizada
       await updateRoutine(id, updatedRoutine);
       success('Serie agregada', 2000);
     } catch (err) {
       console.error('[handleQuickAddSet] Error saving:', err);
       error('Error al agregar serie');
+      // Revertir cambio local si falla
+      setRoutine(routine);
     }
   }, [routine, id, updateRoutine, updateModifiedRoutine, success, error]);
 
