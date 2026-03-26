@@ -1,6 +1,12 @@
+/**
+ * Sistema de Récords Personales (PR - Personal Records)
+ * Detecta y gestiona los récords de peso por ejercicio
+ */
+
 import type { WorkoutSession } from '@/types';
 
 export interface PersonalRecord {
+  exerciseId: string;
   exerciseName: string;
   maxWeight: number;
   reps: number;
@@ -8,215 +14,312 @@ export interface PersonalRecord {
   sessionId: string;
 }
 
-export interface ExerciseProgress {
-  exerciseName: string;
-  sessions: number;
-  totalVolume: number;
-  averageWeight: number;
-  personalRecord: PersonalRecord;
-  trend: 'up' | 'down' | 'stable';
-  improvement: number; // Porcentaje de mejora
+export interface RecordComparison {
+  isNewRecord: boolean;
+  previousRecord?: number;
+  improvement?: number; // Diferencia en kg
+  improvementPercentage?: number;
 }
 
 /**
- * Calcula los récords personales por ejercicio
+ * Obtiene el récord personal actual para un ejercicio
  */
-export function calculatePersonalRecords(sessions: WorkoutSession[]): PersonalRecord[] {
-  const recordsMap = new Map<string, PersonalRecord>();
-
-  sessions.forEach(session => {
-    session.exercises?.forEach(exercise => {
-      const exerciseName = exercise.exerciseName || exercise.exerciseId;
-      
-      // Buscar el peso máximo levantado
-      const weights = exercise.actualWeight || [];
-      const reps = exercise.actualReps || [];
-      
-      if (!Array.isArray(weights) || !Array.isArray(reps)) return;
-      
-      weights.forEach((weight, index) => {
-        const currentRecord = recordsMap.get(exerciseName);
-        
-        // Récord por peso puro o por volumen (peso × reps)
-        const volume = weight * (reps[index] || 1);
-        const currentVolume = currentRecord 
-          ? currentRecord.maxWeight * currentRecord.reps 
-          : 0;
-
-        if (!currentRecord || volume > currentVolume) {
-          recordsMap.set(exerciseName, {
-            exerciseName,
-            maxWeight: weight,
-            reps: reps[index] || 1,
-            date: new Date(session.date),
-            sessionId: session.id
-          });
-        }
-      });
-    });
-  });
-
-  return Array.from(recordsMap.values()).sort((a, b) => 
-    b.maxWeight * b.reps - a.maxWeight * a.reps
-  );
-}
-
-/**
- * Calcula el progreso y estadísticas por ejercicio
- */
-export function calculateExerciseProgress(
-  sessions: WorkoutSession[], 
-  exerciseName: string
-): ExerciseProgress | null {
-  const exerciseSessions = sessions.filter(s => 
-    s.exercises?.some(e => 
-      (e.exerciseName || e.exerciseId) === exerciseName
-    )
-  ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-  if (exerciseSessions.length === 0) return null;
-
-  let totalVolume = 0;
-  let totalWeight = 0;
-  let weightCount = 0;
+export function getPersonalRecord(
+  exerciseId: string,
+  sessions: WorkoutSession[]
+): PersonalRecord | null {
   let maxWeight = 0;
-  let maxReps = 0;
-  let prDate = new Date();
-  let prSessionId = '';
+  let recordSession: WorkoutSession | null = null;
+  let recordExercise: WorkoutSession['exercises'][0] | null = null;
 
-  exerciseSessions.forEach(session => {
-    session.exercises?.forEach(exercise => {
-      if ((exercise.exerciseName || exercise.exerciseId) === exerciseName) {
-        const weights = exercise.actualWeight || [];
-        const reps = exercise.actualReps || [];
+  // Buscar en todas las sesiones el peso máximo para este ejercicio
+  for (const session of sessions) {
+    const exercise = session.exercises.find(ex => ex.exerciseId === exerciseId);
+    if (!exercise) continue;
 
-        if (!Array.isArray(weights) || !Array.isArray(reps)) return;
-
-        weights.forEach((weight, index) => {
-          const rep = reps[index] || 1;
-          const volume = weight * rep;
-          
-          totalVolume += volume;
-          totalWeight += weight;
-          weightCount++;
-
-          if (volume > maxWeight * maxReps) {
-            maxWeight = weight;
-            maxReps = rep;
-            prDate = new Date(session.date);
-            prSessionId = session.id;
-          }
-        });
-      }
-    });
-  });
-
-  // Calcular tendencia comparando primera y última sesión
-  const firstSessionWeights: number[] = [];
-  const lastSessionWeights: number[] = [];
-
-  exerciseSessions[0].exercises?.forEach(ex => {
-    if ((ex.exerciseName || ex.exerciseId) === exerciseName) {
-      firstSessionWeights.push(...(ex.actualWeight || []));
+    // Buscar el peso máximo en esta sesión
+    const sessionMaxWeight = Math.max(...(exercise.actualWeight || [0]));
+    
+    if (sessionMaxWeight > maxWeight) {
+      maxWeight = sessionMaxWeight;
+      recordSession = session;
+      recordExercise = exercise;
     }
-  });
+  }
 
-  exerciseSessions[exerciseSessions.length - 1].exercises?.forEach(ex => {
-    if ((ex.exerciseName || ex.exerciseId) === exerciseName) {
-      lastSessionWeights.push(...(ex.actualWeight || []));
-    }
-  });
+  if (!recordSession || !recordExercise || maxWeight === 0) {
+    return null;
+  }
 
-  const firstAvg = firstSessionWeights.length > 0 
-    ? firstSessionWeights.reduce((a, b) => a + b, 0) / firstSessionWeights.length 
-    : 0;
-  const lastAvg = lastSessionWeights.length > 0 
-    ? lastSessionWeights.reduce((a, b) => a + b, 0) / lastSessionWeights.length 
-    : 0;
-  
-  const improvement = ((lastAvg - firstAvg) / firstAvg) * 100;
-  const trend = improvement > 5 ? 'up' : improvement < -5 ? 'down' : 'stable';
+  // Encontrar las reps del set con el peso máximo
+  const maxWeightIndex = recordExercise.actualWeight?.indexOf(maxWeight) ?? -1;
+  const reps = recordExercise.actualReps?.[maxWeightIndex] ?? 0;
 
   return {
-    exerciseName,
-    sessions: exerciseSessions.length,
-    totalVolume,
-    averageWeight: weightCount > 0 ? totalWeight / weightCount : 0,
-    personalRecord: {
-      exerciseName,
-      maxWeight,
-      reps: maxReps,
-      date: prDate,
-      sessionId: prSessionId
-    },
-    trend,
-    improvement
+    exerciseId,
+    exerciseName: recordExercise.exerciseName || '',
+    maxWeight,
+    reps,
+    date: recordSession.date,
+    sessionId: recordSession.id
   };
 }
 
 /**
- * Compara dos sesiones de la misma rutina
+ * Compara un peso con el récord personal actual
  */
-export function compareSessions(
-  session1: WorkoutSession,
-  session2: WorkoutSession
-): {
-  exerciseName: string;
-  improvement: number;
-  volumeDiff: number;
-  weightDiff: number;
-}[] {
-  const comparison: {
-    exerciseName: string;
-    improvement: number;
-    volumeDiff: number;
-    weightDiff: number;
-  }[] = [];
+export function compareWithRecord(
+  exerciseId: string,
+  weight: number,
+  sessions: WorkoutSession[]
+): RecordComparison {
+  const currentRecord = getPersonalRecord(exerciseId, sessions);
 
-  session1.exercises?.forEach(ex1 => {
-    const ex2 = session2.exercises?.find(e => 
-      (e.exerciseName || e.exerciseId) === (ex1.exerciseName || ex1.exerciseId)
-    );
+  if (!currentRecord || currentRecord.maxWeight === 0) {
+    // Primer registro para este ejercicio
+    return {
+      isNewRecord: weight > 0,
+      previousRecord: undefined,
+      improvement: undefined,
+      improvementPercentage: undefined
+    };
+  }
 
-    if (ex2) {
-      const volume1 = (ex1.actualWeight || []).reduce((sum, w, i) => 
-        sum + w * ((ex1.actualReps || [])[i] || 1), 0
-      );
-      const volume2 = (ex2.actualWeight || []).reduce((sum, w, i) => 
-        sum + w * ((ex2.actualReps || [])[i] || 1), 0
-      );
+  const isNewRecord = weight > currentRecord.maxWeight;
+  
+  if (!isNewRecord) {
+    return {
+      isNewRecord: false,
+      previousRecord: currentRecord.maxWeight
+    };
+  }
 
-      const avgWeight1 = (ex1.actualWeight || []).reduce((a, b) => a + b, 0) / 
-        (ex1.actualWeight || []).length;
-      const avgWeight2 = (ex2.actualWeight || []).reduce((a, b) => a + b, 0) / 
-        (ex2.actualWeight || []).length;
+  const improvement = weight - currentRecord.maxWeight;
+  const improvementPercentage = (improvement / currentRecord.maxWeight) * 100;
 
-      const improvement = ((volume2 - volume1) / volume1) * 100;
-      const volumeDiff = volume2 - volume1;
-      const weightDiff = avgWeight2 - avgWeight1;
-
-      comparison.push({
-        exerciseName: ex1.exerciseName || ex1.exerciseId,
-        improvement,
-        volumeDiff,
-        weightDiff
-      });
-    }
-  });
-
-  return comparison.sort((a, b) => b.improvement - a.improvement);
+  return {
+    isNewRecord: true,
+    previousRecord: currentRecord.maxWeight,
+    improvement,
+    improvementPercentage
+  };
 }
 
 /**
- * Obtiene las últimas N sesiones de una rutina específica
+ * Obtiene todos los récords personales del usuario
  */
-export function getRecentRoutineSessions(
+export function getAllPersonalRecords(
+  sessions: WorkoutSession[]
+): PersonalRecord[] {
+  const recordsMap = new Map<string, PersonalRecord>();
+
+  for (const session of sessions) {
+    for (const exercise of session.exercises) {
+      const exerciseId = exercise.exerciseId;
+      const maxWeight = Math.max(...(exercise.actualWeight || [0]));
+      
+      if (maxWeight === 0) continue;
+
+      const currentRecord = recordsMap.get(exerciseId);
+      
+      if (!currentRecord || maxWeight > currentRecord.maxWeight) {
+        const maxWeightIndex = exercise.actualWeight?.indexOf(maxWeight) ?? -1;
+        const reps = exercise.actualReps?.[maxWeightIndex] ?? 0;
+
+        recordsMap.set(exerciseId, {
+          exerciseId,
+          exerciseName: exercise.exerciseName || '',
+          maxWeight,
+          reps,
+          date: session.date,
+          sessionId: session.id
+        });
+      }
+    }
+  }
+
+  return Array.from(recordsMap.values());
+}
+
+/**
+ * Obtiene el historial de récords para un ejercicio específico
+ */
+export function getRecordHistory(
+  exerciseId: string,
+  sessions: WorkoutSession[]
+): Array<{ weight: number; reps: number; date: Date; sessionId: string }> {
+  const history: Array<{ weight: number; reps: number; date: Date; sessionId: string }> = [];
+  let currentMax = 0;
+
+  // Ordenar sesiones por fecha
+  const sortedSessions = [...sessions].sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  for (const session of sortedSessions) {
+    const exercise = session.exercises.find(ex => ex.exerciseId === exerciseId);
+    if (!exercise) continue;
+
+    const maxWeight = Math.max(...(exercise.actualWeight || [0]));
+    
+    // Solo agregar si es un nuevo récord
+    if (maxWeight > currentMax) {
+      const maxWeightIndex = exercise.actualWeight?.indexOf(maxWeight) ?? -1;
+      const reps = exercise.actualReps?.[maxWeightIndex] ?? 0;
+
+      history.push({
+        weight: maxWeight,
+        reps,
+        date: session.date,
+        sessionId: session.id
+      });
+
+      currentMax = maxWeight;
+    }
+  }
+
+  return history;
+}
+
+/**
+ * Calcula estadísticas de progresión
+ */
+export function getProgressionStats(
+  exerciseId: string,
+  sessions: WorkoutSession[]
+) {
+  const history = getRecordHistory(exerciseId, sessions);
+  
+  if (history.length === 0) {
+    return null;
+  }
+
+  const firstRecord = history[0];
+  const lastRecord = history[history.length - 1];
+  const totalImprovement = lastRecord.weight - firstRecord.weight;
+  const improvementPercentage = (totalImprovement / firstRecord.weight) * 100;
+  
+  // Calcular tiempo entre primer y último récord
+  const daysBetween = Math.floor(
+    (new Date(lastRecord.date).getTime() - new Date(firstRecord.date).getTime()) / 
+    (1000 * 60 * 60 * 24)
+  );
+
+  return {
+    totalRecords: history.length,
+    firstRecord: firstRecord.weight,
+    currentRecord: lastRecord.weight,
+    totalImprovement,
+    improvementPercentage,
+    daysBetween,
+    averageImprovementPerRecord: totalImprovement / (history.length - 1 || 1)
+  };
+}
+
+/**
+ * Calcula el progreso de un ejercicio específico
+ */
+export function calculateExerciseProgress(
   sessions: WorkoutSession[],
-  routineId: string,
-  limit: number = 5
-): WorkoutSession[] {
-  return sessions
-    .filter(s => s.routineId === routineId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, limit);
+  exerciseName: string
+): {
+  trend: 'up' | 'down' | 'stable';
+  currentWeight: number;
+  previousWeight: number;
+  improvement: number;
+  improvementPercentage: number;
+  totalSessions: number;
+  personalRecord: {
+    maxWeight: number;
+    reps: number;
+    date: Date;
+  };
+  totalVolume: number;
+  sessions: number;
+} | null {
+  // Filtrar sesiones que contienen este ejercicio
+  const relevantSessions = sessions
+    .filter(s => s.exercises.some(e => e.exerciseName === exerciseName))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  if (relevantSessions.length === 0) {
+    return null;
+  }
+
+  // Calcular récord personal
+  let maxWeight = 0;
+  let maxWeightReps = 0;
+  let maxWeightDate = new Date();
+  let totalVolume = 0;
+
+  for (const session of relevantSessions) {
+    const exercise = session.exercises.find(e => e.exerciseName === exerciseName);
+    if (!exercise) continue;
+
+    // Calcular volumen total de esta sesión
+    for (let i = 0; i < (exercise.actualWeight?.length || 0); i++) {
+      const weight = exercise.actualWeight?.[i] || 0;
+      const reps = exercise.actualReps?.[i] || 0;
+      totalVolume += weight * reps;
+
+      // Actualizar récord si es mayor
+      if (weight > maxWeight) {
+        maxWeight = weight;
+        maxWeightReps = reps;
+        maxWeightDate = session.date;
+      }
+    }
+  }
+
+  // Si no hay datos válidos
+  if (maxWeight === 0) {
+    return null;
+  }
+
+  // Calcular tendencia (comparar últimas 2 sesiones)
+  let trend: 'up' | 'down' | 'stable' = 'stable';
+  let improvement = 0;
+  let improvementPercentage = 0;
+  let currentWeight = maxWeight;
+  let previousWeight = maxWeight;
+
+  if (relevantSessions.length >= 2) {
+    const lastSession = relevantSessions[relevantSessions.length - 1];
+    const previousSession = relevantSessions[relevantSessions.length - 2];
+
+    const lastExercise = lastSession.exercises.find(e => e.exerciseName === exerciseName);
+    const previousExercise = previousSession.exercises.find(e => e.exerciseName === exerciseName);
+
+    if (lastExercise && previousExercise) {
+      currentWeight = Math.max(...(lastExercise.actualWeight || [0]));
+      previousWeight = Math.max(...(previousExercise.actualWeight || [0]));
+
+      if (currentWeight > 0 && previousWeight > 0) {
+        improvement = currentWeight - previousWeight;
+        improvementPercentage = (improvement / previousWeight) * 100;
+
+        if (improvement > 0) {
+          trend = 'up';
+        } else if (improvement < 0) {
+          trend = 'down';
+        }
+      }
+    }
+  }
+
+  return {
+    trend,
+    currentWeight,
+    previousWeight,
+    improvement,
+    improvementPercentage,
+    totalSessions: relevantSessions.length,
+    personalRecord: {
+      maxWeight,
+      reps: maxWeightReps,
+      date: maxWeightDate
+    },
+    totalVolume,
+    sessions: relevantSessions.length
+  };
 }

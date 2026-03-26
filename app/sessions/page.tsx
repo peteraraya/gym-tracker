@@ -1,20 +1,30 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useGym } from '@/context/GymContext';
+import { useToast } from '@/context/ToastContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ClientOnly } from '@/components/ClientOnly';
 import { SessionFilters } from '@/components/SessionFilters';
 import { SessionComparison } from '@/components/SessionComparison';
+import { EditSessionModal } from '@/components/EditSessionModal';
 import type { WorkoutSession } from '@/types';
 import * as storageService from '@/lib/storage/storage';
 import { useSessionStats } from '@/hooks/useSessionStats';
+import { PageLayout } from '@/components/PageLayout';
+import { EmptyState } from '@/components/EmptyState';
+import { LoadingState } from '@/components/LoadingState';
+import { useConfirm } from '@/context/ConfirmContext';
 
 export default function SessionsPage() {
-  const { sessions: serverSessions, routines, loading } = useGym();
+  const { sessions: serverSessions, routines, loading, updateSession, deleteSession } = useGym();
+  const { success, error: showError } = useToast();
+  const { confirm } = useConfirm();
   
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
+  const [editingSession, setEditingSession] = useState<WorkoutSession | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -75,27 +85,71 @@ export default function SessionsPage() {
 
   // Opción para ocultar sesiones cuya rutina fue eliminada
   // Cambiado a `false` para mostrar por defecto las sesiones huérfanas.
-  const [hideDeletedRoutines, setHideDeletedRoutines] = React.useState<boolean>(false);
+  const [hideDeletedRoutines, setHideDeletedRoutines] = useState<boolean>(false);
 
   // Keep filteredSessions in sync when sessions change
-  React.useEffect(() => {
+  useEffect(() => {
     setFilteredSessions(sessions);
   }, [sessions]);
 
   // Computar sesiones que se muestran según la opción de ocultar rutinas eliminadas
-  const displayedSessions = React.useMemo(() => {
+  const displayedSessions = useMemo(() => {
     if (!hideDeletedRoutines) return sessions;
     return sessions.filter(s => routines.some(r => r.id === s.routineId));
   }, [sessions, hideDeletedRoutines, routines]);
 
   // Mantener filteredSessions sincronizado con displayedSessions
-  React.useEffect(() => {
+  useEffect(() => {
     setFilteredSessions(displayedSessions);
   }, [displayedSessions]);
 
   const getRoutineName = (routineId: string) => {
     const routine = routines.find((r) => r.id === routineId);
     return routine ? routine.name : 'Rutina eliminada';
+  };
+
+  const handleEditSession = (session: WorkoutSession) => {
+    setEditingSession(session);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveSession = async (updatedSession: WorkoutSession) => {
+    try {
+      await updateSession(updatedSession);
+      success('✅ Sesión actualizada exitosamente');
+      setIsEditModalOpen(false);
+      setEditingSession(null);
+    } catch (err) {
+      console.error('Error updating session:', err);
+      showError('Error al actualizar la sesión');
+    }
+  };
+
+  const handleDeleteSession = async (session: WorkoutSession) => {
+    const routineName = getRoutineName(session.routineId);
+    const sessionDate = new Date(session.date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const confirmed = await confirm({
+      title: '¿Eliminar sesión?',
+      message: `¿Estás seguro de que quieres eliminar la sesión de "${routineName}" del ${sessionDate}? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteSession(session.id);
+      success('🗑️ Sesión eliminada exitosamente');
+    } catch (err) {
+      console.error('Error deleting session:', err);
+      showError('Error al eliminar la sesión');
+    }
   };
 
   if (loading) {
@@ -263,14 +317,40 @@ export default function SessionsPage() {
                               </ClientOnly>
                             </div>
                             
-                            {session.totalDuration !== undefined && (
-                              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                <span className="text-blue-600 dark:text-blue-400">⏱️</span>
-                                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                                  {formatDuration(session.totalDuration)}
-                                </span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {session.totalDuration !== undefined && (
+                                <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                  <span className="text-blue-600 dark:text-blue-400">⏱️</span>
+                                  <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                                    {formatDuration(session.totalDuration)}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Botón Editar */}
+                              <button
+                                onClick={() => handleEditSession(session)}
+                                className="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                                title="Editar sesión"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                <span className="hidden sm:inline">Editar</span>
+                              </button>
+                              
+                              {/* Botón Eliminar */}
+                              <button
+                                onClick={() => handleDeleteSession(session)}
+                                className="px-3 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                                title="Eliminar sesión"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                <span className="hidden sm:inline">Eliminar</span>
+                              </button>
+                            </div>
                           </div>
 
                           <div className="flex flex-wrap gap-3 mb-4">
@@ -336,6 +416,17 @@ export default function SessionsPage() {
           </div>
         )}
       </div>
+      
+      {/* Modal de edición */}
+      <EditSessionModal
+        session={editingSession}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingSession(null);
+        }}
+        onSave={handleSaveSession}
+      />
     </div>
     </ProtectedRoute>
   );

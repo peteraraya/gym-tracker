@@ -75,14 +75,14 @@ export default function DayPlanModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={getTitle()}>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Estado del día */}
-        <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
-          <div>
-            <div className="font-semibold text-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-gray-800 rounded-lg">
+          <div className="flex-1">
+            <div className="font-semibold text-gray-100 text-sm sm:text-base">
               {dayPlan.blocked ? '🔴 Día de Descanso' : '✅ Día Activo'}
             </div>
-            <div className="text-sm text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-400 mt-1">
               {dayPlan.blocked 
                 ? 'No se pueden agregar rutinas' 
                 : `${dayPlan.routines.length} rutina(s) asignada(s)`
@@ -93,6 +93,7 @@ export default function DayPlanModal({
             variant={dayPlan.blocked ? 'primary' : 'danger'}
             size="sm"
             onClick={onToggleBlock}
+            className="w-full sm:w-auto"
           >
             {dayPlan.blocked ? 'Desbloquear' : 'Bloquear'}
           </Button>
@@ -103,24 +104,29 @@ export default function DayPlanModal({
             {/* Rutinas asignadas */}
             {dayPlan.routines.length > 0 && (
               <div>
-                <h4 className="font-semibold text-gray-100 mb-3">Rutinas Asignadas</h4>
+                <h4 className="font-semibold text-gray-100 mb-2 sm:mb-3 text-sm sm:text-base">Rutinas Asignadas</h4>
                 <div className="space-y-2">
                   {dayPlan.routines.map(rid => {
                     const routine = routines.find(r => r.id === rid);
                     if (!routine) return null;
                     return (
-                      <div key={rid} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-100">{routine.name}</div>
-                          <div className="text-xs text-gray-400">
+                      <div key={rid} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-100 text-sm sm:text-base truncate">{routine.name}</div>
+                          <div className="text-xs text-gray-400 mt-1">
                             {routine.exercises.length} ejercicios
-                            {routine.description && ` • ${routine.description.substring(0, 50)}${routine.description.length > 50 ? '...' : ''}`}
+                            {routine.description && (
+                              <span className="hidden sm:inline">
+                                {` • ${routine.description.substring(0, 50)}${routine.description.length > 50 ? '...' : ''}`}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <Button
                           variant="danger"
                           size="sm"
                           onClick={() => onRemoveRoutine(rid)}
+                          className="w-full sm:w-auto"
                         >
                           Eliminar
                         </Button>
@@ -134,12 +140,12 @@ export default function DayPlanModal({
             {/* Agregar rutina */}
             {availableRoutines.length > 0 && (
               <div>
-                <h4 className="font-semibold text-gray-100 mb-3">Agregar Rutina</h4>
-                <div className="flex gap-2">
+                <h4 className="font-semibold text-gray-100 mb-2 sm:mb-3 text-sm sm:text-base">Agregar Rutina</h4>
+                <div className="flex flex-col gap-2">
                   <select
                     value={selectedRoutineId}
                     onChange={(e) => setSelectedRoutineId(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
                     <option value="">Seleccionar rutina...</option>
                     {availableRoutines.map(r => (
@@ -152,6 +158,7 @@ export default function DayPlanModal({
                     variant="primary"
                     onClick={handleAddRoutine}
                     disabled={!selectedRoutineId}
+                    block
                   >
                     Agregar
                   </Button>
@@ -160,8 +167,8 @@ export default function DayPlanModal({
             )}
 
             {availableRoutines.length === 0 && dayPlan.routines.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                <div className="text-4xl mb-2">📋</div>
+              <div className="text-center py-6 sm:py-8 text-gray-400">
+                <div className="text-3xl sm:text-4xl mb-2">📋</div>
                 <div className="text-sm">No hay rutinas disponibles</div>
                 <div className="text-xs mt-1">Crea rutinas primero para poder asignarlas</div>
               </div>
@@ -171,7 +178,7 @@ export default function DayPlanModal({
 
         {/* Nota */}
         <div>
-          <h4 className="font-semibold text-gray-100 mb-3">
+          <h4 className="font-semibold text-gray-100 mb-2 sm:mb-3 text-sm sm:text-base">
             Nota del Día {isWeeklyView && <span className="text-xs text-gray-400 font-normal">(se repite cada semana)</span>}
           </h4>
           <textarea
@@ -179,7 +186,7 @@ export default function DayPlanModal({
             onChange={(e) => setNote(e.target.value)}
             placeholder="Agregar nota (opcional)..."
             rows={3}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
           />
           <div className="mt-2 flex justify-end">
             <Button
@@ -193,8 +200,8 @@ export default function DayPlanModal({
         </div>
 
         {/* Botón cerrar */}
-        <div className="flex justify-end pt-4 border-t border-gray-700">
-          <Button variant="primary" onClick={onClose}>
+        <div className="flex justify-end pt-3 sm:pt-4 border-t border-gray-700">
+          <Button variant="primary" onClick={onClose} className="w-full sm:w-auto">
             Cerrar
           </Button>
         </div>

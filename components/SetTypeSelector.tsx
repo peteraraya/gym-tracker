@@ -8,6 +8,7 @@ interface SetTypeSelectorProps {
   value: SetType;
   onChange: (type: SetType) => void;
   compact?: boolean;
+  mini?: boolean; // Nueva prop para modo ultra-compacto (solo letra)
 }
 
 const SET_TYPES = [
@@ -62,7 +63,7 @@ const SET_TYPES = [
   }
 ];
 
-export default function SetTypeSelector({ value, onChange, compact = false }: SetTypeSelectorProps) {
+export default function SetTypeSelector({ value, onChange, compact = false, mini = false }: SetTypeSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   const currentType = SET_TYPES.find(t => t.value === value) || SET_TYPES[0];
@@ -71,6 +72,69 @@ export default function SetTypeSelector({ value, onChange, compact = false }: Se
     onChange(type);
     setIsOpen(false);
   };
+
+  // Función para obtener la inicial del tipo
+  const getTypeInitial = (type: SetType) => {
+    switch(type) {
+      case 'normal': return 'N';
+      case 'warmup': return 'C'; // Calentamiento
+      case 'dropset': return 'D';
+      case 'failure': return 'F';
+      case 'amrap': return 'A';
+      case 'rest-pause': return 'R';
+      case 'cluster': return 'Cl';
+      default: return 'N';
+    }
+  };
+
+  if (mini) {
+    // Versión mini: solo letra clickeable con dropdown completo
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full h-7 sm:h-9 px-1 sm:px-2 rounded border-2 text-[10px] sm:text-sm font-bold transition-all hover:scale-105 ${currentType.color}`}
+        >
+          {getTypeInitial(value)}
+        </button>
+
+        {isOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setIsOpen(false)}
+            />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 min-w-[200px] max-h-[300px] overflow-y-auto">
+              {SET_TYPES.map((type) => (
+                <button
+                  key={type.value}
+                  onClick={() => handleSelect(type.value)}
+                  className={`w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                    value === type.value ? 'bg-gray-50 dark:bg-gray-700/50' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{type.icon}</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {type.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {type.description}
+                      </div>
+                    </div>
+                    {value === type.value && (
+                      <span className="text-blue-600 dark:text-blue-400">✓</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (compact) {
     // Versión compacta: solo badge clickeable

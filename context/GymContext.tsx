@@ -20,6 +20,8 @@ interface SessionsContextType {
   sessions: WorkoutSession[];
   loading: boolean;
   addSession: (session: Omit<WorkoutSession, 'id'>) => Promise<void>;
+  updateSession: (session: WorkoutSession) => Promise<void>;
+  deleteSession: (sessionId: string) => Promise<void>;
   refreshSessions: () => Promise<void>;
 }
 
@@ -163,11 +165,20 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw new Error('Rutina no encontrada');
       }
 
-      await storageService.updateRoutine(id, {
+      const updatedRoutine = {
         ...routine,
         ...updatedData,
-      } as storageService.CreateRoutineData);
+      } as storageService.CreateRoutineData;
 
+      await storageService.updateRoutine(id, updatedRoutine);
+
+      // ✅ Actualizar el estado local inmediatamente sin esperar a refreshRoutines
+      // Esto asegura que la rutina actualizada esté disponible de inmediato
+      setRoutines(prevRoutines => 
+        prevRoutines.map(r => r.id === id ? updatedRoutine as Routine : r)
+      );
+
+      // Refrescar desde storage para asegurar consistencia
       await refreshRoutines();
     } catch (error) {
       console.error('Error updating routine:', error);
@@ -260,6 +271,40 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [refreshSessions]);
 
+  const updateSession = useCallback(async (updatedSession: WorkoutSession) => {
+    try {
+      console.log('[GymContext] updateSession called for session:', updatedSession.id);
+      
+      // Actualizar sesión en storage
+      await storageService.updateSession(updatedSession);
+      
+      // Refrescar sesiones para obtener la lista actualizada
+      await refreshSessions();
+      
+      console.log('[GymContext] Session updated successfully');
+    } catch (error) {
+      console.error('Error updating session:', error);
+      throw error;
+    }
+  }, [refreshSessions]);
+
+  const deleteSession = useCallback(async (sessionId: string) => {
+    try {
+      console.log('[GymContext] deleteSession called for session:', sessionId);
+      
+      // Eliminar sesión del storage
+      await storageService.deleteSession(sessionId);
+      
+      // Refrescar sesiones para obtener la lista actualizada
+      await refreshSessions();
+      
+      console.log('[GymContext] Session deleted successfully');
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      throw error;
+    }
+  }, [refreshSessions]);
+
   const getRoutineById = useCallback((id: string) => {
     return routines.find(routine => routine.id === id);
   }, [routines]);
@@ -278,8 +323,10 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     sessions,
     loading,
     addSession,
+    updateSession,
+    deleteSession,
     refreshSessions,
-  }), [sessions, loading, addSession, refreshSessions]);
+  }), [sessions, loading, addSession, updateSession, deleteSession, refreshSessions]);
 
   const value = useMemo<GymContextType>(() => ({
     ...routinesValue,

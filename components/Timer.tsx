@@ -15,33 +15,45 @@ import {
 interface TimerProps {
   duration: number; // duración en segundos
   onComplete?: () => void;
+  onSkip?: () => void; // ✨ NEW: Callback específico para cuando se salta el timer
   autoStart?: boolean;
   title?: string;
   nextExerciseName?: string; // Para mostrar en la notificación
   showMotivation?: boolean; // Mostrar mensajes motivacionales
   onActualDurationChange?: (actualDuration: number) => void; // Callback con duración real
+  onMinimize?: (timeLeft: number) => void; // Callback para minimizar con tiempo restante
+  initialTimeLeft?: number; // ✨ NEW: Tiempo inicial cuando se expande desde minimizado
 }
 
 export const Timer: React.FC<TimerProps> = ({ 
   duration, 
-  onComplete, 
+  onComplete,
+  onSkip, // ✨ NEW: Receive onSkip callback
   autoStart = false,
   title = undefined,
   nextExerciseName,
   showMotivation = true,
-  onActualDurationChange
+  onActualDurationChange,
+  onMinimize,
+  initialTimeLeft // ✨ NEW: Receive initial time
 }) => {
-  const [timeLeft, setTimeLeft] = useState(duration);
+  const [timeLeft, setTimeLeft] = useState(initialTimeLeft ?? duration);
   const [isRunning, setIsRunning] = useState(autoStart);
   const [isCompleted, setIsCompleted] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(false);
-  const [plannedDuration] = useState(duration); // Guardar duración planificada original
-  const [actualDuration, setActualDuration] = useState(0); // Tiempo real transcurrido
-  const [hasAdjusted, setHasAdjusted] = useState(false); // Si el usuario ajustó el tiempo
+  const [plannedDuration] = useState(duration);
+  const [actualDuration, setActualDuration] = useState(0);
+  const [hasAdjusted, setHasAdjusted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const onCompleteCalledRef = useRef(false);
-  const startTimeRef = useRef<number>(Date.now());
+  const onCompleteRef = useRef(onComplete);
+  const startTimeRef = useRef<number>(Date.now() - (duration - (initialTimeLeft ?? duration)) * 1000);
   const onActualDurationRef = useRef<typeof onActualDurationChange | null>(null);
+  
+  // Mantener onCompleteRef actualizado
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   // Cargar preferencias del usuario
   const soundEnabled = typeof window !== 'undefined' 
@@ -54,40 +66,62 @@ export const Timer: React.FC<TimerProps> = ({
   }, []);
 
   useEffect(() => {
-    setTimeLeft(duration);
+    // Solo actualizar cuando cambia la duración (nuevo timer)
+    console.log('[Timer] Init effect - duration:', duration, 'initialTimeLeft:', initialTimeLeft);
+    setTimeLeft(initialTimeLeft ?? duration);
     setIsCompleted(false);
     setHasAdjusted(false);
     onCompleteCalledRef.current = false;
-    startTimeRef.current = Date.now();
-    if (autoStart) {
+    
+    // Calcular startTimeRef basado en el tiempo restante
+    const elapsed = duration - (initialTimeLeft ?? duration);
+    startTimeRef.current = Date.now() - elapsed * 1000;
+    console.log('[Timer] Set startTimeRef, elapsed:', elapsed);
+    
+    if (autoStart && !isRunning) {
       setIsRunning(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [duration]);
+  }, [duration, initialTimeLeft, autoStart, isRunning]); // Incluir initialTimeLeft pero NO timeLeft
 
   useEffect(() => {
+    console.log('[Timer] Interval effect - isRunning:', isRunning);
     if (isRunning) {
+      console.log('[Timer] Starting interval');
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
+          console.log('[Timer] Interval tick - prev:', prev);
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
             // Calcular duración real
             const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
             setActualDuration(realDuration);
+            
+            // Llamar onComplete automáticamente cuando el timer llega a 0
+            if (onCompleteRef.current && !onCompleteCalledRef.current) {
+              onCompleteCalledRef.current = true;
+              // Usar setTimeout para permitir que el estado se actualice primero
+              setTimeout(() => {
+                onCompleteRef.current?.();
+              }, 100);
+            }
+            
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
+    } else {
+      console.log('[Timer] Clearing interval');
     }
 
     return () => {
       if (intervalRef.current) {
+        console.log('[Timer] Cleanup - clearing interval');
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning]);
+  }, [isRunning]); // Removido onComplete de las dependencias
 
   // Efecto separado para notificar cambios en la duración real
   useEffect(() => {
@@ -130,16 +164,40 @@ export const Timer: React.FC<TimerProps> = ({
     setTimeLeft(plannedDuration);
     setIsCompleted(false);
     setHasAdjusted(false);
+    onCompleteCalledRef.current = false; // Resetear la referencia
     startTimeRef.current = Date.now();
   };
 
-  const handleSkip = () => {
+  const handleSkip = (e: React.MouseEvent) => {
+    // Prevenir propagación y comportamiento por defecto
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('[Timer] handleSkip called, onCompleteCalledRef:', onCompleteCalledRef.current);
+    
+    // Prevenir múltiples llamadas
+    if (onCompleteCalledRef.current) {
+      console.log('[Timer] Skip already called, ignoring');
+      return;
+    }
+    
+    console.log('[Timer] Executing skip');
+    onCompleteCalledRef.current = true;
     setIsRunning(false);
+    
     const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
     setActualDuration(realDuration);
-    setTimeLeft(0);
-    setIsCompleted(true);
-    if (onComplete) onComplete();
+    
+    // Llamar onSkip si está definido, sino onComplete
+    if (onSkip) {
+      console.log('[Timer] Calling onSkip');
+      onSkip();
+    } else if (onComplete) {
+      console.log('[Timer] Calling onComplete from skip (no onSkip defined)');
+      onComplete();
+    } else {
+      console.log('[Timer] ERROR: Neither onSkip nor onComplete is defined!');
+    }
   };
 
   // Ajuste rápido de tiempo
@@ -168,6 +226,20 @@ export const Timer: React.FC<TimerProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
+      {/* Minimize button - top right */}
+      {onMinimize && !isCompleted && (
+        <div className="flex justify-end mb-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onMinimize(timeLeft)} // ✨ Pass current time left
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+          >
+            ⬇️ Minimizar
+          </Button>
+        </div>
+      )}
+
       <div className="text-center mb-4 sm:mb-6">
         <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {resolvedTitle}
@@ -230,38 +302,10 @@ export const Timer: React.FC<TimerProps> = ({
         </div>
       </div>
 
-      {/* Ajustes rápidos de tiempo */}
-      {!isCompleted && (
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAdjustTime(-15)}
-            className="flex items-center gap-1"
-            disabled={timeLeft <= 15}
-          >
-            <Minus className="w-4 h-4" />
-            <span className="text-xs">15s</span>
-          </Button>
-          <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
-            Ajustar tiempo
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleAdjustTime(15)}
-            className="flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-xs">15s</span>
-          </Button>
-        </div>
-      )}
-
       {isCompleted && (
-        <div className="mb-4 sm:mb-6">
+        <div className="mb-6">
           <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-500 dark:border-green-400 mb-3">
-            <div className="text-green-600 dark:text-green-400 text-lg sm:text-xl font-bold text-center mb-2 animate-bounce">
+            <div className="text-green-600 dark:text-green-400 text-xl font-bold text-center mb-2 animate-bounce">
               {t ? t('restCompleted') : '✓ ¡Descanso Completado!'}
             </div>
             <p className="text-green-700 dark:text-green-300 text-sm text-center">
@@ -308,8 +352,10 @@ export const Timer: React.FC<TimerProps> = ({
       
       {/* Información adicional */}
       {!isCompleted && timeLeft > 0 && (
-        <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>Tiempo planificado: {formatRestTime(plannedDuration)}</p>
+        <div className="mb-4 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Tiempo planificado: {formatRestTime(plannedDuration)}
+          </p>
           {hasAdjusted && (
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
               ⚙️ Ajustado manualmente
@@ -318,30 +364,82 @@ export const Timer: React.FC<TimerProps> = ({
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 justify-center">
+      {/* Botones de acción */}
+      <div className="space-y-3">
         {!isCompleted ? (
           <>
-            <Button
-              variant={isRunning ? 'secondary' : 'primary'}
-              onClick={handleStartPause}
-              size="lg"
-              className="relative z-10 flex-1 sm:flex-none"
-            >
-              {isRunning ? `⏸️ ${t ? t('pause') : 'Pausar'}` : `▶️ ${t ? t('start') : 'Iniciar'}`}
-            </Button>
-            <Button variant="ghost" onClick={handleReset} size="lg" className="relative z-10">
-              🔄
-            </Button>
-            <Button variant="ghost" onClick={handleSkip} size="lg" className="relative z-10">
-              ⏭️
-            </Button>
+            {/* Botones de ajuste rápido - Diseño limpio */}
+            <div className="flex items-center justify-center gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setTimeLeft(prev => Math.max(0, prev - 30));
+                  setHasAdjusted(true);
+                }}
+                size="lg"
+                className="flex items-center gap-2 px-6"
+                disabled={timeLeft <= 30}
+              >
+                <Minus className="w-5 h-5" />
+                <span className="font-semibold">30s</span>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setTimeLeft(prev => prev + 30);
+                  setHasAdjusted(true);
+                }}
+                size="lg"
+                className="flex items-center gap-2 px-6"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="font-semibold">30s</span>
+              </Button>
+            </div>
+
+            {/* Botones principales - Centrados y espaciados */}
+            <div className="flex items-center justify-center gap-3">
+              <Button
+                variant={isRunning ? 'secondary' : 'primary'}
+                onClick={handleStartPause}
+                size="lg"
+                className="px-8 py-3 text-base font-semibold"
+              >
+                {isRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+              </Button>
+              
+              <Button
+                variant="secondary"
+                onClick={handleSkip}
+                size="lg"
+                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                ⏭️ Saltar
+              </Button>
+            </div>
           </>
         ) : (
-          <div className="flex flex-col gap-2 w-full">
-            <Button variant="primary" onClick={() => { if (onComplete) onComplete(); }} size="lg" className="w-full relative z-10">
+          <div className="space-y-2">
+            <Button 
+              variant="primary" 
+              onClick={() => { 
+                if (onComplete && !onCompleteCalledRef.current) {
+                  onCompleteCalledRef.current = true;
+                  onComplete();
+                }
+              }} 
+              size="lg" 
+              className="w-full py-4 text-lg font-bold"
+            >
               ✅ Continuar
             </Button>
-            <Button variant="ghost" onClick={handleReset} size="lg" className="w-full relative z-10">
+            <Button 
+              variant="ghost" 
+              onClick={handleReset} 
+              size="lg" 
+              className="w-full"
+            >
               🔄 Más descanso
             </Button>
           </div>

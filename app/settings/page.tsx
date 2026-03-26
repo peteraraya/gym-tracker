@@ -4,29 +4,26 @@ import { Settings } from '@/components/icons/lucide';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import { PushNotificationTester } from '@/components/PushNotificationTester';
+import { DevTools } from '@/components/DevTools';
+import { PageLayout } from '@/components/PageLayout';
 
 export default function SettingsPage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-24">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-8">
-            <Settings className="w-8 h-8 text-blue-500" />
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-              Configuración
-            </h1>
-          </div>
-
-          {/* Secciones */}
-          <div className="space-y-6">
-            {/* Tema */}
-            <section>
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-4">
-                Apariencia
-              </h2>
-              <ThemeSettings />
-            </section>
+      <PageLayout
+        title="Configuración"
+        description="Personaliza tu experiencia"
+        icon={<Settings className="w-8 h-8 text-blue-500" />}
+      >
+        {/* Secciones */}
+        <div className="space-y-6">
+          {/* Tema */}
+          <section>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-4">
+              Apariencia
+            </h2>
+            <ThemeSettings />
+          </section>
 
             {/* Notificaciones Push */}
             <section>
@@ -91,9 +88,11 @@ export default function SettingsPage() {
                 </div>
               </div>
             </section>
+
+            {/* Herramientas de Desarrollo - Solo visible en dev */}
+            <DevTools />
           </div>
-        </div>
-      </div>
-    </ProtectedRoute>
-  );
-}
+        </PageLayout>
+      </ProtectedRoute>
+    );
+  }

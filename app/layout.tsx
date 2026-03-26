@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { ClientOnly } from "@/components/ClientOnly";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { PWAInstaller } from "@/components/PWAInstaller";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import GlobalUI from '@/components/GlobalUI';
 import Onboarding from '@/components/Onboarding';
 
@@ -94,34 +95,36 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeProvider>
-          <AuthProvider>
-            <LocaleProvider>
-              <EquipmentProvider>
-                <GymProvider>
-                  <WorkoutProvider>
-                    <ToastProvider>
-                      <ConfirmProvider>
-                        <OnboardingProvider>
-                          {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
-                          <ClientOnly>
-                            <ServiceWorkerRegistration />
-                            <PWAInstaller />
-                            <GlobalUI />
-                            <Onboarding />
-                          </ClientOnly>
-                          <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-                            {children}
-                          </main>
-                        </OnboardingProvider>
-                      </ConfirmProvider>
-                    </ToastProvider>
-                  </WorkoutProvider>
-                </GymProvider>
-              </EquipmentProvider>
-            </LocaleProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <ThemeProvider>
+            <AuthProvider>
+              <LocaleProvider>
+                <EquipmentProvider>
+                  <GymProvider>
+                    <WorkoutProvider>
+                      <ToastProvider>
+                        <ConfirmProvider>
+                          <OnboardingProvider>
+                            {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
+                            <ClientOnly>
+                              <ServiceWorkerRegistration />
+                              <PWAInstaller />
+                              <GlobalUI />
+                              <Onboarding />
+                            </ClientOnly>
+                            <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+                              {children}
+                            </main>
+                          </OnboardingProvider>
+                        </ConfirmProvider>
+                      </ToastProvider>
+                    </WorkoutProvider>
+                  </GymProvider>
+                </EquipmentProvider>
+              </LocaleProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

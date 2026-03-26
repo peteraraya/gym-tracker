@@ -9,7 +9,8 @@ export async function createClient() {
 
   // Return a dummy client if not configured
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your-project-url' || !supabaseUrl.startsWith('http')) {
-    console.warn('⚠️ Supabase not configured');
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Supabase not configured', { module: 'supabase-server' });
     return createServerClient(
       'https://placeholder.supabase.co',
       'placeholder-key',

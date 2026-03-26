@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRoutines } from '@/context/GymContext';
 import { useToast } from '@/context/ToastContext';
 import { Exercise } from '@/types';
@@ -8,6 +8,7 @@ import { Input, TextArea } from '@/components/ui/Input';
 import { useTranslations } from '@/context/LocaleContext';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { EditValueModal } from '@/components/EditValueModal';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
 import { EquipmentDropdown } from '@/components/EquipmentDropdown';
 import { RestTimeSelector, RestTimeSelectorCompact } from '@/components/RestTimeSelector';
@@ -15,6 +16,8 @@ import SetTypeSelector from '@/components/SetTypeSelector';
 import { ExerciseTemplate, getExerciseByName, MuscleGroup } from '@/data/exercises';
 import { WarmupExercise } from '@/data/warmupExercises';
 import { WarmupRecommendation } from '@/components/WarmupRecommendation';
+import { useConfirm } from '@/context/ConfirmContext';
+import { getRoutineStats } from '@/lib/routineEstimation';
 
 interface RoutineFormProps {
   routineId?: string | null;
@@ -24,6 +27,11 @@ interface RoutineFormProps {
 export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) => {
   const { addRoutine, updateRoutine, getRoutineById } = useRoutines();
   const { success, error } = useToast();
+  const { confirm } = useConfirm();
+  
+  // Clave para localStorage
+  const STORAGE_KEY = 'gym-tracker-routine-draft';
+  
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<string>('');
@@ -35,9 +43,67 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
   const [validationErrors, setValidationErrors] = useState<Array<{ exerciseIndex: number; setIndex: number; message: string }>>([]);
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const [currentStep, setCurrentStep] = useState<'basic' | 'exercises' | 'review'>('basic');
+  const [draggedExerciseIndex, setDraggedExerciseIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [expandedExercises, setExpandedExercises] = useState<Set<number>>(new Set());
+  const [editingValue, setEditingValue] = useState<{
+    exerciseIndex: number;
+    setIndex: number;
+    field: 'reps' | 'weight';
+    currentValue: number;
+  } | null>(null);
 
+  // Calcular estadísticas de la rutina
+  const routineStats = useMemo(() => {
+    return getRoutineStats(exercises, restBetweenSets, restBetweenExercises);
+  }, [exercises, restBetweenSets, restBetweenExercises]);
+
+  const toggleExerciseExpanded = (index: number) => {
+    setExpandedExercises(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  // Guardar borrador en localStorage con debounce para evitar escrituras excesivas
+  useEffect(() => {
+    // No guardar si estamos editando una rutina existente
+    if (routineId) return;
+    
+    // Solo guardar si hay algún dato ingresado
+    if (!name && !description && !image && exercises.length === 0) return;
+    
+    // Debounce: esperar 1 segundo antes de guardar
+    const timeoutId = setTimeout(() => {
+      try {
+        const draft = {
+          name,
+          description,
+          image,
+          exercises,
+          restBetweenSets,
+          restBetweenExercises,
+          currentStep,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+      } catch (e) {
+        console.warn('Error saving draft:', e);
+      }
+    }, 1000); // Esperar 1 segundo de inactividad antes de guardar
+    
+    return () => clearTimeout(timeoutId);
+  }, [name, description, image, exercises, restBetweenSets, restBetweenExercises, currentStep, routineId]);
+
+  // Restaurar borrador al montar (solo si no estamos editando)
   useEffect(() => {
     if (routineId) {
+      // Lógica existente para editar rutina
       const routine = getRoutineById(routineId);
       if (routine) {
         setName(routine.name);
@@ -48,6 +114,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           const { id, ...rest } = r;
           const restMaybe = rest as unknown as { sets?: unknown; reps?: unknown; weight?: unknown };
           if (typeof restMaybe.sets === 'number') {
+            // Formato antiguo: migrar a nuevo formato
             const oldSets = restMaybe.sets as number;
             const oldReps = (restMaybe.reps as number) || 10;
             const oldWeight = (restMaybe.weight as number) || 0;
@@ -59,10 +126,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 reps: oldReps, 
                 weight: oldWeight,
                 type: 'normal' as import('@/types').SetType
-              }))
+              })),
+              // Preservar campos de descanso si existen
+              restBetweenSets: (rest as any).restBetweenSets,
+              useSmartRest: (rest as any).useSmartRest
             } as Omit<Exercise, 'id'>;
             return newExercise;
           }
+          // Formato nuevo: preservar todos los campos incluyendo restBetweenSets y useSmartRest
           return rest as Omit<Exercise, 'id'>;
         });
         setExercises(migratedExercises);
@@ -70,15 +141,68 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         setRestBetweenExercises(routine.restBetweenExercises || 120);
         setCurrentStep('exercises');
       }
+    } else {
+      // Intentar restaurar borrador
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const draft = JSON.parse(stored);
+          // Solo restaurar si el borrador es reciente (menos de 24 horas)
+          const age = Date.now() - (draft.timestamp || 0);
+          if (age < 24 * 60 * 60 * 1000) {
+            setName(draft.name || '');
+            setDescription(draft.description || '');
+            setImage(draft.image || '');
+            setExercises(draft.exercises || []);
+            setRestBetweenSets(draft.restBetweenSets || 60);
+            setRestBetweenExercises(draft.restBetweenExercises || 120);
+            setCurrentStep(draft.currentStep || 'basic');
+          } else {
+            // Borrador muy antiguo, eliminarlo
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        }
+      } catch (e) {
+        console.warn('Error restoring draft:', e);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routineId]);
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('Error clearing draft:', e);
+    }
+  };
+
+  const handleCancelWithConfirm = async () => {
+    // Si hay datos ingresados, pedir confirmación
+    if (name || description || image || exercises.length > 0) {
+      const confirmed = await confirm({
+        title: 'Cancelar creación de rutina',
+        message: '¿Estás seguro? Se perderá todo el progreso no guardado.',
+        confirmText: 'Sí, cancelar',
+        cancelText: 'Continuar editando',
+        variant: 'danger'
+      });
+      
+      if (!confirmed) return;
+    }
+    
+    clearDraft();
+    onClose();
+  };
 
   const handleAddExercise = () => {
     setIsExerciseSelectorOpen(true);
   };
 
   const handleSelectExercises = (exerciseTemplates: ExerciseTemplate[]) => {
+    console.log('[RoutineForm] handleSelectExercises called with:', exerciseTemplates.length, 'exercises');
+    console.log('[RoutineForm] Exercise names:', exerciseTemplates.map(e => e.name));
+    
     const newExercises: Omit<Exercise, 'id'>[] = exerciseTemplates.map(template => {
       let defaultRestSecs: number | undefined;
       if (template.restTime) {
@@ -102,7 +226,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         restBetweenSets: defaultRestSecs
       };
     });
+    
+    console.log('[RoutineForm] Created', newExercises.length, 'new exercises');
+    console.log('[RoutineForm] Current exercises:', exercises.length);
+    
     setExercises([...exercises, ...newExercises]);
+    
+    console.log('[RoutineForm] After setExercises, total should be:', exercises.length + newExercises.length);
+    
     setIsExerciseSelectorOpen(false);
   };
 
@@ -117,7 +248,47 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
   const handleRemoveExercise = (index: number) => {
     setExercises(exercises.filter((_, i) => i !== index));
+    // Limpiar el estado de expandido para este índice
+    setExpandedExercises(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(index);
+      // Ajustar índices mayores
+      const adjusted = new Set<number>();
+      newSet.forEach(i => {
+        if (i > index) adjusted.add(i - 1);
+        else adjusted.add(i);
+      });
+      return adjusted;
+    });
   };
+
+  const handleMoveExercise = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    
+    const newExercises = [...exercises];
+    const [movedExercise] = newExercises.splice(fromIndex, 1);
+    newExercises.splice(toIndex, 0, movedExercise);
+    setExercises(newExercises);
+    
+    // Ajustar el estado de expandido
+    setExpandedExercises(prev => {
+      const newSet = new Set<number>();
+      prev.forEach(i => {
+        if (i === fromIndex) {
+          newSet.add(toIndex);
+        } else if (fromIndex < toIndex) {
+          if (i > fromIndex && i <= toIndex) newSet.add(i - 1);
+          else newSet.add(i);
+        } else {
+          if (i >= toIndex && i < fromIndex) newSet.add(i + 1);
+          else newSet.add(i);
+        }
+      });
+      return newSet;
+    });
+  };
+
+  // duplicate handleMoveExercise removed (logic kept in the earlier declaration)
 
   const handleExerciseChange = (index: number, field: 'name' | 'equipment' | 'notes', value: string) => {
     const newExercises = [...exercises];
@@ -284,6 +455,13 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         : `ex-new-${index}-${crypto.randomUUID()}`,
     }));
 
+    // Debug: Verificar que los campos de descanso se están guardando
+    console.log('[RoutineForm] Guardando ejercicios:', exercisesWithIds.map(ex => ({
+      name: ex.name,
+      restBetweenSets: ex.restBetweenSets,
+      useSmartRest: ex.useSmartRest
+    })));
+
     try {
       if (routineId) {
         await updateRoutine(routineId, {
@@ -305,10 +483,39 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         });
       }
       success(routineId ? t('updateSuccess') : t('createSuccess'));
+      clearDraft(); // Limpiar borrador al guardar exitosamente
       onClose();
     } catch (err) {
       console.error('Error saving routine:', err);
-      error(t('saveError'));
+      
+      // Mostrar mensaje de error específico
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      
+      if (errorMessage.includes('conexión') || errorMessage.includes('internet') || errorMessage.includes('Verifica')) {
+        // Error de conexión - Mostrar mensaje con opción de reintentar
+        error(
+          `❌ ${errorMessage}\n\n💾 Se guardó un borrador local. Puedes intentar de nuevo cuando tengas conexión.`,
+          10000 // 10 segundos
+        );
+        
+        // El borrador ya se guardó en storage.ts, solo informar al usuario
+        console.log('[RoutineForm] Borrador guardado automáticamente por el sistema de storage');
+      } else if (errorMessage.includes('Base de datos requerida')) {
+        // Base de datos no habilitada
+        error(
+          '❌ La base de datos no está habilitada. Contacta al administrador del sistema.',
+          8000
+        );
+      } else {
+        // Otro tipo de error
+        error(
+          `❌ ${errorMessage}\n\nIntenta de nuevo o contacta soporte si el problema persiste.`,
+          8000
+        );
+      }
+      
+      // No cerrar el formulario para que el usuario pueda reintentar
+      // onClose(); // Comentado intencionalmente
     } finally {
       setIsSubmitting(false);
     }
@@ -340,7 +547,51 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     .filter((mg): mg is MuscleGroup => mg !== undefined);
 
   const canProceedToExercises = name.trim().length > 0;
-  const canProceedToReview = exercises.length > 0 && exercises.every(ex => ex.name.trim().length > 0);
+  
+  // Validación mejorada para el paso de ejercicios
+  const validateExercises = () => {
+    const errors: Array<{ exerciseIndex: number; setIndex: number; message: string }> = [];
+    const exercisesWithErrors = new Set<number>();
+    
+    exercises.forEach((exercise, ei) => {
+      // Validar que el ejercicio tenga nombre
+      if (!exercise.name || exercise.name.trim().length === 0) {
+        errors.push({ exerciseIndex: ei, setIndex: -1, message: 'Nombre del ejercicio requerido' });
+        exercisesWithErrors.add(ei);
+      }
+      
+      exercise.sets.forEach((s, si) => {
+        const reps = typeof s.reps === 'number' ? s.reps : parseInt(String(s.reps));
+        if (!reps || reps <= 0) {
+          errors.push({ exerciseIndex: ei, setIndex: si, message: 'Reps requeridas (> 0)' });
+          exercisesWithErrors.add(ei);
+        }
+        
+        // Solo validar peso si no es un ejercicio de peso corporal
+        const weight = typeof s.weight === 'number' ? s.weight : parseFloat(String(s.weight || 0));
+        const isBodyweightExercise = exercise.equipment?.toLowerCase().includes('peso corporal') || 
+                                     exercise.equipment?.toLowerCase().includes('bodyweight') ||
+                                     exercise.equipment?.toLowerCase().includes('calistenia') ||
+                                     exercise.name?.toLowerCase().includes('plancha') ||
+                                     exercise.name?.toLowerCase().includes('flexion') ||
+                                     exercise.name?.toLowerCase().includes('dominada') ||
+                                     exercise.name?.toLowerCase().includes('abdominal') ||
+                                     exercise.name?.toLowerCase().includes('pull up') ||
+                                     exercise.name?.toLowerCase().includes('push up');
+        
+        if (!isBodyweightExercise && (!weight || weight <= 0)) {
+          errors.push({ exerciseIndex: ei, setIndex: si, message: 'Peso requerido (> 0)' });
+          exercisesWithErrors.add(ei);
+        }
+      });
+    });
+    
+    return { errors, exercisesWithErrors };
+  };
+  
+  const canProceedToReview = exercises.length > 0 && 
+                             exercises.every(ex => ex.name.trim().length > 0) &&
+                             validateExercises().errors.length === 0;
 
   return (
     <div className="min-h-[600px] flex flex-col">
@@ -479,7 +730,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               />
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-between pt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCancelWithConfirm}
+              >
+                Cancelar
+              </Button>
               <Button
                 type="button"
                 variant="primary"
@@ -504,6 +762,47 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 Agrega los ejercicios que formarán parte de tu rutina
               </p>
             </div>
+
+            {/* Estadísticas de la rutina */}
+            {exercises.length > 0 && (
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">⏱️</span>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                    Duración Estimada
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Tiempo estimado</div>
+                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {routineStats.estimatedDurationFormatted}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Rango</div>
+                    <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      {routineStats.durationRange.minFormatted} - {routineStats.durationRange.maxFormatted}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Ejercicios</div>
+                    <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                      {routineStats.totalExercises}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Series totales</div>
+                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                      {routineStats.totalSets}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                  💡 Estimación basada en ~30s por serie + descansos configurados
+                </p>
+              </div>
+            )}
 
             {exercises.length > 0 && (
               <WarmupRecommendation
@@ -567,199 +866,362 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               )}
 
               <div className="space-y-4">
-                {exercises.map((exercise, exerciseIndex) => (
+                {exercises.map((exercise, exerciseIndex) => {
+                  const isExpanded = expandedExercises.has(exerciseIndex);
+                  
+                  return (
                   <div
                     key={exerciseIndex}
-                    className="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-xl shadow-md border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all space-y-4"
+                    data-exercise-index={exerciseIndex}
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedExerciseIndex(exerciseIndex);
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.currentTarget.classList.add('opacity-50');
+                    }}
+                    onDragEnd={(e) => {
+                      setDraggedExerciseIndex(null);
+                      setDragOverIndex(null);
+                      e.currentTarget.classList.remove('opacity-50');
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      setDragOverIndex(exerciseIndex);
+                    }}
+                    onDragLeave={() => {
+                      setDragOverIndex(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedExerciseIndex !== null && draggedExerciseIndex !== exerciseIndex) {
+                        handleMoveExercise(draggedExerciseIndex, exerciseIndex);
+                      }
+                      setDraggedExerciseIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    className={`bg-white dark:bg-gray-800 rounded-xl shadow-md border-2 transition-all overflow-hidden ${
+                      dragOverIndex === exerciseIndex && draggedExerciseIndex !== exerciseIndex
+                        ? 'border-blue-500 dark:border-blue-400 scale-105 shadow-xl'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
-                          {exerciseIndex + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
-                            {t('exercise')} {exerciseIndex + 1}
+                    {/* Header colapsable - siempre visible */}
+                    <div 
+                      className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                        validationErrors.some(err => err.exerciseIndex === exerciseIndex) 
+                          ? 'bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500' 
+                          : ''
+                      }`}
+                      onClick={() => toggleExerciseExpanded(exerciseIndex)}
+                    >
+                      {/* Drag handle */}
+                      <div 
+                        className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        onMouseDown={(e) => e.stopPropagation()}
+                      >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
+                        </svg>
+                      </div>
+
+                      {/* Número */}
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                        {exerciseIndex + 1}
+                      </div>
+
+                      {/* Nombre del ejercicio */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 truncate">
+                            {exercise.name || `Ejercicio ${exerciseIndex + 1}`}
                           </div>
-                          {exercise.name && (
-                            <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
-                              {exercise.name}
+                          {validationErrors.some(err => err.exerciseIndex === exerciseIndex) && (
+                            <span className="flex-shrink-0 px-2 py-0.5 text-xs font-semibold bg-amber-500 text-white rounded-full animate-pulse">
+                              ⚠️ Completar
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {exercise.sets.length} {exercise.sets.length === 1 ? 'serie' : 'series'}
+                          {exercise.equipment && ` • ${exercise.equipment}`}
+                        </div>
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (exercises.length === 1) {
+                              // Si es el último ejercicio, mostrar confirmación (confirm devuelve Promise<boolean>)
+                              (async () => {
+                                try {
+                                  const confirmed = await confirm({
+                                    title: 'Eliminar ejercicio',
+                                    message: '¿Estás seguro de eliminar el último ejercicio? La rutina quedará vacía.',
+                                    confirmText: 'Eliminar',
+                                    cancelText: 'Cancelar',
+                                    variant: 'warning'
+                                  });
+                                  if (confirmed) handleRemoveExercise(exerciseIndex);
+                                } catch (e) { /* ignore */ }
+                              })();
+                            } else {
+                              handleRemoveExercise(exerciseIndex);
+                            }
+                          }}
+                          className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
+                          title="Eliminar ejercicio"
+                        >
+                          <span className="text-lg">🗑️</span>
+                        </button>
+                        
+                        {/* Icono de expandir/colapsar */}
+                        <div className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contenido expandible */}
+                    {isExpanded && (
+                      <div className="p-4 pt-0 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                        <div>
+                          <Input
+                            placeholder={t('exerciseName')}
+                            value={exercise.name}
+                            onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
+                            required
+                            className={`font-medium ${
+                              validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === -1)
+                                ? 'border-red-500 dark:border-red-500'
+                                : ''
+                            }`}
+                          />
+                          {validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === -1) && (
+                            <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+                              ⚠️ El nombre del ejercicio es requerido
                             </div>
                           )}
                         </div>
-                      </div>
-                      {exercises.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExercise(exerciseIndex)}
-                          className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
-                          title={t('removeExercise')}
-                        >
-                          <span className="text-xl">🗑️</span>
-                        </button>
-                      )}
-                    </div>
 
-                    <Input
-                      placeholder={t('exerciseName')}
-                      value={exercise.name}
-                      onChange={(e) => handleExerciseChange(exerciseIndex, 'name', e.target.value)}
-                      required
-                      className="font-medium"
-                    />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {t('equipmentLabel')}
+                          </label>
+                          <EquipmentDropdown
+                            value={exercise.equipment || ''}
+                            onChange={(value) => handleExerciseChange(exerciseIndex, 'equipment', value)}
+                            placeholder={t('equipmentPlaceholder')}
+                          />
+                        </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('equipmentLabel')}
-                      </label>
-                      <EquipmentDropdown
-                        value={exercise.equipment || ''}
-                        onChange={(value) => handleExerciseChange(exerciseIndex, 'equipment', value)}
-                        placeholder={t('equipmentPlaceholder')}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {t('sets')} ({exercise.sets.length})
-                        </label>
-                        <Button 
-                          type="button" 
-                          variant="secondary" 
-                          size="sm" 
-                          onClick={() => handleAddSet(exerciseIndex)}
-                          className="text-xs"
-                        >
-                          ➕ {t('addSet')}
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {exercise.sets.map((set, setIndex) => (
-                          <div key={setIndex} className="p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            {/* Header compacto en una línea */}
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
-                                  {setIndex + 1}
-                                </span>
-                              </div>
-                              
-                              {/* Selector de tipo compacto */}
-                              <div className="flex-1 min-w-0">
-                                <SetTypeSelector
-                                  value={set.type || 'normal'}
-                                  onChange={(type) => handleSetChange(exerciseIndex, setIndex, 'type', type)}
-                                  compact
-                                />
-                              </div>
-                              
-                              {/* Botones de acción */}
-                              <div className="flex gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleCopySet(exerciseIndex, setIndex)}
-                                  className="p-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-all active:scale-95"
-                                  title={t('copySetTitle')}
-                                >
-                                  📋
-                                </button>
-                                {exercise.sets.length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
-                                    className="p-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95"
-                                    title={t('removeSetTitle')}
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Inputs de reps y peso en una línea */}
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Reps</label>
-                                <Input
-                                  type="number"
-                                  placeholder={t('reps')}
-                                  value={set.reps || ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === '') {
-                                      handleSetChange(exerciseIndex, setIndex, 'reps', 0);
-                                    } else {
-                                      const num = parseInt(val);
-                                      handleSetChange(exerciseIndex, setIndex, 'reps', isNaN(num) ? 0 : Math.max(0, num));
-                                    }
-                                  }}
-                                  min="1"
-                                  required
-                                  className={`text-center font-semibold h-8 text-sm ${
-                                    touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
-                                    validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps'))
-                                      ? 'border-red-500 dark:border-red-500'
-                                      : ''
-                                  }`}
-                                />
-                                {touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
-                                 validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')) && (
-                                  <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
-                                    Reps requeridas
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Peso (kg)</label>
-                                <Input
-                                  type="number"
-                                  name={`weight-${exerciseIndex}-${setIndex}`}
-                                  placeholder={t('weight')}
-                                  value={set.weight === 0 ? '' : set.weight ?? ''}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === '') {
-                                      handleSetChange(exerciseIndex, setIndex, 'weight', 0);
-                                    } else {
-                                      const num = parseFloat(val);
-                                      handleSetChange(exerciseIndex, setIndex, 'weight', isNaN(num) ? 0 : Math.max(0, num));
-                                    }
-                                  }}
-                                  min="0"
-                                  step="0.5"
-                                  className={`text-center font-semibold h-8 text-sm ${
-                                    touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
-                                    validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso'))
-                                      ? 'border-red-500 dark:border-red-500'
-                                      : ''
-                                  }`}
-                                />
-                                {touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
-                                 validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')) && (
-                                  <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
-                                    Peso requerido
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t('sets')} ({exercise.sets.length})
+                            </label>
+                            <Button 
+                              type="button" 
+                              variant="secondary" 
+                              size="sm" 
+                              onClick={() => handleAddSet(exerciseIndex)}
+                              className="text-xs"
+                            >
+                              ➕ {t('addSet')}
+                            </Button>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                          
+                          <div className="space-y-2">
+                            {exercise.sets.map((set, setIndex) => (
+                              <div key={setIndex} className="p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                {/* Header compacto en una línea */}
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                    <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                                      {setIndex + 1}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Selector de tipo compacto */}
+                                  <div className="flex-1 min-w-0">
+                                    <SetTypeSelector
+                                      value={set.type || 'normal'}
+                                      onChange={(type) => handleSetChange(exerciseIndex, setIndex, 'type', type)}
+                                      compact
+                                    />
+                                  </div>
+                                  
+                                  {/* Botones de acción */}
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCopySet(exerciseIndex, setIndex)}
+                                      className="p-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-all active:scale-95"
+                                      title={t('copySetTitle')}
+                                    >
+                                      📋
+                                    </button>
+                                    {exercise.sets.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveSet(exerciseIndex, setIndex)}
+                                        className="p-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95"
+                                        title={t('removeSetTitle')}
+                                      >
+                                        ✕
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
 
-                    <Input
-                      placeholder={t('notes')}
-                      value={exercise.notes || ''}
-                      onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
-                    />
+                                {/* Inputs de reps y peso en una línea */}
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Reps</label>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingValue({
+                                        exerciseIndex,
+                                        setIndex,
+                                        field: 'reps',
+                                        currentValue: set.reps || 0
+                                      })}
+                                      className={`w-full text-center font-semibold h-8 text-sm rounded-md border-2 transition-colors ${
+                                        set.reps && set.reps > 0
+                                          ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                                          : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600'
+                                      } ${
+                                        touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
+                                        validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps'))
+                                          ? 'border-red-500 dark:border-red-500'
+                                          : ''
+                                      }`}
+                                    >
+                                      {set.reps || '-'}
+                                    </button>
+                                    {touchedFields.has(`${exerciseIndex}-${setIndex}-reps`) &&
+                                     validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Reps')) && (
+                                      <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
+                                        Reps requeridas
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 block">Peso (kg)</label>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingValue({
+                                        exerciseIndex,
+                                        setIndex,
+                                        field: 'weight',
+                                        currentValue: set.weight || 0
+                                      })}
+                                      className={`w-full text-center font-semibold h-8 text-sm rounded-md border-2 transition-colors ${
+                                        set.weight && set.weight > 0
+                                          ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                                          : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600'
+                                      } ${
+                                        touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
+                                        validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso'))
+                                          ? 'border-red-500 dark:border-red-500'
+                                          : ''
+                                      }`}
+                                    >
+                                      {set.weight ? `${set.weight} kg` : '-'}
+                                    </button>
+                                    {touchedFields.has(`${exerciseIndex}-${setIndex}-weight`) &&
+                                     validationErrors.some(err => err.exerciseIndex === exerciseIndex && err.setIndex === setIndex && err.message.includes('Peso')) && (
+                                      <div className="text-[10px] text-red-600 dark:text-red-400 mt-0.5">
+                                        Peso requerido
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
 
-                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <span className="text-xl">⏱️</span>
-                      <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Descanso entre series:
-                      </label>
+                        <Input
+                          placeholder={t('notes')}
+                          value={exercise.notes || ''}
+                          onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
+                        />
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <span className="text-xl">⏱️</span>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                Descanso entre series:
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const willEnableSmartRest = !exercise.useSmartRest;
+                                  
+                                  // Si se activa el descanso inteligente, calcular y aplicar el tiempo recomendado
+                                  if (willEnableSmartRest) {
+                                    const exerciseTemplate = getExerciseByName(exercise.name);
+                                    if (exerciseTemplate) {
+                                      // Calcular promedio de reps de todas las series
+                                      const avgReps = Math.round(
+                                        exercise.sets.reduce((sum, set) => sum + (set.reps || 10), 0) / exercise.sets.length
+                                      );
+                                      
+                                      // Importar la función de cálculo
+                                      import('@/lib/restCalculator').then(({ calculateRestBetweenSets }) => {
+                                        const restRecommendation = calculateRestBetweenSets(
+                                          exerciseTemplate,
+                                          exercise.sets.length,
+                                          avgReps,
+                                          'intermediate'
+                                        );
+                                        
+                                        // Redondear a intervalos de 5 segundos
+                                        const recommendedTime = Math.round(restRecommendation.recommended / 5) * 5;
+                                        
+                                        // Aplicar el tiempo calculado - usar el estado actual
+                                        setExercises(currentExercises => {
+                                          const updatedExercises = [...currentExercises];
+                                          updatedExercises[exerciseIndex].restBetweenSets = recommendedTime;
+                                          updatedExercises[exerciseIndex].useSmartRest = true;
+                                          return updatedExercises;
+                                        });
+                                        
+                                        // Mostrar notificación con el tiempo calculado
+                                        const minutes = Math.floor(recommendedTime / 60);
+                                        const seconds = recommendedTime % 60;
+                                        const timeStr = seconds > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${minutes}:00`;
+                                        success(`Descanso inteligente aplicado: ${timeStr} (${restRecommendation.description})`, 3000);
+                                      });
+                                    }
+                                  } else {
+                                    // Si se desactiva, limpiar el tiempo específico
+                                    setExercises(currentExercises => {
+                                      const updatedExercises = [...currentExercises];
+                                      updatedExercises[exerciseIndex].restBetweenSets = undefined;
+                                      updatedExercises[exerciseIndex].useSmartRest = false;
+                                      return updatedExercises;
+                                    });
+                                  }
+                                }}
+                                className={`px-2 py-1 text-xs font-semibold rounded transition-all ${
+                                  exercise.useSmartRest
+                                    ? 'bg-purple-500 text-white'
+                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                }`}
+                                title="Usar descanso inteligente basado en características del ejercicio"
+                              >
+                                🧠 Inteligente
+                              </button>
+                            </div>
+                            {!exercise.useSmartRest && (
                               <RestTimeSelectorCompact
                                 value={exercise.restBetweenSets}
                                 onChange={(v) => {
@@ -770,9 +1232,26 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                                 placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, '0')} (global)`}
                                 className="flex-1"
                               />
-                    </div>
+                            )}
+                            {exercise.useSmartRest && (
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="text-purple-600 dark:text-purple-400 italic">
+                                  Descanso inteligente
+                                </span>
+                                {exercise.restBetweenSets && (
+                                  <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded font-semibold">
+                                    {Math.floor(exercise.restBetweenSets / 60)}:{(exercise.restBetweenSets % 60).toString().padStart(2, '0')}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -788,8 +1267,38 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               <Button
                 type="button"
                 variant="primary"
-                onClick={() => setCurrentStep('review')}
-                disabled={!canProceedToReview}
+                onClick={() => {
+                  const validation = validateExercises();
+                  if (validation.errors.length > 0) {
+                    // Expandir ejercicios con errores
+                    setExpandedExercises(validation.exercisesWithErrors);
+                    
+                    // Marcar todos los campos como tocados
+                    const allTouchedFields = new Set<string>();
+                    exercises.forEach((exercise, ei) => {
+                      exercise.sets.forEach((s, si) => {
+                        allTouchedFields.add(`${ei}-${si}-reps`);
+                        allTouchedFields.add(`${ei}-${si}-weight`);
+                      });
+                    });
+                    setTouchedFields(allTouchedFields);
+                    setValidationErrors(validation.errors);
+                    
+                    // Mostrar toast con resumen de errores
+                    const errorCount = validation.errors.length;
+                    const exerciseCount = validation.exercisesWithErrors.size;
+                    error(`⚠️ Completa los datos faltantes: ${errorCount} ${errorCount === 1 ? 'campo' : 'campos'} en ${exerciseCount} ${exerciseCount === 1 ? 'ejercicio' : 'ejercicios'}. Los campos están marcados en rojo.`);
+                    
+                    // Scroll al primer ejercicio con error
+                    setTimeout(() => {
+                      const firstErrorExercise = Math.min(...Array.from(validation.exercisesWithErrors));
+                      const element = document.querySelector(`[data-exercise-index="${firstErrorExercise}"]`);
+                      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                  } else {
+                    setCurrentStep('review');
+                  }
+                }}
                 className="order-1 sm:order-2 px-8"
               >
                 Siguiente: Revisar →
@@ -941,6 +1450,30 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
           onClose={() => setIsExerciseSelectorOpen(false)}
         />
       </Modal>
+
+      {/* Modal de edición de valores con teclado numérico */}
+      {editingValue && (
+        <EditValueModal
+          isOpen={true}
+          onClose={() => setEditingValue(null)}
+          title={`${exercises[editingValue.exerciseIndex]?.name || 'Ejercicio'} - Serie ${editingValue.setIndex + 1}`}
+          field={editingValue.field}
+          currentValue={editingValue.currentValue}
+          onSave={(value) => {
+            handleSetChange(editingValue.exerciseIndex, editingValue.setIndex, editingValue.field, value);
+            setEditingValue(null);
+          }}
+          historicalWeights={
+            editingValue.field === 'weight'
+              ? exercises[editingValue.exerciseIndex]?.sets
+                  .map(s => s.weight)
+                  .filter((w): w is number => typeof w === 'number' && w > 0)
+                  .filter((w, i, arr) => arr.indexOf(w) === i)
+                  .sort((a, b) => b - a) || []
+              : []
+          }
+        />
+      )}
     </div>
   );
 };

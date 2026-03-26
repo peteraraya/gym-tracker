@@ -14,6 +14,8 @@ import { useEquipment } from '@/context/EquipmentContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/Button';
 import { APP_CONFIG } from '@/config/app.config';
+import { useFilteredData } from '@/hooks/useFilteredData';
+import { EmptyState } from '@/components/EmptyState';
 
 const ITEMS_PER_PAGE = APP_CONFIG.pagination.exercisesPerPage;
 
@@ -41,17 +43,22 @@ export default function ExercisesPage() {
 
   // Filtrar ejercicios de entrenamiento
   const filteredExercises = useMemo(() => {
-    const searchLower = searchTerm.toLowerCase();
     return muscleExercises
-      .filter(ex => ex.name.toLowerCase().includes(searchLower))
       .filter(ex => hasEquipment(ex.equipment));
-  }, [muscleExercises, searchTerm, hasEquipment]);
+  }, [muscleExercises, hasEquipment]);
+
+  // Usar hook genérico para filtrado y paginación
+  const trainingData = useFilteredData(
+    filteredExercises,
+    searchTerm,
+    (ex, search) => ex.name.toLowerCase().includes(search),
+    { itemsPerPage: ITEMS_PER_PAGE }
+  );
 
   // Filtrar ejercicios de calentamiento
   const allWarmupExercises = useMemo(() => {
-    const searchLower = searchTerm.toLowerCase();
-    return muscleWarmups.filter(ex => ex.name.toLowerCase().includes(searchLower));
-  }, [muscleWarmups, searchTerm]);
+    return muscleWarmups;
+  }, [muscleWarmups]);
 
   const warmupExercises = useMemo(() => {
     return warmupCategoryFilter === 'all'
@@ -59,63 +66,42 @@ export default function ExercisesPage() {
       : allWarmupExercises.filter(ex => ex.category === warmupCategoryFilter);
   }, [allWarmupExercises, warmupCategoryFilter]);
 
-  // Ejercicios actuales según tab
-  const currentExercises = useMemo(() => {
-    return exerciseTab === 'training' ? filteredExercises : warmupExercises;
-  }, [exerciseTab, filteredExercises, warmupExercises]);
+  // Usar hook genérico para warmups
+  const warmupData = useFilteredData(
+    warmupExercises,
+    searchTerm,
+    (ex, search) => ex.name.toLowerCase().includes(search),
+    { itemsPerPage: ITEMS_PER_PAGE }
+  );
 
-  // Paginación optimizada
-  const { totalPages, startIndex, endIndex, paginatedExercises } = useMemo(() => {
-    const total = Math.ceil(currentExercises.length / ITEMS_PER_PAGE);
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    const paginated = currentExercises.slice(start, end);
-    
-    return {
-      totalPages: total,
-      startIndex: start,
-      endIndex: end,
-      paginatedExercises: paginated
-    };
-  }, [currentExercises, currentPage]);
-
-  // Contadores optimizados
-  const { availableCount, totalCount } = useMemo(() => {
-    return {
-      availableCount: currentExercises.length,
-      totalCount: exerciseTab === 'training' ? muscleExercises.length : muscleWarmups.length
-    };
-  }, [currentExercises.length, exerciseTab, muscleExercises.length, muscleWarmups.length]);
+  // Datos actuales según tab
+  const currentData = exerciseTab === 'training' ? trainingData : warmupData;
+  const totalCount = exerciseTab === 'training' ? muscleExercises.length : muscleWarmups.length;
 
   // Handlers optimizados
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    setCurrentPage(1);
   };
 
   const handleTabChange = (tab: 'training' | 'warmup') => {
     setExerciseTab(tab);
-    setCurrentPage(1);
     setWarmupCategoryFilter('all');
   };
 
   const handleCategoryChange = (category: 'all' | WarmupCategory) => {
     setWarmupCategoryFilter(category);
-    setCurrentPage(1);
   };
 
   const handleMuscleSelect = (muscleId: MuscleGroup) => {
     setSelectedMuscle(muscleId);
     setExerciseTab('training');
     setSearchTerm('');
-    setCurrentPage(1);
     setWarmupCategoryFilter('all');
   };
 
   const handleBackToMuscles = () => {
     setSelectedMuscle(null);
     setSearchTerm('');
-    setCurrentPage(1);
     setExerciseTab('training');
     setWarmupCategoryFilter('all');
   };
@@ -235,6 +221,7 @@ export default function ExercisesPage() {
                     muscle.name.toLowerCase().includes(searchTerm.toLowerCase())
                   )
                   .map((muscle) => {
+                  const searchLower = searchTerm.toLowerCase();
                   const exercisesForMuscle = getExercisesByMuscleGroup(muscle.id);
                   const total = exercisesForMuscle.length;
                   const available = exercisesForMuscle.filter(ex => hasEquipment(ex.equipment)).length;
@@ -287,21 +274,19 @@ export default function ExercisesPage() {
               {searchTerm && MUSCLE_GROUPS.filter(muscle => 
                 muscle.name.toLowerCase().includes(searchTerm.toLowerCase())
               ).length === 0 && (
-                <div className="text-center py-12 sm:py-16 px-4">
-                  <div className="text-5xl sm:text-7xl mb-4 sm:mb-6 animate-bounce">🔍</div>
-                  <h3 className="text-xl sm:text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                    No se encontraron grupos
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-                    Intenta con otro término
-                  </p>
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm sm:text-base font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
-                  >
-                    Limpiar búsqueda
-                  </button>
-                </div>
+                <EmptyState
+                  icon="🔍"
+                  title="No se encontraron grupos"
+                  description="Intenta con otro término"
+                  action={
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm sm:text-base font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+                    >
+                      Limpiar búsqueda
+                    </button>
+                  }
+                />
               )}
             </>
           ) : (
@@ -313,8 +298,8 @@ export default function ExercisesPage() {
                     {MUSCLE_GROUPS.find(m => m.id === selectedMuscle)?.name}
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {availableCount} de {totalCount} disponibles
-                    {selectedEquipment.size > 0 && availableCount < totalCount && (
+                    {currentData.total} de {totalCount} disponibles
+                    {selectedEquipment.size > 0 && currentData.total < totalCount && (
                       <span className="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 font-medium">(filtrado)</span>
                     )}
                   </p>
@@ -351,7 +336,7 @@ export default function ExercisesPage() {
                 </div>
                 {searchTerm && (
                   <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
-                    {availableCount} resultado{availableCount !== 1 ? 's' : ''} para &quot;{searchTerm}&quot;
+                    {currentData.total} resultado{currentData.total !== 1 ? 's' : ''} para &quot;{searchTerm}&quot;
                   </p>
                 )}
               </div>
@@ -428,7 +413,7 @@ export default function ExercisesPage() {
 
               {/* Lista de ejercicios optimizada para móvil */}
               <div className="space-y-3 sm:space-y-4">
-                {paginatedExercises.map((exercise) => {
+                {currentData.data.map((exercise) => {
                   const warmup = exerciseTab === 'warmup' ? exercise as WarmupExercise : null;
                   const categoryInfo = warmup ? WARMUP_CATEGORY_LABELS[warmup.category] : null;
                   return (
@@ -551,26 +536,26 @@ export default function ExercisesPage() {
               </div>
 
               {/* Paginación optimizada para móvil */}
-              {totalPages > 1 && (
+              {currentData.totalPages > 1 && (
                 <div className="mt-6 sm:mt-8 flex flex-col gap-3 sm:gap-4 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                   <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium text-center sm:text-left">
-                    Mostrando {startIndex + 1}-{Math.min(endIndex, currentExercises.length)} de {currentExercises.length}
+                    Mostrando {(currentData.currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentData.currentPage * ITEMS_PER_PAGE, currentData.total)} de {currentData.total}
                   </div>
                   <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3">
                     <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
+                      onClick={() => currentData.setCurrentPage((prev: number) => Math.max(1, prev - 1))}
+                      disabled={!currentData.hasPrevPage}
                       className="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-400 transition-all font-medium shadow-sm text-sm active:scale-95"
                     >
                       ← Anterior
                     </button>
                     <div className="flex gap-1.5 sm:gap-2 overflow-x-auto max-w-full px-2">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      {Array.from({ length: currentData.totalPages }, (_, i) => i + 1).map(page => (
                         <button
                           key={page}
-                          onClick={() => setCurrentPage(page)}
+                          onClick={() => currentData.setCurrentPage(page)}
                           className={`min-w-[36px] sm:min-w-[40px] h-9 sm:h-10 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm text-sm active:scale-95 ${
-                            currentPage === page
+                            currentData.currentPage === page
                               ? exerciseTab === 'warmup'
                                 ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
                                 : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
@@ -582,8 +567,8 @@ export default function ExercisesPage() {
                       ))}
                     </div>
                     <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
+                      onClick={() => currentData.setCurrentPage((prev: number) => Math.min(currentData.totalPages, prev + 1))}
+                      disabled={!currentData.hasNextPage}
                       className="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-400 transition-all font-medium shadow-sm text-sm active:scale-95"
                     >
                       Siguiente →
@@ -593,14 +578,12 @@ export default function ExercisesPage() {
               )}
 
               {/* Mensaje sin resultados optimizado */}
-              {currentExercises.length === 0 && (
-                <div className="text-center py-12 sm:py-16 px-4">
-                  <div className="text-5xl sm:text-7xl mb-4 sm:mb-6 animate-bounce">{exerciseTab === 'warmup' ? '🔥' : '🔍'}</div>
-                  <h3 className="text-lg sm:text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                    {exerciseTab === 'warmup' ? 'No hay ejercicios de calentamiento' : 'No se encontraron ejercicios'}
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Intenta con otro término</p>
-                </div>
+              {currentData.total === 0 && (
+                <EmptyState
+                  icon={exerciseTab === 'warmup' ? '🔥' : '🔍'}
+                  title={exerciseTab === 'warmup' ? 'No hay ejercicios de calentamiento' : 'No se encontraron ejercicios'}
+                  description="Intenta con otro término"
+                />
               )}
             </>
           )}

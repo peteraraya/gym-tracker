@@ -10,7 +10,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
 import { SetTimer } from '@/components/SetTimer';
+import { PreparationCountdown } from '@/components/PreparationCountdown';
 import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
+import { WeightSelector } from '@/components/WeightSelector';
 import { Input } from '@/components/ui/Input';
 import { RestTimeSelector } from '@/components/RestTimeSelector';
 import { ExerciseSelector } from '@/components/ExerciseSelector';
@@ -38,6 +40,7 @@ interface FreeExercise {
     weight: number; 
     duration?: number;
     type?: import('@/types').SetType;
+    checked?: boolean; // Para trackear si está marcado o no
   }[];
   restBetweenSets?: number;
 }
@@ -105,6 +108,10 @@ export default function FreeWorkoutPage() {
     return 60;
   });
 
+  // Estados para UX mejorada (preparación y ejecución)
+  const [showPreparation, setShowPreparation] = useState(false);
+  const [isExecutingSet, setIsExecutingSet] = useState(false);
+
   const handleRemoveExercise = (index: number) => {
     setExercises(prev => prev.filter((_, i) => i !== index));
     if (activeExerciseIndex === index) {
@@ -164,7 +171,18 @@ export default function FreeWorkoutPage() {
     } catch (e) {}
   };
 
+  const handleStartSet = () => {
+    setShowPreparation(true);
+  };
+
+  const handlePreparationComplete = () => {
+    setShowPreparation(false);
+    setIsExecutingSet(true);
+  };
+
   const handleCompleteSet = () => {
+    setIsExecutingSet(false);
+    
     if (activeExerciseIndex === null) return;
 
     const exercise = exercises[activeExerciseIndex];
@@ -183,7 +201,8 @@ export default function FreeWorkoutPage() {
         { 
           reps: repsValue, 
           weight: weightValue,
-          type: currentSetType
+          type: currentSetType,
+          checked: true // Marcar como completada por defecto
         }
       ]
     };
@@ -266,16 +285,21 @@ export default function FreeWorkoutPage() {
 
     const sessionExercises = exercises
       .filter(ex => ex.completedSets.length > 0)
-      .map(ex => ({
-        exerciseId: ex.id,
-        exerciseName: ex.name,
-        completedSets: ex.completedSets.length,
-        actualReps: ex.completedSets.map(s => s.reps),
-        actualWeight: ex.completedSets.map(s => s.weight),
-        setDurations: ex.completedSets.map(s => s.duration || 0),
-        pauseDurations: [],
-        actualRestTimes: actualRestTimes[ex.id] || []
-      }));
+      .map(ex => {
+        // Filtrar solo las series marcadas como checked
+        const checkedSets = ex.completedSets.filter(s => s.checked !== false);
+        return {
+          exerciseId: ex.id,
+          exerciseName: ex.name,
+          completedSets: checkedSets.length,
+          actualReps: checkedSets.map(s => s.reps),
+          actualWeight: checkedSets.map(s => s.weight),
+          setDurations: checkedSets.map(s => s.duration || 0),
+          pauseDurations: [],
+          actualRestTimes: actualRestTimes[ex.id] || []
+        };
+      })
+      .filter(ex => ex.completedSets > 0); // Eliminar ejercicios sin series marcadas
 
     try {
       await addSession({
@@ -332,25 +356,40 @@ export default function FreeWorkoutPage() {
 
   const activeExercise = activeExerciseIndex !== null ? exercises[activeExerciseIndex] : null;
 
+  // Ocultar navbar cuando se muestra el timer
+  useEffect(() => {
+    if (showTimer) {
+      document.body.classList.add('hide-navbar');
+    } else {
+      document.body.classList.remove('hide-navbar');
+    }
+
+    return () => {
+      document.body.classList.remove('hide-navbar');
+    };
+  }, [showTimer]);
+
   // Timer screen
   if (showTimer) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <Timer
-            duration={timerDuration}
-            onComplete={handleTimerComplete}
-            autoStart={true}
-            title={timerTitle}
-            showMotivation={true}
-            onActualDurationChange={handleActualRestDuration}
-          />
-          <div className="mt-6 text-center space-y-3">
-            <Button variant="ghost" onClick={handleTimerComplete} className="w-full">
-              ⏭️ Saltar descanso
-            </Button>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              <p>💡 Tip: Aprovecha para hidratarte y respirar profundo</p>
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 overflow-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <Timer
+              duration={timerDuration}
+              onComplete={handleTimerComplete}
+              autoStart={true}
+              title={timerTitle}
+              showMotivation={true}
+              onActualDurationChange={handleActualRestDuration}
+            />
+            <div className="mt-6 text-center space-y-3">
+              <Button variant="ghost" onClick={handleTimerComplete} className="w-full">
+                ⏭️ Saltar descanso
+              </Button>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                <p>💡 Tip: Aprovecha para hidratarte y respirar profundo</p>
+              </div>
             </div>
           </div>
         </div>
@@ -407,49 +446,52 @@ export default function FreeWorkoutPage() {
 
           {/* Ejercicio activo */}
           {activeExercise && (
-            <Card className="mb-6 border-2 border-orange-400 dark:border-orange-600">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Dumbbell className="w-5 h-5 text-orange-500" />
+            <Card className="mb-4 border-2 border-orange-400 dark:border-orange-600">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Dumbbell className="w-4 h-4 text-orange-500" />
                   {activeExercise.name || 'Ejercicio sin nombre'}
                 </CardTitle>
                 {activeExercise.equipment && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     🏋️ {activeExercise.equipment}
                   </p>
                 )}
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Set timer */}
-                  <div className="mb-4">
-                    <SetTimer
-                      onComplete={handleSetTimerComplete}
-                      autoStart={true}
-                    />
-                  </div>
+              <CardContent className="space-y-3">
+                {/* Set timer - compacto */}
+                <div className="mb-2">
+                  <SetTimer
+                    onComplete={handleSetTimerComplete}
+                    autoStart={true}
+                  />
+                </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                        {activeExercise.completedSets.length}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Series hechas</div>
+                {/* Stats - compacto */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-center p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                      {activeExercise.completedSets.length}
                     </div>
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {activeExercise.completedSets.reduce((sum, s) => sum + s.reps, 0)}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Reps totales</div>
-                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Series</div>
                   </div>
+                  <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                      {activeExercise.completedSets.reduce((sum, s) => sum + s.reps, 0)}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Reps</div>
+                  </div>
+                </div>
 
-                  {/* Input reps/weight */}
-                  <div className="space-y-3">
-                    <Input
+                {/* Input reps/weight - compacto */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Repeticiones
+                    </label>
+                    <input
                       type="number"
-                      label="Repeticiones"
+                      className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={currentReps === 0 ? '' : currentReps}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -461,70 +503,182 @@ export default function FreeWorkoutPage() {
                         }
                       }}
                       min="0"
-                      placeholder="Número de repeticiones"
+                      placeholder="0"
                     />
-                    <Input
-                      type="number"
-                      label="Peso (kg)"
-                      value={currentWeight === 0 ? '' : currentWeight}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === '') {
-                          setCurrentWeight(0);
-                        } else {
-                          const num = parseFloat(val);
-                          setCurrentWeight(isNaN(num) ? 0 : Math.max(0, num));
-                        }
-                      }}
-                      min="0"
-                      step="0.5"
-                      placeholder="Peso en kg"
-                    />
-                    
-                    {/* Selector de tipo de serie */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Tipo de Serie
-                      </label>
-                      <SetTypeSelector
-                        value={currentSetType}
-                        onChange={setCurrentSetType}
-                      />
-                    </div>
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Peso (kg)
+                    </label>
+                    <WeightSelector
+                      value={currentWeight === 0 ? '' : currentWeight}
+                      onChange={(weight) => setCurrentWeight(Math.max(0, weight))}
+                      exerciseId={activeExercise.id}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                
+                {/* Selector de tipo de serie - compacto */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tipo de Serie
+                  </label>
+                  <SetTypeSelector
+                    value={currentSetType}
+                    onChange={setCurrentSetType}
+                    compact
+                  />
+                </div>
 
-                  {/* Complete set button */}
+                {/* Countdown de Preparación */}
+                {showPreparation && (
+                  <PreparationCountdown
+                    duration={3}
+                    onComplete={handlePreparationComplete}
+                    exerciseName={activeExercise.name}
+                    setNumber={activeExercise.completedSets.length + 1}
+                  />
+                )}
+
+                {/* Botón para iniciar serie */}
+                {!isExecutingSet && !showPreparation && (
                   <Button
                     variant="primary"
-                    onClick={handleCompleteSet}
-                    className="w-full text-lg py-3"
+                    onClick={handleStartSet}
+                    disabled={currentReps === 0 || currentReps === '' || currentWeight === 0 || currentWeight === ''}
+                    className="w-full text-base py-2.5 bg-blue-600 hover:bg-blue-700"
                   >
-                    ✅ Completar serie {activeExercise.completedSets.length + 1}
+                    ▶️ Iniciar Serie {activeExercise.completedSets.length + 1}
                   </Button>
+                )}
 
-                  {/* Sets history */}
-                  {activeExercise.completedSets.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Series completadas:</p>
-                      <div className="space-y-2">
-                        {activeExercise.completedSets.map((set, i) => (
-                          <div key={i} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
+                {/* Botón grande para completar serie */}
+                {isExecutingSet && (
+                  <div className="space-y-3">
+                    <div className="text-center py-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                      <p className="text-base font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                        🏋️ Ejecuta tu serie
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        Presiona el botón cuando termines
+                      </p>
+                    </div>
+                    
+                    <Button
+                      variant="primary"
+                      onClick={handleCompleteSet}
+                      className="w-full py-4 text-lg font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg transition-all hover:scale-105"
+                    >
+                      <span className="text-xl mr-2">✓</span>
+                      Completar Serie
+                    </Button>
+                  </div>
+                )}
+
+                {/* Sets history con edición - compacto */}
+                {activeExercise.completedSets.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Series completadas:</p>
+                    <div className="space-y-1.5">
+                      {activeExercise.completedSets.map((set, i) => (
+                        <div key={i} className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-300 dark:border-green-700">
+                          {/* Header con checkbox - compacto */}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5">
+                              {/* Checkbox para desmarcar */}
+                              <input
+                                type="checkbox"
+                                checked={set.checked !== false} // Por defecto true si no está definido
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  const newExercises = [...exercises];
+                                  const updatedSets = [...activeExercise.completedSets];
+                                  updatedSets[i] = { ...updatedSets[i], checked };
+                                  newExercises[activeExerciseIndex!] = {
+                                    ...activeExercise,
+                                    completedSets: updatedSets
+                                  };
+                                  setExercises(newExercises);
+                                }}
+                                className="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
+                              />
+                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">#{i + 1}</span>
                               {set.type && set.type !== 'normal' && (
                                 <SetTypeBadge type={set.type} />
                               )}
                             </div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {set.reps} reps × {set.weight}kg
-                            </span>
+                            {/* Botón eliminar */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newExercises = [...exercises];
+                                newExercises[activeExerciseIndex!] = {
+                                  ...activeExercise,
+                                  completedSets: activeExercise.completedSets.filter((_, idx) => idx !== i)
+                                };
+                                setExercises(newExercises);
+                              }}
+                              className="p-1 text-red-400 hover:text-red-600"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                          
+                          {/* Inputs editables - compacto */}
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <div>
+                                <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
+                                  Reps
+                                </label>
+                                <input
+                                  type="number"
+                                  className="w-full p-1.5 border rounded-md bg-white dark:bg-gray-700 text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  value={set.reps}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const num = val === '' ? 0 : parseInt(val);
+                                    const newExercises = [...exercises];
+                                    const updatedSets = [...activeExercise.completedSets];
+                                    updatedSets[i] = { ...updatedSets[i], reps: isNaN(num) ? 0 : Math.max(0, num) };
+                                    newExercises[activeExerciseIndex!] = {
+                                      ...activeExercise,
+                                      completedSets: updatedSets
+                                    };
+                                    setExercises(newExercises);
+                                  }}
+                                  min="0"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
+                                  Peso (kg)
+                                </label>
+                                <WeightSelector
+                                  value={set.weight}
+                                  onChange={(weight) => {
+                                    const newExercises = [...exercises];
+                                    const updatedSets = [...activeExercise.completedSets];
+                                    updatedSets[i] = { ...updatedSets[i], weight: Math.max(0, weight) };
+                                    newExercises[activeExerciseIndex!] = {
+                                      ...activeExercise,
+                                      completedSets: updatedSets
+                                    };
+                                    setExercises(newExercises);
+                                  }}
+                                  exerciseId={activeExercise.id}
+                                  placeholder="0"
+                                  className="p-1.5 text-xs"
+                                />
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Smart rest info */}
+                  {/* Smart rest info - compacto */}
                   {useSmartRest && (() => {
                     const template = EXERCISE_DATABASE.find(e => e.name === activeExercise.name);
                     if (template) {
@@ -535,8 +689,8 @@ export default function FreeWorkoutPage() {
                         'intermediate'
                       );
                       return (
-                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                          <div className="flex items-center gap-2 mb-1">
+                        <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                          <div className="flex items-center gap-2 mb-0.5">
                             <span>🧠</span>
                             <span className="text-sm font-semibold text-purple-900 dark:text-purple-100">
                               Descanso sugerido: {formatRestTime(rec.recommended)}
@@ -548,7 +702,8 @@ export default function FreeWorkoutPage() {
                     }
                     return null;
                   })()}
-                </div>
+
+              
               </CardContent>
             </Card>
           )}
@@ -637,18 +792,99 @@ export default function FreeWorkoutPage() {
                         </div>
                       </div>
 
-                      {/* Expanded sets */}
+                      {/* Expanded sets con edición */}
                       {!isCollapsed && exercise.completedSets.length > 0 && (
                         <div className="mt-2 pl-8 space-y-1.5">
                           {exercise.completedSets.map((set, i) => (
-                            <div key={i} className="flex items-center justify-between text-xs p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                              <div className="flex items-center gap-2">
-                                <span className="text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
-                                {set.type && set.type !== 'normal' && (
-                                  <SetTypeBadge type={set.type} />
-                                )}
+                            <div key={i} className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-300 dark:border-green-700">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  {/* Checkbox */}
+                                  <input
+                                    type="checkbox"
+                                    checked={true}
+                                    onChange={(e) => {
+                                      if (!e.target.checked) {
+                                        const newExercises = [...exercises];
+                                        newExercises[index] = {
+                                          ...exercise,
+                                          completedSets: exercise.completedSets.filter((_, idx) => idx !== i)
+                                        };
+                                        setExercises(newExercises);
+                                      }
+                                    }}
+                                    className="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                  />
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
+                                  {set.type && set.type !== 'normal' && (
+                                    <SetTypeBadge type={set.type} />
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newExercises = [...exercises];
+                                    newExercises[index] = {
+                                      ...exercise,
+                                      completedSets: exercise.completedSets.filter((_, idx) => idx !== i)
+                                    };
+                                    setExercises(newExercises);
+                                  }}
+                                  className="p-1 text-red-400 hover:text-red-600"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
                               </div>
-                              <span className="font-medium">{set.reps} reps × {set.weight}kg</span>
+                              
+                              {/* Inputs editables */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Reps
+                                  </label>
+                                  <input
+                                    type="number"
+                                    className="w-full p-1.5 border rounded bg-white dark:bg-gray-700 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value={set.reps}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      const val = e.target.value;
+                                      const num = val === '' ? 0 : parseInt(val);
+                                      const newExercises = [...exercises];
+                                      const updatedSets = [...exercise.completedSets];
+                                      updatedSets[i] = { ...updatedSets[i], reps: isNaN(num) ? 0 : Math.max(0, num) };
+                                      newExercises[index] = {
+                                        ...exercise,
+                                        completedSets: updatedSets
+                                      };
+                                      setExercises(newExercises);
+                                    }}
+                                    min="0"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Peso (kg)
+                                  </label>
+                                  <WeightSelector
+                                    value={set.weight}
+                                    onChange={(weight) => {
+                                      const newExercises = [...exercises];
+                                      const updatedSets = [...exercise.completedSets];
+                                      updatedSets[i] = { ...updatedSets[i], weight };
+                                      newExercises[index] = {
+                                        ...exercise,
+                                        completedSets: updatedSets
+                                      };
+                                      setExercises(newExercises);
+                                    }}
+                                    exerciseId={exercise.id}
+                                    placeholder="0"
+                                    className="p-1.5 text-xs"
+                                  />
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>

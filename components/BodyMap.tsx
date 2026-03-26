@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MuscleGroup } from '@/data/exercises';
+import { MuscleGroup, MUSCLE_GROUPS } from '@/data/exercises';
 
 interface BodyMapProps {
   selectedMuscles: MuscleGroup[];
@@ -18,8 +18,32 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
     onMuscleClick(muscle);
   };
 
+  // Get muscle group name in Spanish
+  const getMuscleName = (muscle: MuscleGroup): string => {
+    return MUSCLE_GROUPS.find(m => m.id === muscle)?.name || muscle;
+  };
+
+  // Helper para obtener estilos de músculo
+  const getMuscleStyles = (muscle: MuscleGroup) => ({
+    fill: isActive(muscle) ? 'url(#muscleGrad)' : '#f3f4f6',
+    stroke: isActive(muscle) ? '#1e40af' : '#d1d5db',
+    strokeWidth: isActive(muscle) ? '2.5' : '1.5',
+    className: 'transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600',
+    style: { filter: isActive(muscle) ? 'url(#glow)' : 'none' }
+  });
+
   return (
-    <div className="flex justify-center items-center gap-8">
+    <>
+      {/* Tooltip flotante visible */}
+      {hovered && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg font-semibold text-sm animate-fade-in">
+            {getMuscleName(hovered)}
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-center items-center gap-8">
       {/* Vista Frontal */}
       <div className="relative">
         <h3 className="text-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -29,24 +53,40 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           width="220"
           height="500"
           viewBox="0 0 220 500"
-          className="body-map-svg border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 p-2"
+          className="body-map-svg border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg transition-all"
           role="img"
           aria-label="Mapa del cuerpo humano - vista frontal"
         >
           <defs>
-            <linearGradient id="muscleGrad" x1="0" x2="1">
-              <stop offset="0%" stopColor="var(--primary-light)" />
-              <stop offset="100%" stopColor="var(--primary)" />
+            {/* Gradiente azul moderno para músculos activos */}
+            <linearGradient id="muscleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#2563eb" stopOpacity="1" />
             </linearGradient>
-            <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity="0.12" />
+            
+            {/* Efecto de brillo/glow */}
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            
+            {/* Sombra suave */}
+            <filter id="softShadow">
+              <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.15" />
             </filter>
           </defs>
 
           {/* Head - anatomical shape */}
           <g>
             <path d="M 110 10 Q 95 10 88 18 Q 84 24 84 32 Q 84 40 88 46 Q 92 50 98 52 L 98 56 Q 98 60 102 60 L 118 60 Q 122 60 122 56 L 122 52 Q 128 50 132 46 Q 136 40 136 32 Q 136 24 132 18 Q 125 10 110 10 Z" 
-              fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5" />
+              fill="#e5e7eb" 
+              stroke="#9ca3af" 
+              strokeWidth="1.5" 
+              className="dark:fill-gray-700 dark:stroke-gray-600" />
           </g>
 
           {/* Cuello (Neck) - clickeable */}
@@ -60,13 +100,15 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('cuello')}
             onBlur={() => setHovered(null)}
-            className="cursor-pointer transition-all"
+            className="cursor-pointer transition-all duration-200"
             aria-label="Cuello"
+            style={{ filter: isActive('cuello') ? 'url(#glow)' : 'none' }}
           >
             <path d="M 102 60 L 102 78 L 118 78 L 118 60" 
-              fill={isActive('cuello') ? 'url(#muscleGrad)' : 'var(--surface)'} 
-              stroke={isActive('cuello') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.5">
+              fill={isActive('cuello') ? 'url(#muscleGrad)' : '#f3f4f6'} 
+              stroke={isActive('cuello') ? '#1e40af' : '#d1d5db'} 
+              strokeWidth={isActive('cuello') ? '2.5' : '1.5'}
+              className="transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600">
               <title>Cuello</title>
             </path>
           </g>
@@ -82,21 +124,24 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             onMouseLeave={() => setHovered(null)}
             onFocus={() => setHovered('hombros')}
             onBlur={() => setHovered(null)}
-            className="cursor-pointer transition-all"
+            className="cursor-pointer transition-all duration-200"
             aria-label="Hombros"
+            style={{ filter: isActive('hombros') ? 'url(#glow)' : 'none' }}
           >
             {/* Left shoulder */}
-            <path className="muscle" d="M 78 78 Q 68 80 60 88 Q 54 95 54 104 L 60 112 Q 68 110 76 106 Q 82 100 84 92 Z" 
-              fill={isActive('hombros') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('hombros') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.5">
+            <path className="muscle transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600" 
+              d="M 78 78 Q 68 80 60 88 Q 54 95 54 104 L 60 112 Q 68 110 76 106 Q 82 100 84 92 Z" 
+              fill={isActive('hombros') ? 'url(#muscleGrad)' : '#f3f4f6'} 
+              stroke={isActive('hombros') ? '#1e40af' : '#d1d5db'} 
+              strokeWidth={isActive('hombros') ? '2.5' : '1.5'}>
               <title>Hombros</title>
             </path>
             {/* Right shoulder */}
-            <path className="muscle" d="M 142 78 Q 152 80 160 88 Q 166 95 166 104 L 160 112 Q 152 110 144 106 Q 138 100 136 92 Z" 
-              fill={isActive('hombros') ? 'url(#muscleGrad)' : 'var(--surface-alt)'} 
-              stroke={isActive('hombros') ? 'var(--primary-dark)' : 'var(--border)'} 
-              strokeWidth="1.5">
+            <path className="muscle transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600" 
+              d="M 142 78 Q 152 80 160 88 Q 166 95 166 104 L 160 112 Q 152 110 144 106 Q 138 100 136 92 Z" 
+              fill={isActive('hombros') ? 'url(#muscleGrad)' : '#f3f4f6'} 
+              stroke={isActive('hombros') ? '#1e40af' : '#d1d5db'} 
+              strokeWidth={isActive('hombros') ? '2.5' : '1.5'}>
               <title>Hombros</title>
             </path>
           </g>
@@ -304,24 +349,38 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           width="220"
           height="500"
           viewBox="0 0 220 500"
-          className="body-map-svg border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 p-2"
+          className="body-map-svg border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg transition-all"
           role="img"
           aria-label="Mapa del cuerpo humano - vista trasera"
         >
           <defs>
-            <linearGradient id="muscleGradBack" x1="0" x2="1">
-              <stop offset="0%" stopColor="var(--primary-light)" />
-              <stop offset="100%" stopColor="var(--primary)" />
+            {/* Usar los mismos gradientes que la vista frontal */}
+            <linearGradient id="muscleGradBack" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#2563eb" stopOpacity="1" />
             </linearGradient>
-            <filter id="softShadowBack" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity="0.12" />
+            
+            <filter id="glowBack">
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            
+            <filter id="softShadowBack">
+              <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.15" />
             </filter>
           </defs>
           
           {/* Head - back view */}
           <g>
             <path d="M 110 10 Q 95 10 88 18 Q 84 24 84 32 Q 84 40 88 46 Q 92 50 98 52 L 98 56 Q 98 60 102 60 L 118 60 Q 122 60 122 56 L 122 52 Q 128 50 132 46 Q 136 40 136 32 Q 136 24 132 18 Q 125 10 110 10 Z" 
-              fill="var(--surface)" stroke="var(--border)" strokeWidth="1.5" />
+              fill="#e5e7eb" 
+              stroke="#9ca3af" 
+              strokeWidth="1.5" 
+              className="dark:fill-gray-700 dark:stroke-gray-600" />
           </g>
 
           {/* Cuello (Neck) - back view clickeable */}
@@ -587,5 +646,6 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
         </svg>
       </div>
     </div>
+    </>
   );
 };

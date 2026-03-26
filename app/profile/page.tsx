@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -11,6 +11,9 @@ import { RestSettings } from '@/components/RestSettings';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import RestartOnboardingButton from '@/components/RestartOnboardingButton';
 import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
+import { PageLayout } from '@/components/PageLayout';
+import { LoadingState } from '@/components/LoadingState';
+import { usePageData } from '@/hooks/usePageData';
 
 export default function ProfilePage() {
   const { user } = useAuth();

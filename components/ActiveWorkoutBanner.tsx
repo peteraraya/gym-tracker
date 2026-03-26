@@ -2,19 +2,28 @@
 
 import { useWorkout } from '@/context/WorkoutContext';
 import { useConfirm } from '@/context/ConfirmContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Activity, X } from '@/components/icons/lucide';
-import { Button } from './ui/Button';
 
 export function ActiveWorkoutBanner() {
   const { activeWorkout, cancelWorkout } = useWorkout();
   const { confirm } = useConfirm();
   const router = useRouter();
+  const pathname = usePathname();
 
+  // No mostrar el banner si no hay workout activo
   if (!activeWorkout) return null;
 
+  // No mostrar el banner si ya estamos en una página de workout
+  if (pathname?.startsWith('/workout')) return null;
+
   const handleContinue = () => {
-    router.push(`/workout/${activeWorkout.routineId}`);
+    // Determinar la ruta correcta según el tipo de entrenamiento
+    const targetRoute = activeWorkout.routineId === 'free-training' 
+      ? '/workout/free' 
+      : `/workout/${activeWorkout.routineId}`;
+    
+    router.push(targetRoute);
   };
 
   const handleCancel = async () => {
@@ -27,58 +36,78 @@ export function ActiveWorkoutBanner() {
     });
     
     if (confirmed) {
+      console.log('[ActiveWorkoutBanner] User confirmed cancellation');
+      
+      // Marcar la cancelación antes de llamar a cancelWorkout
       try {
-        localStorage.setItem('gym-tracker-cancelled', Date.now().toString());
+        const timestamp = Date.now().toString();
+        localStorage.setItem('gym-tracker-cancelled', timestamp);
+        sessionStorage.setItem('workout_cancelled', timestamp);
+        localStorage.setItem('workout_cancelled_persistent', timestamp);
+        console.log('[ActiveWorkoutBanner] Set cancellation markers:', timestamp);
       } catch (e) {
-        // ignore
+        console.error('[ActiveWorkoutBanner] Error setting cancellation markers:', e);
       }
+      
       // Remove possible modal/backdrop elements left in the DOM
       try {
         document.querySelectorAll('.modal-backdrop, .modal-overlay, [data-backdrop]').forEach(el => el.remove());
       } catch (e) {}
-      cancelWorkout();
-      router.replace('/routines');
+      
+      // Cancelar el workout
+      await cancelWorkout();
+      
+      console.log('[ActiveWorkoutBanner] Workout cancelled, redirecting to routines');
+      
+      // Redirigir después de un pequeño delay para asegurar que el estado se limpió
+      setTimeout(() => {
+        router.replace('/routines');
+      }, 100);
     }
   };
 
   return (
-    <>
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="bg-linear-to-r from-emerald-500 to-green-600 text-white px-4 py-2 shadow-lg">
-          <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Activity className="w-5 h-5 animate-pulse" />
-          <div>
-            <p className="font-semibold text-sm">
-              Entrenamiento activo: {activeWorkout.routineName}
-            </p>
-            <p className="text-xs opacity-90">
-              Ejercicio {activeWorkout.currentExerciseIndex + 1} · Serie {activeWorkout.currentSet}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleContinue}
-            className="text-white hover:bg-white/20"
-          >
-            Continuar
-          </Button>
-          <button
-            onClick={handleCancel}
-            className="p-1 hover:bg-white/20 rounded transition-colors"
-            aria-label="Cancelar entrenamiento"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+      <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-2xl border-t-2 border-emerald-400">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            {/* Info del entrenamiento - Centrada y profesional */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <Activity className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-sm sm:text-base truncate">
+                  {activeWorkout.routineName}
+                </p>
+                <p className="text-xs opacity-90 flex items-center gap-2">
+                  <span>Ejercicio {activeWorkout.currentExerciseIndex + 1}</span>
+                  <span>•</span>
+                  <span>Serie {activeWorkout.currentSet}</span>
+                </p>
+              </div>
+            </div>
+            
+            {/* Botones de acción - Más visibles y profesionales */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={handleContinue}
+                className="px-5 py-2 text-sm font-bold bg-white text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all hover:scale-105 shadow-md"
+              >
+                Continuar
+              </button>
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 text-sm font-semibold bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all hover:scale-105 shadow-md flex items-center gap-1.5"
+                aria-label="Descartar entrenamiento"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Descartar</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      {/* spacer to keep layout from jumping when banner is fixed */}
-      <div aria-hidden className="h-12 md:h-14" />
-    </>
+    </div>
   );
 }
