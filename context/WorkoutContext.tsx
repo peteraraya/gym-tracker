@@ -22,10 +22,9 @@ interface WorkoutState {
   modifiedRoutine?: Routine;
   // Estado del timer de descanso para persistencia
   isResting?: boolean;
-  restTimerDuration?: number;
+  restTimerRemaining?: number; // ✅ Tiempo restante en segundos (en lugar de duration)
   restTimerTitle?: string;
   restTimerNextExercise?: string;
-  restTimerStartedAt?: number; // timestamp de cuando empezó el descanso
   // Tiempo total pausado en el entrenamiento (en milisegundos)
   totalPausedTime?: number;
   // Ejercicios omitidos en esta sesión (no se eliminan, solo se saltan)
@@ -144,10 +143,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       modifiedRoutine: data.modifiedRoutine || undefined,
       // Estado del timer de descanso para persistencia
       isResting: data.isResting ?? false,
-      restTimerDuration: data.restTimerDuration,
+      restTimerRemaining: data.restTimerRemaining ?? data.restTimerDuration, // ✅ Migración: usar restTimerRemaining o fallback a restTimerDuration
       restTimerTitle: data.restTimerTitle,
       restTimerNextExercise: data.restTimerNextExercise,
-      restTimerStartedAt: data.restTimerStartedAt,
       // Ejercicios omitidos en esta sesión
       skippedExercises: Array.isArray(data.skippedExercises) ? data.skippedExercises : [],
       // ✅ Campos adicionales para persistencia completa
@@ -331,10 +329,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         actualWeights,
         // Persistir estado del timer de descanso
         isResting: restState?.isResting ?? false,
-        restTimerDuration: restState?.restTimerDuration,
+        restTimerRemaining: restState?.restTimerDuration, // ✅ Guardar tiempo restante
         restTimerTitle: restState?.restTimerTitle,
         restTimerNextExercise: restState?.restTimerNextExercise,
-        restTimerStartedAt: restState?.restTimerStartedAt,
         // Persistir tiempo pausado
         totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
         // ✅ Persistir campos adicionales
@@ -358,10 +355,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       const newState = {
         ...prev,
         isResting: false,
-        restTimerDuration: undefined,
+        restTimerRemaining: undefined,
         restTimerTitle: undefined,
-        restTimerNextExercise: undefined,
-        restTimerStartedAt: undefined
+        restTimerNextExercise: undefined
       };
       // ✅ Usar saveQueue
       saveQueue.save(newState as unknown as ActiveWorkout).catch(e => {

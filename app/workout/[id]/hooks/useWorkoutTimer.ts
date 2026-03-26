@@ -44,20 +44,22 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   useEffect(() => {
     if (hasRestoredRef.current || !activeWorkout) return;
     
-    if (activeWorkout.isResting && activeWorkout.restTimerStartedAt && activeWorkout.restTimerDuration) {
-      const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
-      const remaining = Math.max(0, activeWorkout.restTimerDuration - elapsed);
+    // ✅ Usar restTimerRemaining directamente (tiempo restante guardado)
+    if (activeWorkout.isResting && activeWorkout.restTimerRemaining) {
+      const remaining = activeWorkout.restTimerRemaining;
       
       if (remaining > 0) {
         setShowTimer(true);
-        setTimerDuration(activeWorkout.restTimerDuration);
-        setTimerStartTime(activeWorkout.restTimerStartedAt);
+        setTimerDuration(remaining); // Usar el tiempo restante como duración
+        setTimerStartTime(Date.now()); // Nuevo timestamp de inicio
         setCurrentTimeLeft(remaining);
         setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
         setNextExerciseName(activeWorkout.restTimerNextExercise);
         setTimerMinimized(false);
         
         hasRestoredRef.current = true;
+        
+        console.log('[useWorkoutTimer] ✅ Timer restored with remaining time:', remaining);
       }
     }
   }, [activeWorkout]);
@@ -126,10 +128,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
@@ -139,7 +140,24 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setTimerMinimized(true);
     setCurrentTimeLeft(timeLeft);
     setTimerStartTime(Date.now());
-  }, []);
+    
+    // ✅ Persistir el tiempo restante cuando se minimiza
+    if (activeWorkout && updateWorkoutProgress) {
+      updateWorkoutProgress(
+        activeWorkout.currentExerciseIndex,
+        activeWorkout.currentSet,
+        activeWorkout.completedSets,
+        activeWorkout.actualReps,
+        activeWorkout.actualWeights,
+        {
+          isResting: true,
+          restTimerDuration: timeLeft, // ✅ Guardar tiempo restante
+          restTimerTitle: timerTitle,
+          restTimerNextExercise: nextExerciseName
+        }
+      );
+    }
+  }, [activeWorkout, updateWorkoutProgress, timerTitle, nextExerciseName]);
   
   const expandTimer = useCallback(() => {
     setTimerMinimized(false);
@@ -162,10 +180,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
@@ -188,10 +205,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
