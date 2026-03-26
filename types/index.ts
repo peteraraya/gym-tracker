@@ -25,6 +25,7 @@ export interface Exercise {
   recommendedReps?: string; // Ej: "8-12 repeticiones"
   restTime?: string; // Ej: "60-90 segundos"
   restBetweenSets?: number; // Descanso entre series en segundos (override por ejercicio)
+  useSmartRest?: boolean; // Usar descanso inteligente para este ejercicio
 }
 
 export interface Routine {
@@ -60,6 +61,11 @@ export interface WorkoutSession {
   notes?: string;
   totalDuration?: number; // Duración total del entrenamiento en segundos
   totalPausedTime?: number; // Tiempo total pausado en el entrenamiento
+  /**
+   * Volumen total levantado en la sesión (kg)
+   * Calculado como Σ(reps × peso) de todos los ejercicios
+   */
+  totalVolume?: number;
 }
 
 export type Session = WorkoutSession;

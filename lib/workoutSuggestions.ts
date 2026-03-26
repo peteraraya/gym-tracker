@@ -14,13 +14,30 @@ export interface WorkoutSuggestion {
 }
 
 /**
+ * Formatea segundos a formato legible (Xm Ys o Xs)
+ */
+function formatRestTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  
+  if (mins > 0 && secs > 0) {
+    return `${mins}m ${secs}s`;
+  } else if (mins > 0) {
+    return `${mins}m`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
+/**
  * Analiza el historial de sesiones y genera sugerencias inteligentes
  */
 export function generateWorkoutSuggestions(
   sessions: WorkoutSession[],
   currentExerciseName?: string,
   currentWeight?: number,
-  currentRestTime?: number
+  currentRestTime?: number,
+  smartRestTime?: number
 ): WorkoutSuggestion[] {
   const suggestions: WorkoutSuggestion[] = [];
 
@@ -37,7 +54,7 @@ export function generateWorkoutSuggestions(
 
   // 2. Advertencia de descanso muy corto
   if (currentExerciseName && currentRestTime !== undefined) {
-    const restSuggestion = checkRestTime(currentExerciseName, currentRestTime);
+    const restSuggestion = checkRestTime(currentExerciseName, currentRestTime, smartRestTime);
     if (restSuggestion) suggestions.push(restSuggestion);
   }
 
@@ -106,25 +123,66 @@ function checkWeightProgression(
 
 /**
  * Verifica si el tiempo de descanso es apropiado para el tipo de ejercicio
+ * Ahora usa el mismo criterio que los selectores (80% del recomendado)
  */
 function checkRestTime(
   exerciseName: string,
-  restTime: number
+  restTime: number,
+  smartRestTime?: number
 ): WorkoutSuggestion | null {
   const exercise = EXERCISE_DATABASE.find(e => e.name === exerciseName);
   if (!exercise) return null;
 
-    // Ejercicios compuestos requieren más descanso
-    const exAny = exercise as any;
-    const equipment = exercise.equipment ?? '';
-    const isCompound = exAny.type === 'compound' || ['Barra', 'Barra/Mancuernas', 'Peso corporal', 'Máquina', 'Poleas'].includes(equipment);
-    const isHeavy = exAny.difficulty === 'avanzado';
+  // Si hay smartRestTime, usar el criterio del 80%
+  if (smartRestTime) {
+    const minRecommended = Math.floor(smartRestTime * 0.8);
+    
+    if (restTime < minRecommended) {
+      return {
+        type: 'rest_warning',
+        title: '⚠️ Descanso bajo mínimo',
+        message: `${exerciseName}: Se recomienda al menos ${formatRestTime(minRecommended)} de descanso. Actualmente: ${formatRestTime(restTime)}.`,
+        icon: '⏱️',
+        variant: 'warning',
+        actionable: true,
+        data: {
+          currentRest: restTime,
+          recommendedMin: minRecommended,
+          recommended: smartRestTime
+        }
+      };
+    }
+    
+    // Mensaje positivo cuando está en rango adecuado
+    if (restTime >= minRecommended && restTime <= smartRestTime * 1.2) {
+      return {
+        type: 'consistency',
+        title: '✅ Descanso adecuado',
+        message: `Perfecto! ${formatRestTime(restTime)} es un tiempo de descanso ideal para ${exerciseName}.`,
+        icon: '⏱️',
+        variant: 'success',
+        actionable: false,
+        data: {
+          currentRest: restTime,
+          recommended: smartRestTime
+        }
+      };
+    }
+    
+    return null;
+  }
+
+  // Fallback: lógica anterior si no hay smartRestTime
+  const exAny = exercise as any;
+  const equipment = exercise.equipment ?? '';
+  const isCompound = exAny.type === 'compound' || ['Barra', 'Barra/Mancuernas', 'Peso corporal', 'Máquina', 'Poleas'].includes(equipment);
+  const isHeavy = exAny.difficulty === 'avanzado';
 
   if (isCompound && restTime < 90) {
     return {
       type: 'rest_warning',
       title: '⚠️ Descanso muy corto',
-      message: `${exerciseName} es un ejercicio compuesto. Se recomienda descansar al menos 90-180 segundos para recuperación óptima.`,
+      message: `${exerciseName} es un ejercicio compuesto. Se recomienda descansar al menos ${formatRestTime(90)}-${formatRestTime(180)} para recuperación óptima.`,
       icon: '⏱️',
       variant: 'warning',
       actionable: true,
@@ -140,7 +198,7 @@ function checkRestTime(
     return {
       type: 'rest_warning',
       title: '⚠️ Descanso insuficiente',
-      message: `Para ejercicios pesados como ${exerciseName}, considera descansar 2-3 minutos entre series para mantener la intensidad.`,
+      message: `Para ejercicios pesados como ${exerciseName}, considera descansar ${formatRestTime(120)}-${formatRestTime(180)} entre series para mantener la intensidad.`,
       icon: '⏱️',
       variant: 'warning',
       actionable: true,
@@ -148,6 +206,35 @@ function checkRestTime(
         currentRest: restTime,
         recommendedMin: 120,
         recommendedMax: 180
+      }
+    };
+  }
+
+  // ✅ Mensaje positivo cuando el descanso es adecuado
+  if (isCompound && restTime >= 90 && restTime <= 180) {
+    return {
+      type: 'consistency',
+      title: '✅ Descanso adecuado',
+      message: `Perfecto! ${formatRestTime(restTime)} es un tiempo de descanso ideal para ${exerciseName}.`,
+      icon: '⏱️',
+      variant: 'success',
+      actionable: false,
+      data: {
+        currentRest: restTime
+      }
+    };
+  }
+
+  if (isHeavy && restTime >= 120 && restTime <= 180) {
+    return {
+      type: 'consistency',
+      title: '✅ Descanso óptimo',
+      message: `Excelente! ${formatRestTime(restTime)} es perfecto para ejercicios pesados como ${exerciseName}.`,
+      icon: '⏱️',
+      variant: 'success',
+      actionable: false,
+      data: {
+        currentRest: restTime
       }
     };
   }

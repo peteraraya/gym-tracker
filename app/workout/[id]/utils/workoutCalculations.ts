@@ -17,28 +17,29 @@ export function calculateNextRestTime(params: {
   const { currentExercise, routine, restOverrides, perSetOverrides, currentSet, useSmartRest } = params;
   const setIndex = currentSet - 1;
   
-  // 1. Override individual de la serie
-  if (perSetOverrides[currentExercise.id]?.[setIndex]) {
+  // 1. Override individual de la serie (edición manual en workout)
+  if (perSetOverrides?.[currentExercise.id]?.[setIndex]) {
     return perSetOverrides[currentExercise.id][setIndex];
   }
   
-  // 2. Override del ejercicio
-  if (restOverrides[currentExercise.id]) {
+  // 2. Override del ejercicio (edición manual en workout)
+  if (restOverrides?.[currentExercise.id]) {
     return restOverrides[currentExercise.id];
   }
   
-  // 3. Configurado en el ejercicio
+  // 3. Configurado en el ejercicio (manual o descanso inteligente aplicado)
+  // Tiene prioridad sobre el tiempo global de la rutina
   if (currentExercise.restBetweenSets) {
     return currentExercise.restBetweenSets;
   }
   
-  // 4. Configurado en la rutina
+  // 4. Configurado en la rutina (tiempo global)
   if (routine.restBetweenSets) {
     return routine.restBetweenSets;
   }
   
-  // 5. Descanso inteligente
-  if (useSmartRest) {
+  // 5. Descanso inteligente (solo si está habilitado y no hay configuración manual)
+  if (useSmartRest && currentExercise.useSmartRest !== false) {
     const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
     if (exerciseTemplate) {
       const currentSetData = currentExercise.sets[currentSet - 1];

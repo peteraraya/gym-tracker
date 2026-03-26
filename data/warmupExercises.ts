@@ -2926,6 +2926,11 @@ export const getWarmupsByMuscleGroup = (muscleGroup: MuscleGroup): WarmupExercis
     .sort((a, b) => a.priority - b.priority);
 };
 
+// Obtener todos los ejercicios de calentamiento
+export const getAllWarmups = (): WarmupExercise[] => {
+  return WARMUP_DATABASE;
+};
+
 // Obtener ejercicios de calentamiento por categoría
 export const getWarmupsByCategory = (category: WarmupCategory): WarmupExercise[] => {
   return WARMUP_DATABASE.filter(ex => ex.category === category);

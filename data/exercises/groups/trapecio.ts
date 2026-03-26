@@ -21,7 +21,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     restTime: '60-90 segundos'
   },
   {
-    id: 'dumbbell-shrugs',
+    id: 'dumbbell-shrugs-trapezius',
     name: 'Encogimientos con Mancuernas',
     muscleGroup: 'trapecio',
     equipment: 'Mancuernas',

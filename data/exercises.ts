@@ -1050,7 +1050,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '60-90 segundos'
   },
   {
-    id: 'dumbbell-shrugs',
+    id: 'dumbbell-shrugs-shoulders',
     name: 'Encogimientos con Mancuernas',
     muscleGroup: 'hombros',
     equipment: 'Mancuernas',
@@ -3123,7 +3123,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '60-90 segundos'
   },
   {
-    id: 'dumbbell-shrugs',
+    id: 'dumbbell-shrugs-trapezius',
     name: 'Encogimientos con Mancuernas',
     muscleGroup: 'trapecio',
     equipment: 'Mancuernas',

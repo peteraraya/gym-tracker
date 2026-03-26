@@ -18,13 +18,22 @@ export function PreparationCountdown({
 }: PreparationCountdownProps) {
   const [count, setCount] = useState(duration);
   const [isActive, setIsActive] = useState(true);
+  const onCompleteRef = React.useRef(onComplete);
+
+  // Mantener la referencia actualizada sin causar re-renders
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     if (!isActive) return;
 
     if (count === 0) {
-      onComplete();
-      return;
+      // Llamar después de un pequeño delay para mostrar "¡YA!"
+      const completeTimer = setTimeout(() => {
+        onCompleteRef.current();
+      }, 500);
+      return () => clearTimeout(completeTimer);
     }
 
     // Vibración en cada segundo (si está disponible)
@@ -55,7 +64,7 @@ export function PreparationCountdown({
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [count, isActive, onComplete]);
+  }, [count, isActive]);
 
   return (
     <motion.div

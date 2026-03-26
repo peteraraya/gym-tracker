@@ -15,33 +15,45 @@ import {
 interface TimerProps {
   duration: number; // duración en segundos
   onComplete?: () => void;
+  onSkip?: () => void; // ✨ NEW: Callback específico para cuando se salta el timer
   autoStart?: boolean;
   title?: string;
   nextExerciseName?: string; // Para mostrar en la notificación
   showMotivation?: boolean; // Mostrar mensajes motivacionales
   onActualDurationChange?: (actualDuration: number) => void; // Callback con duración real
+  onMinimize?: (timeLeft: number) => void; // Callback para minimizar con tiempo restante
+  initialTimeLeft?: number; // ✨ NEW: Tiempo inicial cuando se expande desde minimizado
 }
 
 export const Timer: React.FC<TimerProps> = ({ 
   duration, 
-  onComplete, 
+  onComplete,
+  onSkip, // ✨ NEW: Receive onSkip callback
   autoStart = false,
   title = undefined,
   nextExerciseName,
   showMotivation = true,
-  onActualDurationChange
+  onActualDurationChange,
+  onMinimize,
+  initialTimeLeft // ✨ NEW: Receive initial time
 }) => {
-  const [timeLeft, setTimeLeft] = useState(duration);
+  const [timeLeft, setTimeLeft] = useState(initialTimeLeft ?? duration);
   const [isRunning, setIsRunning] = useState(autoStart);
   const [isCompleted, setIsCompleted] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(false);
-  const [plannedDuration] = useState(duration); // Guardar duración planificada original
-  const [actualDuration, setActualDuration] = useState(0); // Tiempo real transcurrido
-  const [hasAdjusted, setHasAdjusted] = useState(false); // Si el usuario ajustó el tiempo
+  const [plannedDuration] = useState(duration);
+  const [actualDuration, setActualDuration] = useState(0);
+  const [hasAdjusted, setHasAdjusted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const onCompleteCalledRef = useRef(false);
-  const startTimeRef = useRef<number>(Date.now());
+  const onCompleteRef = useRef(onComplete);
+  const startTimeRef = useRef<number>(Date.now() - (duration - (initialTimeLeft ?? duration)) * 1000);
   const onActualDurationRef = useRef<typeof onActualDurationChange | null>(null);
+  
+  // Mantener onCompleteRef actualizado
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   // Cargar preferencias del usuario
   const soundEnabled = typeof window !== 'undefined' 
@@ -54,21 +66,30 @@ export const Timer: React.FC<TimerProps> = ({
   }, []);
 
   useEffect(() => {
-    setTimeLeft(duration);
+    // Solo actualizar cuando cambia la duración (nuevo timer)
+    console.log('[Timer] Init effect - duration:', duration, 'initialTimeLeft:', initialTimeLeft);
+    setTimeLeft(initialTimeLeft ?? duration);
     setIsCompleted(false);
     setHasAdjusted(false);
     onCompleteCalledRef.current = false;
-    startTimeRef.current = Date.now();
-    if (autoStart) {
+    
+    // Calcular startTimeRef basado en el tiempo restante
+    const elapsed = duration - (initialTimeLeft ?? duration);
+    startTimeRef.current = Date.now() - elapsed * 1000;
+    console.log('[Timer] Set startTimeRef, elapsed:', elapsed);
+    
+    if (autoStart && !isRunning) {
       setIsRunning(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [duration]);
+  }, [duration, initialTimeLeft, autoStart, isRunning]); // Incluir initialTimeLeft pero NO timeLeft
 
   useEffect(() => {
+    console.log('[Timer] Interval effect - isRunning:', isRunning);
     if (isRunning) {
+      console.log('[Timer] Starting interval');
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
+          console.log('[Timer] Interval tick - prev:', prev);
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
@@ -77,11 +98,11 @@ export const Timer: React.FC<TimerProps> = ({
             setActualDuration(realDuration);
             
             // Llamar onComplete automáticamente cuando el timer llega a 0
-            if (onComplete && !onCompleteCalledRef.current) {
+            if (onCompleteRef.current && !onCompleteCalledRef.current) {
               onCompleteCalledRef.current = true;
               // Usar setTimeout para permitir que el estado se actualice primero
               setTimeout(() => {
-                onComplete();
+                onCompleteRef.current?.();
               }, 100);
             }
             
@@ -90,14 +111,17 @@ export const Timer: React.FC<TimerProps> = ({
           return prev - 1;
         });
       }, 1000);
+    } else {
+      console.log('[Timer] Clearing interval');
     }
 
     return () => {
       if (intervalRef.current) {
+        console.log('[Timer] Cleanup - clearing interval');
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, onComplete]);
+  }, [isRunning]); // Removido onComplete de las dependencias
 
   // Efecto separado para notificar cambios en la duración real
   useEffect(() => {
@@ -149,25 +173,30 @@ export const Timer: React.FC<TimerProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
+    console.log('[Timer] handleSkip called, onCompleteCalledRef:', onCompleteCalledRef.current);
+    
     // Prevenir múltiples llamadas
     if (onCompleteCalledRef.current) {
-      console.log('[Timer] Skip ya fue llamado, ignorando');
+      console.log('[Timer] Skip already called, ignoring');
       return;
     }
     
-    console.log('[Timer] Ejecutando skip');
+    console.log('[Timer] Executing skip');
     onCompleteCalledRef.current = true;
     setIsRunning(false);
     
     const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
     setActualDuration(realDuration);
-    setTimeLeft(0);
-    setIsCompleted(true);
     
-    // Llamar onComplete inmediatamente sin setTimeout
-    if (onComplete) {
-      console.log('[Timer] Llamando onComplete');
+    // Llamar onSkip si está definido, sino onComplete
+    if (onSkip) {
+      console.log('[Timer] Calling onSkip');
+      onSkip();
+    } else if (onComplete) {
+      console.log('[Timer] Calling onComplete from skip (no onSkip defined)');
       onComplete();
+    } else {
+      console.log('[Timer] ERROR: Neither onSkip nor onComplete is defined!');
     }
   };
 
@@ -197,6 +226,20 @@ export const Timer: React.FC<TimerProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
+      {/* Minimize button - top right */}
+      {onMinimize && !isCompleted && (
+        <div className="flex justify-end mb-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onMinimize(timeLeft)} // ✨ Pass current time left
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+          >
+            ⬇️ Minimizar
+          </Button>
+        </div>
+      )}
+
       <div className="text-center mb-4 sm:mb-6">
         <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {resolvedTitle}
@@ -366,14 +409,14 @@ export const Timer: React.FC<TimerProps> = ({
                 {isRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
               </Button>
               
-              {/* Botón nativo para evitar problemas con el componente Button */}
-              <button
-                type="button"
+              <Button
+                variant="secondary"
                 onClick={handleSkip}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-semibold rounded-xl transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md bg-orange-600 hover:bg-orange-700 text-white"
+                size="lg"
+                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700 text-white"
               >
                 ⏭️ Saltar
-              </button>
+              </Button>
             </div>
           </>
         ) : (

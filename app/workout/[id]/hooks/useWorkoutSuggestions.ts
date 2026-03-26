@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
+import { calculateNextRestTime } from '../utils/workoutCalculations';
 import type { Exercise, Routine } from '@/types';
 import type { WorkoutSession } from '../types/workout.types';
 
@@ -10,8 +11,11 @@ interface UseWorkoutSuggestionsParams {
   currentWeight: number | '';
   sessions: WorkoutSession[];
   restOverrides: Record<string, number>;
+  perSetRestOverrides: Record<string, number[]>;
+  useSmartRest: boolean;
+  smartRestTime?: number;
   showTimer: boolean;
-  showPreparation: boolean;
+  // ❌ Removido: showPreparation (ya no se usa)
   isExecutingSet: boolean;
   onSuccess: (message: string, duration?: number) => void;
   onError: (message: string, duration?: number) => void;
@@ -31,8 +35,11 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     currentWeight,
     sessions,
     restOverrides,
+    perSetRestOverrides,
+    useSmartRest,
+    smartRestTime,
     showTimer,
-    showPreparation,
+    // ❌ Removido: showPreparation
     isExecutingSet,
     onSuccess,
     onError
@@ -50,20 +57,26 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
   useEffect(() => {
     if (!routine || !currentExercise) return;
     
-    // No mostrar durante el timer, preparación o ejecución de serie
-    if (showTimer || showPreparation || isExecutingSet) return;
+    // No mostrar durante el timer o ejecución de serie
+    if (showTimer || isExecutingSet) return;
 
-    const currentRestTime = restOverrides[currentExercise.id] ?? 
-                           currentExercise.restBetweenSets ?? 
-                           routine.restBetweenSets ?? 
-                           60;
+    // ✅ Usar la misma lógica que handleCompleteSet para calcular el descanso
+    const currentRestTime = calculateNextRestTime({
+      currentExercise,
+      routine,
+      restOverrides,
+      perSetOverrides: perSetRestOverrides,
+      currentSet,
+      useSmartRest
+    });
 
     // Sugerencias generales basadas en historial
     const generalSuggestions = generateWorkoutSuggestions(
       sessions as any[],
       currentExercise.name,
       typeof currentWeight === 'number' ? currentWeight : undefined,
-      currentRestTime
+      currentRestTime,
+      smartRestTime
     );
 
     // Sugerencias en vivo para el ejercicio actual
@@ -106,7 +119,7 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     sessions,
     restOverrides,
     showTimer,
-    showPreparation,
+    // ❌ Removido: showPreparation
     isExecutingSet,
     dismissedSuggestions,
     onSuccess,

@@ -36,17 +36,33 @@ export function ActiveWorkoutBanner() {
     });
     
     if (confirmed) {
+      console.log('[ActiveWorkoutBanner] User confirmed cancellation');
+      
+      // Marcar la cancelación antes de llamar a cancelWorkout
       try {
-        localStorage.setItem('gym-tracker-cancelled', Date.now().toString());
+        const timestamp = Date.now().toString();
+        localStorage.setItem('gym-tracker-cancelled', timestamp);
+        sessionStorage.setItem('workout_cancelled', timestamp);
+        localStorage.setItem('workout_cancelled_persistent', timestamp);
+        console.log('[ActiveWorkoutBanner] Set cancellation markers:', timestamp);
       } catch (e) {
-        // ignore
+        console.error('[ActiveWorkoutBanner] Error setting cancellation markers:', e);
       }
+      
       // Remove possible modal/backdrop elements left in the DOM
       try {
         document.querySelectorAll('.modal-backdrop, .modal-overlay, [data-backdrop]').forEach(el => el.remove());
       } catch (e) {}
-      cancelWorkout();
-      router.replace('/routines');
+      
+      // Cancelar el workout
+      await cancelWorkout();
+      
+      console.log('[ActiveWorkoutBanner] Workout cancelled, redirecting to routines');
+      
+      // Redirigir después de un pequeño delay para asegurar que el estado se limpió
+      setTimeout(() => {
+        router.replace('/routines');
+      }, 100);
     }
   };
 

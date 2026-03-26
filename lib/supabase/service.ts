@@ -29,6 +29,13 @@ export interface RoutineExercise {
   sets: SetData[];
   equipment?: string;
   notes?: string;
+  // Campos opcionales presentes en la UI
+  restBetweenSets?: number;
+  useSmartRest?: boolean;
+  technique?: string[];
+  recommendedSets?: string;
+  recommendedReps?: string;
+  restTime?: string;
 }
 
 export interface CreateRoutineData {
@@ -87,7 +94,9 @@ export async function getRoutines(): Promise<Routine[]> {
           name: ex.name,
           sets,
           equipment: ex.equipment,
-          notes: ex.notes
+          notes: ex.notes,
+          restBetweenSets: ex.rest_between_sets, // ✅ Cargar tiempo de descanso del ejercicio
+          useSmartRest: ex.use_smart_rest // ✅ Cargar flag de descanso inteligente
         };
       })
   })) || [];
@@ -125,7 +134,9 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
     sets_data: ex.sets,
     equipment: ex.equipment,
     notes: ex.notes,
-    order_index: index
+    order_index: index,
+    rest_between_sets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
+    use_smart_rest: ex.useSmartRest // ✅ Preservar flag de descanso inteligente
   }));
 
   const { error: exercisesError } = await supabase
@@ -187,7 +198,9 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
     sets_data: ex.sets,
     equipment: ex.equipment,
     notes: ex.notes,
-    order_index: index
+    order_index: index,
+    rest_between_sets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
+    use_smart_rest: ex.useSmartRest // ✅ Preservar flag de descanso inteligente
   }));
 
   const { error: exercisesError } = await supabase
@@ -197,7 +210,8 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
   if (exercisesError) {
     // ROLLBACK: Restore old exercises if insert failed
     if (oldExercises && oldExercises.length > 0) {
-      console.warn('updateRoutine: Rolling back exercises after insert failure');
+      const { logger } = await import('@/lib/logger');
+      logger.warn('Rolling back exercises after insert failure', { module: 'supabase-service', operation: 'updateRoutine' });
       await supabase.from('exercises').insert(oldExercises);
     }
     throw new Error(`Error al actualizar ejercicios: ${exercisesError.message}`);
@@ -375,6 +389,104 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
   }
 }
 
+/**
+ * Update an existing workout session
+ */
+export async function updateSession(session: WorkoutSession): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  if (!session.id) throw new Error('Session ID is required for update');
+
+  // Update session
+  const { error: sessionError } = await supabase
+    .from('workout_sessions')
+    .update({
+      total_duration: session.totalDuration,
+      total_paused_time: session.totalPausedTime,
+      notes: session.notes
+    })
+    .eq('id', session.id)
+    .eq('user_id', user.id);
+
+  if (sessionError) throw new Error(`Error al actualizar sesión: ${sessionError.message}`);
+
+  // Delete existing exercises
+  const { error: deleteError } = await supabase
+    .from('session_exercises')
+    .delete()
+    .eq('session_id', session.id);
+
+  if (deleteError) throw new Error(`Error al eliminar ejercicios antiguos: ${deleteError.message}`);
+
+  // Insert updated exercises
+  if (!session.exercises || !Array.isArray(session.exercises) || session.exercises.length === 0) {
+    throw new Error('La sesión debe contener al menos un ejercicio');
+  }
+
+  const exercisesData = session.exercises.map(ex => {
+    const reps = Array.isArray(ex.actualReps) ? ex.actualReps : [];
+    const weights = Array.isArray(ex.actualWeight) ? ex.actualWeight : [];
+
+    const sets_completed = reps.map((r, idx) => ({
+      reps: typeof r === 'number' ? r : 0,
+      weight: typeof weights[idx] === 'number' ? weights[idx] : 0
+    }));
+
+    return {
+      session_id: session.id,
+      exercise_name: (ex.exerciseName as any) || (ex.exerciseId as any) || null,
+      sets_completed,
+      set_durations: ex.setDurations || [],
+      pause_durations: ex.pauseDurations || [],
+      notes: ex.notes
+    };
+  });
+
+  const { error: exercisesError } = await supabase
+    .from('session_exercises')
+    .insert(exercisesData);
+
+  if (exercisesError) {
+    throw new Error(`Error al guardar ejercicios actualizados: ${exercisesError.message}`);
+  }
+}
+
+/**
+ * Delete a workout session
+ */
+export async function deleteSession(sessionId: string): Promise<void> {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No autenticado');
+
+  if (!sessionId) throw new Error('Session ID is required for deletion');
+
+  // Delete session exercises first (cascade should handle this, but being explicit)
+  const { error: exercisesError } = await supabase
+    .from('session_exercises')
+    .delete()
+    .eq('session_id', sessionId);
+
+  if (exercisesError) {
+    console.warn('Error al eliminar ejercicios de la sesión:', exercisesError.message);
+  }
+
+  // Delete the session
+  const { error: sessionError } = await supabase
+    .from('workout_sessions')
+    .delete()
+    .eq('id', sessionId)
+    .eq('user_id', user.id);
+
+  if (sessionError) {
+    throw new Error(`Error al eliminar sesión: ${sessionError.message}`);
+  }
+}
+
 // ==================== PROFILE ====================
 
 // Import unified UserProfile type
@@ -458,16 +570,15 @@ export async function getActiveWorkout(): Promise<any | null> {
           error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        // console.log('[Storage] active_workouts table not found, using localStorage');
         return null;
       }
-      // console.warn('[Storage] Error getting active workout:', error.message);
       return null;
     }
 
     return data?.data || null;
   } catch (error: any) {
-    console.warn('[Storage] Failed to get active workout:', error.message);
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Failed to get active workout', { module: 'supabase-service', errorMessage: error.message });
     return null;
   }
 }
@@ -491,13 +602,14 @@ export async function saveActiveWorkout(payload: any): Promise<void> {
       if (error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        // console.log('[Storage] active_workouts table not found, using localStorage');
         return;
       }
-      console.warn('[Storage] Error saving active workout:', error.message);
+      const { logger } = await import('@/lib/logger');
+      logger.warn('Error saving active workout', { module: 'supabase-service', errorMessage: error.message });
     }
   } catch (error: any) {
-    console.warn('[Storage] Failed to save active workout:', error.message);
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Failed to save active workout', { module: 'supabase-service', errorMessage: error.message });
   }
 }
 
@@ -521,13 +633,14 @@ export async function clearActiveWorkout(): Promise<void> {
       if (error.code === '42P01' || 
           error.message.includes('Could not find') ||
           error.message.includes('does not exist')) {
-        // console.log('[Storage] active_workouts table not found, using localStorage');
         return;
       }
-      console.warn('[Storage] Error clearing active workout:', error.message);
+      const { logger } = await import('@/lib/logger');
+      logger.warn('Error clearing active workout', { module: 'supabase-service', errorMessage: error.message });
     }
   } catch (error: any) {
-    console.warn('[Storage] Failed to clear active workout:', error.message);
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Failed to clear active workout', { module: 'supabase-service', errorMessage: error.message });
   }
 }
 

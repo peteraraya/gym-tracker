@@ -26,11 +26,15 @@ export {
   Dumbbell,
   Flame,
   Sparkles,
+  Weight,
+  Repeat,
+  ListChecks,
   
   // Actions
   Plus,
   Minus,
   Edit,
+  Pencil,
   Trash2,
   Save,
   Copy,

@@ -155,14 +155,8 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     
     if (!vapidPublicKey) {
-      console.warn('[PWA] VAPID public key not configured. Push notifications will use browser default.');
-      // Suscribirse sin VAPID key (funciona para notificaciones locales)
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true
-      });
-      
-      console.log('[PWA] Push subscription created (without VAPID):', subscription);
-      await sendSubscriptionToServer(subscription);
+      console.log('[PWA] VAPID public key not configured. Skipping push notification subscription.');
+      // No intentar suscribirse sin VAPID key para evitar errores
       return;
     }
     
@@ -179,8 +173,18 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     // Enviar la suscripción al servidor
     await sendSubscriptionToServer(subscription);
 
-  } catch (error) {
-    console.error('[PWA] Error subscribing to push notifications:', error);
+  } catch (error: any) {
+    // Manejo silencioso de errores comunes
+    if (error?.name === 'AbortError') {
+      console.log('[PWA] Push notification subscription aborted (service not available). This is normal if VAPID keys are not configured.');
+    } else if (error?.name === 'NotAllowedError') {
+      console.log('[PWA] Push notification permission denied by user.');
+    } else if (error?.name === 'NotSupportedError') {
+      console.log('[PWA] Push notifications not supported in this browser.');
+    } else {
+      console.log('[PWA] Push notification subscription skipped:', error?.message || 'Unknown error');
+    }
+    // No lanzar el error para no interrumpir la experiencia del usuario
   }
 }
 

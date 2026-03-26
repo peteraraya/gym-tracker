@@ -10,15 +10,15 @@ import AchievementBadge from '@/components/AchievementBadge';
 import type { UserProfile } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { calculateAchievements, getRecentAchievements, calculateStreak } from '@/lib/achievements';
-import { 
+import {
   calculateTotalVolume,
   calculateTotalSets,
   filterSessionsByMonth
 } from '@/lib/utils/dateUtils';
-import { 
-  Dumbbell, 
-  TrendingUp, 
-  Calendar, 
+import {
+  Dumbbell,
+  TrendingUp,
+  Calendar,
   Award,
   Target,
   Flame,
@@ -27,6 +27,10 @@ import {
 } from '@/components/icons/lucide';
 import { useGym } from '@/context/GymContext';
 import { useValidSessions } from '@/hooks/useValidSessions';
+import { PageLayout } from '@/components/PageLayout';
+import { StatsGrid, StatCard } from '@/components/StatsGrid';
+import { EmptyState } from '@/components/EmptyState';
+import { LoadingState } from '@/components/LoadingState';
 
 // Lazy loaded components
 import {
@@ -48,7 +52,7 @@ export default function DashboardPage() {
 
   const { routines } = useGym();
   const validSessions = useValidSessions();
-  
+
   useEffect(() => {
     loadData();
   }, []);
@@ -72,7 +76,7 @@ export default function DashboardPage() {
   const stats = useMemo(() => {
     return {
       totalSessions: validSessions.length,
-      
+
       totalVolume: calculateTotalVolume(validSessions),
 
       totalSets: validSessions.reduce((total, session) => {
@@ -100,13 +104,13 @@ export default function DashboardPage() {
 
       favoriteExercise: (() => {
         const exerciseCounts: Record<string, number> = {};
-        
+
         validSessions.forEach(session => {
           if (!session.exercises || !Array.isArray(session.exercises)) return;
           session.exercises.forEach(ex => {
             // Intentar usar el nombre guardado primero
             let exerciseName = ex.exerciseName;
-            
+
             // Si no hay nombre guardado, buscar usando el exerciseId
             if (!exerciseName) {
               // Buscar en las rutinas
@@ -117,7 +121,7 @@ export default function DashboardPage() {
                   break;
                 }
               }
-              
+
               // Si no se encontró en rutinas, buscar en EXERCISE_DATABASE
               if (!exerciseName) {
                 const exerciseTemplate = EXERCISE_DATABASE.find(e => e.id === ex.exerciseId);
@@ -126,29 +130,29 @@ export default function DashboardPage() {
                 }
               }
             }
-            
+
             // Si aún no tenemos nombre, usar un fallback descriptivo
             if (!exerciseName) {
               exerciseName = t('unnamedExercise');
             }
-            
+
             exerciseCounts[exerciseName] = (exerciseCounts[exerciseName] || 0) + 1;
           });
         });
 
         const entries = Object.entries(exerciseCounts);
         if (entries.length === 0) return t('notApplicable');
-        
+
         return entries.sort((a, b) => b[1] - a[1])[0][0];
       })()
     };
   }, [validSessions, routines, t]);
 
-  const volumeTrend = stats.lastMonthVolume > 0 
+  const volumeTrend = stats.lastMonthVolume > 0
     ? ((stats.thisMonthVolume - stats.lastMonthVolume) / stats.lastMonthVolume) * 100
     : 0;
 
-    // console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
+  // console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
 
   // Cargar sesiones desde localStorage para combinarlas con las del servidor
   if (loading) {
@@ -200,7 +204,7 @@ export default function DashboardPage() {
           icon={<Calendar className="w-6 h-6" />}
           gradient="from-blue-500 to-blue-600"
         />
-        
+
         <StatsCard
           title={t('statsCards.totalVolume')}
           value={`${stats.totalVolume.toLocaleString()} ${t('units.kg')}`}
@@ -212,14 +216,14 @@ export default function DashboardPage() {
           } : undefined}
           subtitle={volumeTrend !== 0 ? t('statsCards.vsLastMonth') : undefined}
         />
-        
+
         <StatsCard
           title={t('statsCards.currentStreak')}
           value={`${stats.currentStreak} ${t('statsCards.days')}`}
           icon={<Flame className="w-6 h-6" />}
           gradient="from-orange-500 to-red-600"
         />
-        
+
         <StatsCard
           title={t('statsCards.totalSets')}
           value={stats.totalSets.toString()}
@@ -291,9 +295,8 @@ export default function DashboardPage() {
               {stats.thisMonthVolume.toLocaleString()} {t('units.kg')}
             </p>
             {stats.lastMonthVolume > 0 && (
-              <div className={`flex items-center gap-1 mt-1 text-sm ${
-                volumeTrend > 0 ? 'text-emerald-600' : volumeTrend < 0 ? 'text-red-600' : 'text-zinc-600'
-              }`}>
+              <div className={`flex items-center gap-1 mt-1 text-sm ${volumeTrend > 0 ? 'text-emerald-600' : volumeTrend < 0 ? 'text-red-600' : 'text-zinc-600'
+                }`}>
                 {volumeTrend > 0 ? '↗' : volumeTrend < 0 ? '↘' : '→'}
                 <span>{Math.abs(volumeTrend).toFixed(1)}% {t('additionalStats.vsLastMonthShort')}</span>
               </div>
