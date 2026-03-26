@@ -153,10 +153,13 @@ export default function WorkoutPage() {
   }, [workoutStartTime, totalPausedTime, isPaused]);
   
   // ==================== COMPUTED VALUES ====================
+  // ✅ FASE 3 - Problema #14: Memoizar exercises con routine.id para evitar re-renders
+  const exercises = useMemo(() => routine?.exercises || [], [routine?.id]);
+  
   const currentExercise = useMemo(() => {
-    if (!routine?.exercises?.length) return null;
-    return routine.exercises[workoutState.currentExerciseIndex] || null;
-  }, [routine?.exercises, workoutState.currentExerciseIndex]);
+    if (!exercises.length) return null;
+    return exercises[workoutState.currentExerciseIndex] || null;
+  }, [exercises, workoutState.currentExerciseIndex]);
 
   const lastSessionForExercise = useMemo(() => {
     if (!currentExercise || sessions.length === 0) return null;
@@ -210,21 +213,27 @@ export default function WorkoutPage() {
     return null;
   }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);
 
+  // ✅ FASE 3 - Problema #14: Memoizar completedSets con JSON.stringify para comparación profunda
+  const completedSetsKey = useMemo(
+    () => JSON.stringify(workoutState.workoutData.completedSets),
+    [workoutState.workoutData.completedSets]
+  );
+
   // ✅ Memoizar cálculo de progreso total para evitar recalcular en cada render
   const workoutProgress = useMemo(() => {
-    if (!routine?.exercises?.length) {
+    if (!exercises.length) {
       return { totalSets: 0, completedSets: 0, percentage: 0 };
     }
 
-    const totalSets = routine.exercises.reduce((sum: number, ex: Exercise) => sum + ex.sets.length, 0);
-    const completedSets = routine.exercises.reduce((sum: number, ex: Exercise) => {
+    const totalSets = exercises.reduce((sum: number, ex: Exercise) => sum + ex.sets.length, 0);
+    const completedSets = exercises.reduce((sum: number, ex: Exercise) => {
       const exerciseCompletedSets = workoutState.workoutData.completedSets[ex.id] || 0;
       return sum + Math.min(exerciseCompletedSets, ex.sets.length);
     }, 0);
     const percentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
     return { totalSets, completedSets, percentage };
-  }, [routine?.exercises, workoutState.workoutData.completedSets]);
+  }, [exercises, completedSetsKey]);
 
   // ==================== CUSTOM HOOKS ====================
     const handleTimerCompleteRef = useRef(() => {});

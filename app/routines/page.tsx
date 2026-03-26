@@ -41,6 +41,17 @@ export default function RoutinesPage() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<string>('');
+  // ✅ FASE 3 - Problema #17: Debounce para searchFilter
+  const [debouncedSearchFilter, setDebouncedSearchFilter] = useState<string>('');
+  
+  // Debounce del searchFilter para evitar recalcular filteredRoutines en cada tecla
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchFilter(searchFilter);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchFilter]);
+  
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [startingWorkoutId, setStartingWorkoutId] = useState<string | null>(null);
 
@@ -274,7 +285,7 @@ export default function RoutinesPage() {
 
         {/* Botón flotante de Entrenamiento Libre (esquina inferior derecha) */}
 
-        <WeeklyPlanner searchQuery={searchFilter} />
+        <WeeklyPlanner searchQuery={debouncedSearchFilter} />
 
         <div className="mb-4 mt-6">
           <input

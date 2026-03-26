@@ -130,22 +130,36 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     return () => { mounted = false; };
   }, []);
 
-  // Debounce para guardar planes (evitar escrituras excesivas)
+  // ✅ FASE 3 - Problema #15: Debounce compartido para guardar ambos planes
+  // Usar refs para acceder a los valores más recientes sin causar re-renders
+  const planRef = useRef(plan);
+  const monthlyPlanRef = useRef(monthlyPlan);
+  
+  useEffect(() => {
+    planRef.current = plan;
+  }, [plan]);
+  
+  useEffect(() => {
+    monthlyPlanRef.current = monthlyPlan;
+  }, [monthlyPlan]);
+  
+  // Debounce compartido para guardar ambos planes en paralelo
   useEffect(() => {
     if (isLoadingPlan) return;
-    const timeoutId = setTimeout(() => {
-      try { saveWeeklyPlan(plan); } catch (e) { /* ignore */ }
+    
+    const timeoutId = setTimeout(async () => {
+      try {
+        await Promise.all([
+          saveWeeklyPlan(planRef.current),
+          saveMonthlyPlan(monthlyPlanRef.current)
+        ]);
+      } catch (e) {
+        console.warn('[WeeklyPlanner] Error saving plans:', e);
+      }
     }, 500);
+    
     return () => clearTimeout(timeoutId);
-  }, [plan, isLoadingPlan]);
-
-  useEffect(() => {
-    if (isLoadingPlan) return;
-    const timeoutId = setTimeout(() => {
-      try { saveMonthlyPlan(monthlyPlan); } catch (e) { /* ignore */ }
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [monthlyPlan, isLoadingPlan]);
+  }, [plan, monthlyPlan, isLoadingPlan]);
 
   const updateIndicators = () => {
     const el = daysRef.current;
