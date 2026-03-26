@@ -142,12 +142,12 @@ export function useWorkoutState(
         _lastUpdate: Date.now() // ✅ Forzar detección de cambios
       };
       
-      // ✅ Guardar inmediatamente después de actualizar estado
+      // ✅ Guardar inmediatamente usando queueMicrotask para garantizar orden
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
+        queueMicrotask(() => {
           console.log('[useWorkoutState] 💾 Saving after completeSet');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -165,12 +165,12 @@ export function useWorkoutState(
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
+        queueMicrotask(() => {
           console.log('[useWorkoutState] 💾 Saving after updateCompletedSets');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -188,12 +188,12 @@ export function useWorkoutState(
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
+        queueMicrotask(() => {
           console.log('[useWorkoutState] 💾 Saving after updateActualReps');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -211,12 +211,12 @@ export function useWorkoutState(
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
+        queueMicrotask(() => {
           console.log('[useWorkoutState] 💾 Saving after updateActualWeights');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -236,12 +236,12 @@ export function useWorkoutState(
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
+        queueMicrotask(() => {
           console.log('[useWorkoutState] 💾 Saving after updateSetType');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
