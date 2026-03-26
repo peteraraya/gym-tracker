@@ -530,7 +530,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         </div>
         
         {weeklyViewMode === 'view' && (
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-gray-300">
             Toca un día para ver detalles
           </div>
         )}
@@ -785,7 +785,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                               )}
                             </div>
                           ) : routineCount === 0 ? (
-                            <p className="text-sm text-gray-400">Sin rutinas asignadas</p>
+                            <p className="text-sm text-gray-300">Sin rutinas asignadas</p>
                           ) : (
                             <div className="space-y-2">
                               {dayPlan.routines.map((rid, index) => {
@@ -875,7 +875,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               <div className="mb-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{LABELS[day]}</div>
+                    <div className="text-xs text-gray-300 uppercase tracking-wider font-semibold">{LABELS[day]}</div>
                     {isBlocked && (
                       <div className="text-sm font-bold text-red-300 mt-1">🔒 Descanso</div>
                     )}
@@ -916,7 +916,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     {plan[day]?.note ? (
                       <p className="text-xs text-gray-300 mt-1">{plan[day].note}</p>
                     ) : (
-                      <p className="text-xs text-gray-400 mt-1">Sin nota</p>
+                      <p className="text-xs text-gray-300 mt-1">Sin nota</p>
                     )}
                   </div>
                 </div>
@@ -947,7 +947,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     
                     {/* Indicador de nota */}
                     {plan[day]?.note && (
-                      <div className="text-xs text-gray-400 italic truncate">
+                      <div className="text-xs text-gray-300 italic truncate">
                         📝 {plan[day].note}
                       </div>
                     )}
@@ -1097,14 +1097,14 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                   onDragStart={(e) => onDragStart(e, r.id)}
                   className="p-2 border rounded-md bg-gray-900/60 border-gray-700 flex items-center gap-2 w-full hover:shadow-sm hover:scale-[1.006] transition-transform text-sm"
                 >
-                  <div className="text-gray-400 flex-shrink-0 mr-1">
+                  <div className="text-gray-300 flex-shrink-0 mr-1">
                     <GripVertical className="w-4 h-4 cursor-grab opacity-80 hover:opacity-100" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-medium text-sm text-white truncate">{r.name}</div>
-                      <div className="text-xs text-gray-400 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length}</div>
+                      <div className="text-xs text-gray-300 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length}</div>
                     </div>
                     {r.description ? <div className="text-xs text-gray-500 truncate mt-1">{r.description}</div> : null}
                   </div>
