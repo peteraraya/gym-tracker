@@ -178,13 +178,28 @@ export function useWorkoutState(
   }, []);
 
   /**
+   * Valida un número para asegurar que sea válido y esté en rango
+   */
+  const validateNumber = (value: any, max: number): number => {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num < 0) {
+      return 0;
+    }
+    const rounded = Math.round(num * 100) / 100; // Redondear a 2 decimales
+    return Math.min(rounded, max);
+  };
+
+  /**
    * Actualiza las repeticiones reales
    */
   const updateActualReps = useCallback((exerciseId: string, reps: number[]) => {
+    // ✅ Validar cada repetición
+    const validatedReps = reps.map(r => validateNumber(r, 999)); // Máximo 999 reps
+    
     setWorkoutData(prev => {
       const newData = {
         ...prev,
-        actualReps: { ...prev.actualReps, [exerciseId]: reps },
+        actualReps: { ...prev.actualReps, [exerciseId]: validatedReps },
         _lastUpdate: Date.now()
       };
       
@@ -204,10 +219,13 @@ export function useWorkoutState(
    * Actualiza los pesos reales
    */
   const updateActualWeights = useCallback((exerciseId: string, weights: number[]) => {
+    // ✅ Validar cada peso
+    const validatedWeights = weights.map(w => validateNumber(w, 9999)); // Máximo 9999 kg
+    
     setWorkoutData(prev => {
       const newData = {
         ...prev,
-        actualWeights: { ...prev.actualWeights, [exerciseId]: weights },
+        actualWeights: { ...prev.actualWeights, [exerciseId]: validatedWeights },
         _lastUpdate: Date.now()
       };
       
@@ -320,14 +338,65 @@ export function useWorkoutState(
   }, []);
 
   /**
+   * Valida la estructura de WorkoutData
+   */
+  const validateWorkoutData = (data: any): boolean => {
+    if (!data || typeof data !== 'object') return false;
+    
+    // Validar que los campos requeridos sean objetos
+    const requiredFields = [
+      'completedSets', 'actualReps', 'actualWeights', 'setTypes',
+      'lastWeights', 'restOverrides', 'perSetRestOverrides',
+      'actualSetDurations', 'actualPauseDurations', 'actualRestTimes'
+    ];
+    
+    for (const field of requiredFields) {
+      if (data[field] && typeof data[field] !== 'object') {
+        console.warn(`[useWorkoutState] Invalid field type: ${field}`);
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  /**
    * Restaura datos desde storage
    */
   const restoreData = useCallback((data: Partial<WorkoutData>) => {
     console.log('[useWorkoutState] 🔄 Restoring data:', data);
+    
+    // ✅ Validar estructura antes de restaurar
+    if (!validateWorkoutData(data)) {
+      console.error('[useWorkoutState] ❌ Invalid data structure, skipping restore');
+      return;
+    }
+    
+    // ✅ Validar y limpiar arrays numéricos
+    const sanitizedData: Partial<WorkoutData> = { ...data };
+    
+    if (data.actualReps) {
+      sanitizedData.actualReps = {};
+      for (const [key, value] of Object.entries(data.actualReps)) {
+        if (Array.isArray(value)) {
+          sanitizedData.actualReps[key] = value.map(r => validateNumber(r, 999));
+        }
+      }
+    }
+    
+    if (data.actualWeights) {
+      sanitizedData.actualWeights = {};
+      for (const [key, value] of Object.entries(data.actualWeights)) {
+        if (Array.isArray(value)) {
+          sanitizedData.actualWeights[key] = value.map(w => validateNumber(w, 9999));
+        }
+      }
+    }
+    
     setWorkoutData(prev => ({
       ...prev,
-      ...data,
-      _lastUpdate: Date.now() // ✅ Agregar timestamp para que se detecte el cambio
+      ...sanitizedData,
+      _lastUpdate: Date.now()
     }));
   }, []);
 
