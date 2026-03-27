@@ -32,6 +32,9 @@
     "@capacitor/core": "^6.2.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.0",
+    "@tanstack/react-query": "^5.95.2",
+    "@tanstack/react-query-devtools": "^5.95.2",
+    "@tanstack/react-virtual": "^3.13.23",
     "formik": "^2.4.0",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.555.0",
@@ -47,6 +50,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.5",
+    "@fast-check/jest": "^2.2.0",
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.44.0",
     "@tailwindcss/postcss": "^4",

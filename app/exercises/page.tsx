@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { APP_CONFIG } from '@/config/app.config';
 import { useFilteredData } from '@/hooks/useFilteredData';
 import { EmptyState } from '@/components/EmptyState';
+import { VirtualList } from '@/components/VirtualList';
 
 const ITEMS_PER_PAGE = APP_CONFIG.pagination.exercisesPerPage;
 
@@ -411,9 +412,13 @@ export default function ExercisesPage() {
                 </div>
               )}
 
-              {/* Lista de ejercicios optimizada para móvil */}
-              <div className="space-y-3 sm:space-y-4">
-                {currentData.data.map((exercise) => {
+              {/* Lista de ejercicios optimizada para móvil con virtualización */}
+              <VirtualList
+                items={currentData.data}
+                estimateSize={250}
+                overscan={3}
+                className="space-y-3 sm:space-y-4"
+                renderItem={(exercise) => {
                   const warmup = exerciseTab === 'warmup' ? exercise as WarmupExercise : null;
                   const categoryInfo = warmup ? WARMUP_CATEGORY_LABELS[warmup.category] : null;
                   return (
@@ -532,8 +537,8 @@ export default function ExercisesPage() {
                     </div>
                   </Card>
                   );
-                })}
-              </div>
+                }}
+              />
 
               {/* Paginación optimizada para móvil */}
               {currentData.totalPages > 1 && (

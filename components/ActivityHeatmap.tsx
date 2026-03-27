@@ -10,7 +10,7 @@ interface ActivityHeatmapProps {
   }>;
 }
 
-export function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
+export const ActivityHeatmap = React.memo(function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
   const t = useTranslations('dashboard.activityHeatmap');
   const { locale } = useLocale();
   const tDashboard = useTranslations('dashboard');
@@ -127,4 +127,4 @@ export function ActivityHeatmap({ sessions }: ActivityHeatmapProps) {
       </CardContent>
     </Card>
   );
-}
+});

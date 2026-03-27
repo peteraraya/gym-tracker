@@ -24,7 +24,7 @@ const normalizeText = (text: string): string => {
     .replace(/[\u0300-\u036f]/g, ''); // Elimina diacríticos (acentos)
 };
 
-export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExercises, onClose }) => {
+export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ onSelectExercises, onClose }) => {
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
@@ -625,4 +625,6 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
       )}
     </div>
   );
-};
+});
+
+ExerciseSelector.displayName = 'ExerciseSelector';

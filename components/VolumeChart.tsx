@@ -10,7 +10,7 @@ interface VolumeChartProps {
   period: 'week' | 'month';
 }
 
-export function VolumeChart({ sessions, period }: VolumeChartProps) {
+export const VolumeChart = React.memo(function VolumeChart({ sessions, period }: VolumeChartProps) {
   const t = useTranslations('dashboard.volumeChart');
   const tDashboard = useTranslations('dashboard');
   const { locale } = useLocale();
@@ -126,4 +126,4 @@ export function VolumeChart({ sessions, period }: VolumeChartProps) {
       </CardContent>
     </Card>
   );
-}
+    });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from '@/context/LocaleContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -42,6 +42,7 @@ import {
   StrengthProgression,
   ProgressDashboard
 } from './components.lazy';
+import { LazyErrorBoundary } from '@/components/LazyErrorBoundary';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -52,6 +53,10 @@ export default function DashboardPage() {
 
   const { routines } = useGym();
   const validSessions = useValidSessions();
+
+  const handlePeriodChange = useCallback((newPeriod: 'week' | 'month') => {
+    setPeriod(newPeriod);
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -239,21 +244,23 @@ export default function DashboardPage() {
         <div className="ml-auto flex gap-2">
           <Button
             variant={period === 'week' ? 'primary' : 'secondary'}
-            onClick={() => setPeriod('week')}
+            onClick={() => handlePeriodChange('week')}
             className="text-sm"
           >
             {t('charts.week')}
           </Button>
           <Button
             variant={period === 'month' ? 'primary' : 'secondary'}
-            onClick={() => setPeriod('month')}
+            onClick={() => handlePeriodChange('month')}
             className="text-sm"
           >
             {t('charts.month')}
           </Button>
         </div>
       </div>
-      <VolumeChart sessions={validSessions} period={period} />
+      <LazyErrorBoundary>
+        <VolumeChart sessions={validSessions} period={period} />
+      </LazyErrorBoundary>
 
       {/* Activity Heatmap */}
       <div>
@@ -261,7 +268,9 @@ export default function DashboardPage() {
           <TrendingUp className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{t('charts.activityHeatmapTitle')}</h2>
         </div>
-        <ActivityHeatmap sessions={validSessions} />
+        <LazyErrorBoundary>
+          <ActivityHeatmap sessions={validSessions} />
+        </LazyErrorBoundary>
       </div>
 
       {/* Additional Stats */}
@@ -392,18 +401,28 @@ export default function DashboardPage() {
 
           {/* Row 1: Muscle Group Stats & Training Frequency */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <MuscleGroupStats sessions={validSessions} />
-            <TrainingFrequency sessions={validSessions} />
+            <LazyErrorBoundary>
+              <MuscleGroupStats sessions={validSessions} />
+            </LazyErrorBoundary>
+            <LazyErrorBoundary>
+              <TrainingFrequency sessions={validSessions} />
+            </LazyErrorBoundary>
           </div>
 
           {/* Row 2: Personal Records & Strength Progression */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PersonalRecords sessions={validSessions} />
-            <StrengthProgression sessions={validSessions} />
+            <LazyErrorBoundary>
+              <PersonalRecords sessions={validSessions} />
+            </LazyErrorBoundary>
+            <LazyErrorBoundary>
+              <StrengthProgression sessions={validSessions} />
+            </LazyErrorBoundary>
           </div>
 
           {/* Row 3: Progress Dashboard */}
-          <ProgressDashboard sessions={validSessions} />
+          <LazyErrorBoundary>
+            <ProgressDashboard sessions={validSessions} />
+          </LazyErrorBoundary>
         </>
       )}
 
