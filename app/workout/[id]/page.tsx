@@ -1720,6 +1720,7 @@ export default function WorkoutPage() {
                 error('No se pudo calcular el descanso inteligente para este ejercicio');
               }
             }}
+            onAddExercises={handleAddExercises}
           />
         
         {/* Modales compartidos entre ambos modos */}

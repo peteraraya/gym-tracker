@@ -6,6 +6,8 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import SetTypeCycleButton from '@/components/SetTypeCycleButton';
 import { EditValueModal } from '@/components/EditValueModal';
 import { FloatingRestTimer } from './FloatingRestTimer';
+import { AddExerciseButton } from './AddExerciseButton';
+import type { ExerciseTemplate } from '@/data/exercises';
 import type { SetType, Routine } from '@/types';
 
 interface QuickEditModeProps {
@@ -35,6 +37,7 @@ interface QuickEditModeProps {
   skipRestTimers?: boolean; // ✅ NUEVO: Estado controlado desde el padre
   onShowExerciseInfo?: (exerciseName: string) => void; // ✅ NUEVO: Callback para mostrar info del ejercicio
   sessions?: any[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
+  onAddExercises?: (exercises: ExerciseTemplate[]) => void; // Callback para agregar ejercicios durante el entrenamiento
 }
 
 /**
@@ -60,6 +63,7 @@ export function QuickEditMode({
   skipRestTimers: skipRestTimersProp,
   onShowExerciseInfo,
   sessions = [],
+  onAddExercises,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -1170,6 +1174,13 @@ export function QuickEditMode({
           </div>
         );
       })}
+
+      {/* Botón para agregar ejercicios al entrenamiento */}
+      {onAddExercises && (
+        <div className="mt-2 mb-4">
+          <AddExerciseButton onAddExercises={onAddExercises} />
+        </div>
+      )}
 
       {/* Botón flotante compacto para finalizar - esquina inferior derecha */}
       {onFinishWorkout && (
