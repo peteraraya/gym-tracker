@@ -86,9 +86,8 @@ export default function WorkoutPage() {
   const [routine, setRoutine] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // ✅ SIMPLIFICACIÓN: Forzar siempre modo de edición rápida (tabla)
-  // El modo guiado está oculto temporalmente para simplificar la funcionalidad
-  const [isQuickEditMode] = useState(true); // Siempre true, sin setter
+  // Modo de edición: true = Edición Rápida (defecto), false = Modo Guiado
+  const [isQuickEditMode, setIsQuickEditMode] = useState(true);
   
   // ✅ Ref para el callback de guardado (se actualiza después de que timerHandlers esté disponible)
   const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
@@ -1635,9 +1634,7 @@ export default function WorkoutPage() {
           </div>
         </div>
 
-        {/* ✅ SIMPLIFICACIÓN: Toggle oculto - solo modo de edición rápida */}
-        {/* El modo guiado está temporalmente deshabilitado para simplificar la funcionalidad */}
-        {/* 
+        {/* Toggle entre Modo Guiado y Edición Rápida */}
         <div className="mb-4 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
           <button
             onClick={() => setIsQuickEditMode(false)}
@@ -1660,9 +1657,8 @@ export default function WorkoutPage() {
             📝 Edición Rápida
           </button>
         </div>
-        */}
 
-        {/* ✅ Siempre mostrar modo de edición rápida */}
+        {isQuickEditMode ? (
         <QuickEditMode
             routine={routine}
             workoutData={workoutState.workoutData}
@@ -1722,7 +1718,134 @@ export default function WorkoutPage() {
             }}
             onAddExercises={handleAddExercises}
           />
-        
+        ) : (
+          /* Modo guiado - Flujo normal */
+          <>
+        {/* Botón flotante grande - Iniciar o Completar Serie */}
+        <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
+
+        <div className="fixed bottom-0 left-0 right-0 z-30 px-0">
+          {!setExecution.isExecutingSet ? (
+            <Button
+              variant="primary"
+              onClick={() => {
+                setExecution.startSet();
+              }}
+              className="w-full py-6 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
+            >
+              <span className="text-2xl">▶️</span>
+              <div className="flex flex-col items-start">
+                <span>Iniciar Serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}</span>
+                <span className="text-xs font-normal opacity-90">
+                  {workoutState.currentReps} reps × {workoutState.currentWeight}kg
+                </span>
+              </div>
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              onClick={handleCompleteSet}
+              disabled={workoutState.currentReps === '' || workoutState.currentWeight === ''}
+              className="w-full py-6 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="text-2xl">✅</span>
+              <div className="flex flex-col items-start">
+                <span>Completar Serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}</span>
+                <span className="text-xs font-normal opacity-90">
+                  {workoutState.currentReps} reps × {workoutState.currentWeight}kg
+                </span>
+              </div>
+            </Button>
+          )}
+        </div>
+
+        <ExerciseCard
+          exercise={currentExercise}
+          exerciseIndex={workoutState.currentExerciseIndex}
+          currentSet={workoutState.currentSet}
+          completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
+          currentReps={workoutState.currentReps}
+          currentWeight={workoutState.currentWeight}
+          onRepsChange={workoutState.setCurrentReps}
+          onWeightChange={workoutState.setCurrentWeight}
+          onCompleteSet={handleCompleteSet}
+          onShowInfo={() => setShowExerciseInfo(true)}
+          isSetStarted={setExecution.isExecutingSet}
+          weightSuggestion={weightPrediction.weightSuggestion}
+          onDismissWeightSuggestion={() => weightPrediction.setDismissedWeightSuggestion(true)}
+          lastSetData={lastSetData}
+          onRepeatPrevious={handleRepeatPrevious}
+          setStartTime={setExecution.setStartTime}
+          quickSwitcher={
+            <QuickExerciseSwitcher
+              routine={routine}
+              currentExerciseIndex={workoutState.currentExerciseIndex}
+              completedSets={workoutState.workoutData.completedSets}
+              onSelectExercise={(index) => {
+                workoutState.setCurrentExerciseIndex(index);
+                workoutState.setCurrentSet(1);
+              }}
+            />
+          }
+        />
+
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => setIsSeriesTableExpanded(!isSeriesTableExpanded)}
+            className="w-full text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 py-2"
+          >
+            {isSeriesTableExpanded ? (
+              <>▼ Ocultar series ({currentExercise.sets.length})</>
+            ) : (
+              <>▶ Ver todas las series ({currentExercise.sets.length})</>
+            )}
+          </Button>
+        </div>
+
+        {isSeriesTableExpanded && (
+          <Suspense fallback={
+            <div className="animate-pulse bg-gray-100 dark:bg-gray-800 rounded-lg h-64 mb-4" />
+          }>
+            <SeriesTable
+              exercise={currentExercise}
+              exerciseId={currentExercise.id}
+              completedSets={workoutState.workoutData.completedSets[currentExercise.id] || 0}
+              actualReps={workoutState.workoutData.actualReps[currentExercise.id] || []}
+              actualWeights={workoutState.workoutData.actualWeights[currentExercise.id] || []}
+              setTypes={workoutState.workoutData.setTypes[currentExercise.id] || []}
+              currentSet={workoutState.currentSet}
+              onEditReps={handleEditReps}
+              onEditWeight={handleEditWeight}
+              onEditSetType={handleEditSetType}
+              onToggleSetComplete={handleToggleSetComplete}
+              onAddSet={handleAddSet}
+              onDeleteSet={handleDeleteSet}
+              perSetRestOverrides={workoutState.workoutData.perSetRestOverrides}
+              onEditRestTime={handleEditRestTime}
+              onApplySmartRest={handleApplySmartRest}
+              smartRestTime={smartRestTime}
+              routine={routine}
+              restOverrides={workoutState.workoutData.restOverrides}
+              useSmartRest={useSmartRest}
+            />
+          </Suspense>
+        )}
+
+        <ExerciseList
+          routine={routine}
+          currentExerciseIndex={workoutState.currentExerciseIndex}
+          completedSets={workoutState.workoutData.completedSets}
+          onSelectExercise={handleSelectExercise}
+          onMoveExercise={handleMoveExercise}
+        />
+
+        <div className="mb-6">
+          <AddExerciseButton onAddExercises={handleAddExercises} />
+        </div>
+          </>
+        )}
+
         {/* Modales compartidos entre ambos modos */}
         <Modal
           isOpen={showEditTimeModal}
