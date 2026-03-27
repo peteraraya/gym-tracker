@@ -44,22 +44,30 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   useEffect(() => {
     if (hasRestoredRef.current || !activeWorkout) return;
     
-    // ✅ Usar restTimerRemaining directamente (tiempo restante guardado)
     if (activeWorkout.isResting && activeWorkout.restTimerRemaining) {
-      const remaining = activeWorkout.restTimerRemaining;
+      // Calcular tiempo real restante descontando el tiempo transcurrido desde que se guardó
+      let remaining = activeWorkout.restTimerRemaining;
+      if (activeWorkout.restTimerStartedAt) {
+        const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
+        remaining = Math.max(0, remaining - elapsed);
+      }
+      
+      hasRestoredRef.current = true;
       
       if (remaining > 0) {
         setShowTimer(true);
-        setTimerDuration(remaining); // Usar el tiempo restante como duración
-        setTimerStartTime(Date.now()); // Nuevo timestamp de inicio
+        setTimerDuration(remaining);
+        setTimerStartTime(Date.now());
         setCurrentTimeLeft(remaining);
         setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
         setNextExerciseName(activeWorkout.restTimerNextExercise);
         setTimerMinimized(false);
         
-        hasRestoredRef.current = true;
-        
-        console.log('[useWorkoutTimer] ✅ Timer restored with remaining time:', remaining);
+        console.log('[useWorkoutTimer] ✅ Timer restaurado. Restante:', remaining, 's');
+      } else {
+        // El timer expiró mientras la página estaba cerrada
+        console.log('[useWorkoutTimer] Timer expirado durante F5, ejecutando callback');
+        timerCompleteRef.current();
       }
     }
   }, [activeWorkout]);
@@ -141,7 +149,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setCurrentTimeLeft(timeLeft);
     setTimerStartTime(Date.now());
     
-    // ✅ Persistir el tiempo restante cuando se minimiza
+    // ✅ Persistir el tiempo restante y el timestamp cuando se minimiza
     if (activeWorkout && updateWorkoutProgress) {
       updateWorkoutProgress(
         activeWorkout.currentExerciseIndex,
@@ -153,7 +161,8 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
           isResting: true,
           restTimerDuration: timeLeft, // ✅ Guardar tiempo restante
           restTimerTitle: timerTitle,
-          restTimerNextExercise: nextExerciseName
+          restTimerNextExercise: nextExerciseName,
+          restTimerStartedAt: Date.now() // ✅ Guardar timestamp para calcular elapsed en F5
         }
       );
     }

@@ -23,6 +23,7 @@ interface WorkoutState {
   // Estado del timer de descanso para persistencia
   isResting?: boolean;
   restTimerRemaining?: number; // ✅ Tiempo restante en segundos (en lugar de duration)
+  restTimerStartedAt?: number; // ✅ Timestamp cuando se guardó el tiempo restante
   restTimerTitle?: string;
   restTimerNextExercise?: string;
   // Tiempo total pausado en el entrenamiento (en milisegundos)
@@ -181,7 +182,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           });
         }
         return out;
-      })()
+      })(),
+      restTimerStartedAt: typeof data.restTimerStartedAt === 'number' ? data.restTimerStartedAt : undefined
     };
   };
 
@@ -330,6 +332,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         // Persistir estado del timer de descanso
         isResting: restState?.isResting ?? false,
         restTimerRemaining: restState?.restTimerDuration, // ✅ Guardar tiempo restante
+        restTimerStartedAt: restState?.isResting ? (restState?.restTimerStartedAt ?? Date.now()) : undefined,
         restTimerTitle: restState?.restTimerTitle,
         restTimerNextExercise: restState?.restTimerNextExercise,
         // Persistir tiempo pausado
