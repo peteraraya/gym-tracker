@@ -1207,183 +1207,29 @@ export function QuickEditMode({
       )}
 
       {/* Modal de edición */}
-      <BottomSheet
+      <EditValueModal
         isOpen={editingCell !== null}
-        onClose={cancelEdit}
+        onClose={() => setEditingCell(null)}
         title={editingCell ? `${editingCell.field === 'reps' ? 'Repeticiones' : 'Peso'} - ${editingCell.exerciseName}` : ''}
-      >
-        {editingCell && (
-          <div className="space-y-6 p-4">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                {editingCell.field === 'reps' ? 'Repeticiones' : 'Peso (kg)'}
-              </p>
-              {/* Input editable grande - SIEMPRE VISIBLE Y ENFOCADO */}
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode={editingCell.field === 'reps' ? 'numeric' : 'decimal'}
-                value={tempValue}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Permitir solo números y punto decimal para peso
-                  if (editingCell.field === 'weight') {
-                    if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                      updateValueWithAutoClose(value, false);
-                    }
-                  } else {
-                    // Solo números para reps
-                    if (value === '' || /^\d+$/.test(value)) {
-                      updateValueWithAutoClose(value, false);
-                    }
-                  }
-                }}
-                onFocus={(e) => e.target.select()}
-                autoFocus
-                placeholder="Escribe aquí"
-                className="w-full text-5xl font-bold text-center bg-transparent border-b-4 border-blue-500 dark:border-blue-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors py-2 mb-2"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Escribe directamente o usa los botones
-              </p>
-            </div>
-
-            {/* Atajos rápidos para repeticiones comunes */}
-            {editingCell.field === 'reps' && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Atajos rápidos</p>
-                <div className="grid grid-cols-5 gap-2">
-                  {[8, 10, 12, 15, 20].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => updateValueWithAutoClose(String(num), true)}
-                      className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Pesos anteriores y atajos para peso */}
-            {editingCell.field === 'weight' && (
-              <>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Pesos anteriores</p>
-                  <div className="grid grid-cols-4 gap-2 mb-3">
-                    {(() => {
-                      // Obtener pesos únicos del ejercicio actual
-                      const exercise = routine.exercises.find(ex => ex.id === editingCell.exerciseId);
-                      const historicalWeights = exercise?.sets
-                        .map(set => set.weight)
-                        .filter((w, i, arr) => w && w > 0 && arr.indexOf(w) === i)
-                        .sort((a, b) => (b || 0) - (a || 0))
-                        .slice(0, 4) || [];
-                      
-                      return historicalWeights.length > 0 ? historicalWeights.map((weight) => (
-                        <button
-                          key={weight}
-                          onClick={() => updateValueWithAutoClose(String(weight), true)}
-                          className="py-2 text-sm font-semibold bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors"
-                        >
-                          {weight}kg
-                        </button>
-                      )) : (
-                        <p className="col-span-4 text-xs text-gray-400 text-center py-2">
-                          No hay pesos anteriores
-                        </p>
-                      );
-                    })()}
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Incrementos rápidos</p>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[2.5, 5, 10, 20].map((increment) => (
-                      <button
-                        key={increment}
-                        onClick={() => {
-                          const current = parseFloat(tempValue) || 0;
-                          updateValueWithAutoClose(String(current + increment), false);
-                        }}
-                        className="py-2 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
-                      >
-                        +{increment}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Teclado numérico personalizado - OPCIONAL */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">Atajos: cierre inmediato • Teclado: 2s</p>
-              <div className="grid grid-cols-3 gap-3">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => {
-                      const newValue = tempValue === '0' ? String(num) : tempValue + num;
-                      updateValueWithAutoClose(newValue, false);
-                    }}
-                    className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
-                  >
-                    {num}
-                  </button>
-                ))}
-                
-                {/* Botón decimal solo para peso */}
-                {editingCell.field === 'weight' ? (
-                  <button
-                    onClick={() => {
-                      if (!tempValue.includes('.')) {
-                        const newValue = (tempValue || '0') + '.';
-                        updateValueWithAutoClose(newValue, false);
-                      }
-                    }}
-                    className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
-                  >
-                    .
-                  </button>
-                ) : (
-                  <div className="h-16" />
-                )}
-                
-                <button
-                  onClick={() => {
-                    const newValue = tempValue === '0' ? '0' : tempValue + '0';
-                    updateValueWithAutoClose(newValue, false);
-                  }}
-                  className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
-                >
-                  0
-                </button>
-                
-                {/* Botón borrar */}
-                <button
-                  onClick={() => {
-                    const newValue = tempValue.length > 1 ? tempValue.slice(0, -1) : '';
-                    updateValueWithAutoClose(newValue, false);
-                  }}
-                  className="h-16 text-xl font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-colors active:scale-95"
-                >
-                  ⌫
-                </button>
-              </div>
-            </div>
-
-            {/* Botón de cerrar */}
-            <div className="pt-4">
-              <button
-                onClick={cancelEdit}
-                className="w-full py-4 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        )}
-      </BottomSheet>
+        field={editingCell?.field ?? 'reps'}
+        currentValue={editingCell?.currentValue ?? ''}
+        onSave={(value) => {
+          if (!editingCell) return;
+          if (editingCell.field === 'reps') {
+            onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
+          } else {
+            onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
+          }
+          setEditingCell(null);
+        }}
+        historicalWeights={editingCell?.field === 'weight' ? (() => {
+          const exercise = routine.exercises.find(ex => ex.id === editingCell?.exerciseId);
+          return (exercise?.sets
+            .map(s => s.weight)
+            .filter((w, i, arr): w is number => !!w && w > 0 && arr.indexOf(w) === i)
+            .sort((a, b) => b - a)) ?? [];
+        })() : []}
+      />
 
       {/* Modal de edición de tiempo de descanso */}
       <BottomSheet
