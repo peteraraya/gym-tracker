@@ -439,6 +439,18 @@ export function QuickEditMode({
     return { totalSets: total, completedSets: completed, progressPercent: cappedPercent };
   }, [routine.exercises, workoutData.actualReps, workoutData.skippedExercises]);
 
+  // ID del ejercicio «anclado» al tope — el último en el que el usuario marcó una serie
+  const [pinnedExerciseId, setPinnedExerciseId] = useState<string | null>(null);
+
+  // Lista de ejercicios para mostrar: el anclado primero, luego el resto en orden original
+  const displayExercises = useMemo(() => {
+    const withIndex = routine.exercises.map((exercise, originalIdx) => ({ exercise, originalIdx }));
+    if (!pinnedExerciseId) return withIndex;
+    const pinned = withIndex.find(({ exercise }) => exercise.id === pinnedExerciseId);
+    if (!pinned) return withIndex;
+    return [pinned, ...withIndex.filter(({ exercise }) => exercise.id !== pinnedExerciseId)];
+  }, [routine.exercises, pinnedExerciseId]);
+
   return (
     <div className="space-y-3 pb-32">
       {/* Temporizador flotante */}
@@ -503,7 +515,7 @@ export function QuickEditMode({
         </div>
       </div>
 
-      {routine.exercises.map((exercise, exIdx) => {
+      {displayExercises.map(({ exercise, originalIdx: exIdx }) => {
         const exerciseId = exercise.id;
         const actualReps = workoutData.actualReps[exerciseId] || [];
         const actualWeights = workoutData.actualWeights[exerciseId] || [];
@@ -516,15 +528,18 @@ export function QuickEditMode({
         const isCollapsed = collapsedExercises.has(exerciseId);
         const isManuallyExpanded = manuallyExpandedExercises.has(exerciseId);
         
-        // Determinar si es el ejercicio actual (primer incompleto no omitido)
+        // Determinar si es el ejercicio actual
         const firstIncompleteIndex = routine.exercises.findIndex((ex) => {
           const exId = ex.id;
           const isExSkipped = workoutData.skippedExercises?.includes(exId) || false;
-          if (isExSkipped) return false; // Saltar ejercicios omitidos
+          if (isExSkipped) return false;
           const count = workoutData.completedSets[exId] || 0;
           return count < ex.sets.length;
         });
-        const isCurrent = exIdx === firstIncompleteIndex;
+        // El ejercicio anclado siempre es «actual»; si no hay anclado, usar el primero incompleto
+        const isCurrent = pinnedExerciseId
+          ? exerciseId === pinnedExerciseId
+          : exIdx === firstIncompleteIndex;
         const isNext = exIdx === firstIncompleteIndex + 1;
 
         // Auto-colapsar cuando se completa (solo si no está manualmente expandido)
@@ -891,46 +906,34 @@ export function QuickEditMode({
 
             {!isCollapsed && (
               <CardContent className="p-0">
-              {/* Tabla de series */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-8">#</th>
-                      <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">Reps</th>
-                      <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">Peso</th>
-                      <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-10">Tipo</th>
-                      <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-16">↻</th>
-                      <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-12">✓</th>
-                      {onDeleteSet && exercise.sets.length > 1 && (
-                        <th className="text-center py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300 w-8"></th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {exercise.sets.map((set, setIdx) => {
+              {/* Filas de series — diseño de tarjeta, no tabla */}
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                {/* Cabecera */}
+                <div className="grid grid-cols-[32px_1fr_1fr_40px_40px_52px] gap-1 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  <span className="text-center">#</span>
+                  <span className="text-center">Reps</span>
+                  <span className="text-center">Peso</span>
+                  <span className="text-center">Tipo</span>
+                  <span className="text-center">↻</span>
+                  <span className="text-center">✓</span>
+                </div>
+
+                {exercise.sets.map((set, setIdx) => {
                       const doneReps = actualReps[setIdx];
                       const doneWeight = actualWeights[setIdx];
                       const setType = setTypes[setIdx] || 'normal';
                       
-                      // Una serie está completada SOLO si está marcada explícitamente en completedSets
-                      // NO basarse en si tiene valores de reps/weight
                       const completedCount = workoutData.completedSets[exerciseId] || 0;
                       const isCompleted = setIdx < completedCount;
                       
-                      const isEditingReps = editingCell?.exerciseId === exerciseId && editingCell?.setIndex === setIdx && editingCell?.field === 'reps';
-                      const isEditingWeight = editingCell?.exerciseId === exerciseId && editingCell?.setIndex === setIdx && editingCell?.field === 'weight';
-
-                      // Valores a mostrar
-                      const displayReps = doneReps !== undefined ? doneReps : set.reps;
-                      const displayWeight = doneWeight !== undefined ? doneWeight : (set.weight || 0);
+                      // Mostrar valor explícito si > 0; si no, usar el valor de la rutina como referencia
+                      const displayReps = (doneReps !== undefined && doneReps > 0) ? doneReps : set.reps;
+                      const displayWeight = (doneWeight !== undefined && doneWeight > 0) ? doneWeight : (set.weight || 0);
                       
-                      // Obtener valores de la serie anterior para copiar
                       const canCopyPrevious = setIdx > 0;
                       const previousReps = canCopyPrevious ? (actualReps[setIdx - 1] || exercise.sets[setIdx - 1]?.reps) : null;
                       const previousWeight = canCopyPrevious ? (actualWeights[setIdx - 1] || exercise.sets[setIdx - 1]?.weight) : null;
                       
-                      // Calcular indicadores de progreso comparando con última sesión
                       const lastSession = sessions.length > 0 
                         ? sessions
                             .filter(s => s.exercises.some((e: any) => e.exerciseName === exercise.name))
@@ -941,198 +944,200 @@ export function QuickEditMode({
                       const lastReps = lastExerciseData?.actualReps?.[setIdx];
                       const lastWeight = lastExerciseData?.actualWeight?.[setIdx];
                       
-                      // Calcular diferencias
                       const repsDiff = (displayReps && lastReps) ? displayReps - lastReps : null;
                       const weightDiff = (displayWeight && lastWeight) ? displayWeight - lastWeight : null;
-                      
-                      // Determinar si hay progreso
                       const hasRepsProgress = repsDiff !== null && repsDiff !== 0;
                       const hasWeightProgress = weightDiff !== null && weightDiff !== 0;
 
+                      // Serie lista para marcar: tiene valores pero aún no completada
+                      const isReadyToComplete = displayReps > 0 && displayWeight > 0 && !isCompleted;
+
                       return (
-                        <tr
+                        <div
                           key={`${exerciseId}-${setIdx}`}
-                          className={`border-b border-gray-100 dark:border-gray-800 transition-colors ${
+                          className={`flex items-center gap-1 px-2 py-1.5 transition-colors ${
                             isCompleted
-                              ? 'bg-green-50/50 dark:bg-green-900/10'
-                              : 'hover:bg-gray-50 dark:hover:bg-gray-900/30'
+                              ? 'bg-green-50/60 dark:bg-green-900/10'
+                              : isReadyToComplete
+                              ? 'bg-blue-50/40 dark:bg-blue-900/5'
+                              : 'bg-white dark:bg-transparent'
                           }`}
                         >
-                          {/* Número de serie */}
-                          <td className="py-2 px-2">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        <div className="grid grid-cols-[32px_1fr_1fr_40px_40px_52px] gap-1 items-center flex-1">
+                          {/* Número */}
+                          <div className="flex justify-center">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
                               isCompleted
                                 ? 'bg-green-500 text-white'
-                                : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                             }`}>
                               {setIdx + 1}
                             </div>
-                          </td>
+                          </div>
 
-                          {/* Reps - editable */}
-                          <td className="py-2 px-2">
-                            <div className="relative">
-                              <button
-                                ref={(el) => {
-                                  setInputRefs.current[`${exerciseId}-${setIdx}-reps`] = el;
-                                }}
-                                onClick={() => startEditing(exerciseId, setIdx, 'reps', displayReps, exercise.name)}
-                                className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-base border-2 ${
-                                  displayReps === 0
-                                    ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                    : isCompleted
-                                    ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700'
-                                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
-                                }`}
-                              >
-                                {displayReps === 0 ? '-' : displayReps}
-                              </button>
-                              {/* Indicador de progreso */}
-                              {hasRepsProgress && displayReps > 0 && (
-                                <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm ${
-                                  repsDiff! > 0 
-                                    ? 'bg-green-500 text-white' 
-                                    : 'bg-orange-500 text-white'
-                                }`}>
-                                  {repsDiff! > 0 ? '↗' : '↘'}{Math.abs(repsDiff!)}
-                                </div>
-                              )}
-                            </div>
-                          </td>
+                          {/* Reps */}
+                          <div className="relative">
+                            <button
+                              ref={(el) => { setInputRefs.current[`${exerciseId}-${setIdx}-reps`] = el; }}
+                              onClick={() => startEditing(exerciseId, setIdx, 'reps', displayReps, exercise.name)}
+                              className={`w-full h-11 rounded-xl font-black text-lg tabular-nums active:scale-95 touch-manipulation border-2 transition-all ${
+                                displayReps === 0
+                                  ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-200 dark:border-gray-700'
+                                  : isCompleted
+                                  ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                                  : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700'
+                              }`}
+                            >
+                              {displayReps === 0 ? '—' : displayReps}
+                            </button>
+                            {hasRepsProgress && displayReps > 0 && (
+                              <div className={`absolute -top-1 -right-1 px-1 py-0.5 rounded-full text-[8px] font-bold shadow ${
+                                repsDiff! > 0 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
+                              }`}>
+                                {repsDiff! > 0 ? '+' : ''}{repsDiff}
+                              </div>
+                            )}
+                          </div>
 
-                          {/* Peso - editable */}
-                          <td className="py-2 px-2">
-                            <div className="relative">
-                              <button
-                                ref={(el) => {
-                                  setInputRefs.current[`${exerciseId}-${setIdx}-weight`] = el;
-                                }}
-                                onClick={() => startEditing(exerciseId, setIdx, 'weight', displayWeight, exercise.name)}
-                                className={`w-full min-h-[44px] px-3 py-2 rounded-lg transition-colors font-bold text-sm border-2 ${
-                                  displayWeight === 0
-                                    ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                    : isCompleted
-                                    ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700'
-                                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
-                                }`}
-                              >
-                                {displayWeight === 0 ? '-' : `${displayWeight} kg`}
-                              </button>
-                              {/* Indicador de progreso */}
-                              {hasWeightProgress && displayWeight > 0 && (
-                                <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm ${
-                                  weightDiff! > 0 
-                                    ? 'bg-green-500 text-white' 
-                                    : 'bg-orange-500 text-white'
-                                }`}>
-                                  {weightDiff! > 0 ? '↗' : '↘'}{Math.abs(weightDiff!)}kg
-                                </div>
-                              )}
-                            </div>
-                          </td>
-
-                          {/* Tipo de serie - visible en todas las pantallas */}
-                          <td className="py-2 px-2">
-                            <div className="flex justify-center">
-                              <SetTypeCycleButton
-                                value={setType as SetType}
-                                onChange={(type) => onEditSetType(exerciseId, setIdx, type)}
-                                size="sm"
-                                showLabel={false}
-                              />
-                            </div>
-                          </td>
-
-                          {/* Botón copiar serie anterior */}
-                          <td className="py-2 px-2">
-                            <div className="flex justify-center">
-                              {canCopyPrevious && previousReps && previousWeight ? (
-                                <button
-                                  onClick={() => {
-                                    // Copiar reps y peso de la serie anterior
-                                    onEditReps(exerciseId, setIdx, previousReps);
-                                    onEditWeight(exerciseId, setIdx, previousWeight);
-                                  }}
-                                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400"
-                                  title={`Copiar serie anterior (${previousReps} reps × ${previousWeight}kg)`}
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                  </svg>
-                                </button>
+                          {/* Peso */}
+                          <div className="relative">
+                            <button
+                              ref={(el) => { setInputRefs.current[`${exerciseId}-${setIdx}-weight`] = el; }}
+                              onClick={() => startEditing(exerciseId, setIdx, 'weight', displayWeight, exercise.name)}
+                              className={`w-full h-11 rounded-xl font-black text-sm tabular-nums active:scale-95 touch-manipulation border-2 transition-all flex flex-col items-center justify-center leading-none ${
+                                displayWeight === 0
+                                  ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-200 dark:border-gray-700'
+                                  : isCompleted
+                                  ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                                  : 'text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700'
+                              }`}
+                            >
+                              {displayWeight === 0 ? (
+                                <span className="text-lg">—</span>
                               ) : (
-                                <div className="w-8 h-8" />
+                                <>
+                                  <span className="text-base font-black">{displayWeight}</span>
+                                  <span className="text-[9px] font-normal opacity-60">kg</span>
+                                </>
                               )}
-                            </div>
-                          </td>
+                            </button>
+                            {hasWeightProgress && displayWeight > 0 && (
+                              <div className={`absolute -top-1 -right-1 px-1 py-0.5 rounded-full text-[8px] font-bold shadow ${
+                                weightDiff! > 0 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
+                              }`}>
+                                {weightDiff! > 0 ? '+' : ''}{weightDiff}
+                              </div>
+                            )}
+                          </div>
 
-                          {/* Checkbox de completado */}
-                          <td className="py-2 px-2">
-                            <div className="flex justify-center">
+                          {/* Tipo */}
+                          <div className="flex justify-center">
+                            <SetTypeCycleButton
+                              value={setType as SetType}
+                              onChange={(type) => onEditSetType(exerciseId, setIdx, type)}
+                              size="sm"
+                              showLabel={false}
+                            />
+                          </div>
+
+                          {/* Copiar anterior */}
+                          <div className="flex justify-center">
+                            {canCopyPrevious && previousReps && previousWeight ? (
+                              <button
+                                onClick={() => {
+                                  onEditReps(exerciseId, setIdx, previousReps);
+                                  onEditWeight(exerciseId, setIdx, previousWeight);
+                                }}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 active:scale-90 touch-manipulation"
+                                title={`Copiar anterior: ${previousReps}r × ${previousWeight}kg`}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                              </button>
+                            ) : (
+                              <div className="w-8 h-8" />
+                            )}
+                          </div>
+
+                          {/* Completar */}
+                          <div className="flex justify-center">
+                            <div className="relative">
+                              {/* Anillo pulsante naranja cuando está listo */}
+                              {isReadyToComplete && (
+                                <span className="absolute inset-0 rounded-xl animate-ping bg-orange-400 opacity-40 pointer-events-none" />
+                              )}
                               <button
                                 onClick={() => {
                                   const newIsCompleted = !isCompleted;
                                   onToggleSetComplete(exerciseId, setIdx, newIsCompleted);
-                                  
-                                  // Si se marca como completada, mover foco a la siguiente serie
                                   if (newIsCompleted) {
-                                    // ✅ Mostrar temporizador flotante si no se están omitiendo descansos
                                     if (!skipRestTimers) {
-                                      // Calcular tiempo de descanso
                                       const perSetOverride = workoutData.perSetRestOverrides?.[exerciseId]?.[setIdx];
                                       const exerciseOverride = workoutData.restOverrides?.[exerciseId];
                                       const restTime = perSetOverride ?? exerciseOverride ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
-                                      
                                       setFloatingTimerDuration(restTime);
                                       setShowFloatingTimer(true);
                                     }
-                                    
-                                    setTimeout(() => {
-                                      focusNextIncompleteSet(exerciseId, setIdx);
-                                    }, 100);
+                                    const newCompletedCount = completedCount + 1;
+                                    if (newCompletedCount < exercise.sets.length) {
+                                      setPinnedExerciseId(exerciseId);
+                                    } else {
+                                      setPinnedExerciseId(null);
+                                    }
+                                    setTimeout(() => focusNextIncompleteSet(exerciseId, setIdx), 100);
+                                  } else {
+                                    if (pinnedExerciseId === exerciseId) setPinnedExerciseId(null);
                                   }
                                 }}
-                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm ${
+                                className={`relative h-10 w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
                                   isCompleted
-                                    ? 'bg-green-500 hover:bg-green-600 text-white scale-110'
-                                    : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500'
+                                    // ✅ COMPLETADO — verde sólido, sin borde
+                                    ? 'bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-300 dark:shadow-green-900'
+                                    : isReadyToComplete
+                                    // 🟠 LISTO — naranja/ámbar llamativo, pide acción
+                                    ? 'bg-orange-400 hover:bg-orange-500 text-white shadow-md shadow-orange-200 dark:shadow-orange-900'
+                                    // ⬜ VACÍO — gris sutil, borde discontinuo
+                                    : 'bg-transparent border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-300 dark:text-gray-600'
                                 }`}
                               >
                                 {isCompleted ? (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  // Checkmark relleno (path relleno + stroke)
+                                  <svg className="h-5 w-5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                ) : isReadyToComplete ? (
+                                  // Relámpago = "ejecuta ahora"
+                                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M13 2L4 14h7v8l9-12h-7V2z" />
                                   </svg>
                                 ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  // Checkmark outline fino = vacío
+                                  <svg className="h-4 w-4 stroke-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                   </svg>
                                 )}
                               </button>
                             </div>
-                          </td>
+                          </div>
+                        </div>{/* end inner grid */}
 
-                          {/* Delete button */}
+                          {/* Eliminar (si aplica, fuera del grid) */}
                           {onDeleteSet && exercise.sets.length > 1 && (
-                            <td className="py-2 px-2">
-                              <div className="flex justify-center">
-                                <button
-                                  onClick={() => onDeleteSet(exerciseId, setIdx)}
-                                  className="w-5 h-5 rounded-full flex items-center justify-center transition-all bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400"
-                                  title="Eliminar serie"
-                                >
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </td>
+                            <button
+                              onClick={() => onDeleteSet(exerciseId, setIdx)}
+                              className="ml-1 w-6 h-6 shrink-0 rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 active:scale-90 touch-manipulation"
+                              title="Eliminar serie"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           )}
-                        </tr>
+                        </div>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
+                </div>
               
               {/* Botón para agregar serie */}
               {onAddSet && (

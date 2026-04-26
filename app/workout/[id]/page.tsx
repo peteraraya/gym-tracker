@@ -1390,12 +1390,12 @@ export default function WorkoutPage() {
     const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
     const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
     
-    // Asegurar que los arrays tengan el tamaño correcto (todas las series del ejercicio)
-    const newReps = Array(exercise.sets.length).fill(0).map((_, i) => currentReps[i] || 0);
-    const newWeights = Array(exercise.sets.length).fill(0).map((_, i) => currentWeights[i] || 0);
+    // Solo tocar el índice específico — no rellenar con ceros los demás
+    const newReps = [...currentReps];
+    const newWeights = [...currentWeights];
     
     if (isComplete) {
-      // Marcar como completada - usar valores actuales o defaults
+      // Marcar como completada - usar valor actual o el de la rutina como fallback
       if (!newReps[setIndex] || newReps[setIndex] === 0) {
         newReps[setIndex] = exercise.sets[setIndex]?.reps || 10;
       }
@@ -1403,8 +1403,9 @@ export default function WorkoutPage() {
         newWeights[setIndex] = exercise.sets[setIndex]?.weight || 0;
       }
     } else {
-      // Desmarcar - poner en 0
+      // Desmarcar - limpiar solo este índice
       newReps[setIndex] = 0;
+      newWeights[setIndex] = 0;
     }
     
     workoutState.updateActualReps(exerciseId, newReps);

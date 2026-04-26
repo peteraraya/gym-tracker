@@ -285,53 +285,70 @@ export function ExerciseCard({
           )}
         </div>
 
-        {/* Inputs de reps y peso - Botones más grandes y táctiles */}
+        {/* Inputs de reps y peso */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
+            <label className="block text-xs font-semibold mb-1.5 text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Repeticiones
             </label>
             <button
               onClick={() => setEditingField('reps')}
-              className={`w-full min-h-[64px] px-4 py-3 rounded-xl transition-all font-bold border-2 active:scale-95 ${
+              className={`w-full min-h-[72px] px-4 py-3 rounded-2xl transition-all font-bold border-2 active:scale-95 touch-manipulation ${
                 currentReps === '' || currentReps === 0
-                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  : 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-600 shadow-sm'
+                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700'
+                  : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border-blue-400 dark:border-blue-600 shadow-md'
               }`}
             >
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-bold">
-                  {currentReps === '' || currentReps === 0 ? '-' : currentReps}
-                </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                  Toca para editar
-                </span>
-              </div>
+              <span className="text-4xl font-black tabular-nums">
+                {currentReps === '' || currentReps === 0 ? '—' : currentReps}
+              </span>
+              {(currentReps === '' || currentReps === 0) && (
+                <p className="text-[10px] text-gray-400 mt-1 font-normal">toca para ingresar</p>
+              )}
             </button>
           </div>
           <div>
-            <label className="block text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
+            <label className="block text-xs font-semibold mb-1.5 text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Peso (kg)
             </label>
             <button
               onClick={() => setEditingField('weight')}
-              className={`w-full min-h-[64px] px-4 py-3 rounded-xl transition-all font-bold border-2 active:scale-95 ${
+              className={`w-full min-h-[72px] px-4 py-3 rounded-2xl transition-all font-bold border-2 active:scale-95 touch-manipulation ${
                 currentWeight === '' || currentWeight === 0
-                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  : 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700 hover:border-purple-400 dark:hover:border-purple-600 shadow-sm'
+                  ? 'text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700'
+                  : 'text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 border-purple-400 dark:border-purple-600 shadow-md'
               }`}
             >
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-bold">
-                  {currentWeight === '' || currentWeight === 0 ? '-' : currentWeight}
-                </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                  Toca para editar
-                </span>
-              </div>
+              <span className="text-4xl font-black tabular-nums">
+                {currentWeight === '' || currentWeight === 0 ? '—' : currentWeight}
+              </span>
+              {currentWeight !== '' && currentWeight !== 0 && (
+                <p className="text-[10px] text-gray-400 mt-1 font-normal">kg</p>
+              )}
+              {(currentWeight === '' || currentWeight === 0) && (
+                <p className="text-[10px] text-gray-400 mt-1 font-normal">toca para ingresar</p>
+              )}
             </button>
           </div>
         </div>
+
+        {/* Indicador de serie lista */}
+        {isSetComplete && !isSetStarted && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-semibold text-green-700 dark:text-green-400">
+              Listo — pulsa ▶️ Iniciar Serie para comenzar
+            </span>
+          </div>
+        )}
+        {isSetStarted && isSetComplete && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-300 dark:border-emerald-700">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              Serie en curso — pulsa ✅ para completar
+            </span>
+          </div>
+        )}
 
         {/* Quick weight adjustment - Botones más grandes y táctiles */}
         <div className="space-y-2">
