@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 
 interface EditValueModalProps {
@@ -13,10 +13,17 @@ interface EditValueModalProps {
   historicalWeights?: number[];
 }
 
+function haptic(intensity: 'light' | 'medium' = 'light') {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    navigator.vibrate(intensity === 'light' ? 25 : 55);
+  }
+}
+
 /**
- * Modal reutilizable para editar reps o peso con teclado numérico
- * - Atajos rápidos: guardan y cierran inmediatamente
- * - Teclado numérico: auto-cierre después de 2 segundos de inactividad
+ * Modal reutilizable para editar reps o peso con teclado numérico estilo calculadora.
+ * - El primer dígito tecleado reemplaza el valor actual (no concatena).
+ * - Atajos rápidos: guardan y cierran inmediatamente.
+ * - Botón ✓ explícito — sin auto-cierre por timer.
  */
 export function EditValueModal({
   isOpen,
@@ -27,296 +34,221 @@ export function EditValueModal({
   onSave,
   historicalWeights = [],
 }: EditValueModalProps) {
-  const [tempValue, setTempValue] = useState<string>('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const hasChangedRef = useRef(false);
-  const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [display, setDisplay] = useState<string>('');
+  // replaceNext: el próximo dígito reemplaza todo (comportamiento calculadora)
+  const [replaceNext, setReplaceNext] = useState(true);
 
-  // Inicializar valor cuando se abre el modal
+  const initDisplay = useCallback(() => {
+    const v = currentValue === '' || currentValue === 0 ? '' : String(currentValue);
+    setDisplay(v);
+    setReplaceNext(true);
+  }, [currentValue]);
+
   useEffect(() => {
-    if (isOpen) {
-      const value = currentValue === '' || currentValue === 0 ? '' : String(currentValue);
-      setTempValue(value);
-      hasChangedRef.current = false;
-    }
-  }, [isOpen, currentValue]);
+    if (isOpen) initDisplay();
+  }, [isOpen, initDisplay]);
 
-  // Auto-focus en el input pero prevenir teclado nativo
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-        inputRef.current?.blur();
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-  // Guardar cuando se cierra el modal
-  useEffect(() => {
-    if (!isOpen && hasChangedRef.current && tempValue) {
-      const numValue = field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue);
-      if (!isNaN(numValue) && numValue > 0) {
-        onSave(numValue);
-      }
-      hasChangedRef.current = false;
-    }
-  }, [isOpen, tempValue, field, onSave]);
-
-  // Limpiar timer al desmontar
-  useEffect(() => {
-    return () => {
-      if (autoCloseTimerRef.current) {
-        clearTimeout(autoCloseTimerRef.current);
-      }
-    };
-  }, []);
-
-  // Función para actualizar valor con auto-cierre
-  const updateValueWithAutoClose = (newValue: string, immediate: boolean = false) => {
-    setTempValue(newValue);
-    hasChangedRef.current = true;
-
-    // Limpiar timer anterior
-    if (autoCloseTimerRef.current) {
-      clearTimeout(autoCloseTimerRef.current);
-    }
-
-    // Si es inmediato (atajo rápido), guardar y cerrar ahora
-    if (immediate) {
-      const numValue = field === 'reps' ? parseInt(newValue) : parseFloat(newValue);
-      if (!isNaN(numValue) && numValue > 0) {
-        onSave(numValue);
-        onClose();
-      }
-      return;
-    }
-
-    // Si no es inmediato (teclado), programar auto-cierre en 2 segundos
-    autoCloseTimerRef.current = setTimeout(() => {
-      const numValue = field === 'reps' ? parseInt(newValue) : parseFloat(newValue);
-      if (!isNaN(numValue) && numValue > 0) {
-        onSave(numValue);
-        onClose();
-      }
-    }, 2000);
+  const numericValue = (): number => {
+    if (display === '' || display === '.') return 0;
+    const n = field === 'reps' ? parseInt(display) : parseFloat(display);
+    return isNaN(n) ? 0 : n;
   };
 
-  const handleCancel = () => {
-    // Limpiar timer
-    if (autoCloseTimerRef.current) {
-      clearTimeout(autoCloseTimerRef.current);
-    }
+  const handleDigit = (d: string) => {
+    haptic('light');
+    setDisplay(prev => {
+      if (replaceNext) {
+        setReplaceNext(false);
+        return d;
+      }
+      const maxLen = field === 'reps' ? 3 : 5;
+      const digits = prev.replace('.', '');
+      if (digits.length >= maxLen) return prev;
+      return prev === '0' ? d : prev + d;
+    });
+  };
+
+  const handleDot = () => {
+    if (field !== 'weight') return;
+    haptic('light');
+    setDisplay(prev => {
+      if (replaceNext) { setReplaceNext(false); return '0.'; }
+      if (prev.includes('.')) return prev;
+      return (prev || '0') + '.';
+    });
+  };
+
+  const handleBackspace = () => {
+    haptic('light');
+    setDisplay(prev => {
+      if (prev.length <= 1) { setReplaceNext(true); return ''; }
+      return prev.slice(0, -1);
+    });
+  };
+
+  const handleClear = () => {
+    haptic('medium');
+    setDisplay('');
+    setReplaceNext(true);
+  };
+
+  const handleAdjust = (delta: number) => {
+    haptic('medium');
+    const current = numericValue();
+    const next = Math.max(0, parseFloat((current + delta).toFixed(2)));
+    const str = field === 'reps'
+      ? String(Math.round(next))
+      : (Number.isInteger(next) ? String(next) : String(next));
+    setDisplay(str);
+    setReplaceNext(false);
+  };
+
+  const handleShortcut = (val: number) => {
+    haptic('medium');
+    onSave(val);
     onClose();
   };
-  
-  // Guardar con Enter (para teclados físicos)
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      const value = tempValue === '' ? 0 : (field === 'reps' ? parseInt(tempValue) : parseFloat(tempValue));
-      if (!isNaN(value) && value > 0) {
-        onSave(value);
-      }
-      onClose();
-    } else if (e.key === 'Escape') {
-      handleCancel();
-    }
+
+  const handleConfirm = () => {
+    const v = numericValue();
+    if (v > 0) onSave(v);
+    onClose();
   };
-  
-  // Botón de limpiar todo
-  const handleClear = () => {
-    setTempValue('');
-    hasChangedRef.current = true;
-    // Limpiar timer al borrar
-    if (autoCloseTimerRef.current) {
-      clearTimeout(autoCloseTimerRef.current);
-    }
-  };
+
+  const displayText = display === '' ? '–' : display;
+  const isValid = numericValue() > 0;
+
+  const shortcuts: number[] = field === 'reps'
+    ? [6, 8, 10, 12, 15, 20]
+    : historicalWeights.slice(0, 6);
+
+  const adjustments = field === 'weight'
+    ? [{ label: '−5', delta: -5 }, { label: '−2.5', delta: -2.5 }, { label: '+2.5', delta: 2.5 }, { label: '+5', delta: 5 }]
+    : [{ label: '−5', delta: -5 }, { label: '−1', delta: -1 }, { label: '+1', delta: 1 }, { label: '+5', delta: 5 }];
 
   return (
-    <BottomSheet
-      isOpen={isOpen}
-      onClose={handleCancel}
-      title={title}
-    >
-      <div className="space-y-2 p-3 pb-2 overflow-x-hidden max-w-full" onKeyDown={handleKeyDown}>
-        {/* Header con botón cerrar */}
-        <div className="flex items-center justify-between pb-2">
-          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-            Atajos: cierre inmediato • Teclado: 2s
-          </div>
-          <button
-            onClick={handleCancel}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg active:scale-95 touch-manipulation"
-            aria-label="Cerrar"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={title}>
+      <div className="px-3 pb-3 space-y-3">
 
-        {/* Input editable compacto con botón de limpiar */}
-        <div className="text-center w-full relative">
-          <input
-            ref={inputRef}
-            type="text"
-            inputMode="none"
-            value={tempValue}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (field === 'weight') {
-                if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                  updateValueWithAutoClose(value, false);
-                }
-              } else {
-                if (value === '' || /^\d+$/.test(value)) {
-                  updateValueWithAutoClose(value, false);
-                }
-              }
-            }}
-            onFocus={(e) => {
-              // Solo prevenir teclado en dispositivos táctiles
-              if ('ontouchstart' in window) {
-                e.target.blur();
-              }
-            }}
-            placeholder={field === 'reps' ? 'Reps' : 'Peso (kg)'}
-            className="w-full text-3xl font-bold text-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-300 dark:border-blue-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 py-2 rounded-xl touch-manipulation"
-          />
-          {/* Botón de limpiar flotante */}
-          {tempValue && (
+        {/* Pantalla principal estilo calculadora */}
+        <div className="relative flex items-center justify-center bg-gray-900 dark:bg-gray-950 rounded-2xl border border-gray-700 min-h-[72px] px-4">
+          <span
+            className={`tabular-nums font-bold tracking-tight transition-all ${
+              displayText === '–'
+                ? 'text-4xl text-gray-500'
+                : 'text-5xl text-white'
+            }`}
+          >
+            {displayText}
+          </span>
+          <span className="absolute right-4 bottom-2.5 text-xs font-semibold text-gray-500 uppercase tracking-widest">
+            {field === 'weight' ? 'kg' : 'reps'}
+          </span>
+          {display && (
             <button
-              onClick={handleClear}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full active:scale-95 touch-manipulation"
-              aria-label="Limpiar"
+              onClick={handleBackspace}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 rounded-xl active:scale-90 touch-manipulation"
+              aria-label="Borrar último"
             >
-              <svg className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ⌫
             </button>
           )}
         </div>
 
-        {/* Atajos rápidos para repeticiones */}
-        {field === 'reps' && (
-          <div>
-            <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-1 text-center font-medium uppercase tracking-wide">Atajos</p>
-            <div className="grid grid-cols-5 gap-1.5">
-              {[8, 10, 12, 15, 20].map((num) => (
+        {/* Fila ajuste ± */}
+        <div className="grid grid-cols-4 gap-2">
+          {adjustments.map(({ label, delta }) => (
+            <button
+              key={label}
+              onClick={() => handleAdjust(delta)}
+              className={`py-3 rounded-xl font-bold text-sm active:scale-95 touch-manipulation border-2 select-none ${
+                delta < 0
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+                  : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Atajos rápidos / pesos recientes */}
+        {shortcuts.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-[10px] text-center font-semibold text-gray-400 uppercase tracking-widest">
+              {field === 'reps' ? 'Atajos rápidos' : 'Pesos recientes'}
+            </p>
+            <div className="grid grid-cols-6 gap-1.5">
+              {shortcuts.map((val) => (
                 <button
-                  key={num}
-                  onClick={() => updateValueWithAutoClose(String(num), true)}
-                  className={`py-1.5 text-sm font-semibold rounded-lg active:scale-95 ${
-                    tempValue === String(num)
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                  key={val}
+                  onClick={() => handleShortcut(val)}
+                  className={`py-2.5 rounded-xl font-bold text-sm active:scale-95 touch-manipulation select-none ${
+                    String(val) === display
+                      ? 'bg-blue-500 text-white shadow-md'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
-                  {num}
+                  {val}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Pesos anteriores y atajos para peso */}
-        {field === 'weight' && (
-          <>
-            {historicalWeights.length > 0 && (
-              <div>
-                <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-1 text-center font-medium uppercase tracking-wide">Anteriores</p>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {historicalWeights.slice(0, 4).map((weight, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => updateValueWithAutoClose(String(weight), true)}
-                      className={`py-1.5 text-sm font-semibold rounded-lg active:scale-95 ${
-                        tempValue === String(weight)
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
-                      }`}
-                    >
-                      {weight}kg
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div>
-              <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-1 text-center font-medium uppercase tracking-wide">Incrementos</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[2.5, 5, 10, 20].map((increment) => (
-                  <button
-                    key={increment}
-                    onClick={() => {
-                      const current = parseFloat(tempValue) || 0;
-                      updateValueWithAutoClose(String(current + increment), false);
-                    }}
-                    className="py-1.5 text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg active:scale-95"
-                  >
-                    +{increment}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+        {/* Numpad */}
+        <div className="grid grid-cols-3 gap-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+            <button
+              key={n}
+              onClick={() => handleDigit(String(n))}
+              className="h-14 text-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-xl active:scale-95 touch-manipulation select-none shadow-sm"
+            >
+              {n}
+            </button>
+          ))}
 
-        {/* Teclado numérico compacto */}
-        <div className="w-full">
-          <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-1 text-center font-medium uppercase tracking-wide">Teclado</p>
-          <div className="grid grid-cols-3 gap-1.5 w-full">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-              <button
-                key={num}
-                onClick={() => updateValueWithAutoClose(tempValue === '0' ? String(num) : tempValue + num, false)}
-                className="h-12 text-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation select-none"
-              >
-                {num}
-              </button>
-            ))}
-            
-            {/* Botón decimal solo para peso */}
-            {field === 'weight' ? (
-              <button
-                onClick={() => {
-                  if (!tempValue.includes('.')) {
-                    updateValueWithAutoClose((tempValue || '0') + '.', false);
-                  }
-                }}
-                disabled={tempValue.includes('.')}
-                className="h-12 text-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                .
-              </button>
-            ) : (
-              <button
-                onClick={handleClear}
-                className="h-12 text-sm font-bold bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400 rounded-lg active:scale-95 touch-manipulation"
-              >
-                C
-              </button>
-            )}
-            
+          {/* Fila inferior */}
+          {field === 'weight' ? (
             <button
-              onClick={() => updateValueWithAutoClose(tempValue === '0' ? '0' : tempValue + '0', false)}
-              className="h-12 text-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg active:scale-95 touch-manipulation"
+              onClick={handleDot}
+              disabled={display.includes('.')}
+              className="h-14 text-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-xl active:scale-95 touch-manipulation disabled:opacity-30 select-none shadow-sm"
             >
-              0
+              .
             </button>
-            
-            {/* Botón borrar */}
+          ) : (
             <button
-              onClick={() => updateValueWithAutoClose(tempValue.length > 1 ? tempValue.slice(0, -1) : '', false)}
-              className="h-12 text-base font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg active:scale-95 touch-manipulation"
+              onClick={handleClear}
+              className="h-14 text-sm font-bold bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 rounded-xl active:scale-95 touch-manipulation select-none shadow-sm"
             >
-              ⌫
+              C
             </button>
-          </div>
+          )}
+
+          <button
+            onClick={() => handleDigit('0')}
+            className="h-14 text-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-xl active:scale-95 touch-manipulation select-none shadow-sm"
+          >
+            0
+          </button>
+
+          <button
+            onClick={handleBackspace}
+            className="h-14 text-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-xl active:scale-95 touch-manipulation select-none shadow-sm"
+          >
+            ⌫
+          </button>
         </div>
+
+        {/* Confirmar */}
+        <button
+          onClick={handleConfirm}
+          disabled={!isValid}
+          className="w-full py-4 text-xl font-bold rounded-2xl bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation select-none"
+        >
+          ✓ Guardar{isValid ? ` (${display}${field === 'weight' ? ' kg' : ' reps'})` : ''}
+        </button>
       </div>
     </BottomSheet>
   );
