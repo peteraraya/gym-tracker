@@ -143,7 +143,7 @@ export function ExerciseCard({
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3 mb-3">
           {/* Número de ejercicio grande y colorido */}
-          <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-xl font-bold shadow-lg flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-xl font-bold shadow-lg shrink-0">
             {exerciseIndex + 1}
           </div>
           
@@ -161,7 +161,7 @@ export function ExerciseCard({
               )}
               {/* ✅ Badge de récord personal */}
               {personalRecord && personalRecord.maxWeight > 0 && (
-                <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1">
+                <span className="px-2 py-0.5 bg-linear-to-r from-yellow-400 to-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1">
                   🏆 {personalRecord.maxWeight}kg
                 </span>
               )}
@@ -174,7 +174,7 @@ export function ExerciseCard({
           </div>
           
           {/* Progreso circular */}
-          <div className="relative w-14 h-14 flex-shrink-0">
+          <div className="relative w-14 h-14 shrink-0">
             <svg className="w-14 h-14 transform -rotate-90">
               <circle
                 cx="28"
@@ -211,7 +211,7 @@ export function ExerciseCard({
               variant="ghost"
               size="sm"
               onClick={onShowInfo}
-              className="text-blue-600 dark:text-blue-400 flex-shrink-0"
+              className="text-blue-600 dark:text-blue-400 shrink-0"
             >
               ℹ️
             </Button>
@@ -231,7 +231,7 @@ export function ExerciseCard({
       <CardContent className="space-y-3">
         {/* Serie iniciada indicator - Mejorado y más prominente */}
         {isSetStarted && setStartTime && (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-4 shadow-lg">
+          <div className="bg-linear-to-r from-blue-500 to-purple-600 rounded-xl p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">⏱️</span>

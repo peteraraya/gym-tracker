@@ -35,7 +35,7 @@ export default function TempoCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-violet-500 to-purple-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <Clock className="w-6 h-6" />
           Calculadora de Tempo de Repetición
@@ -155,7 +155,7 @@ export default function TempoCalculator() {
 
           {/* Resultados */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-lg border border-violet-200 dark:border-violet-800">
+            <div className="p-4 bg-linear-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-lg border border-violet-200 dark:border-violet-800">
               <div className="text-center">
                 <div className="text-3xl font-bold text-violet-600 dark:text-violet-400">
                   {timePerRep}s
@@ -165,7 +165,7 @@ export default function TempoCalculator() {
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-purple-50 to-fuchsia-50 dark:from-purple-900/20 dark:to-fuchsia-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+            <div className="p-4 bg-linear-to-br from-purple-50 to-fuchsia-50 dark:from-purple-900/20 dark:to-fuchsia-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                   {tut}s
@@ -175,7 +175,7 @@ export default function TempoCalculator() {
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-fuchsia-50 to-pink-50 dark:from-fuchsia-900/20 dark:to-pink-900/20 rounded-lg border border-fuchsia-200 dark:border-fuchsia-800">
+            <div className="p-4 bg-linear-to-br from-fuchsia-50 to-pink-50 dark:from-fuchsia-900/20 dark:to-pink-900/20 rounded-lg border border-fuchsia-200 dark:border-fuchsia-800">
               <div className="text-center">
                 <div className="text-3xl font-bold text-fuchsia-600 dark:text-fuchsia-400">
                   {Math.floor(totalTime / 60)}:{(totalTime % 60).toString().padStart(2, '0')}
@@ -188,7 +188,7 @@ export default function TempoCalculator() {
           </div>
 
           {/* Visualización del Tempo */}
-          <div className="p-6 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl border-2 border-violet-200 dark:border-violet-800">
+          <div className="p-6 bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl border-2 border-violet-200 dark:border-violet-800">
             <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 text-center">
               Visualización del Tempo
             </h4>

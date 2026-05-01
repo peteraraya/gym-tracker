@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AchievementsGrid from '@/components/AchievementsGrid';
+import { LoadingState } from '@/components/LoadingState';
 import { Button } from '@/components/ui/Button';
 import type { WorkoutSession } from '@/types';
 import { calculateAchievements, calculateStreak, calculateTotalVolume } from '@/lib/achievements';
@@ -54,19 +55,14 @@ export default function AchievementsPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <Award className="w-16 h-16 mx-auto mb-4 text-blue-600 dark:text-blue-400 animate-pulse" />
-            <p className="text-zinc-600 dark:text-zinc-400">Cargando logros...</p>
-          </div>
-        </div>
+        <LoadingState message="Cargando logros..." />
       </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
@@ -79,13 +75,13 @@ export default function AchievementsPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-              <Trophy className="w-8 h-8 text-amber-600" />
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+              <Trophy className="w-6 h-6 text-amber-600" />
               Logros y Medallas
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="text-zinc-600 dark:text-zinc-400 mt-1 text-sm">
               Desbloquea logros por tu dedicación y progreso
             </p>
           </div>
@@ -104,7 +100,7 @@ export default function AchievementsPage() {
         </div>
 
         {/* Key Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-600 rounded-lg">
@@ -175,13 +171,13 @@ export default function AchievementsPage() {
 
         {/* Motivational Footer */}
         {sessions.length > 0 && completionPercentage < 100 && (
-          <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-8 text-center border border-blue-200 dark:border-zinc-700">
-            <Target className="w-12 h-12 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
-            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+          <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-4 text-center border border-blue-200 dark:border-zinc-700">
+            <Target className="w-10 h-10 mx-auto mb-3 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">
               ¡Sigue Así! 💪
             </h3>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Tienes {totalCount - unlockedCount} logros más por desbloquear. 
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm">
+              Tienes {totalCount - unlockedCount} logros más por desbloquear.
               La consistencia es la clave del éxito.
             </p>
           </div>
@@ -189,12 +185,12 @@ export default function AchievementsPage() {
 
         {/* Perfect Score */}
         {completionPercentage === 100 && (
-          <div className="bg-linear-to-r from-amber-50 to-yellow-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-8 text-center border border-amber-200 dark:border-zinc-700">
-            <Trophy className="w-16 h-16 mx-auto mb-4 text-amber-600 animate-bounce" />
-            <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+          <div className="bg-linear-to-r from-amber-50 to-yellow-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-4 text-center border border-amber-200 dark:border-zinc-700">
+            <Trophy className="w-12 h-12 mx-auto mb-3 text-amber-600 animate-bounce" />
+            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               🎉 ¡LEYENDA DEL FITNESS! 🎉
             </h3>
-            <p className="text-zinc-600 dark:text-zinc-400 text-lg">
+            <p className="text-zinc-600 dark:text-zinc-400">
               Has desbloqueado todos los logros disponibles. ¡Eres imparable!
             </p>
           </div>
@@ -202,12 +198,12 @@ export default function AchievementsPage() {
 
         {/* Empty State */}
         {sessions.length === 0 && (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl p-12 text-center border border-zinc-200 dark:border-zinc-800">
-            <Award className="w-16 h-16 mx-auto mb-4 text-zinc-400 dark:text-zinc-600" />
-            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 text-center border border-zinc-200 dark:border-zinc-800">
+            <Award className="w-12 h-12 mx-auto mb-3 text-zinc-400 dark:text-zinc-600" />
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               Aún no hay logros
             </h3>
-            <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
               Comienza a entrenar para desbloquear medallas y logros increíbles
             </p>
             <Button

@@ -466,7 +466,7 @@ export function QuickEditMode({
       )}
       
       {/* Header mejorado - sticky y más visual */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-xl shadow-lg sticky top-0 z-10">
+      <div className="bg-linear-to-r from-blue-500 to-purple-600 text-white p-4 rounded-xl shadow-lg sticky top-0 z-10">
         <div className="flex items-center justify-between mb-2">
           <div className="flex-1">
             <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
@@ -609,12 +609,12 @@ export function QuickEditMode({
             {/* Header del ejercicio mejorado con más información */}
             <div className={`border-b border-gray-200 dark:border-gray-700 ${
               isCurrent
-                ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30'
+                ? 'bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30'
                 : isNext
-                ? 'bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30'
+                ? 'bg-linear-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30'
                 : isFullyCompleted
-                ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20'
-                : 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900'
+                ? 'bg-linear-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20'
+                : 'bg-linear-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900'
             }`}>
               <div
                 role="button"
@@ -632,7 +632,7 @@ export function QuickEditMode({
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     {/* Número de ejercicio más grande y colorido */}
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-md flex-shrink-0 ${
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-md shrink-0 ${
                       isCurrent
                         ? 'bg-blue-500 text-white'
                         : isNext
@@ -652,18 +652,18 @@ export function QuickEditMode({
                         </h3>
                         {/* Badge de omitido */}
                         {isSkipped && (
-                          <span className="px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full shadow-sm flex-shrink-0">
+                          <span className="px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full shadow-sm shrink-0">
                             OMITIDO
                           </span>
                         )}
                         {/* Badge de estado más prominente */}
                         {!isSkipped && isCurrent && (
-                          <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm flex-shrink-0">
+                          <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm shrink-0">
                             ACTUAL
                           </span>
                         )}
                         {!isSkipped && isNext && !isCurrent && (
-                          <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm flex-shrink-0">
+                          <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm shrink-0">
                             SIGUIENTE
                           </span>
                         )}
@@ -710,7 +710,7 @@ export function QuickEditMode({
                         {/* Notas del ejercicio si existen */}
                         {exercise.notes && (
                           <div className="flex items-start gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                            <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <span className="line-clamp-1 italic">{exercise.notes}</span>
@@ -734,7 +734,7 @@ export function QuickEditMode({
                   </div>
                   
                   {/* Indicador de progreso circular mejorado */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <div className="flex flex-col items-center gap-1 shrink-0">
                     <div className="relative w-14 h-14">
                       <svg className="w-14 h-14 transform -rotate-90">
                         <circle
@@ -1103,7 +1103,7 @@ export function QuickEditMode({
                               >
                                 {isCompleted ? (
                                   // Checkmark relleno (path relleno + stroke)
-                                  <svg className="h-5 w-5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="h-5 w-5 stroke-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                   </svg>
                                 ) : isReadyToComplete ? (
@@ -1195,7 +1195,7 @@ export function QuickEditMode({
           className={`fixed bottom-6 right-6 z-30 p-4 rounded-full shadow-2xl transition-all duration-200 flex items-center justify-center gap-2 ${
             completedSets === 0
               ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-50'
-              : 'bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transform hover:scale-110 active:scale-95'
+              : 'bg-linear-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transform hover:scale-110 active:scale-95'
           }`}
           title={`Finalizar entrenamiento (${completedSets} series)`}
         >
@@ -1329,7 +1329,7 @@ export function QuickEditMode({
               </button>
               <button
                 onClick={saveRestTime}
-                className="py-4 text-base font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-colors"
+                className="py-4 text-base font-bold bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-colors"
               >
                 Guardar
               </button>

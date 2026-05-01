@@ -39,7 +39,7 @@ export function StatCard({
   loading = false
 }: StatCardProps) {
   return (
-    <Card className={`bg-gradient-to-br ${colorClasses[color]} border-0`}>
+    <Card className={`bg-linear-to-br ${colorClasses[color]} border-0`}>
       <CardContent className="flex items-center justify-between p-6">
         <div className="flex-1">
           <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">

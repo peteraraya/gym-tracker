@@ -293,7 +293,7 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
                     {/* Drag handle */}
                     {editedSession.exercises.length > 1 && (
                       <div 
-                        className="flex-shrink-0 text-gray-400 dark:text-gray-500 cursor-grab"
+                        className="shrink-0 text-gray-400 dark:text-gray-500 cursor-grab"
                         onClick={(e) => e.stopPropagation()}
                         onMouseDown={(e) => e.stopPropagation()}
                       >
@@ -309,7 +309,7 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
                     )}
                     
                     {/* Icono de collapse/expand */}
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <svg 
                         className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
                         fill="none" 

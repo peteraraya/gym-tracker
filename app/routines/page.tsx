@@ -29,6 +29,7 @@ import {
 } from '@/components/icons/lucide';
 
 import { useTranslations } from '@/context/LocaleContext';
+import { LoadingState } from '@/components/LoadingState';
 
 export default function RoutinesPage() {
   const router = useRouter();
@@ -251,10 +252,10 @@ export default function RoutinesPage() {
     <ProtectedRoute>
     <div className="container mx-auto px-4 pt-6 pb-24 sm:pt-8 sm:pb-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl">
                 <ClipboardList className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               </div>
               {t('title')}
@@ -287,7 +288,7 @@ export default function RoutinesPage() {
 
         <WeeklyPlanner searchQuery={debouncedSearchFilter} />
 
-        <div className="mb-4 mt-6">
+        <div className="my-3">
           <input
             type="search"
             placeholder="🔍 Buscar rutinas por nombre o descripción..."
@@ -306,21 +307,16 @@ export default function RoutinesPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
-            </div>
-          </div>
+          <LoadingState message={t('loading')} />
         ) : routines.length === 0 ? (
-          <div className="text-center py-12 sm:py-16">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center">
-              <ClipboardList className="w-10 h-10 sm:w-12 sm:h-12 text-blue-600 dark:text-blue-400" />
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-linear-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center">
+              <ClipboardList className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
               {t('empty.title')}
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               {t('empty.description')}
             </p>
             <Button variant="primary" onClick={() => setIsModalOpen(true)}>
@@ -329,7 +325,7 @@ export default function RoutinesPage() {
             </Button>
           </div>
         ) : filteredRoutines.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-8">
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
               <ClipboardList className="w-8 h-8 text-gray-400" />
             </div>
@@ -344,7 +340,7 @@ export default function RoutinesPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredRoutines.map((routine) => (
               <div 
                 key={routine.id} 
@@ -359,12 +355,12 @@ export default function RoutinesPage() {
                       alt=""
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90 backdrop-blur-[2px]" />
+                    <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/70 to-black/90 backdrop-blur-[2px]" />
                   </div>
                 )}
                 
                 {/* Header con gradiente */}
-                <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-4 relative z-10">
+                <div className="bg-linear-to-br from-blue-600 to-purple-600 p-4 relative z-10">
                   {/* Badge de estado activo */}
                   {activeWorkout?.routineId === routine.id && (
                     <div className="absolute top-2 right-2 z-10">
@@ -515,9 +511,9 @@ export default function RoutinesPage() {
           onClick={() => router.push('/workout/free')}
           aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"
           title="Entrenamiento Libre"
-          className="group flex items-center justify-center gap-2 px-4 py-3 sm:w-14 sm:h-14 sm:p-0 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+          className="group flex items-center justify-center gap-2 px-4 py-3 sm:w-14 sm:h-14 sm:p-0 rounded-full bg-linear-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
         >
-          <Zap className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+          <Zap className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
           <span className="text-sm font-semibold sm:hidden">Libre</span>
         </button>
       </div>

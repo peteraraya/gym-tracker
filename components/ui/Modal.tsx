@@ -48,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
 					<h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 pr-2">{title}</h2>
 					<button
 						onClick={onClose}
-						className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl sm:text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center"
+						className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl sm:text-2xl shrink-0 w-8 h-8 flex items-center justify-center"
 						aria-label="Cerrar"
 					>
 						×

@@ -39,7 +39,7 @@ export default function UnitConverter() {
 
   return (
     <Card>
-      <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-2 text-white">
           <Scale className="w-5 h-5" />
           Conversor de Unidades

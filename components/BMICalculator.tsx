@@ -106,7 +106,7 @@ export default function BMICalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-pink-500 to-rose-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-pink-500 to-rose-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <User className="w-6 h-6" />
           Calculadora de IMC y Composición Corporal
@@ -274,7 +274,7 @@ export default function BMICalculator() {
             </div>
             
             {/* Barra de IMC */}
-            <div className="relative h-3 bg-gradient-to-r from-blue-400 via-green-400 via-yellow-400 via-orange-400 to-red-400 rounded-full mt-4">
+            <div className="relative h-3 bg-linear-to-r from-blue-400 via-green-400 via-yellow-400 via-orange-400 to-red-400 rounded-full mt-4">
               <div
                 className="absolute top-0 w-1 h-5 bg-gray-900 dark:bg-white rounded-full transform -translate-x-1/2 -translate-y-1"
                 style={{ left: `${Math.min(Math.max((bmi - 15) / 25 * 100, 0), 100)}%` }}
@@ -305,7 +305,7 @@ export default function BMICalculator() {
                 {fatMass.toFixed(1)} kg
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="p-4 bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                 {leanMass.toFixed(1)}
               </div>
@@ -316,7 +316,7 @@ export default function BMICalculator() {
                 {((leanMass / weight) * 100).toFixed(1)}%
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="p-4 bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
               <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                 {normalizedFFMI.toFixed(1)}
               </div>
@@ -330,7 +330,7 @@ export default function BMICalculator() {
           </div>
 
           {/* Rangos de % de Grasa Saludable */}
-          <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+          <div className="p-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
             <h4 className="font-semibold text-indigo-900 dark:text-indigo-100 mb-3">
               📊 Rangos de % de Grasa Corporal ({gender === 'male' ? 'Hombres' : 'Mujeres'}, {age} años)
             </h4>
@@ -381,7 +381,7 @@ export default function BMICalculator() {
           </div>
 
           {/* Peso Ideal según Objetivos */}
-          <div className="p-4 bg-gradient-to-r from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 rounded-lg border border-cyan-200 dark:border-cyan-800">
+          <div className="p-4 bg-linear-to-r from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 rounded-lg border border-cyan-200 dark:border-cyan-800">
             <h4 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-3">
               🎯 Peso Ideal según % de Grasa Objetivo
             </h4>

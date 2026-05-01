@@ -119,15 +119,15 @@ export default function ExercisesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-3 sm:px-4 py-4">
           <div className="max-w-7xl mx-auto">
             {/* Header optimizado para móvil */}
             <div className="mb-4 sm:mb-6 md:mb-8">
               <div className="flex flex-col gap-3 sm:gap-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 truncate">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 truncate">
                       💡 Guía de Ejercicios
                     </h1>
                     <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">
@@ -138,7 +138,7 @@ export default function ExercisesPage() {
                     variant="secondary"
                     size="sm"
                     onClick={() => setDrawerOpen(true)}
-                    className="flex-shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all text-sm"
+                    className="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all text-sm"
                   >
                     <span className="text-base sm:text-lg">⚙️</span>
                     <span className="hidden sm:inline">Equipamiento</span>
@@ -147,7 +147,7 @@ export default function ExercisesPage() {
 
             {/* Filtro de equipamiento optimizado para móvil */}
             {selectedEquipment.size > 0 && (
-              <div className="mt-3 sm:mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 sm:p-4 shadow-sm">
+              <div className="mt-3 sm:mt-4 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 sm:p-4 shadow-sm">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl sm:text-2xl">🏋️</span>
@@ -188,8 +188,8 @@ export default function ExercisesPage() {
 
           {!selectedMuscle ? (
             <>
-              <div className="mb-4 sm:mb-6">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">
+                <div className="mb-3 sm:mb-4">
+                  <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">
                   Selecciona un grupo muscular
                 </h2>
                 
@@ -235,7 +235,7 @@ export default function ExercisesPage() {
                       aria-label={`Seleccionar grupo ${muscle.name}, ${total} ejercicios`}
                     >
                       {/* Efecto de fondo en hover */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       
                       <div className="relative z-10 mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300">
                         <MuscleGroupIcon muscleGroup={muscle.id} size={48} className="text-blue-500 dark:text-blue-400 sm:w-14 sm:h-14" />
@@ -255,7 +255,7 @@ export default function ExercisesPage() {
                           </span>
                         )}
                         {warmupCount > 0 && (
-                          <span className="text-[9px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-700 dark:text-amber-400 font-medium shadow-sm">
+                          <span className="text-[9px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-linear-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-700 dark:text-amber-400 font-medium shadow-sm">
                             🔥 {warmupCount}
                           </span>
                         )}
@@ -282,7 +282,7 @@ export default function ExercisesPage() {
                   action={
                     <button
                       onClick={() => setSearchTerm('')}
-                      className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm sm:text-base font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
+                      className="px-5 sm:px-6 py-2.5 sm:py-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm sm:text-base font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95"
                     >
                       Limpiar búsqueda
                     </button>
@@ -307,7 +307,7 @@ export default function ExercisesPage() {
                 </div>
                 <button
                   onClick={handleBackToMuscles}
-                  className="flex-shrink-0 px-3 sm:px-4 py-2 text-sm sm:text-base text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all font-medium active:scale-95"
+                  className="shrink-0 px-3 sm:px-4 py-2 text-sm sm:text-base text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all font-medium active:scale-95"
                 >
                   ← Volver
                 </button>
@@ -349,7 +349,7 @@ export default function ExercisesPage() {
                   onClick={() => handleTabChange('training')}
                   className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all shadow-sm active:scale-95 ${
                     exerciseTab === 'training'
-                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300 shadow-md'
+                      ? 'bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-500 dark:border-blue-400 text-blue-700 dark:text-blue-300 shadow-md'
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-blue-300 hover:shadow'
                   }`}
                 >
@@ -362,7 +362,7 @@ export default function ExercisesPage() {
                   onClick={() => handleTabChange('warmup')}
                   className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-xl border-2 transition-all shadow-sm active:scale-95 ${
                     exerciseTab === 'warmup'
-                      ? 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-500 dark:border-amber-400 text-amber-700 dark:text-amber-300 shadow-md'
+                      ? 'bg-linear-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-500 dark:border-amber-400 text-amber-700 dark:text-amber-300 shadow-md'
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-amber-300 hover:shadow'
                   }`}
                 >
@@ -386,10 +386,10 @@ export default function ExercisesPage() {
                       onClick={() => handleCategoryChange(filter.key)}
                       className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-full border-2 transition-all shadow-sm active:scale-95 ${
                         warmupCategoryFilter === filter.key
-                          ? filter.key === 'warmup' ? 'bg-gradient-to-r from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-800/20 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 shadow-md'
-                          : filter.key === 'mobility' ? 'bg-gradient-to-r from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20 border-purple-400 dark:border-purple-600 text-purple-700 dark:text-purple-300 shadow-md'
-                          : filter.key === 'activation' ? 'bg-gradient-to-r from-yellow-100 to-yellow-50 dark:from-yellow-900/30 dark:to-yellow-800/20 border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300 shadow-md'
-                          : 'bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-300 shadow-md'
+                          ? filter.key === 'warmup' ? 'bg-linear-to-r from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-800/20 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 shadow-md'
+                          : filter.key === 'mobility' ? 'bg-linear-to-r from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20 border-purple-400 dark:border-purple-600 text-purple-700 dark:text-purple-300 shadow-md'
+                          : filter.key === 'activation' ? 'bg-linear-to-r from-yellow-100 to-yellow-50 dark:from-yellow-900/30 dark:to-yellow-800/20 border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300 shadow-md'
+                          : 'bg-linear-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-300 shadow-md'
                           : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-amber-300 hover:shadow'
                       }`}
                     >
@@ -403,7 +403,7 @@ export default function ExercisesPage() {
 
               {/* Mensaje "Pronto más" optimizado */}
               {totalCount > 0 && totalCount < 11 && (
-                <div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl sm:rounded-2xl text-center shadow-sm">
+                <div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl sm:rounded-2xl text-center shadow-sm">
                   <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🚀</div>
                   <h3 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">Pronto habrá más ejercicios</h3>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
@@ -425,9 +425,9 @@ export default function ExercisesPage() {
                   <Card key={exercise.id} className={`hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.99] ${exerciseTab === 'warmup' ? 'border-amber-200 dark:border-amber-800' : 'border-gray-200 dark:border-gray-700'}`}>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       {/* Image/Icon Section optimizada */}
-                      <div className="sm:w-40 md:w-48 flex-shrink-0">
+                      <div className="sm:w-40 md:w-48 shrink-0">
                         {exercise.image ? (
-                          <div className="w-full h-40 sm:h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
+                          <div className="w-full h-40 sm:h-full bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={exercise.image} alt={exercise.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -442,8 +442,8 @@ export default function ExercisesPage() {
                           </div>
                         ) : (
                           <div className={`flex justify-center items-center h-40 sm:h-full ${exerciseTab === 'warmup' 
-                            ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' 
-                            : 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700'} rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none`}>
+                            ? 'bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' 
+                            : 'bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700'} rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none`}>
                             {exerciseTab === 'warmup' ? (
                               <div className="flex flex-col items-center gap-2">
                                 <span className="text-5xl sm:text-6xl">🔥</span>
@@ -471,14 +471,14 @@ export default function ExercisesPage() {
                             <div className="flex-1 min-w-0">
                               <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">{exercise.name}</h3>
                               <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                                <span className="px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 text-blue-800 dark:text-blue-200 shadow-sm">
+                                <span className="px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-linear-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 text-blue-800 dark:text-blue-200 shadow-sm">
                                   {exercise.equipment}
                                 </span>
                                 {warmup && categoryInfo && (
                                   <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium shadow-sm ${
-                                    warmup.category === 'warmup' ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 dark:from-red-900/30 dark:to-red-800/20 dark:text-red-400'
-                                    : warmup.category === 'mobility' ? 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 dark:from-purple-900/30 dark:to-purple-800/20 dark:text-purple-400'
-                                    : 'bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-700 dark:from-yellow-900/30 dark:to-yellow-800/20 dark:text-yellow-400'
+                                    warmup.category === 'warmup' ? 'bg-linear-to-r from-red-100 to-red-50 text-red-700 dark:from-red-900/30 dark:to-red-800/20 dark:text-red-400'
+                                    : warmup.category === 'mobility' ? 'bg-linear-to-r from-purple-100 to-purple-50 text-purple-700 dark:from-purple-900/30 dark:to-purple-800/20 dark:text-purple-400'
+                                    : 'bg-linear-to-r from-yellow-100 to-yellow-50 text-yellow-700 dark:from-yellow-900/30 dark:to-yellow-800/20 dark:text-yellow-400'
                                   }`}>
                                     {categoryInfo.icon} {categoryInfo.es}
                                   </span>
@@ -487,7 +487,7 @@ export default function ExercisesPage() {
                             </div>
                             <button 
                               onClick={() => setSelectedExercise(exercise)} 
-                              className={`flex-shrink-0 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 text-xs sm:text-sm ${exerciseTab === 'warmup' ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'} text-white font-semibold rounded-lg sm:rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 whitespace-nowrap`}
+                              className={`shrink-0 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 text-xs sm:text-sm ${exerciseTab === 'warmup' ? 'bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600' : 'bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'} text-white font-semibold rounded-lg sm:rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 whitespace-nowrap`}
                             >
                               <span className="hidden sm:inline">Ver técnica</span>
                               <span className="sm:hidden">Ver</span>
@@ -501,24 +501,24 @@ export default function ExercisesPage() {
 
                         <div className="flex flex-wrap gap-2 sm:gap-3">
                           {exercise.recommendedSets && (
-                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg shadow-sm">
                               <span className="text-green-700 dark:text-green-400 font-semibold text-[10px] sm:text-sm">Series:</span>
                               <span className="text-green-900 dark:text-green-200 text-[10px] sm:text-sm font-medium">{exercise.recommendedSets}</span>
                             </div>
                           )}
                           {exercise.recommendedReps && (
-                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm">
                               <span className="text-blue-700 dark:text-blue-400 font-semibold text-[10px] sm:text-sm">Reps:</span>
                               <span className="text-blue-900 dark:text-blue-200 text-[10px] sm:text-sm font-medium">{exercise.recommendedReps}</span>
                             </div>
                           )}
                           {exercise.restTime && (
-                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-sm">
                               <span className="text-gray-700 dark:text-gray-400 text-[10px] sm:text-sm font-medium">⏱️ {exercise.restTime}</span>
                             </div>
                           )}
                           {warmup && warmup.duration && (
-                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg shadow-sm">
+                            <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-linear-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg shadow-sm">
                               <span className="text-amber-700 dark:text-amber-400 text-[10px] sm:text-sm font-medium">⏱️ {warmup.duration}</span>
                             </div>
                           )}
@@ -559,11 +559,11 @@ export default function ExercisesPage() {
                         <button
                           key={page}
                           onClick={() => currentData.setCurrentPage(page)}
-                          className={`min-w-[36px] sm:min-w-[40px] h-9 sm:h-10 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm text-sm active:scale-95 ${
+                          className={`min-w-9 sm:min-w-10 h-9 sm:h-10 rounded-lg sm:rounded-xl font-semibold transition-all shadow-sm text-sm active:scale-95 ${
                             currentData.currentPage === page
                               ? exerciseTab === 'warmup'
-                                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
-                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                                ? 'bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                                : 'bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-md'
                               : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-400'
                           }`}
                         >
@@ -622,7 +622,7 @@ export default function ExercisesPage() {
                   setEquipment(new Set(EQUIPMENT_LIST.map(e => e.id))); 
                   toast.success('Seleccionado todo el equipamiento'); 
                 }} 
-                className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all"
               >
                 ✅ Seleccionar todo
               </button>
@@ -654,7 +654,7 @@ export default function ExercisesPage() {
                     }}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
                       isSelected 
-                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-400 dark:border-blue-500' 
+                        ? 'bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-400 dark:border-blue-500' 
                         : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300'
                     }`}
                   >

@@ -101,7 +101,7 @@ export class LazyErrorBoundary extends Component<LazyErrorBoundaryProps, LazyErr
       if (this.state.retryCount >= MAX_RETRIES) {
         return (
           <div className="flex flex-col items-center justify-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-            <div className="text-4xl mb-4">⚠️</div>
+            <div className="text-3xl mb-3">⚠️</div>
             <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
               Error al cargar componente
             </h3>

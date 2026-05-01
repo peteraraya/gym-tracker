@@ -126,11 +126,11 @@ export function SeriesTable({
               const isEditingWeight = mobileEditingField?.setIndex === idx && mobileEditingField?.field === 'weight';
               
               return (
-                <div key={`mobile-controls-${idx}`} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg space-y-3">
+                <div key={`mobile-controls-${idx}`} className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg space-y-3">
                   {/* Serie header with number and info */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${
                         idx === currentSet - 1 ? 'bg-blue-600' : 'bg-gray-400 dark:bg-gray-600'
                       }`}>
                         {idx + 1}
@@ -155,7 +155,7 @@ export function SeriesTable({
                             {doneReps ?? set.reps}
                           </button>
                         )}
-                        <span className="text-xs text-gray-600 dark:text-gray-400 flex-shrink-0">reps ×</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">reps ×</span>
                         
                         {/* Weight - using WeightSelector */}
                         {isEditingWeight ? (
@@ -178,13 +178,13 @@ export function SeriesTable({
                             {doneWeight || set.weight || 0}
                           </button>
                         )}
-                        <span className="text-xs text-gray-600 dark:text-gray-400 flex-shrink-0">kg</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">kg</span>
                       </div>
                     </div>
                     {/* Status checkbox */}
                     <button
                       onClick={() => onToggleSetComplete(idx, !isCompleted)}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all shrink-0 ${
                         isCompleted
                           ? 'bg-green-500 hover:bg-green-600 text-white'
                           : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400'

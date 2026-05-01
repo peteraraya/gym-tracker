@@ -52,16 +52,16 @@ export default function GlossaryPage() {
   }, [filteredTerms]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-6">
-        <Card className="shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg p-6">
+      <div className="max-w-7xl mx-auto mb-4">
+        <Card className="shadow-lg">
+          <CardHeader className="bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg p-4">
             <CardTitle className="flex items-center gap-3 text-white">
-              <BookOpen className="w-8 h-8" />
+              <BookOpen className="w-6 h-6" />
               <div>
-                <h1 className="text-3xl font-bold">Glosario de Fitness</h1>
-                <p className="text-indigo-100 text-sm mt-1">
+                <h1 className="text-2xl font-bold">Glosario de Fitness</h1>
+                <p className="text-indigo-100 text-sm mt-0.5">
                   {glossaryTerms.length} términos esenciales para tu entrenamiento
                 </p>
               </div>
@@ -70,7 +70,7 @@ export default function GlossaryPage() {
         </Card>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Sidebar - Filtros */}
         <div className="lg:col-span-1 space-y-4">
           {/* Búsqueda */}
@@ -91,7 +91,7 @@ export default function GlossaryPage() {
 
           {/* Categorías */}
           <Card className="shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-lg p-4">
+            <CardHeader className="bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-t-lg p-4">
               <CardTitle className="text-lg text-white">Categorías</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
@@ -100,7 +100,7 @@ export default function GlossaryPage() {
                   onClick={() => setSelectedCategory('all')}
                   className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
                     selectedCategory === 'all'
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                      ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md'
                       : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -118,7 +118,7 @@ export default function GlossaryPage() {
                       onClick={() => setSelectedCategory(category)}
                       className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
                         selectedCategory === category
-                          ? `bg-gradient-to-r ${config.color} text-white shadow-md`
+                          ? `bg-linear-to-r ${config.color} text-white shadow-md`
                           : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                     >
@@ -134,10 +134,10 @@ export default function GlossaryPage() {
           </Card>
 
           {/* Info */}
-          <Card className="shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-2 border-blue-200 dark:border-blue-800">
+          <Card className="shadow-lg bg-linear-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-2 border-blue-200 dark:border-blue-800">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900 dark:text-blue-100">
                   <p className="font-semibold mb-1">💡 Consejo</p>
                   <p className="text-blue-700 dark:text-blue-300">
@@ -153,22 +153,22 @@ export default function GlossaryPage() {
         <div className="lg:col-span-3">
           {filteredTerms.length === 0 ? (
             <Card className="shadow-lg">
-              <CardContent className="p-12 text-center">
-                <Search className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 dark:text-gray-400 text-lg">
+              <CardContent className="p-8 text-center">
+                <Search className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                <p className="text-gray-600 dark:text-gray-400">
                   No se encontraron términos
                 </p>
-                <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
+                <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
                   Intenta con otros términos de búsqueda
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {Object.entries(termsByLetter).sort().map(([letter, terms]) => (
                 <Card key={letter} className="shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-t-lg p-4">
-                    <CardTitle className="text-2xl font-bold text-white">{letter}</CardTitle>
+                  <CardHeader className="bg-linear-to-r from-gray-700 to-gray-800 text-white rounded-t-lg p-3">
+                    <CardTitle className="text-xl font-bold text-white">{letter}</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="grid grid-cols-1 gap-3">
@@ -181,13 +181,13 @@ export default function GlossaryPage() {
                             className="text-left p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-lg transition-all group"
                           >
                             <div className="flex items-start gap-3">
-                              <span className="text-2xl flex-shrink-0">{term.icon || categoryConfig.icon}</span>
+                              <span className="text-2xl shrink-0">{term.icon || categoryConfig.icon}</span>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                   <h3 className="font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                     {term.term}
                                   </h3>
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r ${categoryConfig.color} text-white`}>
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold bg-linear-to-r ${categoryConfig.color} text-white`}>
                                     {categoryConfig.label}
                                   </span>
                                 </div>
@@ -219,12 +219,12 @@ export default function GlossaryPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <Card className="shadow-2xl animate-fadeIn">
-            <CardHeader className={`bg-gradient-to-r ${GLOSSARY_CATEGORIES[selectedTerm.category].color} text-white rounded-t-lg p-6`}>
+            <CardHeader className={`bg-linear-to-r ${GLOSSARY_CATEGORIES[selectedTerm.category].color} text-white rounded-t-lg p-4`}>
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <span className="text-5xl">{selectedTerm.icon || GLOSSARY_CATEGORIES[selectedTerm.category].icon}</span>
+                <div className="flex items-start gap-3">
+                  <span className="text-4xl">{selectedTerm.icon || GLOSSARY_CATEGORIES[selectedTerm.category].icon}</span>
                   <div>
-                    <CardTitle className="text-3xl font-bold text-white mb-2">
+                    <CardTitle className="text-2xl font-bold text-white mb-1">
                       {selectedTerm.term}
                     </CardTitle>
                     <span className="px-3 py-1 rounded-full text-sm font-semibold bg-white/20 text-white">
@@ -232,15 +232,15 @@ export default function GlossaryPage() {
                     </span>
                   </div>
                 </div>
-                <button
+                  <button
                   onClick={() => setSelectedTerm(null)}
-                  className="ml-4 p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="ml-4 p-1.5 hover:bg-white/20 rounded-lg transition-colors"
                 >
-                  <span className="text-3xl text-white">×</span>
+                  <span className="text-2xl text-white">×</span>
                 </button>
               </div>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-4 space-y-4">
               {/* Definición */}
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
@@ -254,7 +254,7 @@ export default function GlossaryPage() {
 
               {/* Ejemplo */}
               {selectedTerm.example && (
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="p-4 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                   <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
                     <Lightbulb className="w-5 h-5" />
                     Ejemplo

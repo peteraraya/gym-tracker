@@ -399,17 +399,17 @@ export default function FreeWorkoutPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="container mx-auto px-4 py-4">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3 mb-2">
-              <div className="p-2 bg-linear-to-br from-orange-500 to-red-600 rounded-xl">
-                <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          <div className="mb-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-1">
+              <div className="p-1.5 bg-linear-to-br from-orange-500 to-red-600 rounded-xl">
+                <Zap className="w-5 h-5 text-white" />
               </div>
               Entrenamiento Libre
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Entrena sin rutina predefinida. Agrega ejercicios y registra series sobre la marcha.
             </p>
           </div>
@@ -723,8 +723,8 @@ export default function FreeWorkoutPage() {
             </div>
 
             {exercises.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <Dumbbell className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <Dumbbell className="w-10 h-10 mx-auto mb-3 text-gray-400" />
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
                   Aún no has agregado ejercicios
                 </p>

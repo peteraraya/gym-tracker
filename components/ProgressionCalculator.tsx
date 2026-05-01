@@ -33,7 +33,7 @@ export default function ProgressionCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-emerald-500 to-teal-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <TrendingUp className="w-6 h-6" />
           Calculadora de Progresión Lineal
@@ -134,13 +134,13 @@ export default function ProgressionCalculator() {
           </div>
 
           {/* Resultado */}
-          <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border-2 border-emerald-200 dark:border-emerald-800">
+          <div className="p-6 bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border-2 border-emerald-200 dark:border-emerald-800">
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="text-center">
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                   Peso Proyectado
                 </div>
-                <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                   {projectedWeight.toFixed(1)}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">kg</div>
@@ -149,7 +149,7 @@ export default function ProgressionCalculator() {
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                   Aumento Total
                 </div>
-                <div className="text-4xl font-bold text-teal-600 dark:text-teal-400">
+                <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
                   +{totalIncrease.toFixed(1)}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">kg</div>
@@ -158,7 +158,7 @@ export default function ProgressionCalculator() {
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                   Incremento
                 </div>
-                <div className="text-4xl font-bold text-cyan-600 dark:text-cyan-400">
+                <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">
                   {percentageIncrease.toFixed(0)}%
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">mejora</div>

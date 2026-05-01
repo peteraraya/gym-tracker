@@ -150,7 +150,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="w-full max-w-3xl my-8 shadow-2xl animate-fadeIn">
         {/* Header */}
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-4 sm:p-6 sticky top-0 z-10">
+        <CardHeader className="bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-4 sm:p-6 sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1 pr-2">
               <CardTitle className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">
@@ -167,7 +167,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
             </div>
             <button
               onClick={onCancel}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors shrink-0"
               aria-label="Cerrar"
             >
               <span className="text-2xl text-white">×</span>
@@ -362,7 +362,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl sm:text-3xl flex-shrink-0">{goal.icon}</span>
+                        <span className="text-2xl sm:text-3xl shrink-0">{goal.icon}</span>
                         <div className="min-w-0">
                           <div className="font-bold text-sm sm:text-base">{goal.label}</div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">{goal.desc}</div>
@@ -405,7 +405,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
           {step === 4 && (
             <div className="space-y-6 animate-fadeIn">
               <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-green-500 to-emerald-600 rounded-full mb-4">
                   <Check className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
@@ -468,7 +468,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                 </div>
               </div>
 
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="p-4 bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
                   <TrendingUp className="w-4 h-4 inline mr-2" />
                   Generaremos <strong>{data.daysPerWeek} rutinas optimizadas</strong> basadas en tus preferencias:
@@ -500,7 +500,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                   key={i}
                   className={`h-2 rounded-full transition-all ${
                     i + 1 === step
-                      ? 'w-8 bg-gradient-to-r from-blue-500 to-purple-600'
+                      ? 'w-8 bg-linear-to-r from-blue-500 to-purple-600'
                       : i + 1 < step
                       ? 'w-2 bg-green-500'
                       : 'w-2 bg-gray-300 dark:bg-gray-600'
@@ -513,7 +513,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               variant="primary"
               onClick={nextStep}
               disabled={!canProceed() || isCreating}
-              className={`w-full sm:w-auto order-3 ${step === totalSteps ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : ''}`}
+              className={`w-full sm:w-auto order-3 ${step === totalSteps ? 'bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : ''}`}
             >
               {isCreating ? (
                 <>

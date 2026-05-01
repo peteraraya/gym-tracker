@@ -40,7 +40,7 @@ export default function RestTimeCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <Clock className="w-6 h-6" />
           Calculadora de Tiempo de Descanso
@@ -147,7 +147,7 @@ export default function RestTimeCalculator() {
           </div>
 
           {/* Resultado */}
-          <div className="p-6 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-800">
+          <div className="p-6 bg-linear-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-800">
             <div className="text-center mb-4">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                 Tiempo de Descanso Recomendado

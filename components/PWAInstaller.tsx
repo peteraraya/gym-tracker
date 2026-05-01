@@ -77,7 +77,7 @@ export function PWAInstaller() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-40 animate-slide-in-right">
-      <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl p-6 relative">
+      <div className="bg-linear-to-br from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl p-6 relative">
         <button
           onClick={handleDismiss}
           className="absolute top-3 right-3 p-1 hover:bg-white/20 rounded-lg transition-colors"
@@ -87,7 +87,7 @@ export function PWAInstaller() {
         </button>
 
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
             <Download className="w-6 h-6" />
           </div>
           <div>

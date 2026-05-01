@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
           <div className="max-w-md w-full bg-white dark:bg-zinc-900 rounded-lg shadow-xl p-6 border border-zinc-200 dark:border-zinc-800">
             {/* Icono de error */}
             <div className="flex justify-center mb-4">

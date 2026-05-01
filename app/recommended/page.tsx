@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { RECOMMENDED_ROUTINES, RecommendedRoutine } from '@/data/recommendedRoutines';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { LoadingState } from '@/components/LoadingState';
 import { useGym } from '@/context/GymContext';
 import { useToast } from '@/context/ToastContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -114,24 +115,25 @@ export default function RecommendedRoutinesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               🎯 Rutinas Recomendadas
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
               Rutinas profesionales listas para guardar y comenzar a entrenar
             </p>
-            {/* Botón de import masivo omitido por ahora (solicitado). */}
           </div>
 
           {/* Recomendaciones personalizadas */}
-          {!profileLoading && personalizedRecommendations.length > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {profileLoading ? (
+            <LoadingState message="Cargando recomendaciones..." />
+          ) : personalizedRecommendations.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   ✨ Recomendadas para ti
                 </h2>
                 {!userProfile && (
@@ -144,7 +146,7 @@ export default function RecommendedRoutinesPage() {
               </div>
 
               {userProfile && (
-                <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg mb-6">
+                <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-3 rounded-lg mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🎯</span>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">
@@ -181,7 +183,7 @@ export default function RecommendedRoutinesPage() {
                 </div>
               )}
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 {personalizedRecommendations.map((rec) => (
                   <Card key={rec.id} className="hover:shadow-lg transition-shadow border-2 border-blue-200 dark:border-blue-800">
                     <CardHeader>
@@ -269,8 +271,8 @@ export default function RecommendedRoutinesPage() {
                 ))}
               </div>
 
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-8" data-routines-section>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4" data-routines-section>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
                   Todas las rutinas disponibles
                 </h2>
               </div>
@@ -278,7 +280,7 @@ export default function RecommendedRoutinesPage() {
           )}
 
           {/* Filtros */}
-          <div className="flex gap-3 mb-8 overflow-x-auto pb-2">
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
             <Button
               variant={selectedCategory === 'all' ? 'primary' : 'secondary'}
               size="sm"
@@ -310,7 +312,7 @@ export default function RecommendedRoutinesPage() {
           </div>
 
           {/* Grid de rutinas */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRoutines.map((routine) => (
               <Card key={routine.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -411,9 +413,9 @@ export default function RecommendedRoutinesPage() {
           </div>
 
           {filteredRoutines.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <div className="text-center py-8">
+              <div className="text-5xl mb-3">🔍</div>
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                 No hay rutinas en esta categoría
               </h3>
             </div>

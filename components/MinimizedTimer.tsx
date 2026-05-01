@@ -24,7 +24,7 @@ export function MinimizedTimer({
 
   return (
     <div className="fixed bottom-28 left-0 right-0 z-40 px-4 animate-in slide-in-from-bottom-2 duration-300">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl border-2 border-white/20 backdrop-blur-sm max-w-md mx-auto">
+      <div className="bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl border-2 border-white/20 backdrop-blur-sm max-w-md mx-auto">
         <div className="px-4 py-3 flex items-center justify-between gap-3">
           {/* Timer display */}
           <button

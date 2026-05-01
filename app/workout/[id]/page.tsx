@@ -1723,7 +1723,7 @@ export default function WorkoutPage() {
           /* Modo guiado - Flujo normal */
           <>
         {/* Botón flotante grande - Iniciar o Completar Serie */}
-        <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
+        <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
 
         <div className="fixed bottom-0 left-0 right-0 z-30 px-0">
           {!setExecution.isExecutingSet ? (
@@ -1732,7 +1732,7 @@ export default function WorkoutPage() {
               onClick={() => {
                 setExecution.startSet();
               }}
-              className="w-full py-6 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
+              className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
             >
               <span className="text-2xl">▶️</span>
               <div className="flex flex-col items-start">
@@ -1747,7 +1747,7 @@ export default function WorkoutPage() {
               variant="primary"
               onClick={handleCompleteSet}
               disabled={workoutState.currentReps === '' || workoutState.currentWeight === ''}
-              className="w-full py-6 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-6 text-lg font-bold bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-2xl">✅</span>
               <div className="flex flex-col items-start">

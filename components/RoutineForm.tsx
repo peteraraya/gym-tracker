@@ -613,7 +613,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 }}
                 className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-3 sm:p-4 rounded-xl transition-all ${
                   currentStep === step.key
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
+                    ? 'bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
                     : step.key === 'exercises' && !canProceedToExercises
                     ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
                     : step.key === 'review' && !canProceedToReview
@@ -648,7 +648,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         {/* Step 1: Basic Information */}
         {currentStep === 'basic' && (
           <div className="flex-1 space-y-6 animate-fadeIn">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-blue-800">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 📝 Información Básica
               </h3>
@@ -695,7 +695,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                   </button>
                 </div>
               ) : (
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 sm:p-12 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 sm:p-12 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
                   <input
                     type="file"
                     accept="image/*"
@@ -754,7 +754,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         {/* Step 2: Exercises */}
         {currentStep === 'exercises' && (
           <div className="flex-1 space-y-6 animate-fadeIn">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 sm:p-6 rounded-xl border border-purple-200 dark:border-purple-800">
+            <div className="bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 sm:p-6 rounded-xl border border-purple-200 dark:border-purple-800">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 💪 Ejercicios de la Rutina
               </h3>
@@ -765,7 +765,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
 
             {/* Estadísticas de la rutina */}
             {exercises.length > 0 && (
-              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+              <div className="bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-2xl">⏱️</span>
                   <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">
@@ -851,7 +851,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
               </div>
 
               {exercises.length === 0 && (
-                <div className="text-center py-12 sm:py-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <div className="text-center py-12 sm:py-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
                   <div className="text-6xl sm:text-7xl mb-4">🏋️</div>
                   <p className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {t('noExercises')}
@@ -917,7 +917,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     >
                       {/* Drag handle */}
                       <div 
-                        className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        className="shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         onMouseDown={(e) => e.stopPropagation()}
                       >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -926,7 +926,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                       </div>
 
                       {/* Número */}
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                         {exerciseIndex + 1}
                       </div>
 
@@ -937,7 +937,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                             {exercise.name || `Ejercicio ${exerciseIndex + 1}`}
                           </div>
                           {validationErrors.some(err => err.exerciseIndex === exerciseIndex) && (
-                            <span className="flex-shrink-0 px-2 py-0.5 text-xs font-semibold bg-amber-500 text-white rounded-full animate-pulse">
+                            <span className="shrink-0 px-2 py-0.5 text-xs font-semibold bg-amber-500 text-white rounded-full animate-pulse">
                               ⚠️ Completar
                             </span>
                           )}
@@ -972,7 +972,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                               handleRemoveExercise(exerciseIndex);
                             }
                           }}
-                          className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
+                          className="shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
                           title="Eliminar ejercicio"
                         >
                           <span className="text-lg">🗑️</span>
@@ -1041,7 +1041,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                               <div key={setIndex} className="p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                 {/* Header compacto en una línea */}
                                 <div className="flex items-center gap-2 mb-2">
-                                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                  <div className="shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
                                     <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
                                       {setIndex + 1}
                                     </span>
@@ -1153,7 +1153,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                           onChange={(e) => handleExerciseChange(exerciseIndex, 'notes', e.target.value)}
                         />
 
-                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-3 p-3 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                           <span className="text-xl">⏱️</span>
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
@@ -1310,7 +1310,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
         {/* Step 3: Review */}
         {currentStep === 'review' && (
           <div className="flex-1 space-y-6 animate-fadeIn">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 sm:p-6 rounded-xl border border-green-200 dark:border-green-800">
+            <div className="bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 sm:p-6 rounded-xl border border-green-200 dark:border-green-800">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 ✓ Revisar Rutina
               </h3>
@@ -1328,7 +1328,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                     alt={name}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">{name}</h2>
                     {description && (
@@ -1349,23 +1349,23 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                 )}
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-3 sm:p-4 rounded-xl text-center border border-blue-200 dark:border-blue-800">
+                  <div className="bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-3 sm:p-4 rounded-xl text-center border border-blue-200 dark:border-blue-800">
                     <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{exercises.length}</div>
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Ejercicios</div>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-3 sm:p-4 rounded-xl text-center border border-purple-200 dark:border-purple-800">
+                  <div className="bg-linear-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-3 sm:p-4 rounded-xl text-center border border-purple-200 dark:border-purple-800">
                     <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">
                       {exercises.reduce((sum, ex) => sum + ex.sets.length, 0)}
                     </div>
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Series</div>
                   </div>
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-3 sm:p-4 rounded-xl text-center border border-green-200 dark:border-green-800">
+                  <div className="bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-3 sm:p-4 rounded-xl text-center border border-green-200 dark:border-green-800">
                     <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">
                       {Math.floor(restBetweenSets / 60)}:{(restBetweenSets % 60).toString().padStart(2, '0')}
                     </div>
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Descanso/Serie</div>
                   </div>
-                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-3 sm:p-4 rounded-xl text-center border border-amber-200 dark:border-amber-800">
+                  <div className="bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-3 sm:p-4 rounded-xl text-center border border-amber-200 dark:border-amber-800">
                     <div className="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400">
                       {Math.floor(restBetweenExercises / 60)}:{(restBetweenExercises % 60).toString().padStart(2, '0')}
                     </div>
@@ -1379,7 +1379,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                   </h3>
                   {exercises.map((exercise, index) => (
                     <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1398,7 +1398,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
                       <button
                         type="button"
                         onClick={() => setCurrentStep('exercises')}
-                        className="flex-shrink-0 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-2 rounded-lg transition-all text-xs"
+                        className="shrink-0 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-2 rounded-lg transition-all text-xs"
                       >
                         ✏️
                       </button>

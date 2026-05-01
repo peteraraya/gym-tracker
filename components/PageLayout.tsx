@@ -30,14 +30,14 @@ export function PageLayout({
   }[maxWidth];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-24">
-      <div className={`${maxWidthClass} mx-auto px-4 py-8`}>
+    <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-20">
+      <div className={`${maxWidthClass} mx-auto px-4 py-4`}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            {icon && <div className="flex-shrink-0">{icon}</div>}
+            {icon && <div className="shrink-0">{icon}</div>}
             <div>
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
                 {title}
               </h1>
               {description && (
@@ -47,7 +47,7 @@ export function PageLayout({
               )}
             </div>
           </div>
-          {actions && <div className="flex-shrink-0">{actions}</div>}
+          {actions && <div className="shrink-0">{actions}</div>}
         </div>
 
         {/* Content */}

@@ -23,15 +23,15 @@ export const Button: React.FC<ButtonProps> = ({
   
   const variants = {
     // Acción principal: gradiente inspirado en el icono de la app
-    primary: 'bg-gradient-to-r from-[#0ea5a4] via-[#8D37FC] to-[#4F46E5] dark:from-[#0ea5a4] dark:via-[#8D37FC] dark:to-[#4F46E5] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-purple-500/20',
+    primary: 'bg-linear-to-r from-[#0ea5a4] via-[#8D37FC] to-[#4F46E5] dark:from-[#0ea5a4] dark:via-[#8D37FC] dark:to-[#4F46E5] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-purple-500/20',
     // Secundario: gris suave en degradado (y versión dark)
-    secondary: 'bg-gradient-to-r from-[#f3f4f6] via-[#e6e7ea] to-[#d1d5db] dark:from-[#374151] dark:via-[#1f2937] dark:to-[#111827] text-zinc-900 dark:text-zinc-100 border border-transparent dark:border-transparent bg-[length:200%_auto] hover:bg-right shadow-sm',
+    secondary: 'bg-linear-to-r from-[#f3f4f6] via-[#e6e7ea] to-[#d1d5db] dark:from-[#374151] dark:via-[#1f2937] dark:to-[#111827] text-zinc-900 dark:text-zinc-100 border border-transparent dark:border-transparent bg-[length:200%_auto] hover:bg-right shadow-sm',
     // Error: degradado rojo profesional (incluye dark)
-    danger: 'bg-gradient-to-r from-[#ef4444] via-[#dc2626] to-[#b91c1c] dark:from-[#b91c1c] dark:via-[#991b1b] dark:to-[#7f1d1d] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-red-500/20',
+    danger: 'bg-linear-to-r from-[#ef4444] via-[#dc2626] to-[#b91c1c] dark:from-[#b91c1c] dark:via-[#991b1b] dark:to-[#7f1d1d] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-red-500/20',
     // Información: degradado azul (incluye dark)
-    info: 'bg-gradient-to-r from-[#3b82f6] via-[#0ea5ff] to-[#06b6d4] dark:from-[#1e40af] dark:via-[#0ea5ff] dark:to-[#0891b2] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-sky-500/20',
+    info: 'bg-linear-to-r from-[#3b82f6] via-[#0ea5ff] to-[#06b6d4] dark:from-[#1e40af] dark:via-[#0ea5ff] dark:to-[#0891b2] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-sky-500/20',
     ghost: 'bg-transparent text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 shadow-none',
-    gradient: 'bg-gradient-to-r from-teal-500 via-emerald-500 to-teal-500 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-teal-500/30',
+    gradient: 'bg-linear-to-r from-teal-500 via-emerald-500 to-teal-500 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-teal-500/30',
   };
 
   const sizes = {

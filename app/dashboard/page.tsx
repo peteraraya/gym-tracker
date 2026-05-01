@@ -162,20 +162,18 @@ export default function DashboardPage() {
   // Cargar sesiones desde localStorage para combinarlas con las del servidor
   if (loading) {
     return (
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-zinc-500 dark:text-zinc-400">{t('loadingStats')}</div>
-        </div>
+      <div className="p-4 max-w-7xl mx-auto">
+        <LoadingState message={t('loadingStats')} />
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 max-w-7xl mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             {t('pageTitle')}
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 mt-1">
@@ -318,8 +316,8 @@ export default function DashboardPage() {
       {validSessions.length > 0 && (
         <>
           {/* Logros Destacados */}
-          <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-6 border border-amber-200 dark:border-zinc-700">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-4 border border-amber-200 dark:border-zinc-700">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 <div>
@@ -341,7 +339,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent Achievements */}
-            <div className="flex gap-6 overflow-x-auto pb-2">
+            <div className="flex gap-4 overflow-x-auto pb-2">
               {(() => {
                 const allAchievements = calculateAchievements(validSessions);
                 const recentAchievements = getRecentAchievements(allAchievements);
@@ -373,8 +371,8 @@ export default function DashboardPage() {
             {(() => {
               const streak = calculateStreak(validSessions);
               return (
-                <div className="mt-6 pt-6 border-t border-amber-200 dark:border-zinc-700">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="mt-4 pt-4 border-t border-amber-200 dark:border-zinc-700">
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="text-center">
                       <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">{t('achievements.currentStreak')}</p>
                       <div className="flex items-center justify-center gap-2">

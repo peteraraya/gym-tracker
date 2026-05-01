@@ -140,7 +140,7 @@ export default function PlateCalculator() {
 
   return (
     <Card>
-      <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-2 text-white">
           <Circle className="w-5 h-5" />
           Calculadora de Placas para Barra
@@ -282,7 +282,7 @@ export default function PlateCalculator() {
               )}
 
               {/* Resultado del constructor */}
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
+              <div className="bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
@@ -294,7 +294,7 @@ export default function PlateCalculator() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">Peso Total</p>
-                    <p className="text-4xl font-bold text-green-600 dark:text-green-400">
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                       {calculateBuiltWeight().toFixed(2)} {unit}
                     </p>
                   </div>

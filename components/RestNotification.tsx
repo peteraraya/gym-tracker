@@ -61,7 +61,7 @@ export const RestNotification: React.FC<RestNotificationProps> = ({
     >
       <div className="bg-linear-to-r from-green-500 to-emerald-500 rounded-lg shadow-2xl p-6 border-2 border-green-300">
         <div className="flex items-start gap-3">
-          <div className="shrink-0 text-4xl animate-bounce">
+          <div className="shrink-0 text-3xl animate-bounce">
             ⏰
           </div>
           <div className="flex-1">

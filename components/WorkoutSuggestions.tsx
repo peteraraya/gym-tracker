@@ -35,7 +35,7 @@ export default function WorkoutSuggestions({
             className={`p-3 rounded-lg border ${variantStyles[suggestion.variant]} animate-fadeIn`}
           >
             <div className="flex items-start gap-2">
-              <span className="text-xl flex-shrink-0">{suggestion.icon}</span>
+              <span className="text-xl shrink-0">{suggestion.icon}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{suggestion.title}</p>
                 <p className="text-xs opacity-90 mt-0.5">{suggestion.message}</p>
@@ -43,7 +43,7 @@ export default function WorkoutSuggestions({
               {onDismiss && (
                 <button
                   onClick={() => onDismiss(index)}
-                  className="flex-shrink-0 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
+                  className="shrink-0 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
                   aria-label="Cerrar sugerencia"
                 >
                   <X className="w-4 h-4" />
@@ -87,14 +87,14 @@ export default function WorkoutSuggestions({
               className={`p-4 rounded-lg border ${variantStyles[suggestion.variant]} animate-fadeIn`}
             >
               <div className="flex items-start gap-3">
-                <span className="text-2xl flex-shrink-0">{suggestion.icon}</span>
+                <span className="text-2xl shrink-0">{suggestion.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h4 className="font-semibold text-sm">{suggestion.title}</h4>
                     {onDismiss && (
                       <button
                         onClick={() => onDismiss(index)}
-                        className="flex-shrink-0 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
+                        className="shrink-0 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
                         aria-label="Cerrar sugerencia"
                       >
                         <X className="w-4 h-4" />

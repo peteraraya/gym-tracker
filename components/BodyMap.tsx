@@ -53,7 +53,7 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           width="220"
           height="500"
           viewBox="0 0 220 500"
-          className="body-map-svg border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg transition-all"
+          className="body-map-svg border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-linear-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg transition-all"
           role="img"
           aria-label="Mapa del cuerpo humano - vista frontal"
         >
@@ -349,7 +349,7 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           width="220"
           height="500"
           viewBox="0 0 220 500"
-          className="body-map-svg border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg transition-all"
+          className="body-map-svg border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-linear-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg transition-all"
           role="img"
           aria-label="Mapa del cuerpo humano - vista trasera"
         >

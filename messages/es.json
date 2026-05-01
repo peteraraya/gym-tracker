@@ -43,7 +43,10 @@
     "calculators": "Calculadoras",
     "data": "Datos",
     "profile": "Perfil",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "glossary": "Glosario",
+    "aiAssistant": "Asistente IA",
+    "settings": "Ajustes"
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -96,14 +99,12 @@
     "welcomeMessage": "¡Bienvenido! Parece que aún no tienes rutinas",
     "startJourney": "Comienza tu viaje fitness con una rutina profesional",
     "exploreRecommended": "Explorar rutinas recomendadas",
-    "createFirstRoutine": "Crear mi primera rutina"
-    ,
+    "createFirstRoutine": "Crear mi primera rutina",
     "haveRoutines": {
       "title": "Listo para entrenar",
       "subtitle": "Tienes rutinas guardadas. Comienza tu siguiente entrenamiento ahora",
       "cta": "Ir a mis rutinas"
-    }
-    ,
+    },
     "cta": {
       "train": "Ia a Entrenar",
       "create": "Crear rutina"
@@ -192,12 +193,35 @@
   },
   "sessions": {
     "title": "Historial de Sesiones",
-    "subtitle": "Revisa tus entrenamientos anteriores",
+    "subtitle": "Revisa y analiza tus entrenamientos anteriores",
     "noSessions": "No hay sesiones registradas",
     "noSessionsDesc": "Completa tu primera rutina para ver tu historial aquí",
+    "noResults": "No se encontraron sesiones",
+    "noResultsDesc": "Intenta cambiar los filtros de búsqueda",
     "routineDeleted": "Rutina eliminada",
     "exercisesCompleted": "Ejercicios completados",
-    "notes": "Notas"
+    "notes": "Notas",
+    "loading": "Cargando sesiones...",
+    "totalSessions": "Total Sesiones",
+    "filtered": "Filtradas",
+    "uniqueRoutines": "Rutinas Únicas",
+    "thisMonth": "Este Mes",
+    "hideDeletedRoutines": "Ocultar rutinas eliminadas",
+    "editSession": "Editar sesión",
+    "deleteSession": "Eliminar sesión",
+    "confirmDelete": {
+      "title": "¿Eliminar sesión?",
+      "message": "¿Estás seguro de que quieres eliminar la sesión de",
+      "suffix": "? Esta acción no se puede deshacer.",
+      "confirmText": "Eliminar",
+      "cancelText": "Cancelar"
+    },
+    "toast": {
+      "updateSuccess": "✅ Sesión actualizada exitosamente",
+      "updateError": "Error al actualizar la sesión",
+      "deleteSuccess": "🗑️ Sesión eliminada exitosamente",
+      "deleteError": "Error al eliminar la sesión"
+    }
   },
   "progress": {
     "title": "Progreso por Grupo Muscular",
