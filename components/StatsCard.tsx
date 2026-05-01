@@ -22,16 +22,16 @@ const StatsCard = memo(function StatsCard({ title, value, icon, subtitle, trend,
       <div className={`absolute inset-0 bg-linear-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
       
       <div className="relative">
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-0.5">
               {title}
             </p>
-            <p className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               {value}
             </p>
           </div>
-          <div className={`text-4xl p-3 rounded-2xl bg-linear-to-br ${gradient} bg-opacity-10 group-hover:scale-110 transition-transform`}>
+          <div className={`text-3xl p-2.5 rounded-xl bg-linear-to-br ${gradient} bg-opacity-10 group-hover:scale-110 transition-transform`}>
             {icon}
           </div>
         </div>

@@ -5,6 +5,11 @@ import { Routine, WorkoutSession } from '@/types';
 import { useAuth } from './AuthContext';
 import * as storageService from '@/lib/storage/storage';
 import { recommendForSession } from '@/lib/progression';
+import { useRoutines as useRoutinesQuery } from '@/hooks/queries/useRoutines';
+import { useSessions as useSessionsQuery } from '@/hooks/queries/useSessions';
+
+// Feature flag for React Query migration
+const USE_REACT_QUERY = process.env.NEXT_PUBLIC_USE_REACT_QUERY === 'true';
 
 interface RoutinesContextType {
   routines: Routine[];
@@ -32,6 +37,10 @@ const SessionsContext = createContext<SessionsContextType | undefined>(undefined
 const GymContext = createContext<GymContextType | undefined>(undefined);
 
 export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Use React Query hooks if feature flag is enabled
+  const reactQueryRoutines = USE_REACT_QUERY ? useRoutinesQuery() : null;
+  const reactQuerySessions = USE_REACT_QUERY ? useSessionsQuery() : null;
+  
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -309,24 +318,112 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return routines.find(routine => routine.id === id);
   }, [routines]);
 
-  const routinesValue = useMemo<RoutinesContextType>(() => ({
-    routines,
-    loading,
-    addRoutine,
-    updateRoutine,
-    deleteRoutine,
-    getRoutineById,
-    refreshRoutines,
-  }), [routines, loading, addRoutine, updateRoutine, deleteRoutine, getRoutineById, refreshRoutines]);
+  const routinesValue = useMemo<RoutinesContextType>(() => {
+    // Use React Query data if enabled
+    if (USE_REACT_QUERY && reactQueryRoutines) {
+      return {
+        routines: reactQueryRoutines.routines,
+        loading: reactQueryRoutines.isLoading,
+        addRoutine: async (routine) => {
+          await reactQueryRoutines.createRoutine(routine as storageService.CreateRoutineData);
+        },
+        updateRoutine: async (id, updatedData) => {
+          const currentRoutines = reactQueryRoutines.routines;
+          const routine = currentRoutines.find(r => r.id === id);
+          if (!routine) throw new Error('Rutina no encontrada');
+          
+          const updatedRoutine = { ...routine, ...updatedData } as storageService.CreateRoutineData;
+          await reactQueryRoutines.updateRoutine(id, updatedRoutine);
+        },
+        deleteRoutine: async (id) => {
+          await reactQueryRoutines.deleteRoutine(id);
+          
+          // Clean from weekly planner
+          try {
+            const { getWeeklyPlan, saveWeeklyPlan } = await import('@/lib/storage/storage');
+            const weeklyPlan = await getWeeklyPlan();
+            
+            if (weeklyPlan) {
+              const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+              let planModified = false;
+              const updatedPlan = { ...weeklyPlan };
+              
+              for (const day of days) {
+                if (updatedPlan[day]?.routines) {
+                  const originalLength = updatedPlan[day].routines.length;
+                  updatedPlan[day].routines = updatedPlan[day].routines.filter((rid: string) => rid !== id);
+                  
+                  if (updatedPlan[day].routines.length !== originalLength) {
+                    planModified = true;
+                  }
+                }
+              }
+              
+              if (planModified) {
+                await saveWeeklyPlan(updatedPlan);
+              }
+            }
+          } catch (planError) {
+            console.warn('Error cleaning routine from weekly planner:', planError);
+          }
+        },
+        getRoutineById: (id) => reactQueryRoutines.routines.find(r => r.id === id),
+        refreshRoutines: async () => {
+          await reactQueryRoutines.refetch();
+        },
+      };
+    }
+    
+    // Fallback to original Context API implementation
+    return {
+      routines,
+      loading,
+      addRoutine,
+      updateRoutine,
+      deleteRoutine,
+      getRoutineById,
+      refreshRoutines,
+    };
+  }, [USE_REACT_QUERY, reactQueryRoutines, routines, loading, addRoutine, updateRoutine, deleteRoutine, getRoutineById, refreshRoutines]);
 
-  const sessionsValue = useMemo<SessionsContextType>(() => ({
-    sessions,
-    loading,
-    addSession,
-    updateSession,
-    deleteSession,
-    refreshSessions,
-  }), [sessions, loading, addSession, updateSession, deleteSession, refreshSessions]);
+  const sessionsValue = useMemo<SessionsContextType>(() => {
+    // Use React Query data if enabled
+    if (USE_REACT_QUERY && reactQuerySessions) {
+      return {
+        sessions: reactQuerySessions.sessions,
+        loading: reactQuerySessions.isLoading,
+        addSession: async (session) => {
+          await reactQuerySessions.addSession(session);
+          
+          // Generate progression recommendations
+          try {
+            const allSessions = reactQuerySessions.sessions;
+            const recs = recommendForSession(session as WorkoutSession, allSessions, { repTarget: 8, compound: true });
+            if (recs && recs.length > 0) {
+              await storageService.saveRecommendations(recs);
+            }
+          } catch (e) {
+            console.warn('[GymContext] Failed to save recommendations:', e);
+          }
+        },
+        updateSession: reactQuerySessions.updateSession,
+        deleteSession: reactQuerySessions.deleteSession,
+        refreshSessions: async () => {
+          await reactQuerySessions.refetch();
+        },
+      };
+    }
+    
+    // Fallback to original Context API implementation
+    return {
+      sessions,
+      loading,
+      addSession,
+      updateSession,
+      deleteSession,
+      refreshSessions,
+    };
+  }, [USE_REACT_QUERY, reactQuerySessions, sessions, loading, addSession, updateSession, deleteSession, refreshSessions]);
 
   const value = useMemo<GymContextType>(() => ({
     ...routinesValue,

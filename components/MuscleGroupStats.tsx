@@ -6,6 +6,7 @@ import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE, MuscleGroup } from '@/data/exercises';
 import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { useTranslations } from '@/context/LocaleContext';
+import { APP_CONFIG } from '@/config/app.config';
 
 interface MuscleGroupStatsProps {
   sessions: WorkoutSession[];
@@ -18,37 +19,7 @@ interface MuscleGroupData {
   exercises: Set<string>;
 }
 
-const MUSCLE_GROUP_COLORS: Record<MuscleGroup, string> = {
-  pecho: '#3b82f6',
-  espalda: '#10b981',
-  piernas: '#f59e0b',
-  hombros: '#8b5cf6',
-  biceps: '#ec4899',
-  triceps: '#ec4899',
-  antebrazos: '#ec4899',
-  trapecio: '#6366f1',
-  cuello: '#9ca3af',
-  core: '#06b6d4',
-  gluteos: '#f43f5e',
-  gemelos: '#84cc16',
-  cardio: '#ef4444'
-};
 
-const MUSCLE_GROUP_NAMES: Record<MuscleGroup, string> = {
-  pecho: 'Pecho',
-  espalda: 'Espalda',
-  piernas: 'Piernas',
-  hombros: 'Hombros',
-  biceps: 'Bíceps',
-  triceps: 'Tríceps',
-  antebrazos: 'Antebrazos',
-  trapecio: 'Trapecio',
-  cuello: 'Cuello',
-  core: 'Core',
-  gluteos: 'Glúteos',
-  gemelos: 'Gemelos',
-  cardio: 'Cardio'
-};
 
 export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) => {
   const t = useTranslations('dashboard.muscleGroupStats');
@@ -132,7 +103,7 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
                       size={24}
                     />
                     <span className="font-semibold capitalize text-gray-900 dark:text-gray-100">
-                      {MUSCLE_GROUP_NAMES[stat.muscleGroup] || stat.muscleGroup}
+                      {APP_CONFIG.muscleGroupLabels[stat.muscleGroup] || stat.muscleGroup}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
@@ -148,7 +119,7 @@ export const MuscleGroupStats: React.FC<MuscleGroupStatsProps> = ({ sessions }) 
                     className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3"
                     style={{
                       width: `${percentage}%`,
-                      backgroundColor: MUSCLE_GROUP_COLORS[stat.muscleGroup]
+                      backgroundColor: APP_CONFIG.muscleGroupColors[stat.muscleGroup]
                     }}
                   >
                     {percentage > 20 && (

@@ -68,12 +68,12 @@ export function ActiveWorkoutBanner() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-      <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-2xl border-t-2 border-emerald-400">
+      <div className="bg-linear-to-r from-emerald-500 to-green-600 text-white shadow-2xl border-t-2 border-emerald-400">
         <div className="container mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             {/* Info del entrenamiento - Centrada y profesional */}
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <div className="shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <Activity className="w-5 h-5 animate-pulse" />
               </div>
               <div className="min-w-0">
@@ -89,7 +89,7 @@ export function ActiveWorkoutBanner() {
             </div>
             
             {/* Botones de acción - Más visibles y profesionales */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={handleContinue}
                 className="px-5 py-2 text-sm font-bold bg-white text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all hover:scale-105 shadow-md"

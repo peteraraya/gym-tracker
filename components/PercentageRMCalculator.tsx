@@ -23,7 +23,7 @@ export default function PercentageRMCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-indigo-500 to-purple-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <Target className="w-6 h-6" />
           Calculadora de Porcentaje de 1RM
@@ -51,7 +51,7 @@ export default function PercentageRMCalculator() {
             return (
               <div
                 key={item.percent}
-                className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                className="flex items-center justify-between p-4 bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-4">
                   <div className="text-center min-w-[60px]">

@@ -12,6 +12,7 @@ import { StatsGrid, StatCard } from '@/components/StatsGrid';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
 import { TrendingUp } from '@/components/icons/lucide';
+import { useLocale } from '@/context/LocaleContext';
 
 const MUSCLE_GROUPS = Object.keys(APP_CONFIG.muscleGroupColors) as MuscleGroup[];
 const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
@@ -20,7 +21,8 @@ const MUSCLE_LABELS = APP_CONFIG.muscleGroupLabels;
 export default function ProgressPage() {
   const { routines } = useRoutines();
   const validSessions = useValidSessions();
-  const loading = false; // Loading is handled by useValidSessions
+  const loading = false;
+  const { t } = useLocale();
 
   // Calcular volumen total por grupo muscular (series × reps × peso)
   const muscleGroupVolume = useMemo(() => {
@@ -131,11 +133,11 @@ export default function ProgressPage() {
     return (
       <ProtectedRoute>
         <PageLayout
-          title="Progreso por Grupo Muscular"
-          description="Analiza tu volumen de entrenamiento por grupo muscular"
-          icon={<TrendingUp className="w-8 h-8 text-blue-500" />}
+          title={t('progress.title')}
+          description={t('progress.subtitle')}
+          icon={<TrendingUp className="w-6 h-6 text-blue-500" />}
         >
-          <LoadingState message="Cargando progreso..." description="Cargando tus sesiones y rutinas" />
+          <LoadingState message={t('progress.noDataDesc')} description="Cargando tus sesiones y rutinas" />
         </PageLayout>
       </ProtectedRoute>
     );
@@ -145,14 +147,14 @@ export default function ProgressPage() {
     return (
       <ProtectedRoute>
         <PageLayout
-          title="Progreso por Grupo Muscular"
-          description="Analiza tu volumen de entrenamiento por grupo muscular"
-          icon={<TrendingUp className="w-8 h-8 text-blue-500" />}
+          title={t('progress.title')}
+          description={t('progress.subtitle')}
+          icon={<TrendingUp className="w-6 h-6 text-blue-500" />}
         >
           <EmptyState
             icon="📊"
-            title="No hay datos de progreso"
-            description="Completa algunas sesiones de entrenamiento para ver tu progreso aquí"
+            title={t('progress.noData')}
+            description={t('progress.noDataDesc')}
           />
         </PageLayout>
       </ProtectedRoute>
@@ -162,26 +164,26 @@ export default function ProgressPage() {
   return (
     <ProtectedRoute>
       <PageLayout
-        title="Progreso por Grupo Muscular"
-        description="Analiza tu volumen de entrenamiento por grupo muscular"
-        icon={<TrendingUp className="w-8 h-8 text-blue-500" />}
+        title={t('progress.title')}
+        description={t('progress.subtitle')}
+        icon={<TrendingUp className="w-6 h-6 text-blue-500" />}
       >
         {/* Estadísticas generales */}
         <StatsGrid columns={3}>
           <StatCard
-            title="Total Sesiones"
+            title={t('progress.totalSessions')}
             value={validSessions.length}
             icon={<TrendingUp className="w-6 h-6" />}
             color="blue"
           />
           <StatCard
-            title="Total Series"
+            title={t('progress.totalSets')}
             value={totalSets}
             icon={<TrendingUp className="w-6 h-6" />}
             color="green"
           />
           <StatCard
-            title="Volumen Total (kg)"
+            title={t('progress.totalVolume')}
             value={totalVolume.toLocaleString()}
             icon={<TrendingUp className="w-6 h-6" />}
             color="purple"

@@ -58,7 +58,7 @@ export function WeightSuggestionBanner({
         }`}
       >
         <div className="flex items-start gap-2">
-          <div className="flex-shrink-0 mt-0.5">
+          <div className="shrink-0 mt-0.5">
             <TrendingUp className={`w-5 h-5 ${confidenceTextColors[suggestion.confidence]}`} />
           </div>
           
@@ -110,7 +110,7 @@ export function WeightSuggestionBanner({
       }`}
     >
       <div className="flex items-start gap-2">
-        <div className="flex-shrink-0 mt-0.5">
+        <div className="shrink-0 mt-0.5">
           <TrendingUp className={`w-5 h-5 ${confidenceTextColors[suggestion.confidence]}`} />
         </div>
         

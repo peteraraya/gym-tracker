@@ -78,7 +78,7 @@ export function PreparationCountdown({
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="mb-8"
+          className="mb-5"
         >
           <h2 className="text-2xl font-bold text-white mb-2">
             {exerciseName}
@@ -97,7 +97,7 @@ export function PreparationCountdown({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 1.5, opacity: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="mb-8"
+              className="mb-5"
             >
               <div className="text-9xl font-bold text-white drop-shadow-2xl">
                 {count}
@@ -109,7 +109,7 @@ export function PreparationCountdown({
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="mb-8"
+              className="mb-5"
             >
               <div className="text-7xl font-bold text-green-400 drop-shadow-2xl">
                 ¡YA!

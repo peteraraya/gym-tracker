@@ -80,7 +80,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
             Vista Frontal
           </h3>
           
-          <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg overflow-hidden">
+          <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-linear-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg overflow-hidden">
             {/* SVG anatómico con áreas clicables */}
             <svg
               viewBox="70 0 180 500"
@@ -266,7 +266,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
             Vista Trasera
           </h3>
           
-          <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg overflow-hidden">
+          <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-linear-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-3 shadow-lg overflow-hidden">
             {/* SVG anatómico con áreas clicables */}
             <svg
               viewBox="245 0 180 500"

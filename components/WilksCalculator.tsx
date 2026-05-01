@@ -51,7 +51,7 @@ export default function WilksCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-yellow-500 to-amber-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <Trophy className="w-6 h-6" />
           Calculadora de Wilks Score
@@ -135,7 +135,7 @@ export default function WilksCalculator() {
           </div>
 
           {/* Total */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="p-4 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="text-center">
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Total Powerlifting

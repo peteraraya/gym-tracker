@@ -273,7 +273,7 @@ export function FloatingAIAssistant() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-6 z-40 p-4 bg-gradient-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 group"
+        className="fixed bottom-20 right-6 z-40 p-4 bg-linear-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 group"
         aria-label="Abrir asistente IA"
       >
         <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
@@ -293,7 +293,7 @@ export function FloatingAIAssistant() {
     >
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
+        <div className="bg-linear-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
               <Bot className="w-6 h-6 text-white" />
@@ -527,7 +527,7 @@ export function FloatingAIAssistant() {
                         ? (modalSelection === null && !modalInput.trim())
                         : (modalSelection === null)
                     }
-                    className={`px-4 py-2 rounded-lg text-white ${modalAction === 'search' ? (modalSelection === null && !modalInput.trim() ? 'bg-gray-400' : 'bg-gradient-to-r from-purple-600 to-blue-600') : (modalSelection === null ? 'bg-gray-400' : 'bg-gradient-to-r from-purple-600 to-blue-600')}`}
+                    className={`px-4 py-2 rounded-lg text-white ${modalAction === 'search' ? (modalSelection === null && !modalInput.trim() ? 'bg-gray-400' : 'bg-linear-to-r from-purple-600 to-blue-600') : (modalSelection === null ? 'bg-gray-400' : 'bg-linear-to-r from-purple-600 to-blue-600')}`}
                   >
                     Aceptar
                   </button>
@@ -545,10 +545,10 @@ export function FloatingAIAssistant() {
                 >
                   {/* Avatar */}
                   <div
-                    className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-br from-blue-600 to-cyan-600'
-                        : 'bg-gradient-to-br from-purple-600 to-pink-600'
+                        ? 'bg-linear-to-br from-blue-600 to-cyan-600'
+                        : 'bg-linear-to-br from-purple-600 to-pink-600'
                     }`}
                   >
                     {message.role === 'user' ? (
@@ -562,7 +562,7 @@ export function FloatingAIAssistant() {
                   <div
                     className={`flex-1 rounded-2xl p-3 text-sm ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-br from-blue-600 to-cyan-600 text-white'
+                        ? 'bg-linear-to-br from-blue-600 to-cyan-600 text-white'
                         : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                     }`}
                   >
@@ -575,7 +575,7 @@ export function FloatingAIAssistant() {
 
               {isLoading && (
                 <div className="flex gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-linear-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
                     <Bot className="w-4 h-4 text-white" />
                   </div>
                   <div className="bg-white dark:bg-gray-700 rounded-2xl p-3">
@@ -606,7 +606,7 @@ export function FloatingAIAssistant() {
                 <Button
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
-                  className="px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="px-3 py-2 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                   size="sm"
                 >
                   <Send className="w-4 h-4" />

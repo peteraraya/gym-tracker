@@ -37,8 +37,15 @@ export function getPersonalRecord(
     const exercise = session.exercises.find(ex => ex.exerciseId === exerciseId);
     if (!exercise) continue;
 
+    // ✅ Validar que el array no esté vacío
+    const weights = exercise.actualWeight || [];
+    if (weights.length === 0) continue;
+
     // Buscar el peso máximo en esta sesión
-    const sessionMaxWeight = Math.max(...(exercise.actualWeight || [0]));
+    const sessionMaxWeight = Math.max(...weights);
+    
+    // ✅ Validar que sea un número válido
+    if (!Number.isFinite(sessionMaxWeight) || sessionMaxWeight <= 0) continue;
     
     if (sessionMaxWeight > maxWeight) {
       maxWeight = sessionMaxWeight;
@@ -116,14 +123,20 @@ export function getAllPersonalRecords(
   for (const session of sessions) {
     for (const exercise of session.exercises) {
       const exerciseId = exercise.exerciseId;
-      const maxWeight = Math.max(...(exercise.actualWeight || [0]));
       
-      if (maxWeight === 0) continue;
+      // ✅ Validar que el array no esté vacío
+      const weights = exercise.actualWeight || [];
+      if (weights.length === 0) continue;
+      
+      const maxWeight = Math.max(...weights);
+      
+      // ✅ Validar que sea un número válido
+      if (!Number.isFinite(maxWeight) || maxWeight <= 0) continue;
 
       const currentRecord = recordsMap.get(exerciseId);
       
       if (!currentRecord || maxWeight > currentRecord.maxWeight) {
-        const maxWeightIndex = exercise.actualWeight?.indexOf(maxWeight) ?? -1;
+        const maxWeightIndex = weights.indexOf(maxWeight);
         const reps = exercise.actualReps?.[maxWeightIndex] ?? 0;
 
         recordsMap.set(exerciseId, {
@@ -160,11 +173,18 @@ export function getRecordHistory(
     const exercise = session.exercises.find(ex => ex.exerciseId === exerciseId);
     if (!exercise) continue;
 
-    const maxWeight = Math.max(...(exercise.actualWeight || [0]));
+    // ✅ Validar que el array no esté vacío
+    const weights = exercise.actualWeight || [];
+    if (weights.length === 0) continue;
+    
+    const maxWeight = Math.max(...weights);
+    
+    // ✅ Validar que sea un número válido
+    if (!Number.isFinite(maxWeight) || maxWeight <= 0) continue;
     
     // Solo agregar si es un nuevo récord
     if (maxWeight > currentMax) {
-      const maxWeightIndex = exercise.actualWeight?.indexOf(maxWeight) ?? -1;
+      const maxWeightIndex = weights.indexOf(maxWeight);
       const reps = exercise.actualReps?.[maxWeightIndex] ?? 0;
 
       history.push({
@@ -256,16 +276,28 @@ export function calculateExerciseProgress(
     const exercise = session.exercises.find(e => e.exerciseName === exerciseName);
     if (!exercise) continue;
 
+    // ✅ Validar que ambos arrays existan y tengan datos
+    const weights = exercise.actualWeight || [];
+    const reps = exercise.actualReps || [];
+    
+    if (weights.length === 0 || reps.length === 0) continue;
+
     // Calcular volumen total de esta sesión
-    for (let i = 0; i < (exercise.actualWeight?.length || 0); i++) {
-      const weight = exercise.actualWeight?.[i] || 0;
-      const reps = exercise.actualReps?.[i] || 0;
-      totalVolume += weight * reps;
+    const maxLength = Math.min(weights.length, reps.length);
+    for (let i = 0; i < maxLength; i++) {
+      const weight = Number(weights[i]) || 0;
+      const rep = Number(reps[i]) || 0;
+      
+      // ✅ Validar números
+      if (!Number.isFinite(weight) || !Number.isFinite(rep)) continue;
+      if (weight < 0 || rep <= 0) continue;
+      
+      totalVolume += weight * rep;
 
       // Actualizar récord si es mayor
       if (weight > maxWeight) {
         maxWeight = weight;
-        maxWeightReps = reps;
+        maxWeightReps = rep;
         maxWeightDate = session.date;
       }
     }

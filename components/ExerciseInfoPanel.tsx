@@ -36,7 +36,7 @@ export const ExerciseInfoPanel: React.FC<ExerciseInfoPanelProps> = ({ exercise, 
                   alt={exercise.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
               </div>
             )}
 
@@ -190,7 +190,7 @@ export const ExerciseInfoPanel: React.FC<ExerciseInfoPanelProps> = ({ exercise, 
                     <ol className="space-y-3">
                       {exercise.instructions.map((instruction, idx) => (
                         <li key={idx} className="flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          <span className="shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                             {idx + 1}
                           </span>
                           <span className="text-gray-700 dark:text-gray-300 pt-0.5">
@@ -235,7 +235,7 @@ export const ExerciseInfoPanel: React.FC<ExerciseInfoPanelProps> = ({ exercise, 
                     <ul className="space-y-3">
                       {exercise.commonMistakes.map((mistake, idx) => (
                         <li key={idx} className="flex gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                          <span className="text-red-500 font-bold flex-shrink-0">✕</span>
+                          <span className="text-red-500 font-bold shrink-0">✕</span>
                           <span className="text-gray-700 dark:text-gray-300">{mistake}</span>
                         </li>
                       ))}
@@ -255,7 +255,7 @@ export const ExerciseInfoPanel: React.FC<ExerciseInfoPanelProps> = ({ exercise, 
                     <ul className="space-y-3">
                       {exercise.safetyNotes.map((note, idx) => (
                         <li key={idx} className="flex gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                          <span className="text-yellow-600 font-bold flex-shrink-0">⚠</span>
+                          <span className="text-yellow-600 font-bold shrink-0">⚠</span>
                           <span className="text-gray-700 dark:text-gray-300">{note}</span>
                         </li>
                       ))}
@@ -276,7 +276,7 @@ export const ExerciseInfoPanel: React.FC<ExerciseInfoPanelProps> = ({ exercise, 
                     <ul className="space-y-3">
                       {exercise.tips.map((tip, idx) => (
                         <li key={idx} className="flex gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                          <span className="text-purple-500 font-bold flex-shrink-0">💡</span>
+                          <span className="text-purple-500 font-bold shrink-0">💡</span>
                           <span className="text-gray-700 dark:text-gray-300">{tip}</span>
                         </li>
                       ))}

@@ -50,7 +50,7 @@ export function SetControls({
           </Button>
 
           {/* Indicador de serie */}
-          <div className="text-center px-2 sm:px-4 flex-shrink-0">
+          <div className="text-center px-2 sm:px-4 shrink-0">
             <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
               {currentSet}
             </div>

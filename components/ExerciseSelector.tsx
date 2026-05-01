@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { MuscleGroup, MUSCLE_GROUPS, getExercisesByMuscleGroup, ExerciseTemplate, EXERCISE_DATABASE } from '@/data/exercises';
 import { getWarmupsByMuscleGroup, WARMUP_CATEGORY_LABELS, WarmupExercise, WarmupCategory, getAllWarmups } from '@/data/warmupExercises';
 import { Button } from '@/components/ui/Button';
@@ -24,7 +25,7 @@ const normalizeText = (text: string): string => {
     .replace(/[\u0300-\u036f]/g, ''); // Elimina diacríticos (acentos)
 };
 
-export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExercises, onClose }) => {
+export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ onSelectExercises, onClose }) => {
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
@@ -34,6 +35,10 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
   const [exerciseTab, setExerciseTab] = useState<'training' | 'warmup'>('training');
   const [warmupCategoryFilter, setWarmupCategoryFilter] = useState<'all' | WarmupCategory>('all');
   const { hasEquipment, selectedEquipment } = useEquipment();
+
+  // Refs para contenedores virtualizados
+  const globalSearchParentRef = useRef<HTMLDivElement>(null);
+  const exerciseListParentRef = useRef<HTMLDivElement>(null);
 
   const handleMuscleSelect = (muscleGroup: MuscleGroup) => {
     setSelectedMuscle(muscleGroup);
@@ -141,6 +146,21 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
 
   const totalExercises = selectedMuscle ? getExercisesByMuscleGroup(selectedMuscle).length : 0;
 
+  // Virtualizadores
+  const globalVirtualizer = useVirtualizer({
+    count: globalSearchResults.length,
+    getScrollElement: () => globalSearchParentRef.current,
+    estimateSize: () => 104,
+    overscan: 3,
+  });
+
+  const exerciseListVirtualizer = useVirtualizer({
+    count: currentExercises.length,
+    getScrollElement: () => exerciseListParentRef.current,
+    estimateSize: () => 104,
+    overscan: 3,
+  });
+
   return (
     <div className="space-y-6">
       {!selectedMuscle ? (
@@ -193,107 +213,111 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
                 )}
               </div>
               
-              <div className="grid gap-3 max-h-[500px] overflow-y-auto">
-                {globalSearchResults.map((exercise) => {
-                  const isSelected = selectedExercises.has(exercise.id);
-                  const isWarmup = exercise.type === 'warmup';
-                  const muscleGroupName = MUSCLE_GROUPS.find(m => m.id === exercise.muscleGroup)?.name || exercise.muscleGroup;
-                  
-                  return (
-                    <div
-                      key={exercise.id}
-                      className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${
-                        isSelected
-                          ? isWarmup
-                            ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 shadow-md'
-                            : 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
-                          : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
-                      }`}
-                      onClick={() => handleExerciseToggle(exercise)}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+              <div
+                ref={globalSearchParentRef}
+                className="overflow-y-auto max-h-[500px]"
+              >
+                <div
+                  style={{ height: `${globalVirtualizer.getTotalSize()}px`, position: 'relative' }}
+                >
+                  {globalVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const exercise = globalSearchResults[virtualRow.index];
+                    const isSelected = selectedExercises.has(exercise.id);
+                    const isWarmup = exercise.type === 'warmup';
+                    const muscleGroupName = MUSCLE_GROUPS.find(m => m.id === exercise.muscleGroup)?.name || exercise.muscleGroup;
+                    return (
+                      <div
+                        key={exercise.id}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          transform: `translateY(${virtualRow.start}px)`,
+                          paddingBottom: '12px',
+                        }}
+                      >
+                        <div
+                          className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${
                             isSelected
-                              ? isWarmup ? 'bg-amber-500 border-amber-500' : 'bg-blue-600 border-blue-600'
-                              : 'border-gray-300 dark:border-gray-500'
-                          }`}>
-                            {isSelected && (
-                              <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M5 13l4 4L19 7"></path>
-                              </svg>
-                            )}
-                          </div>
-                          {exercise.image ? (
-                            <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={exercise.image}
-                                alt={exercise.name}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  if (!target.dataset.fallback) {
-                                    target.dataset.fallback = '1';
-                                    target.src = '/images/not-available.svg';
-                                  } else {
-                                    target.style.display = 'none';
-                                  }
-                                }}
-                              />
-                            </div>
-                          ) : (
-                            <ExerciseIcon
-                              muscleGroup={exercise.muscleGroup}
-                              className="shrink-0 w-16 h-16"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                              {exercise.name}
-                            </h4>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full">
-                                <MuscleGroupIcon muscleGroup={exercise.muscleGroup} size={12} />
-                                {muscleGroupName}
-                              </span>
-                              {exercise.equipment && (
-                                <span className="text-xs text-gray-600 dark:text-gray-400">
-                                  📦 {exercise.equipment}
-                                </span>
+                              ? isWarmup
+                                ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 shadow-md'
+                                : 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
+                              : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                          }`}
+                          onClick={() => handleExerciseToggle(exercise)}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                isSelected
+                                  ? isWarmup ? 'bg-amber-500 border-amber-500' : 'bg-blue-600 border-blue-600'
+                                  : 'border-gray-300 dark:border-gray-500'
+                              }`}>
+                                {isSelected && (
+                                  <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M5 13l4 4L19 7"></path>
+                                  </svg>
+                                )}
+                              </div>
+                              {exercise.image ? (
+                                <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={exercise.image}
+                                    alt={exercise.name}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      if (!target.dataset.fallback) {
+                                        target.dataset.fallback = '1';
+                                        target.src = '/images/not-available.svg';
+                                      } else {
+                                        target.style.display = 'none';
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <ExerciseIcon muscleGroup={exercise.muscleGroup} className="shrink-0 w-16 h-16" />
                               )}
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{exercise.name}</h4>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full">
+                                    <MuscleGroupIcon muscleGroup={exercise.muscleGroup} size={12} />
+                                    {muscleGroupName}
+                                  </span>
+                                  {exercise.equipment && (
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">📦 {exercise.equipment}</span>
+                                  )}
+                                </div>
+                                {exercise.description && (
+                                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{exercise.description}</p>
+                                )}
+                              </div>
                             </div>
-                            {exercise.description && (
-                              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                                {exercise.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <div className="text-right">
-                            <div className="text-xs text-gray-500 dark:text-gray-500">
-                              {exercise.defaultSets}×{exercise.defaultReps}
+                            <div className="flex items-start gap-2">
+                              <div className="text-xs text-gray-500 dark:text-gray-500">
+                                {exercise.defaultSets}×{exercise.defaultReps}
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setDetailsExercise(exercise); }}
+                                className="shrink-0 p-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                                title="Ver detalles"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </button>
                             </div>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDetailsExercise(exercise);
-                            }}
-                            className="shrink-0 p-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
-                            title="Ver detalles"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </button>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -318,8 +342,8 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
               </div>
             </div>
           ) : globalSearchTerm ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <svg className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <p className="text-lg font-medium mb-1">No se encontraron ejercicios</p>
@@ -486,102 +510,101 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
             </div>
           )}
 
-          <div className="grid gap-3 max-h-96 overflow-y-auto">
+          <div
+            ref={exerciseListParentRef}
+            className="overflow-y-auto max-h-96"
+          >
             {currentExercises.length > 0 ? (
-              currentExercises.map((exercise) => {
-                const isSelected = selectedExercises.has(exercise.id);
-                const isWarmupTab = exerciseTab === 'warmup';
-                return (
-                  <div
-                    key={exercise.id}
-                    className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${isSelected
-                      ? isWarmupTab
-                        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 shadow-md'
-                        : 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
-                      : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
-                      }`}
-                    onClick={() => handleExerciseToggle(exercise)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
+              <div style={{ height: `${exerciseListVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+                {exerciseListVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const exercise = currentExercises[virtualRow.index];
+                  const isSelected = selectedExercises.has(exercise.id);
+                  const isWarmupTab = exerciseTab === 'warmup';
+                  return (
+                    <div
+                      key={exercise.id}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start}px)`,
+                        paddingBottom: '12px',
+                      }}
+                    >
                       <div
-                        className="flex items-start gap-3 flex-1"
+                        className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${isSelected
+                          ? isWarmupTab
+                            ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 shadow-md'
+                            : 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
+                          : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                        }`}
+                        onClick={() => handleExerciseToggle(exercise)}
                       >
-                        <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected
-                          ? isWarmupTab ? 'bg-amber-500 border-amber-500' : 'bg-blue-600 border-blue-600'
-                          : 'border-gray-300 dark:border-gray-500'
-                          }`}>
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                              <path d="M5 13l4 4L19 7"></path>
-                            </svg>
-                          )}
-                        </div>
-                        {exercise.image ? (
-                          <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={exercise.image}
-                              alt={exercise.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  // Evitar bucle si el placeholder también falla
-                                  if (!target.dataset.fallback) {
-                                    target.dataset.fallback = '1';
-                                    target.src = '/images/not-available.svg';
-                                  } else {
-                                    // Si falla el placeholder, ocultar imagen
-                                    target.style.display = 'none';
-                                  }
-                                }}
-                            />
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected
+                              ? isWarmupTab ? 'bg-amber-500 border-amber-500' : 'bg-blue-600 border-blue-600'
+                              : 'border-gray-300 dark:border-gray-500'
+                            }`}>
+                              {isSelected && (
+                                <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path d="M5 13l4 4L19 7"></path>
+                                </svg>
+                              )}
+                            </div>
+                            {exercise.image ? (
+                              <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={exercise.image}
+                                  alt={exercise.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    if (!target.dataset.fallback) {
+                                      target.dataset.fallback = '1';
+                                      target.src = '/images/not-available.svg';
+                                    } else {
+                                      target.style.display = 'none';
+                                    }
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <ExerciseIcon muscleGroup={exercise.muscleGroup} className="shrink-0 w-16 h-16" />
+                            )}
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{exercise.name}</h4>
+                              {exercise.equipment && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400">📦 {exercise.equipment}</p>
+                              )}
+                              {exercise.description && (
+                                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{exercise.description}</p>
+                              )}
+                            </div>
                           </div>
-                        ) : (
-                          <ExerciseIcon
-                            muscleGroup={exercise.muscleGroup}
-                            className="shrink-0 w-16 h-16"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                            {exercise.name}
-                          </h4>
-                          {exercise.equipment && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              📦 {exercise.equipment}
-                            </p>
-                          )}
-                          {exercise.description && (
-                            <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                              {exercise.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="text-right">
-                          <div className="text-xs text-gray-500 dark:text-gray-500">
-                            {exercise.defaultSets}×{exercise.defaultReps}
+                          <div className="flex items-start gap-2">
+                            <div className="text-xs text-gray-500 dark:text-gray-500">
+                              {exercise.defaultSets}×{exercise.defaultReps}
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setDetailsExercise(exercise); }}
+                              className="shrink-0 p-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                              title="Ver detalles"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDetailsExercise(exercise);
-                          }}
-                          className="shrink-0 p-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
-                          title="Ver detalles"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 No se encontraron ejercicios
@@ -625,4 +648,6 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({ onSelectExer
       )}
     </div>
   );
-};
+});
+
+ExerciseSelector.displayName = 'ExerciseSelector';

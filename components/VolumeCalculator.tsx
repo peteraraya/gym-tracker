@@ -45,7 +45,7 @@ export default function VolumeCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-green-500 to-emerald-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <BarChart3 className="w-6 h-6" />
           Calculadora de Volumen de Entrenamiento
@@ -120,7 +120,7 @@ export default function VolumeCalculator() {
           Agregar Ejercicio
         </Button>
 
-        <div className="grid grid-cols-3 gap-4 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-green-200 dark:border-green-800">
+        <div className="grid grid-cols-3 gap-4 p-6 bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-green-200 dark:border-green-800">
           <div className="text-center">
             <div className="text-3xl font-bold text-green-600 dark:text-green-400">
               {totalVolume.toLocaleString()}

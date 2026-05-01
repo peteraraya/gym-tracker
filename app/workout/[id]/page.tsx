@@ -59,6 +59,19 @@ import('@/data/exercises').then(m => {
   EXERCISE_DATABASE = m.EXERCISE_DATABASE;
 });
 
+/**
+ * ✅ FASE 2 - Problema #6: Función centralizada para calcular completedSets
+ * 
+ * Calcula el número de series completadas basándose ÚNICAMENTE en actualReps.
+ * Una serie está completada si tiene reps > 0.
+ * 
+ * Esto elimina la inconsistencia entre Quick Edit Mode y Guided Mode.
+ */
+function calculateCompletedSets(actualReps: number[]): number {
+  if (!Array.isArray(actualReps)) return 0;
+  return actualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+}
+
 export default function WorkoutPage() {
   const router = useRouter();
   const params = useParams();
@@ -73,6 +86,9 @@ export default function WorkoutPage() {
   const [routine, setRoutine] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   
+  // Modo de edición: true = Edición Rápida (defecto), false = Modo Guiado
+  const [isQuickEditMode, setIsQuickEditMode] = useState(true);
+  
   // ✅ Ref para el callback de guardado (se actualiza después de que timerHandlers esté disponible)
   const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
   
@@ -85,8 +101,9 @@ export default function WorkoutPage() {
     }
   });
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
+  const [selectedExerciseName, setSelectedExerciseName] = useState<string>('');
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
-  const [isQuickEditMode, setIsQuickEditMode] = useState(false);
+  // ✅ isQuickEditMode ya está definido arriba como constante true
   const [useSmartRest] = useState(true);
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
   // ✅ Estados de récord personal eliminados - no se muestran durante el entrenamiento
@@ -135,10 +152,13 @@ export default function WorkoutPage() {
   }, [workoutStartTime, totalPausedTime, isPaused]);
   
   // ==================== COMPUTED VALUES ====================
+  // ✅ FASE 3 - Problema #14: Memoizar exercises con routine.id para evitar re-renders
+  const exercises = useMemo(() => routine?.exercises || [], [routine?.id]);
+  
   const currentExercise = useMemo(() => {
-    if (!routine?.exercises?.length) return null;
-    return routine.exercises[workoutState.currentExerciseIndex] || null;
-  }, [routine?.exercises, workoutState.currentExerciseIndex]);
+    if (!exercises.length) return null;
+    return exercises[workoutState.currentExerciseIndex] || null;
+  }, [exercises, workoutState.currentExerciseIndex]);
 
   const lastSessionForExercise = useMemo(() => {
     if (!currentExercise || sessions.length === 0) return null;
@@ -192,21 +212,27 @@ export default function WorkoutPage() {
     return null;
   }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);
 
+  // ✅ FASE 3 - Problema #14: Memoizar completedSets con JSON.stringify para comparación profunda
+  const completedSetsKey = useMemo(
+    () => JSON.stringify(workoutState.workoutData.completedSets),
+    [workoutState.workoutData.completedSets]
+  );
+
   // ✅ Memoizar cálculo de progreso total para evitar recalcular en cada render
   const workoutProgress = useMemo(() => {
-    if (!routine?.exercises?.length) {
+    if (!exercises.length) {
       return { totalSets: 0, completedSets: 0, percentage: 0 };
     }
 
-    const totalSets = routine.exercises.reduce((sum: number, ex: Exercise) => sum + ex.sets.length, 0);
-    const completedSets = routine.exercises.reduce((sum: number, ex: Exercise) => {
+    const totalSets = exercises.reduce((sum: number, ex: Exercise) => sum + ex.sets.length, 0);
+    const completedSets = exercises.reduce((sum: number, ex: Exercise) => {
       const exerciseCompletedSets = workoutState.workoutData.completedSets[ex.id] || 0;
       return sum + Math.min(exerciseCompletedSets, ex.sets.length);
     }, 0);
     const percentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
     return { totalSets, completedSets, percentage };
-  }, [routine?.exercises, workoutState.workoutData.completedSets]);
+  }, [exercises, completedSetsKey]);
 
   // ==================== CUSTOM HOOKS ====================
     const handleTimerCompleteRef = useRef(() => {});
@@ -654,42 +680,8 @@ export default function WorkoutPage() {
   }, [currentExercise, workoutState.currentSet, isInitialized]);
 
   // ==================== HANDLERS ====================
-  const checkAndCelebrateRecord = useCallback((exerciseId: string, exerciseName: string, weight: number) => {
-    if (weight <= 0) return; // No celebrar peso 0
-    
-    const comparison = compareWithRecord(exerciseId, weight, sessions);
-    
-    if (comparison.isNewRecord) {
-      // Haptic feedback especial para récord
-      haptic.achievement();
-      
-      // Guardar datos del récord para mostrar celebración
-      setNewRecord({
-        exerciseId,
-        exerciseName,
-        weight,
-        previousRecord: comparison.previousRecord || 0
-      });
-      setShowRecordCelebration(true);
-      
-      // Ocultar celebración después de 4 segundos
-      setTimeout(() => {
-        setShowRecordCelebration(false);
-      }, 4000);
-      
-      // Toast motivacional
-      if (comparison.previousRecord) {
-        const improvement = comparison.improvement || 0;
-        const improvementPercent = comparison.improvementPercentage || 0;
-        success(
-          `🏆 ¡NUEVO RÉCORD! ${weight}kg (+${improvement.toFixed(1)}kg, +${improvementPercent.toFixed(1)}%)`,
-          5000
-        );
-      } else {
-        success(`🏆 ¡PRIMER RÉCORD! ${weight}kg en ${exerciseName}`, 5000);
-      }
-    }
-  }, [sessions, haptic, success]);
+  // ✅ Función de récord personal eliminada - no se muestran durante el entrenamiento
+  // Los récords aún se calculan y guardan, simplemente no se celebran en tiempo real
 
   const handleCompleteSet = useCallback(() => {
     if (!currentExercise || !routine) return;
@@ -713,8 +705,7 @@ export default function WorkoutPage() {
 
     workoutState.completeSet(exerciseId, repsValue, weightValue);
 
-    // ✅ Detectar récord personal
-    checkAndCelebrateRecord(exerciseId, currentExercise.name, weightValue);
+    // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
 
     // Haptic feedback al completar serie
     haptic.setComplete();
@@ -786,8 +777,7 @@ export default function WorkoutPage() {
     haptic.setComplete,
     haptic.restStart,
     completion.openCompletionModal,
-    setExecution.completeSet,
-    checkAndCelebrateRecord
+    setExecution.completeSet
   ]);
 
   const handleTimerComplete = useCallback(() => {
@@ -952,9 +942,8 @@ export default function WorkoutPage() {
       ...(workoutState.workoutData.actualWeights[exerciseId] || []).slice(setIndex + 1)
     ]);
     
-    // ✅ Detectar récord personal al editar peso
-    checkAndCelebrateRecord(exerciseId, currentExercise.name, weight);
-  }, [currentExercise?.id, currentExercise?.name, workoutState.updateActualWeights, workoutState.workoutData.actualWeights, checkAndCelebrateRecord]);
+    // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
+  }, [currentExercise?.id, workoutState.updateActualWeights, workoutState.workoutData.actualWeights]);
 
   const handleEditSetType = useCallback((setIndex: number, type: any) => {
     if (!currentExercise) return;
@@ -1183,7 +1172,9 @@ export default function WorkoutPage() {
       
       workoutState.updateActualReps(exerciseId, newActualReps);
       workoutState.updateActualWeights(exerciseId, newActualWeights);
-      const newCompletedCount = (workoutState.workoutData.completedSets[exerciseId] || 0) + 1;
+      
+      // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
+      const newCompletedCount = calculateCompletedSets(newActualReps);
       workoutState.updateCompletedSets(exerciseId, newCompletedCount);
       
       const nextIncompleteSet = currentExercise.sets.findIndex((_: any, idx: number) => {
@@ -1221,7 +1212,10 @@ export default function WorkoutPage() {
       
       workoutState.updateActualReps(exerciseId, newActualReps);
       workoutState.updateActualWeights(exerciseId, newActualWeights);
-      workoutState.updateCompletedSets(exerciseId, Math.max(0, (workoutState.workoutData.completedSets[exerciseId] || 0) - 1));
+      
+      // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
+      const newCompletedCount = calculateCompletedSets(newActualReps);
+      workoutState.updateCompletedSets(exerciseId, newCompletedCount);
       
       if (setIndex + 1 < workoutState.currentSet) {
         workoutState.setCurrentSet(setIndex + 1);
@@ -1230,7 +1224,18 @@ export default function WorkoutPage() {
   }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, timerHandlers, completion]);
 
   const handleAddSet = useCallback(async () => {
-    if (!currentExercise || !routine) return;
+    // ✅ FASE 2 - Problema #8: Validar que existan currentExercise y routine
+    if (!currentExercise || !routine) {
+      console.warn('[Workout] Cannot add set: no current exercise or routine');
+      error('No se puede agregar serie');
+      return;
+    }
+    
+    // ✅ FASE 2 - Problema #8: Validar límite máximo de series
+    if (currentExercise.sets.length >= 20) {
+      error('Máximo 20 series por ejercicio');
+      return;
+    }
     
     const exerciseId = currentExercise.id;
     
@@ -1266,16 +1271,18 @@ export default function WorkoutPage() {
     setRoutine(updatedRoutine);
     
     // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-    updateModifiedRoutine(updatedRoutine);
-    
-    // Persistir la rutina actualizada
     try {
+      await updateModifiedRoutine(updatedRoutine);
+      
+      // Persistir la rutina actualizada
       await updateRoutine(id, updatedRoutine);
       console.log('[handleAddSet] Successfully saved to storage');
       success('Serie agregada', 2000);
     } catch (err) {
       console.error('[handleAddSet] Error saving:', err);
       error('Error al agregar serie');
+      // Revertir cambio local si falla
+      setRoutine(routine);
     }
   }, [currentExercise, routine, id, updateRoutine, updateModifiedRoutine, success, error]);
 
@@ -1365,15 +1372,11 @@ export default function WorkoutPage() {
     newWeights[setIndex] = weight;
     workoutState.updateActualWeights(exerciseId, newWeights);
     
-    // ✅ Detectar récord personal al editar peso en modo rápido
-    const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
-    if (exercise) {
-      checkAndCelebrateRecord(exerciseId, exercise.name, weight);
-    }
+    // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
     
     console.log('[handleQuickEditWeight] completedSets BEFORE:', workoutState.workoutData.completedSets[exerciseId]);
     console.log('[handleQuickEditWeight] completedSets AFTER:', workoutState.workoutData.completedSets[exerciseId]);
-  }, [workoutState, routine?.exercises, checkAndCelebrateRecord]);
+  }, [workoutState, routine?.exercises]);
 
   const handleQuickEditSetType = useCallback((exerciseId: string, setIndex: number, type: any) => {
     workoutState.updateSetType(exerciseId, setIndex, type);
@@ -1387,12 +1390,12 @@ export default function WorkoutPage() {
     const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
     const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
     
-    // Asegurar que los arrays tengan el tamaño correcto (todas las series del ejercicio)
-    const newReps = Array(exercise.sets.length).fill(0).map((_, i) => currentReps[i] || 0);
-    const newWeights = Array(exercise.sets.length).fill(0).map((_, i) => currentWeights[i] || 0);
+    // Solo tocar el índice específico — no rellenar con ceros los demás
+    const newReps = [...currentReps];
+    const newWeights = [...currentWeights];
     
     if (isComplete) {
-      // Marcar como completada - usar valores actuales o defaults
+      // Marcar como completada - usar valor actual o el de la rutina como fallback
       if (!newReps[setIndex] || newReps[setIndex] === 0) {
         newReps[setIndex] = exercise.sets[setIndex]?.reps || 10;
       }
@@ -1400,15 +1403,16 @@ export default function WorkoutPage() {
         newWeights[setIndex] = exercise.sets[setIndex]?.weight || 0;
       }
     } else {
-      // Desmarcar - poner en 0
+      // Desmarcar - limpiar solo este índice
       newReps[setIndex] = 0;
+      newWeights[setIndex] = 0;
     }
     
     workoutState.updateActualReps(exerciseId, newReps);
     workoutState.updateActualWeights(exerciseId, newWeights);
     
-    // Actualizar completed sets - contar solo las series con reps > 0
-    const completedCount = newReps.filter(r => r > 0).length;
+    // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
+    const completedCount = calculateCompletedSets(newReps);
     workoutState.updateCompletedSets(exerciseId, completedCount);
     
     // Si estamos en el ejercicio actual, actualizar también currentSet
@@ -1485,7 +1489,19 @@ export default function WorkoutPage() {
 
   const handleQuickAddSet = useCallback(async (exerciseId: string) => {
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
-    if (!exercise || !routine) return;
+    
+    // ✅ FASE 2 - Problema #8: Validar que existan exercise y routine
+    if (!exercise || !routine) {
+      console.warn('[Workout] Cannot add set: no exercise or routine found');
+      error('No se puede agregar serie');
+      return;
+    }
+    
+    // ✅ FASE 2 - Problema #8: Validar límite máximo de series
+    if (exercise.sets.length >= 20) {
+      error('Máximo 20 series por ejercicio');
+      return;
+    }
     
     // Obtener la última serie como referencia
     const lastSet = exercise.sets[exercise.sets.length - 1];
@@ -1514,15 +1530,17 @@ export default function WorkoutPage() {
     setRoutine(updatedRoutine);
     
     // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-    updateModifiedRoutine(updatedRoutine);
-    
-    // Persistir la rutina actualizada
     try {
+      await updateModifiedRoutine(updatedRoutine);
+      
+      // Persistir la rutina actualizada
       await updateRoutine(id, updatedRoutine);
       success('Serie agregada', 2000);
     } catch (err) {
       console.error('[handleQuickAddSet] Error saving:', err);
       error('Error al agregar serie');
+      // Revertir cambio local si falla
+      setRoutine(routine);
     }
   }, [routine, id, updateRoutine, updateModifiedRoutine, success, error]);
 
@@ -1617,7 +1635,7 @@ export default function WorkoutPage() {
           </div>
         </div>
 
-        {/* Toggle entre modo guiado y modo edición rápida */}
+        {/* Toggle entre Modo Guiado y Edición Rápida */}
         <div className="mb-4 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
           <button
             onClick={() => setIsQuickEditMode(false)}
@@ -1642,10 +1660,10 @@ export default function WorkoutPage() {
         </div>
 
         {isQuickEditMode ? (
-          /* Modo de edición rápida - Vista tipo Excel */
-          <QuickEditMode
+        <QuickEditMode
             routine={routine}
             workoutData={workoutState.workoutData}
+            sessions={sessions}
             onEditReps={handleQuickEditReps}
             onEditWeight={handleQuickEditWeight}
             onEditSetType={handleQuickEditSetType}
@@ -1656,6 +1674,11 @@ export default function WorkoutPage() {
             onMoveExercise={handleMoveExercise}
             onSkipExercise={skipExercise}
             onUnskipExercise={unskipExercise}
+            onShowExerciseInfo={(exerciseName) => {
+              // Guardar el nombre del ejercicio y mostrar el modal
+              setSelectedExerciseName(exerciseName);
+              setShowExerciseInfo(true);
+            }}
             onEditRestTime={(exerciseId, restTime) => {
               workoutState.updateRestOverride(exerciseId, restTime);
               
@@ -1694,23 +1717,22 @@ export default function WorkoutPage() {
                 error('No se pudo calcular el descanso inteligente para este ejercicio');
               }
             }}
+            onAddExercises={handleAddExercises}
           />
         ) : (
           /* Modo guiado - Flujo normal */
           <>
         {/* Botón flotante grande - Iniciar o Completar Serie */}
         <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
-        
+
         <div className="fixed bottom-0 left-0 right-0 z-30 px-0">
           {!setExecution.isExecutingSet ? (
-            // Botón Iniciar Serie
             <Button
               variant="primary"
               onClick={() => {
-                console.log('[Workout] Iniciar Serie button clicked');
                 setExecution.startSet();
               }}
-              className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
+              className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
             >
               <span className="text-2xl">▶️</span>
               <div className="flex flex-col items-start">
@@ -1721,12 +1743,11 @@ export default function WorkoutPage() {
               </div>
             </Button>
           ) : (
-            // Botón Completar Serie (cuando está en ejecución)
             <Button
               variant="primary"
               onClick={handleCompleteSet}
               disabled={workoutState.currentReps === '' || workoutState.currentWeight === ''}
-              className="w-full py-6 text-lg font-bold bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-6 text-lg font-bold bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-2xl">✅</span>
               <div className="flex flex-col items-start">
@@ -1756,7 +1777,6 @@ export default function WorkoutPage() {
           lastSetData={lastSetData}
           onRepeatPrevious={handleRepeatPrevious}
           setStartTime={setExecution.setStartTime}
-          personalRecord={currentExerciseRecord}
           quickSwitcher={
             <QuickExerciseSwitcher
               routine={routine}
@@ -1912,64 +1932,23 @@ export default function WorkoutPage() {
           isSaving={false}
         />
 
-        {showExerciseInfo && currentExercise && (
+        {showExerciseInfo && (
           <Suspense fallback={<div />}>
             <ExerciseInfoPanel
-              exercise={EXERCISE_DATABASE.find(e => e.name === currentExercise.name) || {
-                id: currentExercise.id,
-                name: currentExercise.name,
+              exercise={EXERCISE_DATABASE.find(e => e.name === selectedExerciseName) || {
+                id: selectedExerciseName,
+                name: selectedExerciseName,
                 muscleGroup: 'pecho'
               } as any}
-              onClose={() => setShowExerciseInfo(false)}
+              onClose={() => {
+                setShowExerciseInfo(false);
+                setSelectedExerciseName('');
+              }}
             />
           </Suspense>
         )}
 
-        {/* ✅ Celebración de récord personal */}
-        {showRecordCelebration && newRecord && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div className="animate-bounce-in pointer-events-auto">
-              <div className="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 text-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 transform scale-110">
-                <div className="text-center space-y-4">
-                  {/* Trofeo animado */}
-                  <div className="text-8xl animate-pulse">
-                    🏆
-                  </div>
-                  
-                  {/* Título */}
-                  <h2 className="text-3xl font-bold tracking-tight">
-                    ¡NUEVO RÉCORD!
-                  </h2>
-                  
-                  {/* Ejercicio */}
-                  <p className="text-xl font-semibold opacity-90">
-                    {newRecord.exerciseName}
-                  </p>
-                  
-                  {/* Peso */}
-                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                    <div className="text-5xl font-black">
-                      {newRecord.weight}kg
-                    </div>
-                    {newRecord.previousRecord > 0 && (
-                      <div className="text-sm mt-2 opacity-90">
-                        Anterior: {newRecord.previousRecord}kg
-                        <span className="ml-2 text-green-200">
-                          (+{(newRecord.weight - newRecord.previousRecord).toFixed(1)}kg)
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Mensaje motivacional */}
-                  <p className="text-lg font-medium opacity-90">
-                    ¡Sigue así, campeón! 💪
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* ✅ Celebración de récord personal eliminada - no se muestra durante el entrenamiento */}
 
         <Suspense fallback={<div />}>
           <SetExecutionModal

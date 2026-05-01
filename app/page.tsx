@@ -27,13 +27,13 @@ export default function Home() {
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12">
-            <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="flex items-center justify-center gap-4 mb-3">
               <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl">
-                <Dumbbell className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                <Dumbbell className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
               </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
               {t('welcome')}
             </h1>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400">
@@ -41,10 +41,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
             <Card className="text-center">
               <CardHeader>
-                <div className="text-4xl mb-2">📋</div>
+                <div className="text-2xl mb-1.5">📋</div>
                 <CardTitle>{t('routinesCard')}</CardTitle>
               </CardHeader>
               <CardContent>
@@ -55,7 +55,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    <p className="text-3xl font-bold text-blue-600 mb-2">{routines.length}</p>
+                    <p className="text-2xl font-bold text-blue-600 mb-1.5">{routines.length}</p>
                     <p className="text-gray-600 dark:text-gray-400">{t('routinesCreated')}</p>
                   </>
                 )}
@@ -64,7 +64,7 @@ export default function Home() {
 
             <Card className="text-center">
               <CardHeader>
-                <div className="text-4xl mb-2">🏋️</div>
+                <div className="text-2xl mb-1.5">🏋️</div>
                 <CardTitle>{t('sessionsCard')}</CardTitle>
               </CardHeader>
               <CardContent>
@@ -75,7 +75,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    <p className="text-3xl font-bold text-green-600 mb-2">{sessions.length}</p>
+                    <p className="text-2xl font-bold text-green-600 mb-1.5">{sessions.length}</p>
                     <p className="text-gray-600 dark:text-gray-400">{t('workoutsCompleted')}</p>
                   </>
                 )}
@@ -84,7 +84,7 @@ export default function Home() {
 
             <Card className="text-center">
               <CardHeader>
-                <div className="text-4xl mb-2">💯</div>
+                <div className="text-2xl mb-1.5">💯</div>
                 <CardTitle>{t('exercisesCard')}</CardTitle>
               </CardHeader>
               <CardContent>
@@ -95,7 +95,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    <p className="text-3xl font-bold text-purple-600 mb-2">
+                    <p className="text-2xl font-bold text-purple-600 mb-1.5">
                       {routines.reduce((acc, r) => acc + r.exercises.length, 0)}
                     </p>
                     <p className="text-gray-600 dark:text-gray-400">{t('totalExercises')}</p>
@@ -105,7 +105,7 @@ export default function Home() {
             </Card>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
             <Card className="hover-lift">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

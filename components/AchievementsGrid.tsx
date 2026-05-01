@@ -56,7 +56,7 @@ export default function AchievementsGrid({ achievements, compact = false }: Achi
             </p>
           </div>
           <div className="text-right">
-            <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {overallProgress}%
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function AchievementsGrid({ achievements, compact = false }: Achi
             </div>
 
             {/* Barra de progreso de categoría */}
-            <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 mb-6">
+            <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 mb-4">
               <div
                 className="h-2 rounded-full transition-all duration-700"
                 style={{
@@ -131,7 +131,7 @@ export default function AchievementsGrid({ achievements, compact = false }: Achi
             </div>
 
             {/* Grid de badges */}
-            <div className={`grid gap-6 ${
+            <div className={`grid gap-4 ${
               compact 
                 ? 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8' 
                 : 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'
@@ -151,8 +151,8 @@ export default function AchievementsGrid({ achievements, compact = false }: Achi
 
       {/* Mensaje si no hay logros */}
       {achievements.length === 0 && (
-        <div className="text-center py-12 text-zinc-600 dark:text-zinc-400">
-          <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
+        <div className="text-center py-8 text-zinc-600 dark:text-zinc-400">
+          <Trophy className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p className="text-lg">Aún no hay logros disponibles</p>
           <p className="text-sm">¡Comienza a entrenar para desbloquearlos!</p>
         </div>

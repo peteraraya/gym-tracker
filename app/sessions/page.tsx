@@ -17,10 +17,14 @@ import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
 import { useConfirm } from '@/context/ConfirmContext';
 
+import { useLocale } from '@/context/LocaleContext';
+
 export default function SessionsPage() {
   const { sessions: serverSessions, routines, loading, updateSession, deleteSession } = useGym();
   const { success, error: showError } = useToast();
   const { confirm } = useConfirm();
+  const { t } = useLocale();
+  const tS = (key: string) => t(`sessions.${key}`);
   
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
   const [editingSession, setEditingSession] = useState<WorkoutSession | null>(null);
@@ -105,7 +109,7 @@ export default function SessionsPage() {
 
   const getRoutineName = (routineId: string) => {
     const routine = routines.find((r) => r.id === routineId);
-    return routine ? routine.name : 'Rutina eliminada';
+    return routine ? routine.name : tS('routineDeleted');
   };
 
   const handleEditSession = (session: WorkoutSession) => {
@@ -116,12 +120,12 @@ export default function SessionsPage() {
   const handleSaveSession = async (updatedSession: WorkoutSession) => {
     try {
       await updateSession(updatedSession);
-      success('✅ Sesión actualizada exitosamente');
+      success(tS('toast.updateSuccess'));
       setIsEditModalOpen(false);
       setEditingSession(null);
     } catch (err) {
       console.error('Error updating session:', err);
-      showError('Error al actualizar la sesión');
+      showError(tS('toast.updateError'));
     }
   };
 
@@ -134,10 +138,10 @@ export default function SessionsPage() {
     });
 
     const confirmed = await confirm({
-      title: '¿Eliminar sesión?',
-      message: `¿Estás seguro de que quieres eliminar la sesión de "${routineName}" del ${sessionDate}? Esta acción no se puede deshacer.`,
-      confirmText: 'Eliminar',
-      cancelText: 'Cancelar',
+      title: tS('confirmDelete.title'),
+      message: `${tS('confirmDelete.message')} "${routineName}" del ${sessionDate}${tS('confirmDelete.suffix')}`,
+      confirmText: tS('confirmDelete.confirmText'),
+      cancelText: tS('confirmDelete.cancelText'),
       variant: 'danger'
     });
 
@@ -145,10 +149,10 @@ export default function SessionsPage() {
 
     try {
       await deleteSession(session.id);
-      success('🗑️ Sesión eliminada exitosamente');
+      success(tS('toast.deleteSuccess'));
     } catch (err) {
       console.error('Error deleting session:', err);
-      showError('Error al eliminar la sesión');
+      showError(tS('toast.deleteError'));
     }
   };
 
@@ -156,28 +160,7 @@ export default function SessionsPage() {
     return (
       <ProtectedRoute>
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                  Historial de Sesiones
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                  Revisa tus entrenamientos anteriores
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">⏳</div>
-              <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Cargando sesiones...
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Cargando historial de sesiones, espera unos segundos
-              </p>
-            </div>
-          </div>
+          <LoadingState message={tS('loading')} />
         </div>
       </ProtectedRoute>
     );
@@ -185,36 +168,36 @@ export default function SessionsPage() {
 
   return (
     <ProtectedRoute>
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header mejorado */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        {/* Header */}
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             📊 Historial de Sesiones
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
             Revisa y analiza tus entrenamientos anteriores
           </p>
           
           {/* Estadísticas rápidas */}
           {sessions.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
-                <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Total Sesiones</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+              <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">{tS('totalSessions')}</div>
                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">{sessions.length}</div>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
-                <div className="text-sm text-green-600 dark:text-green-400 font-medium">Filtradas</div>
+              <div className="bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
+                <div className="text-sm text-green-600 dark:text-green-400 font-medium">{tS('filtered')}</div>
                 <div className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">{filteredSessions.length}</div>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
-                <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">Rutinas Únicas</div>
+              <div className="bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
+                <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">{tS('uniqueRoutines')}</div>
                 <div className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">
                   {new Set(sessions.map(s => s.routineId)).size}
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800">
-                <div className="text-sm text-orange-600 dark:text-orange-400 font-medium">Este Mes</div>
+              <div className="bg-linear-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800">
+                <div className="text-sm text-orange-600 dark:text-orange-400 font-medium">{tS('thisMonth')}</div>
                 <div className="text-2xl font-bold text-orange-900 dark:text-orange-100 mt-1">
                   {sessions.filter(s => {
                     const date = new Date(s.date);
@@ -227,7 +210,7 @@ export default function SessionsPage() {
           )}
 
           {/* Controles superiores */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
             <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
               <input
                 type="checkbox"
@@ -244,17 +227,17 @@ export default function SessionsPage() {
         </div>
 
         {sessions.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📊</div>
-            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <div className="text-center py-8">
+            <div className="text-5xl mb-3">📊</div>
+            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
               No hay sesiones registradas
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
               Completa tu primera rutina para ver tu historial aquí
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Filtros en sidebar - más compacto */}
             <div className="lg:col-span-1">
               <div className="sticky top-4">
@@ -269,17 +252,17 @@ export default function SessionsPage() {
             {/* Lista de sesiones - más espacio */}
             <div className="lg:col-span-3">
               {filteredSessions.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <div className="text-center py-8">
+                  <div className="text-5xl mb-3">🔍</div>
+                  <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     No se encontraron sesiones
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Intenta cambiar los filtros de búsqueda
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                  <div className="space-y-3">
                   {filteredSessions.map((session) => {
                     const routineName = getRoutineName(session.routineId);
                     const isDeleted = routineName === 'Rutina eliminada';
@@ -289,7 +272,7 @@ export default function SessionsPage() {
                         key={session.id}
                         className={`hover:shadow-lg transition-all ${isDeleted ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10' : ''}`}
                       >
-                        <div className="p-6">
+                        <div className="p-4">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
@@ -392,7 +375,7 @@ export default function SessionsPage() {
                           </div>
 
                           {session.notes && (
-                            <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+                            <div className="bg-linear-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
                               <div className="flex items-start gap-2">
                                 <span className="text-amber-600 dark:text-amber-400 text-lg">📝</span>
                                 <div className="flex-1">

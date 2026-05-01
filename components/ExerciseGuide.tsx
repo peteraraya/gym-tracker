@@ -60,7 +60,7 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="w-full max-w-4xl my-8 shadow-2xl animate-fadeIn">
         {/* Header */}
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6">
+        <CardHeader className="bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-2xl font-bold text-white mb-2">
@@ -164,21 +164,21 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="p-4 bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400 mb-2" />
                     <div className="text-xs text-gray-600 dark:text-gray-400">Series</div>
                     <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                       {exercise.recommendedSets || `${exercise.defaultSets || 3} series`}
                     </div>
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="p-4 bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
                     <Target className="w-5 h-5 text-purple-600 dark:text-purple-400 mb-2" />
                     <div className="text-xs text-gray-600 dark:text-gray-400">Repeticiones</div>
                     <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                       {exercise.recommendedReps || `${exercise.defaultReps || 10} reps`}
                     </div>
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="p-4 bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
                     <Clock className="w-5 h-5 text-green-600 dark:text-green-400 mb-2" />
                     <div className="text-xs text-gray-600 dark:text-gray-400">Descanso</div>
                     <div className="text-lg font-bold text-green-600 dark:text-green-400">
@@ -189,7 +189,7 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
 
                 {/* Muscles Worked */}
                 {(exercise.primaryMuscles || exercise.secondaryMuscles) && (
-                  <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                  <div className="p-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
                     <h4 className="font-semibold text-indigo-900 dark:text-indigo-100 mb-3 flex items-center gap-2">
                       <Target className="w-5 h-5" />
                       Músculos Trabajados
@@ -231,7 +231,7 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
 
                 {/* Benefits */}
                 {exercise.benefits && exercise.benefits.length > 0 && (
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="p-4 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
                     <h4 className="font-semibold text-green-900 dark:text-green-100 mb-3 flex items-center gap-2">
                       <TrendingUp className="w-5 h-5" />
                       Beneficios
@@ -262,7 +262,7 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
                     <ol className="space-y-3">
                       {exercise.instructions.map((instruction, idx) => (
                         <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
                             {idx + 1}
                           </span>
                           <span className="pt-0.5">{instruction}</span>
@@ -401,8 +401,8 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
                   (!exercise.variations.easier?.length && 
                    !exercise.variations.harder?.length && 
                    !exercise.variations.alternative?.length)) && (
-                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                    <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-50" />
                     <p>No hay variaciones disponibles para este ejercicio</p>
                   </div>
                 )}

@@ -98,7 +98,10 @@ export function getStorageStatus(): { mode: string; hasError: boolean; lastError
 
 export async function getRoutines(): Promise<Routine[]> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las rutinas solo están disponibles con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage for routines');
+        const localStorageService = await getLocalStorageService();
+        return localStorageService.getRoutines();
     }
 
     try {
@@ -145,7 +148,10 @@ async function getLocalStorageService(): Promise<any> {
 
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las rutinas solo se pueden crear con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to create routine');
+        const localStorageService = await getLocalStorageService();
+        return localStorageService.createRoutine(data);
     }
 
     try {
@@ -177,7 +183,10 @@ export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
 
 export async function updateRoutine(id: string, data: CreateRoutineData): Promise<Routine> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las rutinas solo se pueden actualizar con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to update routine');
+        const localStorageService = await getLocalStorageService();
+        return localStorageService.updateRoutine(id, data);
     }
 
     try {
@@ -209,7 +218,16 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
 
 export async function deleteRoutine(id: string): Promise<void> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las rutinas solo se pueden eliminar con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to delete routine');
+        const localStorageService = await getLocalStorageService();
+        
+        // Eliminar sesiones asociadas primero
+        await localStorageService.deleteSessionsByRoutine(id);
+        
+        // Eliminar rutina
+        await localStorageService.deleteRoutine(id);
+        return;
     }
 
     try {
@@ -235,7 +253,10 @@ export async function deleteRoutine(id: string): Promise<void> {
 
 export async function getSessions(): Promise<WorkoutSession[]> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las sesiones solo están disponibles con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage for sessions');
+        const localStorageService = await getLocalStorageService();
+        return localStorageService.getSessions();
     }
 
     try {
@@ -258,7 +279,11 @@ export async function getSessions(): Promise<WorkoutSession[]> {
 
 export async function saveSession(session: WorkoutSession): Promise<void> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las sesiones solo se pueden guardar con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to save session');
+        const localStorageService = await getLocalStorageService();
+        await localStorageService.saveSession(session);
+        return;
     }
 
     try {
@@ -304,7 +329,12 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
 
 export async function updateSession(session: WorkoutSession): Promise<void> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las sesiones solo se pueden actualizar con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to update session');
+        const localStorageService = await getLocalStorageService();
+        // localStorage usa saveSession para crear y actualizar
+        await localStorageService.saveSession(session);
+        return;
     }
 
     try {
@@ -327,7 +357,19 @@ export async function updateSession(session: WorkoutSession): Promise<void> {
 
 export async function deleteSession(sessionId: string): Promise<void> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. Las sesiones solo se pueden eliminar con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to delete session');
+        const localStorageService = await getLocalStorageService();
+        
+        // Implementar eliminación en localStorage
+        const sessions = await localStorageService.getSessions();
+        const filtered = sessions.filter((s: WorkoutSession) => s.id !== sessionId);
+        
+        // Guardar sesiones filtradas
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('gym_tracker_sessions', JSON.stringify(filtered));
+        }
+        return;
     }
 
     try {
@@ -353,7 +395,10 @@ export async function deleteSession(sessionId: string): Promise<void> {
 
 export async function getProfile(): Promise<UserProfile> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. El perfil solo está disponible con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage for profile');
+        const localStorageService = await getLocalStorageService();
+        return localStorageService.getProfile();
     }
 
     try {
@@ -376,7 +421,11 @@ export async function getProfile(): Promise<UserProfile> {
 
 export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. El perfil solo se puede actualizar con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to update profile');
+        const localStorageService = await getLocalStorageService();
+        await localStorageService.updateProfile(data);
+        return;
     }
 
     try {
@@ -411,7 +460,10 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
 
 export async function getWeeklyPlan(): Promise<WeeklyPlan> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. El plan semanal solo está disponible con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage for weekly plan');
+        const localStorageService = await getLocalStorageService();
+        return localStorageService.getWeeklyPlan();
     }
 
     try {
@@ -434,7 +486,11 @@ export async function getWeeklyPlan(): Promise<WeeklyPlan> {
 
 export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
     if (!isDatabaseEnabled()) {
-        throw new Error('Base de datos requerida. El plan semanal solo se puede guardar con Supabase habilitado.');
+        // Usar localStorage cuando Supabase está desactivado
+        logger.info('Database disabled, using localStorage to save weekly plan');
+        const localStorageService = await getLocalStorageService();
+        await localStorageService.saveWeeklyPlan(plan);
+        return;
     }
 
     try {

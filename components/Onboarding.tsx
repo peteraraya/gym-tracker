@@ -168,7 +168,7 @@ export default function Onboarding() {
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg">
                 <Lightbulb className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -192,7 +192,7 @@ export default function Onboarding() {
           <div className="mb-4">
             <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300"
+                className="h-full bg-linear-to-r from-blue-500 to-purple-600 transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -229,7 +229,7 @@ export default function Onboarding() {
                 <Button
                   variant="primary"
                   onClick={completeOnboarding}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                  className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 >
                   <Check className="w-4 h-4 mr-2" />
                   ¡Empezar!
@@ -238,7 +238,7 @@ export default function Onboarding() {
                 <Button
                   variant="primary"
                   onClick={nextStep}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  className="bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                   size="sm"
                 >
                   Siguiente
@@ -255,7 +255,7 @@ export default function Onboarding() {
                 key={index}
                 className={`h-2 rounded-full transition-all ${
                   index === currentStep
-                    ? 'w-8 bg-gradient-to-r from-blue-500 to-purple-600'
+                    ? 'w-8 bg-linear-to-r from-blue-500 to-purple-600'
                     : index < currentStep
                     ? 'w-2 bg-green-500'
                     : 'w-2 bg-gray-300 dark:bg-gray-600'

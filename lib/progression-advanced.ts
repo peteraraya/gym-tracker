@@ -44,11 +44,24 @@ export function estimate1RM(weight: number, reps: number) {
 function calculateVolume(exercise: any): number {
   if (!exercise.actualWeight || !exercise.actualReps) return 0;
   
+  // ✅ Validar que ambos arrays existan
+  const weights = exercise.actualWeight || [];
+  const reps = exercise.actualReps || [];
+  
+  if (weights.length === 0 || reps.length === 0) return 0;
+  
   let totalVolume = 0;
-  const sets = Math.min(exercise.actualWeight.length, exercise.actualReps.length);
+  const sets = Math.min(weights.length, reps.length);
   
   for (let i = 0; i < sets; i++) {
-    totalVolume += (exercise.actualWeight[i] || 0) * (exercise.actualReps[i] || 0);
+    const weight = Number(weights[i]) || 0;
+    const rep = Number(reps[i]) || 0;
+    
+    // ✅ Validar números
+    if (!Number.isFinite(weight) || !Number.isFinite(rep)) continue;
+    if (weight < 0 || rep <= 0) continue;
+    
+    totalVolume += weight * rep;
   }
   
   return totalVolume;
@@ -175,11 +188,22 @@ export function recommendWeightIncrease(
       const ex = s.exercises?.find(e => e.exerciseId === exerciseId);
       if (!ex) return;
       
-      const lastIdx = (ex.actualReps?.length || 0) - 1;
+      // ✅ Validar que ambos arrays existan y tengan datos
+      const repsArray = ex.actualReps || [];
+      const weightsArray = ex.actualWeight || [];
+      
+      if (repsArray.length === 0 || weightsArray.length === 0) return;
+      
+      const lastIdx = Math.min(repsArray.length, weightsArray.length) - 1;
       if (lastIdx < 0) return;
       
-      const reps = ex.actualReps?.[lastIdx] ?? 0;
-      const weight = ex.actualWeight?.[lastIdx] ?? 0;
+      const reps = Number(repsArray[lastIdx]) || 0;
+      const weight = Number(weightsArray[lastIdx]) || 0;
+      
+      // ✅ Validar que sean números válidos
+      if (!Number.isFinite(reps) || !Number.isFinite(weight)) return;
+      if (reps <= 0 || weight < 0) return;
+      
       const volume = calculateVolume(ex);
       const dateStr = (s.date && typeof (s.date as any).toISOString === 'function')
         ? (s.date as any).toISOString()

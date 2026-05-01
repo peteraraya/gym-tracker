@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { WeightSelector } from '@/components/WeightSelector';
+import { EditValueModal } from '@/components/EditValueModal';
 
 interface SetExecutionModalProps {
   isOpen: boolean;
@@ -36,8 +35,22 @@ export function SetExecutionModal({
 }: SetExecutionModalProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isRunning, setIsRunning] = useState(true);
+  const [editingField, setEditingField] = useState<'reps' | 'weight' | null>(null);
+  const [weightHistory, setWeightHistory] = useState<number[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(Date.now());
+
+  // Cargar historial de pesos del ejercicio
+  useEffect(() => {
+    if (isOpen && exerciseId) {
+      try {
+        const stored = localStorage.getItem(`weight-history-${exerciseId}`);
+        if (stored) setWeightHistory(JSON.parse(stored));
+      } catch {
+        setWeightHistory([]);
+      }
+    }
+  }, [isOpen, exerciseId]);
 
   // Start timer when modal opens
   useEffect(() => {
@@ -104,7 +117,7 @@ export function SetExecutionModal({
         </div>
 
         {/* Timer */}
-        <div className="py-8 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+        <div className="py-8 bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
           <div className="text-center">
             <div className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
               Tiempo de Serie
@@ -121,7 +134,7 @@ export function SetExecutionModal({
           </div>
         </div>
 
-        {/* Inputs */}
+        {/* Inputs táctiles */}
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             {/* Repeticiones */}
@@ -129,16 +142,12 @@ export function SetExecutionModal({
               <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                 Repeticiones
               </label>
-              <Input
-                type="number"
-                value={currentReps}
-                onChange={(e) => onRepsChange(e.target.value === '' ? '' : parseInt(e.target.value))}
-                placeholder="0"
-                min="0"
-                max="100"
-                className="text-center text-2xl font-bold h-16"
-                autoFocus
-              />
+              <button
+                onClick={() => setEditingField('reps')}
+                className="w-full h-16 text-3xl font-bold rounded-xl border-2 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 text-gray-900 dark:text-gray-100 active:scale-95 touch-manipulation"
+              >
+                {currentReps === '' ? <span className="text-gray-400">–</span> : currentReps}
+              </button>
             </div>
 
             {/* Peso */}
@@ -146,14 +155,13 @@ export function SetExecutionModal({
               <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                 Peso (kg)
               </label>
-              <div className="h-16 flex items-center">
-                <WeightSelector
-                  value={currentWeight}
-                  onChange={onWeightChange}
-                  exerciseId={exerciseId}
-                  className="text-2xl font-bold h-16"
-                />
-              </div>
+              <button
+                onClick={() => setEditingField('weight')}
+                className="w-full h-16 text-3xl font-bold rounded-xl border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-gray-900 dark:text-gray-100 active:scale-95 touch-manipulation"
+              >
+                {currentWeight === '' ? <span className="text-gray-400">–</span> : `${currentWeight}`}
+                {currentWeight !== '' && <span className="text-base font-normal text-gray-500 ml-1">kg</span>}
+              </button>
             </div>
           </div>
 
@@ -183,6 +191,25 @@ export function SetExecutionModal({
           )}
         </div>
       </div>
+
+      {/* Modales de edición táctil */}
+      <EditValueModal
+        isOpen={editingField === 'reps'}
+        onClose={() => setEditingField(null)}
+        title="Repeticiones"
+        field="reps"
+        currentValue={currentReps}
+        onSave={(v) => { onRepsChange(v); setEditingField(null); }}
+      />
+      <EditValueModal
+        isOpen={editingField === 'weight'}
+        onClose={() => setEditingField(null)}
+        title="Peso"
+        field="weight"
+        currentValue={currentWeight}
+        onSave={(v) => { onWeightChange(v); setEditingField(null); }}
+        historicalWeights={weightHistory}
+      />
     </div>
   );
 }

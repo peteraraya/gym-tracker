@@ -145,19 +145,19 @@ export default function AIAssistantPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950 dark:via-blue-950 dark:to-cyan-950 p-4 md:p-6">
+      <div className="min-h-screen bg-linear-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950 dark:via-blue-950 dark:to-cyan-950 p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl shadow-lg">
-                <Sparkles className="w-7 h-7 text-white" />
+          <div className="mb-4">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="p-2.5 bg-linear-to-br from-purple-600 to-blue-600 rounded-xl shadow-md">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Asistente IA
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Tu entrenador personal inteligente
                 </p>
               </div>
@@ -165,13 +165,13 @@ export default function AIAssistantPage() {
           </div>
 
           {/* Info Cards */}
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            <Card className="bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
-              <CardContent className="p-4">
+          <div className="grid md:grid-cols-3 gap-3 mb-4">
+            <Card className="bg-linear-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-3">
-                  <Dumbbell className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                  <Dumbbell className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   <div>
-                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+                    <p className="text-xl font-bold text-purple-900 dark:text-purple-100">
                       {EXERCISE_DATABASE.length}
                     </p>
                     <p className="text-xs text-purple-700 dark:text-purple-300">
@@ -182,12 +182,12 @@ export default function AIAssistantPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-              <CardContent className="p-4">
+            <Card className="bg-linear-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-3">
-                  <TrendingUp className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   <div>
-                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                    <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
                       {sessions.length}
                     </p>
                     <p className="text-xs text-blue-700 dark:text-blue-300">
@@ -198,12 +198,12 @@ export default function AIAssistantPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-cyan-100 to-cyan-50 dark:from-cyan-900/30 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800">
-              <CardContent className="p-4">
+            <Card className="bg-linear-to-br from-cyan-100 to-cyan-50 dark:from-cyan-900/30 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-3">
-                  <Bot className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
+                  <Bot className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
                   <div>
-                    <p className="text-2xl font-bold text-cyan-900 dark:text-cyan-100">
+                    <p className="text-xl font-bold text-cyan-900 dark:text-cyan-100">
                       24/7
                     </p>
                     <p className="text-xs text-cyan-700 dark:text-cyan-300">
@@ -229,10 +229,10 @@ export default function AIAssistantPage() {
                   >
                     {/* Avatar */}
                     <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                         message.role === 'user'
-                          ? 'bg-gradient-to-br from-blue-600 to-cyan-600'
-                          : 'bg-gradient-to-br from-purple-600 to-pink-600'
+                          ? 'bg-linear-to-br from-blue-600 to-cyan-600'
+                          : 'bg-linear-to-br from-purple-600 to-pink-600'
                       }`}
                     >
                       {message.role === 'user' ? (
@@ -249,9 +249,9 @@ export default function AIAssistantPage() {
                       }`}
                     >
                       <div
-                        className={`rounded-2xl p-4 ${
+                        className={`rounded-2xl p-3 ${
                           message.role === 'user'
-                            ? 'bg-gradient-to-br from-blue-600 to-cyan-600 text-white'
+                            ? 'bg-linear-to-br from-blue-600 to-cyan-600 text-white'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                         }`}
                       >
@@ -290,7 +290,7 @@ export default function AIAssistantPage() {
 
                 {isLoading && (
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                       <Bot className="w-5 h-5 text-white" />
                     </div>
                     <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4">
@@ -321,14 +321,14 @@ export default function AIAssistantPage() {
                   <Button
                     onClick={handleSendMessage}
                     disabled={!input.trim() || isLoading}
-                    className="px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    className="px-5 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                   >
                     <Send className="w-5 h-5" />
                   </Button>
                 </div>
 
                 <div className="mt-3 flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <p>
                     Este es un asistente básico basado en reglas. Para análisis avanzado con IA real, considera integrar OpenAI o Claude API.
                   </p>

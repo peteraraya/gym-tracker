@@ -52,7 +52,7 @@ export function WorkoutHeader({
   const currentExercise = routine.exercises[currentExerciseIndex];
 
   return (
-    <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
+    <Card className="mb-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
           <div className="flex-1">

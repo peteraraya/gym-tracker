@@ -130,22 +130,36 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     return () => { mounted = false; };
   }, []);
 
-  // Debounce para guardar planes (evitar escrituras excesivas)
+  // ✅ FASE 3 - Problema #15: Debounce compartido para guardar ambos planes
+  // Usar refs para acceder a los valores más recientes sin causar re-renders
+  const planRef = useRef(plan);
+  const monthlyPlanRef = useRef(monthlyPlan);
+  
+  useEffect(() => {
+    planRef.current = plan;
+  }, [plan]);
+  
+  useEffect(() => {
+    monthlyPlanRef.current = monthlyPlan;
+  }, [monthlyPlan]);
+  
+  // Debounce compartido para guardar ambos planes en paralelo
   useEffect(() => {
     if (isLoadingPlan) return;
-    const timeoutId = setTimeout(() => {
-      try { saveWeeklyPlan(plan); } catch (e) { /* ignore */ }
+    
+    const timeoutId = setTimeout(async () => {
+      try {
+        await Promise.all([
+          saveWeeklyPlan(planRef.current),
+          saveMonthlyPlan(monthlyPlanRef.current)
+        ]);
+      } catch (e) {
+        console.warn('[WeeklyPlanner] Error saving plans:', e);
+      }
     }, 500);
+    
     return () => clearTimeout(timeoutId);
-  }, [plan, isLoadingPlan]);
-
-  useEffect(() => {
-    if (isLoadingPlan) return;
-    const timeoutId = setTimeout(() => {
-      try { saveMonthlyPlan(monthlyPlan); } catch (e) { /* ignore */ }
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [monthlyPlan, isLoadingPlan]);
+  }, [plan, monthlyPlan, isLoadingPlan]);
 
   const updateIndicators = () => {
     const el = daysRef.current;
@@ -516,7 +530,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         </div>
         
         {weeklyViewMode === 'view' && (
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-gray-300">
             Toca un día para ver detalles
           </div>
         )}
@@ -542,10 +556,10 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     <div
                       className={`relative p-6 rounded-2xl shadow-2xl ${
                         isBlocked
-                          ? 'bg-gradient-to-br from-red-600 to-red-700'
+                          ? 'bg-linear-to-br from-red-600 to-red-700'
                           : routineCount > 0
-                          ? 'bg-gradient-to-br from-blue-600 to-purple-600'
-                          : 'bg-gradient-to-br from-gray-700 to-gray-800'
+                          ? 'bg-linear-to-br from-blue-600 to-purple-600'
+                          : 'bg-linear-to-br from-gray-700 to-gray-800'
                       }`}
                     >
                       {/* Badge HOY */}
@@ -576,7 +590,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
 
                       {/* Contenido */}
                       {isLoadingPlan || routinesLoading ? (
-                        <div className="flex items-center justify-center py-12">
+                        <div className="flex items-center justify-center py-8">
                           <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
@@ -631,7 +645,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                               >
                                 <div className="flex items-start gap-4">
                                   {/* Número */}
-                                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center">
+                                  <div className="shrink-0 w-10 h-10 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center">
                                     <span className="text-white font-bold text-lg">{index + 1}</span>
                                   </div>
                                   
@@ -725,12 +739,12 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                       onClick={() => setSelectedWeekDay(day)}
                       className={`relative p-4 rounded-xl shadow-lg transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
                         isToday
-                          ? 'bg-gradient-to-r from-blue-600 to-blue-500 ring-4 ring-blue-400/50'
+                          ? 'bg-linear-to-r from-blue-600 to-blue-500 ring-4 ring-blue-400/50'
                           : isBlocked
-                          ? 'bg-gradient-to-r from-red-900/40 to-red-800/30 border-2 border-red-600/50'
+                          ? 'bg-linear-to-r from-red-900/40 to-red-800/30 border-2 border-red-600/50'
                           : routineCount > 0
-                          ? 'bg-gradient-to-r from-emerald-900/50 to-emerald-800/40 border-2 border-emerald-500/60'
-                          : 'bg-gradient-to-r from-gray-800 to-gray-700 border-2 border-gray-600'
+                          ? 'bg-linear-to-r from-emerald-900/50 to-emerald-800/40 border-2 border-emerald-500/60'
+                          : 'bg-linear-to-r from-gray-800 to-gray-700 border-2 border-gray-600'
                       }`}
                     >
                       {/* Badge "HOY" */}
@@ -771,7 +785,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                               )}
                             </div>
                           ) : routineCount === 0 ? (
-                            <p className="text-sm text-gray-400">Sin rutinas asignadas</p>
+                            <p className="text-sm text-gray-300">Sin rutinas asignadas</p>
                           ) : (
                             <div className="space-y-2">
                               {dayPlan.routines.map((rid, index) => {
@@ -786,7 +800,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                                         : 'bg-gray-900/40'
                                     }`}
                                   >
-                                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                                    <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${
                                       isToday
                                         ? 'bg-white/30 text-white'
                                         : 'bg-emerald-500/30 text-emerald-300'
@@ -816,7 +830,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                         </div>
 
                         {/* Indicador de cantidad */}
-                        <div className="flex-shrink-0 ml-4">
+                        <div className="shrink-0 ml-4">
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shadow-lg ${
                             isToday
                               ? 'bg-white text-blue-600'
@@ -850,18 +864,18 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               onClick={() => setSelectedWeekDay(day)}
               onDrop={(e) => onDropToDay(e as any, day)}
               onDragOver={onDragOver as any}
-              className={`min-w-[140px] md:min-w-0 flex-shrink-0 md:flex-shrink snap-center p-4 rounded-xl shadow-md min-h-[160px] text-left transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
+              className={`min-w-[140px] md:min-w-0 shrink-0 md:shrink snap-center p-4 rounded-xl shadow-md min-h-40 text-left transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
                 isBlocked 
-                  ? 'bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-600/50' 
+                  ? 'bg-linear-to-br from-red-900/30 to-red-800/20 border-2 border-red-600/50' 
                   : routineCount > 0 
-                    ? 'bg-gradient-to-br from-emerald-900/40 to-emerald-800/30 border-2 border-emerald-500/60' 
-                    : 'bg-gradient-to-br from-gray-900/60 to-gray-800/50 border-2 border-gray-700'
+                    ? 'bg-linear-to-br from-emerald-900/40 to-emerald-800/30 border-2 border-emerald-500/60' 
+                    : 'bg-linear-to-br from-gray-900/60 to-gray-800/50 border-2 border-gray-700'
               }`}
             >
               <div className="mb-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">{LABELS[day]}</div>
+                    <div className="text-xs text-gray-300 uppercase tracking-wider font-semibold">{LABELS[day]}</div>
                     {isBlocked && (
                       <div className="text-sm font-bold text-red-300 mt-1">🔒 Descanso</div>
                     )}
@@ -897,12 +911,12 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               {/* Dia bloqueado */}
               {plan[day]?.blocked ? (
                 <div className="space-y-2">
-                  <div className="p-3 rounded-md bg-gradient-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24">
+                  <div className="p-3 rounded-md bg-linear-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24">
                     <p className="text-sm font-semibold text-red-300">Día de descanso</p>
                     {plan[day]?.note ? (
                       <p className="text-xs text-gray-300 mt-1">{plan[day].note}</p>
                     ) : (
-                      <p className="text-xs text-gray-400 mt-1">Sin nota</p>
+                      <p className="text-xs text-gray-300 mt-1">Sin nota</p>
                     )}
                   </div>
                 </div>
@@ -933,7 +947,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     
                     {/* Indicador de nota */}
                     {plan[day]?.note && (
-                      <div className="text-xs text-gray-400 italic truncate">
+                      <div className="text-xs text-gray-300 italic truncate">
                         📝 {plan[day].note}
                       </div>
                     )}
@@ -947,10 +961,10 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
 
         {/* Scroll indicators mejorados */}
         <div className={`md:hidden pointer-events-none absolute left-0 top-0 bottom-0 w-8 flex items-center transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="h-full w-full bg-gradient-to-r from-gray-900 to-transparent" />
+          <div className="h-full w-full bg-linear-to-r from-gray-900 to-transparent" />
         </div>
         <div className={`md:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-8 flex items-center transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="h-full w-full bg-gradient-to-l from-gray-900 to-transparent" />
+          <div className="h-full w-full bg-linear-to-l from-gray-900 to-transparent" />
         </div>
       </div>
 
@@ -985,15 +999,15 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           )}
 
           {(isLoadingPlan || routinesLoading) ? (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-8">
               <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
               </svg>
             </div>
           ) : availableRoutines.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-5xl mb-3">🏋️</div>
+            <div className="text-center py-8">
+              <div className="text-4xl mb-2">🏋️</div>
               <p className="text-gray-500 dark:text-gray-400">No hay rutinas disponibles</p>
             </div>
           ) : (
@@ -1018,12 +1032,12 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     className={`w-full text-left p-3 rounded-lg transition-all ${
                       alreadyAdded
                         ? 'bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 opacity-60 cursor-not-allowed'
-                        : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg active:scale-[0.98]'
+                        : 'bg-linear-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg active:scale-[0.98]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       {!alreadyAdded && (
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                             <Plus className="w-5 h-5 text-white" />
                           </div>
@@ -1083,14 +1097,14 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                   onDragStart={(e) => onDragStart(e, r.id)}
                   className="p-2 border rounded-md bg-gray-900/60 border-gray-700 flex items-center gap-2 w-full hover:shadow-sm hover:scale-[1.006] transition-transform text-sm"
                 >
-                  <div className="text-gray-400 flex-shrink-0 mr-1">
+                  <div className="text-gray-300 shrink-0 mr-1">
                     <GripVertical className="w-4 h-4 cursor-grab opacity-80 hover:opacity-100" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-medium text-sm text-white truncate">{r.name}</div>
-                      <div className="text-xs text-gray-400 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length}</div>
+                      <div className="text-xs text-gray-300 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length}</div>
                     </div>
                     {r.description ? <div className="text-xs text-gray-500 truncate mt-1">{r.description}</div> : null}
                   </div>

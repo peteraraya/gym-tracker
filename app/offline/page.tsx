@@ -10,23 +10,23 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-full mb-6">
-            <WifiOff className="w-12 h-12 text-white" />
+        <div className="mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-orange-500 to-red-600 rounded-full mb-4">
+            <WifiOff className="w-8 h-8 text-white" />
           </div>
           
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Sin Conexión
           </h1>
           
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             No hay conexión a internet. Algunas funciones pueden estar limitadas, pero puedes seguir usando la app en modo offline.
           </p>
         </div>
 
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3 mb-6">
           <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-left">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
               ✅ Disponible offline:

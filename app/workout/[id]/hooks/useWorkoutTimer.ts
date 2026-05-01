@@ -44,20 +44,30 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   useEffect(() => {
     if (hasRestoredRef.current || !activeWorkout) return;
     
-    if (activeWorkout.isResting && activeWorkout.restTimerStartedAt && activeWorkout.restTimerDuration) {
-      const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
-      const remaining = Math.max(0, activeWorkout.restTimerDuration - elapsed);
+    if (activeWorkout.isResting && activeWorkout.restTimerRemaining) {
+      // Calcular tiempo real restante descontando el tiempo transcurrido desde que se guardó
+      let remaining = activeWorkout.restTimerRemaining;
+      if (activeWorkout.restTimerStartedAt) {
+        const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
+        remaining = Math.max(0, remaining - elapsed);
+      }
+      
+      hasRestoredRef.current = true;
       
       if (remaining > 0) {
         setShowTimer(true);
-        setTimerDuration(activeWorkout.restTimerDuration);
-        setTimerStartTime(activeWorkout.restTimerStartedAt);
+        setTimerDuration(remaining);
+        setTimerStartTime(Date.now());
         setCurrentTimeLeft(remaining);
         setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
         setNextExerciseName(activeWorkout.restTimerNextExercise);
         setTimerMinimized(false);
         
-        hasRestoredRef.current = true;
+        console.log('[useWorkoutTimer] ✅ Timer restaurado. Restante:', remaining, 's');
+      } else {
+        // El timer expiró mientras la página estaba cerrada
+        console.log('[useWorkoutTimer] Timer expirado durante F5, ejecutando callback');
+        timerCompleteRef.current();
       }
     }
   }, [activeWorkout]);
@@ -126,10 +136,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
@@ -139,7 +148,25 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setTimerMinimized(true);
     setCurrentTimeLeft(timeLeft);
     setTimerStartTime(Date.now());
-  }, []);
+    
+    // ✅ Persistir el tiempo restante y el timestamp cuando se minimiza
+    if (activeWorkout && updateWorkoutProgress) {
+      updateWorkoutProgress(
+        activeWorkout.currentExerciseIndex,
+        activeWorkout.currentSet,
+        activeWorkout.completedSets,
+        activeWorkout.actualReps,
+        activeWorkout.actualWeights,
+        {
+          isResting: true,
+          restTimerDuration: timeLeft, // ✅ Guardar tiempo restante
+          restTimerTitle: timerTitle,
+          restTimerNextExercise: nextExerciseName,
+          restTimerStartedAt: Date.now() // ✅ Guardar timestamp para calcular elapsed en F5
+        }
+      );
+    }
+  }, [activeWorkout, updateWorkoutProgress, timerTitle, nextExerciseName]);
   
   const expandTimer = useCallback(() => {
     setTimerMinimized(false);
@@ -162,10 +189,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
@@ -188,10 +214,9 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }

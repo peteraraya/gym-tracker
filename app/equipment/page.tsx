@@ -28,26 +28,26 @@ export default function EquipmentPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               🏋️ Mi Equipamiento
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
               Selecciona el equipamiento que tienes disponible para filtrar ejercicios y rutinas
             </p>
           </div>
 
           {/* Stats */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-8">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-blue-600 dark:text-blue-400 font-semibold mb-1">
                   Equipamiento seleccionado
                 </div>
-                <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                   {selectedCount} / {totalCount}
                 </div>
               </div>
@@ -78,7 +78,7 @@ export default function EquipmentPage() {
           </div>
 
           {/* Category Filters */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
             <Button
               variant={selectedCategory === 'all' ? 'primary' : 'secondary'}
               size="sm"
@@ -106,14 +106,14 @@ export default function EquipmentPage() {
                 <button
                   key={equipment.id}
                   onClick={() => toggleEquipment(equipment.id)}
-                  className={`text-left p-6 rounded-xl border-2 transition-all ${
+                  className={`text-left p-4 rounded-xl border-2 transition-all ${
                     isSelected
                       ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-lg scale-105'
                       : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="text-4xl">{equipment.emoji}</div>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="text-3xl">{equipment.emoji}</div>
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                         isSelected
@@ -153,7 +153,7 @@ export default function EquipmentPage() {
           </div>
 
           {/* Info Card */}
-          <Card className="mt-8 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+          <Card className="mt-4 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
             <CardHeader>
               <CardTitle>💡 ¿Cómo funciona?</CardTitle>
             </CardHeader>

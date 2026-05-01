@@ -35,7 +35,7 @@ export function WorkoutGlobalTimer({ startTime, isPaused = false }: WorkoutGloba
   };
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-xl border border-blue-500/30 dark:border-blue-600/30 shadow-lg">
+    <div className="flex items-center gap-3 px-4 py-3 bg-linear-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-xl border border-blue-500/30 dark:border-blue-600/30 shadow-lg">
       <Timer className="w-5 h-5 text-blue-100" />
       <div className="flex flex-col gap-0.5">
         <span className="text-xs font-medium text-blue-100/80 uppercase tracking-wide">

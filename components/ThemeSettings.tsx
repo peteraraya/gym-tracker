@@ -110,9 +110,9 @@ export function ThemeSettings() {
 
           {/* Información del modo automático */}
           {theme === 'auto' && (
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+            <div className="p-4 bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
               <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-purple-900 dark:text-purple-100 mb-1">
                     Modo Automático Activo

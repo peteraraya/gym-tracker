@@ -36,7 +36,7 @@ export function WorkoutProgressIndicator({
       
       <div className="relative w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
         <div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-out"
+          className="absolute top-0 left-0 h-full bg-linear-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-out"
           style={{ width: `${progressPercentage}%` }}
         >
           <div className="absolute inset-0 bg-white/20 animate-pulse" />
@@ -51,7 +51,7 @@ export function WorkoutProgressIndicator({
       
       <div className="relative w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
         <div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-300"
+          className="absolute top-0 left-0 h-full bg-linear-to-r from-green-500 to-green-600 transition-all duration-300"
           style={{ width: `${exerciseProgress}%` }}
         />
       </div>
