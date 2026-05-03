@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { Routine, Exercise } from '@/types';
 
 /**
@@ -436,7 +436,8 @@ export function useWorkoutState(
     };
   }, []);
 
-  return {
+  // Memoizar el objeto devuelto para evitar re-ejecución de efectos
+  const returnValue = useMemo(() => ({
     // Estado
     workoutData,
     currentExerciseIndex,
@@ -444,14 +445,14 @@ export function useWorkoutState(
     currentReps,
     currentWeight,
     sessionNotes,
-    
+
     // Setters
     setCurrentExerciseIndex,
     setCurrentSet,
     setCurrentReps,
     setCurrentWeight,
     setSessionNotes,
-    
+
     // Acciones
     completeSet,
     updateCompletedSets,
@@ -463,10 +464,19 @@ export function useWorkoutState(
     updateSetDuration,
     updatePauseDuration,
     updateRestTime,
-    
+
     // Utilidades
     reset,
     restoreData,
     getExerciseData,
-  };
+  }), [
+    workoutData,
+    currentExerciseIndex,
+    currentSet,
+    currentReps,
+    currentWeight,
+    sessionNotes,
+  ]);
+
+  return returnValue;
 }

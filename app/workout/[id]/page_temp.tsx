@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, memo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -670,7 +670,6 @@ export default function WorkoutPage() {
     if (!currentExercise || !isInitialized) return;
     
     const currentWeightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : 0;
-    const prediction = weightPrediction.predictWeightForSet(currentWeightValue);
     
     if (prediction.weight !== workoutState.currentWeight) {
       workoutState.setCurrentWeight(prediction.weight);
