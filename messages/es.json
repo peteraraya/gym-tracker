@@ -1,5 +1,7 @@
 {
   "common": {
+    "selectRoutine": "Selecciona una rutina...",
+    "startWorkout": "Iniciar Entrenamiento",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
