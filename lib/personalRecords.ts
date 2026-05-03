@@ -257,7 +257,6 @@ export function calculateExerciseProgress(
   totalVolume: number;
   sessions: number;
 } | null {
-  // Filtrar sesiones que contienen este ejercicio
   const relevantSessions = sessions
     .filter(s => s.exercises.some(e => e.exerciseName === exerciseName))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -266,7 +265,6 @@ export function calculateExerciseProgress(
     return null;
   }
 
-  // Calcular récord personal
   let maxWeight = 0;
   let maxWeightReps = 0;
   let maxWeightDate = new Date();
@@ -276,25 +274,21 @@ export function calculateExerciseProgress(
     const exercise = session.exercises.find(e => e.exerciseName === exerciseName);
     if (!exercise) continue;
 
-    // ✅ Validar que ambos arrays existan y tengan datos
     const weights = exercise.actualWeight || [];
     const reps = exercise.actualReps || [];
     
     if (weights.length === 0 || reps.length === 0) continue;
 
-    // Calcular volumen total de esta sesión
     const maxLength = Math.min(weights.length, reps.length);
     for (let i = 0; i < maxLength; i++) {
       const weight = Number(weights[i]) || 0;
       const rep = Number(reps[i]) || 0;
       
-      // ✅ Validar números
       if (!Number.isFinite(weight) || !Number.isFinite(rep)) continue;
       if (weight < 0 || rep <= 0) continue;
       
       totalVolume += weight * rep;
 
-      // Actualizar récord si es mayor
       if (weight > maxWeight) {
         maxWeight = weight;
         maxWeightReps = rep;
@@ -303,12 +297,10 @@ export function calculateExerciseProgress(
     }
   }
 
-  // Si no hay datos válidos
   if (maxWeight === 0) {
     return null;
   }
 
-  // Calcular tendencia (comparar últimas 2 sesiones)
   let trend: 'up' | 'down' | 'stable' = 'stable';
   let improvement = 0;
   let improvementPercentage = 0;
@@ -330,9 +322,9 @@ export function calculateExerciseProgress(
         improvement = currentWeight - previousWeight;
         improvementPercentage = (improvement / previousWeight) * 100;
 
-        if (improvement > 0) {
+        if (improvementPercentage > 5) {
           trend = 'up';
-        } else if (improvement < 0) {
+        } else if (improvementPercentage < -5) {
           trend = 'down';
         }
       }
@@ -354,4 +346,148 @@ export function calculateExerciseProgress(
     totalVolume,
     sessions: relevantSessions.length
   };
+}
+
+export interface CalculatedPersonalRecord {
+  exerciseName: string;
+  maxWeight: number;
+  reps: number;
+  date: Date;
+  sessionId: string;
+  volume: number;
+}
+
+export function calculatePersonalRecords(
+  sessions: WorkoutSession[]
+): CalculatedPersonalRecord[] {
+  const recordsMap = new Map<string, CalculatedPersonalRecord>();
+
+  for (const session of sessions) {
+    for (const exercise of session.exercises) {
+      const weights = exercise.actualWeight || [];
+      const reps = exercise.actualReps || [];
+      
+      if (weights.length === 0 || reps.length === 0) continue;
+
+      const maxLength = Math.min(weights.length, reps.length);
+      let sessionMaxVolume = 0;
+      let sessionMaxWeight = 0;
+      let sessionMaxReps = 0;
+
+      for (let i = 0; i < maxLength; i++) {
+        const weight = Number(weights[i]) || 0;
+        const rep = Number(reps[i]) || 0;
+        
+        if (!Number.isFinite(weight) || !Number.isFinite(rep)) continue;
+        if (weight <= 0 || rep <= 0) continue;
+
+        const volume = weight * rep;
+        if (volume > sessionMaxVolume) {
+          sessionMaxVolume = volume;
+          sessionMaxWeight = weight;
+          sessionMaxReps = rep;
+        }
+      }
+
+      if (sessionMaxWeight === 0) continue;
+
+      const exerciseName = exercise.exerciseName || '';
+      const currentRecord = recordsMap.get(exerciseName);
+
+      if (!currentRecord || sessionMaxWeight > currentRecord.maxWeight) {
+        recordsMap.set(exerciseName, {
+          exerciseName,
+          maxWeight: sessionMaxWeight,
+          reps: sessionMaxReps,
+          date: session.date,
+          sessionId: session.id,
+          volume: sessionMaxVolume,
+        });
+      }
+    }
+  }
+
+  return Array.from(recordsMap.values())
+    .sort((a, b) => b.volume - a.volume);
+}
+
+export interface SessionComparison {
+  commonExercises: string[];
+  onlyInSession1: string[];
+  onlyInSession2: string[];
+  differences: Array<{
+    exercise: string;
+    session1Weight?: number;
+    session2Weight?: number;
+    session1Reps?: number;
+    session2Reps?: number;
+  }>;
+}
+
+export function compareSessions(
+  session1: WorkoutSession,
+  session2: WorkoutSession
+): SessionComparison {
+  const exercises1 = new Map<string, WorkoutSession['exercises'][0]>();
+  const exercises2 = new Map<string, WorkoutSession['exercises'][0]>();
+
+   session1.exercises.forEach(ex => { if (ex.exerciseName) exercises1.set(ex.exerciseName, ex); });
+   session2.exercises.forEach(ex => { if (ex.exerciseName) exercises2.set(ex.exerciseName, ex); });
+
+  const names1 = new Set(exercises1.keys());
+  const names2 = new Set(exercises2.keys());
+
+  const commonExercises: string[] = [];
+  const onlyInSession1: string[] = [];
+  const onlyInSession2: string[] = [];
+  const differences: SessionComparison['differences'] = [];
+
+  for (const name of names1) {
+    if (names2.has(name)) {
+      commonExercises.push(name);
+      const ex1 = exercises1.get(name)!;
+      const ex2 = exercises2.get(name)!;
+      
+      const weight1 = ex1.actualWeight?.length ? Math.max(...ex1.actualWeight) : 0;
+      const weight2 = ex2.actualWeight?.length ? Math.max(...ex2.actualWeight) : 0;
+      const reps1 = ex1.actualReps?.length ? Math.max(...ex1.actualReps) : 0;
+      const reps2 = ex2.actualReps?.length ? Math.max(...ex2.actualReps) : 0;
+
+      if (weight1 !== weight2 || reps1 !== reps2) {
+        differences.push({
+          exercise: name,
+          session1Weight: weight1 || undefined,
+          session2Weight: weight2 || undefined,
+          session1Reps: reps1 || undefined,
+          session2Reps: reps2 || undefined,
+        });
+      }
+    } else {
+      onlyInSession1.push(name);
+    }
+  }
+
+  for (const name of names2) {
+    if (!names1.has(name)) {
+      onlyInSession2.push(name);
+    }
+  }
+
+  return {
+    commonExercises,
+    onlyInSession1,
+    onlyInSession2,
+    differences,
+  };
+}
+
+export function getRecentRoutineSessions(
+  sessions: WorkoutSession[],
+  routineId: string,
+  limit: number = 10
+): WorkoutSession[] {
+  return sessions
+    .filter(s => s.routineId === routineId)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, limit);
 }

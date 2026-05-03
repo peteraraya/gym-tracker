@@ -15,7 +15,13 @@ const nextConfig: NextConfig = {
   // Only use static export for mobile builds
   // output: "export", // Commented out - only uncomment for mobile build
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hplrrjqgzefkdevbporx.supabase.co',
+        pathname: '/storage/v1/object/public/routine-images/**',
+      },
+    ],
   },
   trailingSlash: true,
 };

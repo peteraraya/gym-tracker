@@ -1,16 +1,20 @@
 import { render, RenderOptions } from '@testing-library/react'
 import { ReactElement, ReactNode } from 'react'
-
-/**
- * Custom render function para incluir providers necesarios
- */
+import { LocaleProvider } from '@/context/LocaleContext'
+import { NotificationProvider } from '@/context/NotificationContext'
 
 interface AllProvidersProps {
   children: ReactNode
 }
 
 const AllProviders = ({ children }: AllProvidersProps) => {
-  return <>{children}</>
+  return (
+    <LocaleProvider>
+      <NotificationProvider>
+        {children}
+      </NotificationProvider>
+    </LocaleProvider>
+  )
 }
 
 const customRender = (
@@ -21,16 +25,10 @@ const customRender = (
 export * from '@testing-library/react'
 export { customRender as render }
 
-/**
- * Helper para esperar a que desaparezca el loading
- */
 export const waitForLoadingToFinish = () => {
   return new Promise((resolve) => setTimeout(resolve, 0))
 }
 
-/**
- * Helper para simular delay en async operations
- */
 export const delay = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }

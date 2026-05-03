@@ -1,6 +1,5 @@
-import { GET, POST } from '@/app/api/sessions/route'
+import { GET, POST } from '@/app/api/routines/route'
 import { NextRequest } from 'next/server'
-import { createMockSession } from '@/__tests__/helpers/mockData'
 
 const createMockChain = (finalResult: any) => ({
   select: jest.fn().mockReturnThis(),
@@ -22,12 +21,12 @@ jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(() => mockSupabase),
 }))
 
-describe('Sessions API - Integration Tests', () => {
+describe('Routines API - Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  describe('GET /api/sessions', () => {
+  describe('GET /api/routines', () => {
     it('should return 401 if user is not authenticated', async () => {
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: null },
@@ -41,22 +40,26 @@ describe('Sessions API - Integration Tests', () => {
       expect(data.error).toContain('autenticación')
     })
 
-    it('should return sessions for authenticated user', async () => {
+    it('should return routines for authenticated user', async () => {
       const mockUser = { id: 'user-123', email: 'test@example.com' }
-      const mockSessionsData = [
+      const mockRoutinesData = [
         {
-          id: 'session-1',
-          routine_id: 'routine-1',
-          date: new Date(),
-          notes: 'Great workout',
-          routines: { name: 'Push Day' },
-          session_exercises: [
+          id: 'routine-1',
+          name: 'Push Day',
+          description: 'Chest and triceps',
+          image_url: '/images/push.jpg',
+          rest_between_sets: 90,
+          rest_between_exercises: 120,
+          created_at: new Date('2025-01-01'),
+          updated_at: new Date('2025-01-01'),
+          exercises: [
             {
-              exercise_id: 'ex-1',
-              exercises: { name: 'Bench Press' },
-              completed_sets: 3,
-              actual_reps: [10, 10, 8],
-              actual_weight: [80, 80, 80],
+              id: 'ex-1',
+              name: 'Bench Press',
+              sets_data: [{ reps: 10, weight: 80 }],
+              equipment: 'Barra',
+              notes: 'Focus on form',
+              order_index: 0,
             },
           ],
         },
@@ -68,7 +71,7 @@ describe('Sessions API - Integration Tests', () => {
       })
 
       mockSupabase.from.mockReturnValue(createMockChain({
-        data: mockSessionsData,
+        data: mockRoutinesData,
         error: null,
       }))
 
@@ -77,11 +80,12 @@ describe('Sessions API - Integration Tests', () => {
 
       expect(response.status).toBe(200)
       expect(Array.isArray(data)).toBe(true)
+      expect(data[0].name).toBe('Push Day')
     })
 
     it('should return 500 on database error', async () => {
       const mockUser = { id: 'user-123' }
-      
+
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null,
@@ -96,22 +100,22 @@ describe('Sessions API - Integration Tests', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error.toLowerCase()).toContain('error')
+      expect(data.error).toContain('obtener')
     })
   })
 
-  describe('POST /api/sessions', () => {
+  describe('POST /api/routines', () => {
     it('should return 401 if user is not authenticated', async () => {
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: { message: 'Not authenticated' },
       })
 
-      const request = new NextRequest('http://localhost:3000/api/sessions', {
+      const request = new NextRequest('http://localhost:3000/api/routines', {
         method: 'POST',
         body: JSON.stringify({
-          routineId: 'routine-1',
-          exercises: [],
+          name: 'Test Routine',
+          exercises: [{ name: 'Bench Press', sets: [{ reps: 10, weight: 80 }] }],
         }),
       })
 
@@ -122,18 +126,18 @@ describe('Sessions API - Integration Tests', () => {
       expect(data.error).toContain('autenticación')
     })
 
-    it('should return 400 if routineId is missing', async () => {
+    it('should return 400 if name is missing', async () => {
       const mockUser = { id: 'user-123' }
-      
+
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null,
       })
 
-      const request = new NextRequest('http://localhost:3000/api/sessions', {
+      const request = new NextRequest('http://localhost:3000/api/routines', {
         method: 'POST',
         body: JSON.stringify({
-          exercises: [],
+          exercises: [{ name: 'Bench Press', sets: [{ reps: 10, weight: 80 }] }],
         }),
       })
 
@@ -146,16 +150,16 @@ describe('Sessions API - Integration Tests', () => {
 
     it('should return 400 if exercises array is empty', async () => {
       const mockUser = { id: 'user-123' }
-      
+
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null,
       })
 
-      const request = new NextRequest('http://localhost:3000/api/sessions', {
+      const request = new NextRequest('http://localhost:3000/api/routines', {
         method: 'POST',
         body: JSON.stringify({
-          routineId: 'routine-1',
+          name: 'Test Routine',
           exercises: [],
         }),
       })
@@ -167,18 +171,64 @@ describe('Sessions API - Integration Tests', () => {
       expect(data.error).toContain('inválidos')
     })
 
-    it('should create session successfully', async () => {
+    it('should return 400 if exercise is missing name', async () => {
       const mockUser = { id: 'user-123' }
-      
+
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      })
+
+      const request = new NextRequest('http://localhost:3000/api/routines', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Test Routine',
+          exercises: [{ sets: [{ reps: 10, weight: 80 }] }],
+        }),
+      })
+
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(data.error).toContain('inválidos')
+    })
+
+    it('should return 400 if exercise has no sets', async () => {
+      const mockUser = { id: 'user-123' }
+
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      })
+
+      const request = new NextRequest('http://localhost:3000/api/routines', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Test Routine',
+          exercises: [{ name: 'Bench Press', sets: [] }],
+        }),
+      })
+
+      const response = await POST(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(data.error).toContain('inválidos')
+    })
+
+    it('should create routine successfully', async () => {
+      const mockUser = { id: 'user-123' }
+
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null,
       })
 
       mockSupabase.from.mockImplementation((table: string) => {
-        if (table === 'workout_sessions') {
+        if (table === 'routines') {
           const insertResult = {
-            data: { id: 'session-1', user_id: 'user-123', routine_id: 'routine-1' },
+            data: { id: 'routine-1', user_id: 'user-123', name: 'Push Day' },
             error: null,
           }
           return {
@@ -197,17 +247,17 @@ describe('Sessions API - Integration Tests', () => {
         }
       })
 
-      const request = new NextRequest('http://localhost:3000/api/sessions', {
+      const request = new NextRequest('http://localhost:3000/api/routines', {
         method: 'POST',
         body: JSON.stringify({
-          routineId: 'routine-1',
+          name: 'Push Day',
+          description: 'Chest and triceps',
           exercises: [{
-            exerciseId: 'ex-1',
-            completedSets: 3,
-            actualReps: [10, 10, 10],
-            actualWeight: [80, 80, 80],
+            name: 'Bench Press',
+            sets: [{ reps: 10, weight: 80 }, { reps: 10, weight: 80 }],
+            equipment: 'Barra',
           }],
-          notes: 'Great workout',
+          restBetweenSets: 90,
         }),
       })
 
@@ -219,9 +269,9 @@ describe('Sessions API - Integration Tests', () => {
       expect(data.id).toBeDefined()
     })
 
-    it('should rollback session if exercises insert fails', async () => {
+    it('should rollback routine if exercises insert fails', async () => {
       const mockUser = { id: 'user-123' }
-      
+
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: mockUser },
         error: null,
@@ -229,48 +279,33 @@ describe('Sessions API - Integration Tests', () => {
 
       const deleteMock = jest.fn().mockReturnThis()
 
-      mockSupabase.from.mockImplementation((table: string) => {
-        if (table === 'session_exercises') {
+      mockSupabase.from = jest.fn((table) => {
+        if (table === 'exercises') {
           return {
-            insert: jest.fn().mockReturnValue(Promise.resolve({
+            insert: jest.fn().mockResolvedValue({
               data: null,
               error: { message: 'Insert failed' },
-            })),
-          }
-        }
-        if (table === 'workout_sessions') {
-          const insertResult = {
-            data: { id: 'session-1' },
-            error: null,
-          }
-          return {
-            insert: jest.fn().mockReturnValue({
-              select: jest.fn().mockReturnValue({
-                single: jest.fn().mockReturnValue(Promise.resolve(insertResult)),
-              }),
             }),
-            delete: deleteMock,
-            eq: jest.fn().mockReturnThis(),
           }
         }
         return {
-          insert: jest.fn().mockReturnValue(Promise.resolve({
-            data: null,
+          select: jest.fn().mockReturnThis(),
+          insert: jest.fn().mockReturnThis(),
+          delete: deleteMock,
+          eq: jest.fn().mockReturnThis(),
+          order: jest.fn().mockReturnThis(),
+          single: jest.fn().mockResolvedValueOnce({
+            data: { id: 'routine-1' },
             error: null,
-          })),
+          }),
         }
       })
 
-      const request = new NextRequest('http://localhost:3000/api/sessions', {
+      const request = new NextRequest('http://localhost:3000/api/routines', {
         method: 'POST',
         body: JSON.stringify({
-          routineId: 'routine-1',
-          exercises: [{
-            exerciseId: 'ex-1',
-            completedSets: 3,
-            actualReps: [10, 10, 10],
-            actualWeight: [80, 80, 80],
-          }],
+          name: 'Push Day',
+          exercises: [{ name: 'Bench Press', sets: [{ reps: 10, weight: 80 }] }],
         }),
       })
 

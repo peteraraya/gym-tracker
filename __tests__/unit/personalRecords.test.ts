@@ -78,10 +78,10 @@ describe('Personal Records Library - Unit Tests', () => {
       
       expect(result).not.toBeNull()
       expect(result).toMatchObject({
-        exerciseName: 'Bench Press',
         sessions: 5,
         totalVolume: expect.any(Number),
-        averageWeight: expect.any(Number),
+        currentWeight: expect.any(Number),
+        previousWeight: expect.any(Number),
         personalRecord: expect.any(Object),
         trend: expect.stringMatching(/^(up|down|stable)$/),
         improvement: expect.any(Number),
