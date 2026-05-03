@@ -7,6 +7,7 @@ import { useToast } from '@/context/ToastContext';
 import { EQUIPMENT_LIST } from '@/data/equipment';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import Image from 'next/image';
 import { ExerciseDetails } from '@/components/ExerciseDetails';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
 import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
@@ -19,6 +20,25 @@ import { EmptyState } from '@/components/EmptyState';
 import { VirtualList } from '@/components/VirtualList';
 
 const ITEMS_PER_PAGE = APP_CONFIG.pagination.exercisesPerPage;
+
+function ExerciseImage({ exercise }: { exercise: ExerciseTemplate }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) return null;
+
+  return (
+    <div className="w-full h-40 sm:h-full relative bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
+      <Image
+        src={exercise.image!}
+        alt={exercise.name}
+        fill
+        className="object-cover hover:scale-105 transition-transform duration-300"
+        sizes="(max-width: 640px) 100vw, 160px"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
 
 export default function ExercisesPage() {
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | null>(null);
@@ -427,19 +447,7 @@ export default function ExercisesPage() {
                       {/* Image/Icon Section optimizada */}
                       <div className="sm:w-40 md:w-48 shrink-0">
                         {exercise.image ? (
-                          <div className="w-full h-40 sm:h-full bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={exercise.image} alt={exercise.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              if (!target.dataset.fallback) {
-                                target.dataset.fallback = '1';
-                                target.src = '/images/not-available.svg';
-                              } else {
-                                const parent = target.parentElement;
-                                if (parent) parent.style.display = 'none';
-                              }
-                            }} />
-                          </div>
+                          <ExerciseImage exercise={exercise} />
                         ) : (
                           <div className={`flex justify-center items-center h-40 sm:h-full ${exerciseTab === 'warmup' 
                             ? 'bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' 

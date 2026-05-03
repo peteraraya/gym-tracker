@@ -8,9 +8,6 @@ import { recommendForSession } from '@/lib/progression';
 import { useRoutines as useRoutinesQuery } from '@/hooks/queries/useRoutines';
 import { useSessions as useSessionsQuery } from '@/hooks/queries/useSessions';
 
-// Feature flag for React Query migration
-const USE_REACT_QUERY = process.env.NEXT_PUBLIC_USE_REACT_QUERY === 'true';
-
 interface RoutinesContextType {
   routines: Routine[];
   loading: boolean;
@@ -37,422 +34,169 @@ const SessionsContext = createContext<SessionsContextType | undefined>(undefined
 const GymContext = createContext<GymContextType | undefined>(undefined);
 
 export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Use React Query hooks if feature flag is enabled
-  const reactQueryRoutines = USE_REACT_QUERY ? useRoutinesQuery() : null;
-  const reactQuerySessions = USE_REACT_QUERY ? useSessionsQuery() : null;
-  
-  const [routines, setRoutines] = useState<Routine[]>([]);
-  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const reactQueryRoutines = useRoutinesQuery();
+  const reactQuerySessions = useSessionsQuery();
   const { user, loading: authLoading } = useAuth();
 
-  // Fetch routines from storage (localStorage or Supabase)
-  const refreshRoutines = useCallback(async () => {
-    try {
-      // console.log('[GymContext] refreshRoutines: Starting...');
-      const data = await storageService.getRoutines();
-      // console.log('[GymContext] refreshRoutines: Loaded', data.length, 'routines');
-      setRoutines(data);
-    } catch (error) {
-      console.error('[GymContext] Error fetching routines:', error);
-      // No overwriting existing routines on transient errors — mantener el estado previo
+  const [isMigrating, setIsMigrating] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const migrationResult = await storageService.migrateLegacySessions();
+        if (migrationResult.migrated > 0 && mounted) {
+          await reactQuerySessions.refetch();
+        }
+      } catch (e) {
+        console.warn('[GymContext] Migration failed:', e);
+      } finally {
+        if (mounted) setIsMigrating(false);
+      }
+    })();
+    return () => { mounted = false };
+  }, [reactQuerySessions]);
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true') {
+      if (authLoading) return;
+      if (!user) {
+        reactQueryRoutines.refetch();
+        reactQuerySessions.refetch();
+      }
     }
-  }, []);
+  }, [user, authLoading, reactQueryRoutines, reactQuerySessions]);
 
-  // Fetch sessions from storage (localStorage or Supabase)
-  const refreshSessions = useCallback(async () => {
-    try {
-      // console.log('[GymContext] refreshSessions: Starting...');
-      const data = await storageService.getSessions();
-      // console.log('[GymContext] refreshSessions: Loaded', data.length, 'sessions');
-      setSessions(data);
-
-      // Si la base de datos está habilitada, verificar si hay sesiones locales que necesitan sincronización
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
       if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true') {
         try {
           const storageStatus = storageService.getStorageStatus();
-          
-          // Si estamos en modo localStorage por error, intentar sincronizar
           if (storageStatus.mode === 'localStorage' && storageStatus.hasError) {
-            // console.log('[GymContext] Detected localStorage fallback, attempting sync...');
             const syncResult = await storageService.syncLocalSessionsToDatabase();
-            if (syncResult.synced > 0) {
-              // console.log(`[GymContext] Synced ${syncResult.synced} sessions to database`);
-              // Refrescar de nuevo para obtener datos de la BD
-              const freshData = await storageService.getSessions();
-              setSessions(freshData);
+            if (syncResult.synced > 0 && mounted) {
+              await reactQuerySessions.refetch();
             }
           }
         } catch (e) {
           console.warn('[GymContext] Sync check failed:', e);
         }
       }
-    } catch (error) {
-      console.error('[GymContext] Error fetching sessions:', error);
-      // Mantener sesiones previas en caso de error transitorio
-    }
-  }, []);
-
-  // Load data when user changes
-  useEffect(() => {
-    const loadData = async () => {
-      // console.log('[GymContext] Loading data for user:', user?.id || 'no-user');
-      setLoading(true);
-      
-      // Primero, migrar sesiones antiguas de localStorage si existen
-      try {
-        const migrationResult = await storageService.migrateLegacySessions();
-        if (migrationResult.migrated > 0) {
-          // console.log(`[GymContext] Migrated ${migrationResult.migrated} legacy sessions. Total: ${migrationResult.total}`);
-        }
-      } catch (e) {
-        console.warn('[GymContext] Migration failed:', e);
-      }
-      
-      // Luego cargar datos
-      await Promise.all([refreshRoutines(), refreshSessions()]);
-      
-      // console.log('[GymContext] Data loaded successfully');
-      setLoading(false);
-    };
-
-    // Si la autenticación aún se inicializa, esperar
-    if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true') {
-      if (authLoading) {
-        // Mantener loading hasta que Auth termine de inicializar
-        return;
-      }
-
-      // Con DB habilitada: solo cargar si hay usuario autenticado
-      if (user) {
-        loadData();
-      } else {
-        // No hay usuario -> no cargar datos remotos. Mantener estado vacío pero marcar como no loading.
-        // console.log('[GymContext] Skipping data load - no user and database enabled');
-        setLoading(false);
-        setRoutines([]);
-        setSessions([]);
-      }
-    } else {
-      // Modo localStorage (DB deshabilitada): siempre cargar datos locales
-      loadData();
-    }
-  }, [user, refreshRoutines, refreshSessions]);
+    })();
+    return () => { mounted = false };
+  }, [reactQuerySessions]);
 
   const addRoutine = useCallback(async (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      await storageService.createRoutine(routine as storageService.CreateRoutineData);
-      await refreshRoutines();
-    } catch (error) {
-      console.error('Error adding routine:', error);
-      throw error;
-    }
-  }, [refreshRoutines]);
+    await reactQueryRoutines.createRoutine(routine as storageService.CreateRoutineData);
+  }, [reactQueryRoutines]);
 
   const updateRoutine = useCallback(async (id: string, updatedData: Partial<Routine>) => {
-    try {
-      // Preferir obtener la rutina desde el storage para evitar overwrites
-      // pero si por alguna razón el storage no devuelve la rutina (p. ej. modo DB/no autenticado),
-      // hacer fallback al estado en memoria (`routines`). Esto evita errores cuando el backend
-      // responde diferente temporalmente.
-      const currentRoutines = await storageService.getRoutines();
-      let routine = currentRoutines.find(r => r.id === id);
+    const currentRoutines = reactQueryRoutines.routines;
+    const routine = currentRoutines.find(r => r.id === id);
+    if (!routine) throw new Error('Rutina no encontrada');
 
-      if (!routine) {
-        // Fallback al estado local como última opción
-        routine = routines.find(r => r.id === id);
-        if (routine) {
-          console.warn('[GymContext] updateRoutine: rutina encontrada en estado local pero no en storage, usando estado local como base');
-        }
-      }
-
-      if (!routine) {
-        // Log detallado para depuración remota
-        try {
-          console.error('[GymContext] updateRoutine - rutina no encontrada. storageIds=', (currentRoutines || []).map(r => r.id), 'stateIds=', routines.map(r => r.id));
-        } catch (e) {}
-        throw new Error('Rutina no encontrada');
-      }
-
-      const updatedRoutine = {
-        ...routine,
-        ...updatedData,
-      } as storageService.CreateRoutineData;
-
-      await storageService.updateRoutine(id, updatedRoutine);
-
-      // ✅ Actualizar el estado local inmediatamente sin esperar a refreshRoutines
-      // Esto asegura que la rutina actualizada esté disponible de inmediato
-      setRoutines(prevRoutines => 
-        prevRoutines.map(r => r.id === id ? updatedRoutine as Routine : r)
-      );
-
-      // Refrescar desde storage para asegurar consistencia
-      await refreshRoutines();
-    } catch (error) {
-      console.error('Error updating routine:', error);
-      throw error;
-    }
-  }, [refreshRoutines, routines]);
+    const updatedRoutine = { ...routine, ...updatedData } as storageService.CreateRoutineData;
+    await reactQueryRoutines.updateRoutine(id, updatedRoutine);
+  }, [reactQueryRoutines]);
 
   const deleteRoutine = useCallback(async (id: string) => {
+    await reactQueryRoutines.deleteRoutine(id);
+
     try {
-      await storageService.deleteRoutine(id);
-      
-      // Limpiar la rutina del planificador semanal
-      try {
-        const { getWeeklyPlan, saveWeeklyPlan } = await import('@/lib/storage/storage');
-        const weeklyPlan = await getWeeklyPlan();
-        
-        if (weeklyPlan) {
-          const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
-          let planModified = false;
-          
-          const updatedPlan = { ...weeklyPlan };
-          
-          for (const day of days) {
-            if (updatedPlan[day]?.routines) {
-              const originalLength = updatedPlan[day].routines.length;
-              updatedPlan[day].routines = updatedPlan[day].routines.filter((rid: string) => rid !== id);
-              
-              if (updatedPlan[day].routines.length !== originalLength) {
-                planModified = true;
-              }
+      const { getWeeklyPlan, saveWeeklyPlan } = await import('@/lib/storage/storage');
+      const weeklyPlan = await getWeeklyPlan();
+
+      if (weeklyPlan) {
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+        let planModified = false;
+        const updatedPlan = { ...weeklyPlan };
+
+        for (const day of days) {
+          if (updatedPlan[day]?.routines) {
+            const originalLength = updatedPlan[day].routines.length;
+            updatedPlan[day].routines = updatedPlan[day].routines.filter((rid: string) => rid !== id);
+            if (updatedPlan[day].routines.length !== originalLength) {
+              planModified = true;
             }
           }
-          
-          if (planModified) {
-            await saveWeeklyPlan(updatedPlan);
-            // console.log(`[GymContext] Removed routine ${id} from weekly planner`);
-          }
         }
-      } catch (planError) {
-        console.warn('Error cleaning routine from weekly planner:', planError);
-        // No lanzar error, la rutina ya fue eliminada
+
+        if (planModified) {
+          await saveWeeklyPlan(updatedPlan);
+        }
       }
-      
-      await refreshRoutines();
-    } catch (error) {
-      console.error('Error deleting routine:', error);
-      throw error;
+    } catch (planError) {
+      console.warn('Error cleaning routine from weekly planner:', planError);
     }
-  }, [refreshRoutines]);
+  }, [reactQueryRoutines]);
 
   const addSession = useCallback(async (session: Omit<WorkoutSession, 'id'>) => {
+    await reactQuerySessions.addSession(session);
+
     try {
-      // console.log('[GymContext] addSession called, session summary:', {
-      //   routineId: session.routineId,
-      //   date: session.date,
-      //   exercises: session.exercises ? session.exercises.length : 0,
-      // });
-
-      // Guardar sesión (intentará Supabase primero, luego localStorage como fallback)
-      await storageService.saveSession(session as WorkoutSession);
-      // console.log('[GymContext] storageService.saveSession resolved');
-
-      // Verificar el estado del storage para debugging
-      const storageStatus = storageService.getStorageStatus();
-      // console.log('[GymContext] Storage status:', storageStatus);
-
-      // Si hay error de storage (cayó a localStorage), intentar sincronizar
-      if (storageStatus.hasError) {
-        // console.warn('[GymContext] Storage error detected, will attempt sync on next load');
+      const allSessions = reactQuerySessions.sessions;
+      const recs = recommendForSession(session as WorkoutSession, allSessions, { repTarget: 8, compound: true });
+      if (recs && recs.length > 0) {
+        await storageService.saveRecommendations(recs);
       }
-
-      // Refrescar sesiones para obtener la lista actualizada
-      await refreshSessions();
-      // console.log('[GymContext] refreshSessions completed');
-
-      // Generar recomendaciones de progresión (2-for-2) y persistir mediante storageService
-      try {
-        const allSessions = await storageService.getSessions();
-        const recs = recommendForSession(session as WorkoutSession, allSessions, { repTarget: 8, compound: true });
-        if (recs && recs.length > 0) {
-          await storageService.saveRecommendations(recs);
-          // console.log('[GymContext] Saved progression recommendations', recs.length);
-        }
-      } catch (e) {
-        console.warn('[GymContext] Failed to save recommendations:', e);
-      }
-    } catch (error) {
-      console.error('Error adding session:', error);
-      throw error;
+    } catch (e) {
+      console.warn('[GymContext] Failed to save recommendations:', e);
     }
-  }, [refreshSessions]);
+  }, [reactQuerySessions]);
 
   const updateSession = useCallback(async (updatedSession: WorkoutSession) => {
-    try {
-      console.log('[GymContext] updateSession called for session:', updatedSession.id);
-      
-      // Actualizar sesión en storage
-      await storageService.updateSession(updatedSession);
-      
-      // Refrescar sesiones para obtener la lista actualizada
-      await refreshSessions();
-      
-      console.log('[GymContext] Session updated successfully');
-    } catch (error) {
-      console.error('Error updating session:', error);
-      throw error;
-    }
-  }, [refreshSessions]);
+    await reactQuerySessions.updateSession(updatedSession);
+  }, [reactQuerySessions]);
 
   const deleteSession = useCallback(async (sessionId: string) => {
-    try {
-      console.log('[GymContext] deleteSession called for session:', sessionId);
-      
-      // Eliminar sesión del storage
-      await storageService.deleteSession(sessionId);
-      
-      // Refrescar sesiones para obtener la lista actualizada
-      await refreshSessions();
-      
-      console.log('[GymContext] Session deleted successfully');
-    } catch (error) {
-      console.error('Error deleting session:', error);
-      throw error;
-    }
-  }, [refreshSessions]);
+    await reactQuerySessions.deleteSession(sessionId);
+  }, [reactQuerySessions]);
 
   const getRoutineById = useCallback((id: string) => {
-    return routines.find(routine => routine.id === id);
-  }, [routines]);
+    return reactQueryRoutines.routines.find(r => r.id === id);
+  }, [reactQueryRoutines]);
 
-  const routinesValue = useMemo<RoutinesContextType>(() => {
-    // Use React Query data if enabled
-    if (USE_REACT_QUERY && reactQueryRoutines) {
-      return {
-        routines: reactQueryRoutines.routines,
-        loading: reactQueryRoutines.isLoading,
-        addRoutine: async (routine) => {
-          await reactQueryRoutines.createRoutine(routine as storageService.CreateRoutineData);
-        },
-        updateRoutine: async (id, updatedData) => {
-          const currentRoutines = reactQueryRoutines.routines;
-          const routine = currentRoutines.find(r => r.id === id);
-          if (!routine) throw new Error('Rutina no encontrada');
-          
-          const updatedRoutine = { ...routine, ...updatedData } as storageService.CreateRoutineData;
-          await reactQueryRoutines.updateRoutine(id, updatedRoutine);
-        },
-        deleteRoutine: async (id) => {
-          await reactQueryRoutines.deleteRoutine(id);
-          
-          // Clean from weekly planner
-          try {
-            const { getWeeklyPlan, saveWeeklyPlan } = await import('@/lib/storage/storage');
-            const weeklyPlan = await getWeeklyPlan();
-            
-            if (weeklyPlan) {
-              const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
-              let planModified = false;
-              const updatedPlan = { ...weeklyPlan };
-              
-              for (const day of days) {
-                if (updatedPlan[day]?.routines) {
-                  const originalLength = updatedPlan[day].routines.length;
-                  updatedPlan[day].routines = updatedPlan[day].routines.filter((rid: string) => rid !== id);
-                  
-                  if (updatedPlan[day].routines.length !== originalLength) {
-                    planModified = true;
-                  }
-                }
-              }
-              
-              if (planModified) {
-                await saveWeeklyPlan(updatedPlan);
-              }
-            }
-          } catch (planError) {
-            console.warn('Error cleaning routine from weekly planner:', planError);
-          }
-        },
-        getRoutineById: (id) => reactQueryRoutines.routines.find(r => r.id === id),
-        refreshRoutines: async () => {
-          await reactQueryRoutines.refetch();
-        },
-      };
-    }
-    
-    // Fallback to original Context API implementation
-    return {
-      routines,
-      loading,
-      addRoutine,
-      updateRoutine,
-      deleteRoutine,
-      getRoutineById,
-      refreshRoutines,
-    };
-  }, [USE_REACT_QUERY, reactQueryRoutines, routines, loading, addRoutine, updateRoutine, deleteRoutine, getRoutineById, refreshRoutines]);
+  const routinesValue = useMemo<RoutinesContextType>(() => ({
+    routines: reactQueryRoutines.routines,
+    loading: reactQueryRoutines.isLoading || isMigrating,
+    addRoutine,
+    updateRoutine,
+    deleteRoutine,
+    getRoutineById,
+    refreshRoutines: async () => { reactQueryRoutines.refetch(); },
+  }), [reactQueryRoutines, isMigrating, addRoutine, updateRoutine, deleteRoutine, getRoutineById]);
 
-  const sessionsValue = useMemo<SessionsContextType>(() => {
-    // Use React Query data if enabled
-    if (USE_REACT_QUERY && reactQuerySessions) {
-      return {
-        sessions: reactQuerySessions.sessions,
-        loading: reactQuerySessions.isLoading,
-        addSession: async (session) => {
-          await reactQuerySessions.addSession(session);
-          
-          // Generate progression recommendations
-          try {
-            const allSessions = reactQuerySessions.sessions;
-            const recs = recommendForSession(session as WorkoutSession, allSessions, { repTarget: 8, compound: true });
-            if (recs && recs.length > 0) {
-              await storageService.saveRecommendations(recs);
-            }
-          } catch (e) {
-            console.warn('[GymContext] Failed to save recommendations:', e);
-          }
-        },
-        updateSession: reactQuerySessions.updateSession,
-        deleteSession: reactQuerySessions.deleteSession,
-        refreshSessions: async () => {
-          await reactQuerySessions.refetch();
-        },
-      };
-    }
-    
-    // Fallback to original Context API implementation
-    return {
-      sessions,
-      loading,
-      addSession,
-      updateSession,
-      deleteSession,
-      refreshSessions,
-    };
-  }, [USE_REACT_QUERY, reactQuerySessions, sessions, loading, addSession, updateSession, deleteSession, refreshSessions]);
+  const sessionsValue = useMemo<SessionsContextType>(() => ({
+    sessions: reactQuerySessions.sessions,
+    loading: reactQuerySessions.isLoading || isMigrating,
+    addSession,
+    updateSession,
+    deleteSession,
+    refreshSessions: async () => { reactQuerySessions.refetch(); },
+  }), [reactQuerySessions, isMigrating, addSession, updateSession, deleteSession]);
 
   const value = useMemo<GymContextType>(() => ({
     ...routinesValue,
     ...sessionsValue,
   }), [routinesValue, sessionsValue]);
 
-  // Exponer helper temporal para reconstruir rutinas desde sesiones (invocar desde consola)
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      // @ts-ignore
+      // @ts-expect-error Temporary debug helper
       window.__rebuildRoutinesFromSessions = async () => {
         try {
-           
-          // console.log('[GymContext] Rebuilding routines from sessions...');
           const created = await storageService.rebuildRoutinesFromSessions();
-          await refreshRoutines();
-          await refreshSessions();
-           
-          // console.log('[GymContext] Rebuild finished, created:', created?.length || 0);
+          await reactQueryRoutines.refetch();
+          await reactQuerySessions.refetch();
           return created;
         } catch (e) {
-           
           console.error('[GymContext] rebuild failed', e);
           throw e;
         }
       };
     }
-    // cleanup not necessary for temporary debug helper
-  }, [refreshRoutines, refreshSessions]);
+  }, [reactQueryRoutines, reactQuerySessions]);
 
   return (
     <RoutinesContext.Provider value={routinesValue}>

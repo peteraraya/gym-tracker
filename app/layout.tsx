@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { GymProvider } from "@/context/GymContext";
-import { LocaleProvider } from "@/context/LocaleContext";
-import { AuthProvider } from "@/context/AuthContext";
-import { EquipmentProvider } from "@/context/EquipmentContext";
-import { WorkoutProvider } from "@/context/WorkoutContext";
-import { ToastProvider } from "@/context/ToastContext";
-import { ConfirmProvider } from "@/context/ConfirmContext";
-import { OnboardingProvider } from "@/context/OnboardingContext";
+import { Providers } from "@/components/Providers";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { OnboardingProvider } from "@/context/OnboardingContext";
 import { ClientOnly } from "@/components/ClientOnly";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { PWAInstaller } from "@/components/PWAInstaller";
@@ -40,7 +34,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  // `themeColor` and `viewport` moved to `generateViewport` below
 };
 
 export function generateViewport() {
@@ -99,32 +92,19 @@ export default function RootLayout({
         <ErrorBoundary>
           <ReactQueryProvider>
             <ThemeProvider>
-              <AuthProvider>
-                <LocaleProvider>
-                  <EquipmentProvider>
-                    <GymProvider>
-                      <WorkoutProvider>
-                        <ToastProvider>
-                          <ConfirmProvider>
-                            <OnboardingProvider>
-                              {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
-                              <ClientOnly>
-                                <ServiceWorkerRegistration />
-                                <PWAInstaller />
-                                <GlobalUI />
-                                <Onboarding />
-                              </ClientOnly>
-                              <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-                                {children}
-                              </main>
-                            </OnboardingProvider>
-                          </ConfirmProvider>
-                        </ToastProvider>
-                      </WorkoutProvider>
-                    </GymProvider>
-                  </EquipmentProvider>
-                </LocaleProvider>
-              </AuthProvider>
+              <Providers>
+                <OnboardingProvider>
+                  <ClientOnly>
+                    <ServiceWorkerRegistration />
+                    <PWAInstaller />
+                    <GlobalUI />
+                    <Onboarding />
+                  </ClientOnly>
+                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+                    {children}
+                  </main>
+                </OnboardingProvider>
+              </Providers>
             </ThemeProvider>
           </ReactQueryProvider>
         </ErrorBoundary>

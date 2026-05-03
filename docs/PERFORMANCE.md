@@ -43,11 +43,7 @@ function MyComponent() {
 
 ### Feature Flag
 
-Enable React Query gradually with the feature flag:
-
-```env
-NEXT_PUBLIC_USE_REACT_QUERY=true
-```
+React Query is fully integrated for data fetching with optimistic updates.
 
 ## Virtualization
 
@@ -271,10 +267,8 @@ const handleClick = useCallback(() => {
 
 ## Migration Checklist
 
-- [ ] Enable NEXT_PUBLIC_USE_REACT_QUERY feature flag
-- [ ] Test all CRUD operations
-- [ ] Verify offline functionality
+- [x] Migrate to React Query (feature flag removed)
+- [x] Test all CRUD operations
+- [x] Verify offline functionality
 - [ ] Test with large datasets (100+ sessions)
 - [ ] Measure performance metrics
-- [ ] Remove feature flag after validation
-- [ ] Clean up old Context API code

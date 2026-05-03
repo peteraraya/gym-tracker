@@ -30,12 +30,12 @@
   "dependencies": {
     "@capacitor/app": "^6.0.1",
     "@capacitor/core": "^6.2.0",
+    "@hookform/resolvers": "^5.2.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.0",
     "@tanstack/react-query": "^5.95.2",
     "@tanstack/react-query-devtools": "^5.95.2",
     "@tanstack/react-virtual": "^3.13.23",
-    "formik": "^2.4.0",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.555.0",
     "next": "^16.1.4",
@@ -44,8 +44,8 @@
     "puppeteer": "^24.15.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-hook-form": "^7.74.0",
     "web-push": "^3.6.7",
-    "yup": "^1.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
