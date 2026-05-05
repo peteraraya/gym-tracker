@@ -18,6 +18,7 @@ import { APP_CONFIG } from '@/config/app.config';
 import { useFilteredData } from '@/hooks/useFilteredData';
 import { EmptyState } from '@/components/EmptyState';
 import { VirtualList } from '@/components/VirtualList';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 const ITEMS_PER_PAGE = APP_CONFIG.pagination.exercisesPerPage;
 
@@ -139,74 +140,58 @@ export default function ExercisesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Header Section */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="container mx-auto px-4 py-6 sm:py-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-xl">
-                    <span className="text-2xl">💡</span>
-                  </div>
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white">
-                      Guía de Ejercicios
-                    </h1>
-                    <p className="text-white/80 mt-1 text-sm sm:text-base">
-                      Explora ejercicios con técnicas profesionales
-                    </p>
-                  </div>
+      <PageLayout>
+        <PageHeader
+          title="Guía de Ejercicios"
+          subtitle="Explora ejercicios con técnicas profesionales"
+          icon={<span className="text-3xl">💪</span>}
+          gradient="from-blue-700 via-blue-800 to-indigo-900"
+          actions={(
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDrawerOpen(true)}
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white border-white/20 hover:bg-white/20 backdrop-blur-sm transition-all text-sm shadow-md"
+            >
+              <span className="text-base">⚙️</span>
+              <span className="hidden sm:inline">Equipamiento</span>
+            </Button>
+          )}
+        >
+          {/* Filtro de equipamiento */}
+          {selectedEquipment.size > 0 && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 shadow-md border border-white/20">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏋️</span>
+                  <span className="text-sm font-medium text-white">
+                    Filtrando por {selectedEquipment.size} equipamiento{selectedEquipment.size !== 1 ? 's' : ''}
+                  </span>
                 </div>
-
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setDrawerOpen(true)}
-                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-white/20 text-white border-white/30 hover:bg-white/30 transition-all text-sm"
-                >
-                  <span className="text-base">⚙️</span>
-                  <span className="hidden sm:inline">Equipamiento</span>
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleEquipmentSelect}
+                    className="text-xs bg-white/20 hover:bg-white/30 text-white border-0 shadow-sm"
+                  >
+                    ✅ Todo
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={handleEquipmentClear}
+                    className="text-xs bg-red-600/40 hover:bg-red-600/50 text-white border-0 shadow-sm"
+                  >
+                    🗑️ Limpiar
+                  </Button>
+                </div>
               </div>
-
-              {/* Filtro de equipamiento */}
-              {selectedEquipment.size > 0 && (
-                <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-xl p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">🏋️</span>
-                      <span className="text-sm font-medium text-white">
-                        Filtrando por {selectedEquipment.size} equipamiento{selectedEquipment.size !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={handleEquipmentSelect}
-                        className="text-xs bg-white/30 hover:bg-white/40 text-white border-0"
-                      >
-                        ✅ Todo
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={handleEquipmentClear}
-                        className="text-xs bg-red-500/30 hover:bg-red-500/40 text-white border-0"
-                      >
-                        🗑️ Limpiar
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
-        </div>
+          )}
+        </PageHeader>
 
-        <div className="container mx-auto px-4 py-6 sm:py-8">
-          <div className="max-w-7xl mx-auto">
+        <PageContent>
             {/* Rest of the content remains the same... */}
             {!selectedMuscle ? (
               <>
@@ -546,8 +531,7 @@ export default function ExercisesPage() {
                 )}
               </>
             )}
-          </div>
-        </div>
+        </PageContent>
 
         {/* Modal de detalles */}
         {selectedExercise && (
@@ -557,18 +541,27 @@ export default function ExercisesPage() {
         {/* Drawer de equipamiento */}
         {drawerOpen && (
           <div className="fixed inset-0 z-50 flex">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
-            <aside className="ml-auto w-full sm:w-96 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 max-h-screen overflow-y-auto p-6 shadow-2xl">
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
+              onClick={() => setDrawerOpen(false)} 
+            />
+            
+            {/* Drawer panel */}
+            <aside className="relative ml-auto w-full sm:w-96 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 max-h-screen overflow-y-auto p-6 shadow-2xl z-10">
+              {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">⚙️ Mi Equipamiento</h3>
                 <button 
                   onClick={() => setDrawerOpen(false)} 
                   className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl leading-none transition-colors"
+                  aria-label="Cerrar"
                 >
                   ×
                 </button>
               </div>
 
+              {/* Action buttons */}
               <div className="flex gap-2 mb-6">
                 <button 
                   onClick={() => { 
@@ -590,6 +583,7 @@ export default function ExercisesPage() {
                 </button>
               </div>
 
+              {/* Equipment list */}
               <div className="space-y-3">
                 {EQUIPMENT_LIST.map((eq) => {
                   const isSelected = selectedEquipment.has(eq.id);
@@ -603,7 +597,6 @@ export default function ExercisesPage() {
                         } else {
                           toast.success(`${eq.name} seleccionado`);
                         }
-                        setDrawerOpen(false);
                       }}
                       className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                         isSelected 
@@ -634,7 +627,7 @@ export default function ExercisesPage() {
             </aside>
           </div>
         )}
-      </div>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

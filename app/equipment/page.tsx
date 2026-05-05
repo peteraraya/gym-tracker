@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { EQUIPMENT_LIST, EQUIPMENT_CATEGORIES, Equipment } from '@/data/equipment';
 import { useEquipment } from '@/context/EquipmentContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 export default function EquipmentPage() {
   const { selectedEquipment, toggleEquipment, clearEquipment } = useEquipment();
@@ -28,26 +29,21 @@ export default function EquipmentPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              🏋️ Mi Equipamiento
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
-              Selecciona el equipamiento que tienes disponible para filtrar ejercicios y rutinas
-            </p>
-          </div>
-
+      <PageLayout>
+        <PageHeader
+          title="Mi Equipamiento"
+          subtitle="Selecciona el equipamiento que tienes disponible"
+          icon={<span className="text-3xl">🏋️</span>}
+          gradient="from-blue-700 via-indigo-700 to-indigo-800"
+        >
           {/* Stats */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+          <div className="mt-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-md">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-blue-600 dark:text-blue-400 font-semibold mb-1">
+                <div className="text-sm text-white/80 font-semibold mb-1">
                   Equipamiento seleccionado
                 </div>
-                <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                <div className="text-2xl font-bold text-white">
                   {selectedCount} / {totalCount}
                 </div>
               </div>
@@ -57,6 +53,7 @@ export default function EquipmentPage() {
                   size="sm"
                   onClick={handleSelectAll}
                   disabled={selectedCount === totalCount}
+                  className="bg-white/20 text-white border-white/30 hover:bg-white/30"
                 >
                   ✅ Seleccionar todo
                 </Button>
@@ -65,17 +62,21 @@ export default function EquipmentPage() {
                   size="sm"
                   onClick={clearEquipment}
                   disabled={selectedCount === 0}
+                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
                 >
-                  🗑️ Limpiar selección
+                  🗑️ Limpiar
                 </Button>
               </div>
             </div>
             {selectedCount === 0 && (
-              <div className="mt-4 text-sm text-blue-700 dark:text-blue-300">
+              <div className="mt-4 text-sm text-white/80">
                 💡 Tip: Si no seleccionas ningún equipamiento, se mostrarán todos los ejercicios
               </div>
             )}
           </div>
+        </PageHeader>
+
+        <PageContent maxWidth="6xl">
 
           {/* Category Filters */}
           <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
@@ -178,8 +179,8 @@ export default function EquipmentPage() {
               </ul>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </PageContent>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

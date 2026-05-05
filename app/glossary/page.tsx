@@ -11,6 +11,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Search, BookOpen, Link as LinkIcon, Lightbulb } from '@/components/icons/lucide';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 export default function GlossaryPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,25 +53,16 @@ export default function GlossaryPage() {
   }, [filteredTerms]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-4">
-        <Card className="shadow-lg">
-          <CardHeader className="bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg p-4">
-            <CardTitle className="flex items-center gap-3 text-white">
-              <BookOpen className="w-6 h-6" />
-              <div>
-                <h1 className="text-2xl font-bold">Glosario de Fitness</h1>
-                <p className="text-indigo-100 text-sm mt-0.5">
-                  {glossaryTerms.length} términos esenciales para tu entrenamiento
-                </p>
-              </div>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+    <PageLayout>
+      <PageHeader
+        title="Glosario de Fitness"
+        subtitle={`${glossaryTerms.length} términos esenciales para tu entrenamiento`}
+        icon={<BookOpen className="w-7 h-7 text-white" />}
+        gradient="from-indigo-700 via-purple-800 to-purple-900"
+      />
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <PageContent>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Sidebar - Filtros */}
         <div className="lg:col-span-1 space-y-4">
           {/* Búsqueda */}
@@ -206,7 +198,8 @@ export default function GlossaryPage() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </PageContent>
 
       {/* Modal de Detalle del Término */}
       {selectedTerm && (
@@ -294,6 +287,6 @@ export default function GlossaryPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

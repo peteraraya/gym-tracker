@@ -11,9 +11,9 @@ import { RestSettings } from '@/components/RestSettings';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import RestartOnboardingButton from '@/components/RestartOnboardingButton';
 import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
-import { PageLayout } from '@/components/PageLayout';
 import { LoadingState } from '@/components/LoadingState';
 import { usePageData } from '@/hooks/usePageData';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -160,11 +160,15 @@ export default function ProfilePage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            Mi Perfil
-          </h1>
+      <PageLayout>
+        <PageHeader
+          title="Mi Perfil"
+          subtitle="Gestiona tu información personal y configuración"
+          icon={<span className="text-3xl">👤</span>}
+          gradient="from-slate-700 via-gray-800 to-gray-900"
+        />
+
+        <PageContent maxWidth="2xl">
 
           <div className="space-y-4">
             {/* Datos Personales y Fitness */}
@@ -443,8 +447,8 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
+        </PageContent>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

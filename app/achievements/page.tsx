@@ -10,7 +10,6 @@ import type { WorkoutSession } from '@/types';
 import { calculateAchievements, calculateStreak, calculateTotalVolume } from '@/lib/achievements';
 import { 
   Award, 
-  ArrowLeft, 
   Trophy, 
   Flame, 
   Calendar, 
@@ -18,6 +17,7 @@ import {
   TrendingUp,
   Zap
 } from 'lucide-react';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 export default function AchievementsPage() {
   const router = useRouter();
@@ -62,42 +62,25 @@ export default function AchievementsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="p-4 max-w-7xl mx-auto space-y-4">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver
-          </Button>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Trophy className="w-6 h-6 text-amber-600" />
-              Logros y Medallas
-            </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 mt-1 text-sm">
-              Desbloquea logros por tu dedicación y progreso
-            </p>
-          </div>
-
-          {/* Overall Stats */}
-          <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-4 border border-amber-200 dark:border-zinc-700">
+      <PageLayout>
+        <PageHeader
+          title="Logros y Medallas"
+          subtitle="Desbloquea logros por tu dedicación y progreso"
+          icon={<Trophy className="w-7 h-7 text-white" />}
+          gradient="from-amber-700 via-orange-700 to-orange-800"
+          stats={(
             <div className="text-center">
-              <div className="text-4xl font-bold text-amber-600 dark:text-amber-400">
+              <div className="text-4xl font-bold text-white">
                 {completionPercentage}%
               </div>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+              <p className="text-sm text-white/80 mt-1">
                 {unlockedCount} de {totalCount} logros
               </p>
             </div>
-          </div>
-        </div>
+          )}
+        />
+
+        <PageContent>
 
         {/* Key Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -216,7 +199,8 @@ export default function AchievementsPage() {
             </Button>
           </div>
         )}
-      </div>
+        </PageContent>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

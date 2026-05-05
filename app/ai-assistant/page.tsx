@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Send, Bot, User, Sparkles, Dumbbell, TrendingUp, AlertCircle } from '@/components/icons/lucide';
 import { EXERCISE_DATABASE } from '@/data/exercises';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 interface Message {
   id: string;
@@ -145,75 +146,60 @@ export default function AIAssistantPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-linear-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950 dark:via-blue-950 dark:to-cyan-950 p-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-4">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="p-2.5 bg-linear-to-br from-purple-600 to-blue-600 rounded-xl shadow-md">
-                <Sparkles className="w-6 h-6 text-white" />
+      <PageLayout>
+        <PageHeader
+          title="Asistente IA"
+          subtitle="Tu entrenador personal inteligente"
+          icon={<Sparkles className="w-7 h-7 text-white" />}
+          gradient="from-purple-700 via-indigo-700 to-blue-800"
+        >
+          {/* Info Cards */}
+          <div className="grid md:grid-cols-3 gap-3 mt-4">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <Dumbbell className="w-6 h-6 text-white" />
+                <div>
+                  <p className="text-xl font-bold text-white">
+                    {EXERCISE_DATABASE.length}
+                  </p>
+                  <p className="text-xs text-white/80">
+                    Ejercicios en base de datos
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Asistente IA
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Tu entrenador personal inteligente
-                </p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-6 h-6 text-white" />
+                <div>
+                  <p className="text-xl font-bold text-white">
+                    {sessions.length}
+                  </p>
+                  <p className="text-xs text-white/80">
+                    Sesiones registradas
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <Bot className="w-6 h-6 text-white" />
+                <div>
+                  <p className="text-xl font-bold text-white">
+                    24/7
+                  </p>
+                  <p className="text-xs text-white/80">
+                    Disponible siempre
+                  </p>
+                </div>
               </div>
             </div>
           </div>
+        </PageHeader>
 
-          {/* Info Cards */}
-          <div className="grid md:grid-cols-3 gap-3 mb-4">
-            <Card className="bg-linear-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                  <Dumbbell className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  <div>
-                    <p className="text-xl font-bold text-purple-900 dark:text-purple-100">
-                      {EXERCISE_DATABASE.length}
-                    </p>
-                    <p className="text-xs text-purple-700 dark:text-purple-300">
-                      Ejercicios en base de datos
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-linear-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <p className="text-xl font-bold text-blue-900 dark:text-blue-100">
-                      {sessions.length}
-                    </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
-                      Sesiones registradas
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-linear-to-br from-cyan-100 to-cyan-50 dark:from-cyan-900/30 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                  <Bot className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
-                  <div>
-                    <p className="text-xl font-bold text-cyan-900 dark:text-cyan-100">
-                      24/7
-                    </p>
-                    <p className="text-xs text-cyan-700 dark:text-cyan-300">
-                      Disponible siempre
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <PageContent maxWidth="4xl">
 
           {/* Chat Container */}
           <Card className="shadow-2xl">
@@ -336,8 +322,8 @@ export default function AIAssistantPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </PageContent>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

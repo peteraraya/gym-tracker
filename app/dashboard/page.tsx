@@ -23,14 +23,16 @@ import {
   Target,
   Flame,
   Activity,
-  BarChart3
+  BarChart3,
+  Play,
+  Pencil,
+  Copy,
+  Trash2
 } from '@/components/icons/lucide';
 import { useGym } from '@/context/GymContext';
 import { useValidSessions } from '@/hooks/useValidSessions';
-import { PageLayout } from '@/components/PageLayout';
-import { StatsGrid, StatCard } from '@/components/StatsGrid';
-import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 // Lazy loaded components
 import {
@@ -169,35 +171,175 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-4 max-w-7xl mx-auto space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            {t('pageTitle')}
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-            {t('pageDescription')}
-          </p>
-        </div>
-        {profile && (
-          <div className="hidden md:flex items-center gap-3 bg-linear-to-r from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800 px-4 py-2 rounded-xl border border-blue-100 dark:border-zinc-700">
-            <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+    <PageLayout>
+      <PageHeader
+        title={t('pageTitle')}
+        subtitle={t('pageDescription')}
+        icon={<BarChart3 className="w-7 h-7 text-white" />}
+        gradient="from-slate-700 via-slate-800 to-slate-900"
+        stats={profile && (
+          <>
+            <Target className="w-5 h-5 text-white" />
             <div className="text-sm">
-              <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+              <p className="font-semibold text-white">
                 {profile.fitnessGoal === 'muscle_gain' && t('fitnessGoals.muscle_gain')}
                 {profile.fitnessGoal === 'strength' && t('fitnessGoals.strength')}
                 {profile.fitnessGoal === 'weight_loss' && t('fitnessGoals.weight_loss')}
                 {profile.fitnessGoal === 'endurance' && t('fitnessGoals.endurance')}
                 {profile.fitnessGoal === 'general_fitness' && t('fitnessGoals.general_fitness')}
               </p>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 capitalize">
+              <p className="text-xs text-white/70 capitalize">
                 {profile.fitnessLevel}
               </p>
             </div>
-          </div>
+          </>
         )}
-      </div>
+      />
+
+      <PageContent>
+
+      {/* Rutinas Disponibles - Sección destacada */}
+      {routines.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Dumbbell className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                Mis Rutinas
+              </h2>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/routines')}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            >
+              Ver Todas →
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {routines.slice(0, 2).map((routine) => {
+              const totalExercises = routine.exercises.length;
+              const totalSeries = routine.exercises.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0);
+              
+              return (
+                <Card 
+                  key={routine.id} 
+                  className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-400 dark:hover:border-blue-500 bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/10"
+                >
+                  <CardContent className="p-5">
+                    {/* Header con título */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          {routine.name}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Descripción */}
+                    {routine.description && (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2">
+                        {routine.description}
+                      </p>
+                    )}
+
+                    {/* Stats rápidas */}
+                    <div className="flex items-center gap-3 mb-4 text-sm flex-wrap">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                        <Dumbbell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <span className="font-semibold text-blue-700 dark:text-blue-300">
+                          {totalExercises}
+                        </span>
+                        <span className="text-blue-600 dark:text-blue-400 text-xs">
+                          ejercicio{totalExercises !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800">
+                        <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+                          {totalSeries}
+                        </span>
+                        <span className="text-emerald-600 dark:text-emerald-400 text-xs">
+                          series
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Lista de ejercicios (primeros 3) */}
+                    <div className="space-y-2 mb-4">
+                      {routine.exercises.slice(0, 3).map((exercise, idx) => (
+                        <div 
+                          key={idx}
+                          className="flex items-center gap-2 text-sm bg-white/50 dark:bg-gray-700/30 rounded-lg p-2"
+                        >
+                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 w-5">
+                            {idx + 1}.
+                          </span>
+                          <span className="flex-1 text-zinc-700 dark:text-zinc-300 font-medium truncate">
+                            {exercise.name}
+                          </span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                            {exercise.sets?.length || 0} series
+                          </span>
+                        </div>
+                      ))}
+                      {routine.exercises.length > 3 && (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
+                          +{routine.exercises.length - 3} más
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Botón de acción */}
+                    <Button
+                      variant="gradient"
+                      onClick={() => router.push(`/workout?routineId=${routine.id}`)}
+                      className="w-full gap-2 shadow-lg hover:shadow-xl transition-all bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-2"
+                    >
+                      <Play className="w-4 h-4" />
+                      Iniciar Entrenamiento
+                    </Button>
+
+                    {/* Botones secundarios */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push(`/routines`)}
+                        className="flex-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push(`/routines`)}
+                        className="flex-1 text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Duplicar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {/* TODO: Implementar eliminar */}}
+                        className="flex-1 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Eliminar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+  
 
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -205,14 +347,14 @@ export default function DashboardPage() {
           title={t('statsCards.totalSessions')}
           value={stats.totalSessions.toString()}
           icon={<Calendar className="w-6 h-6" />}
-          gradient="from-blue-500 to-blue-600"
+          gradient="from-slate-600 to-slate-700"
         />
 
         <StatsCard
           title={t('statsCards.totalVolume')}
           value={`${stats.totalVolume.toLocaleString()} ${t('units.kg')}`}
           icon={<Dumbbell className="w-6 h-6" />}
-          gradient="from-purple-500 to-purple-600"
+          gradient="from-blue-600 to-blue-700"
           trend={volumeTrend !== 0 ? {
             value: Math.abs(volumeTrend),
             isPositive: volumeTrend > 0
@@ -224,14 +366,14 @@ export default function DashboardPage() {
           title={t('statsCards.currentStreak')}
           value={`${stats.currentStreak} ${t('statsCards.days')}`}
           icon={<Flame className="w-6 h-6" />}
-          gradient="from-orange-500 to-red-600"
+          gradient="from-orange-600 to-orange-700"
         />
 
         <StatsCard
           title={t('statsCards.totalSets')}
           value={stats.totalSets.toString()}
           icon={<Activity className="w-6 h-6" />}
-          gradient="from-emerald-500 to-emerald-600"
+          gradient="from-emerald-600 to-emerald-700"
         />
       </div>
 
@@ -316,10 +458,10 @@ export default function DashboardPage() {
       {validSessions.length > 0 && (
         <>
           {/* Logros Destacados */}
-          <div className="bg-linear-to-r from-amber-50 to-orange-50 dark:from-zinc-800 dark:to-zinc-800 rounded-xl p-4 border border-amber-200 dark:border-zinc-700">
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                <Award className="w-6 h-6 text-slate-700 dark:text-slate-300" />
                 <div>
                   <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                     {t('achievements.recentAchievementsTitle')}
@@ -371,12 +513,12 @@ export default function DashboardPage() {
             {(() => {
               const streak = calculateStreak(validSessions);
               return (
-                <div className="mt-4 pt-4 border-t border-amber-200 dark:border-zinc-700">
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="text-center">
                       <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">{t('achievements.currentStreak')}</p>
                       <div className="flex items-center justify-center gap-2">
-                        <Flame className="w-5 h-5 text-orange-500" />
+                        <Flame className="w-5 h-5 text-orange-600" />
                         <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                           {streak.current} {t('statsCards.days')}
                         </p>
@@ -385,7 +527,7 @@ export default function DashboardPage() {
                     <div className="text-center">
                       <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">{t('achievements.longestStreak')}</p>
                       <div className="flex items-center justify-center gap-2">
-                        <Award className="w-5 h-5 text-amber-600" />
+                        <Award className="w-5 h-5 text-slate-700 dark:text-slate-300" />
                         <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                           {streak.longest} {t('statsCards.days')}
                         </p>
@@ -446,6 +588,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </PageContent>
+    </PageLayout>
   );
 }

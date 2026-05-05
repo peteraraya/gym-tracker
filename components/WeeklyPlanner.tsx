@@ -608,17 +608,20 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                           )}
                         </div>
                       ) : routineCount === 0 ? (
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center">
-                          <div className="text-6xl mb-4">📋</div>
-                          <p className="text-xl text-white font-semibold mb-2">Sin Rutinas</p>
-                          <p className="text-white/80 mb-4">No hay rutinas programadas para hoy</p>
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 text-center border border-white/20">
+                          <div className="w-20 h-20 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
+                            <span className="text-5xl">📋</span>
+                          </div>
+                          <p className="text-2xl text-white font-bold mb-2">Sin Rutinas</p>
+                          <p className="text-white/70 mb-6 text-sm">No hay rutinas programadas para hoy</p>
                           <button
                             onClick={() => {
                               setWeeklyViewMode('edit');
                               setSelectedWeekDay(todayKey);
                             }}
-                            className="px-6 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-all active:scale-95"
+                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all active:scale-95 shadow-lg hover:shadow-xl inline-flex items-center gap-2"
                           >
+                            <Plus className="w-5 h-5" />
                             Planificar Hoy
                           </button>
                         </div>
@@ -704,9 +707,9 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     {/* Botón para ver toda la semana */}
                     <button
                       onClick={() => setShowFullWeek(true)}
-                      className="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white font-semibold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg border border-slate-600"
                     >
-                      <span>📅</span>
+                      <span className="text-lg">📅</span>
                       <span>Ver Toda la Semana</span>
                     </button>
                   </div>

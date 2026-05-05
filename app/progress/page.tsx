@@ -7,12 +7,12 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { EXERCISE_DATABASE, type MuscleGroup } from '@/data/exercises';
 import { useValidSessions } from '@/hooks/useValidSessions';
 import { APP_CONFIG } from '@/config/app.config';
-import { PageLayout } from '@/components/PageLayout';
-import { StatsGrid, StatCard } from '@/components/StatsGrid';
-import { EmptyState } from '@/components/EmptyState';
 import { LoadingState } from '@/components/LoadingState';
+import { EmptyState } from '@/components/EmptyState';
+import { StatsGrid, StatCard } from '@/components/StatsGrid';
 import { TrendingUp } from '@/components/icons/lucide';
 import { useLocale } from '@/context/LocaleContext';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 const MUSCLE_GROUPS = Object.keys(APP_CONFIG.muscleGroupColors) as MuscleGroup[];
 const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
@@ -132,12 +132,16 @@ export default function ProgressPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <PageLayout
-          title={t('progress.title')}
-          description={t('progress.subtitle')}
-          icon={<TrendingUp className="w-6 h-6 text-blue-500" />}
-        >
-          <LoadingState message={t('progress.noDataDesc')} description="Cargando tus sesiones y rutinas" />
+        <PageLayout>
+          <PageHeader
+            title={t('progress.title')}
+            subtitle={t('progress.subtitle')}
+            icon={<TrendingUp className="w-7 h-7 text-white" />}
+            gradient="from-orange-700 via-red-700 to-red-800"
+          />
+          <PageContent>
+            <LoadingState message="Cargando tus sesiones y rutinas" />
+          </PageContent>
         </PageLayout>
       </ProtectedRoute>
     );
@@ -146,16 +150,20 @@ export default function ProgressPage() {
   if (validSessions.length === 0) {
     return (
       <ProtectedRoute>
-        <PageLayout
-          title={t('progress.title')}
-          description={t('progress.subtitle')}
-          icon={<TrendingUp className="w-6 h-6 text-blue-500" />}
-        >
-          <EmptyState
-            icon="📊"
-            title={t('progress.noData')}
-            description={t('progress.noDataDesc')}
+        <PageLayout>
+          <PageHeader
+            title={t('progress.title')}
+            subtitle={t('progress.subtitle')}
+            icon={<TrendingUp className="w-7 h-7 text-white" />}
+            gradient="from-orange-700 via-red-700 to-red-800"
           />
+          <PageContent>
+            <EmptyState
+              icon="📊"
+              title={t('progress.noData')}
+              description={t('progress.noDataDesc')}
+            />
+          </PageContent>
         </PageLayout>
       </ProtectedRoute>
     );
@@ -163,11 +171,15 @@ export default function ProgressPage() {
 
   return (
     <ProtectedRoute>
-      <PageLayout
-        title={t('progress.title')}
-        description={t('progress.subtitle')}
-        icon={<TrendingUp className="w-6 h-6 text-blue-500" />}
-      >
+      <PageLayout>
+        <PageHeader
+          title={t('progress.title')}
+          subtitle={t('progress.subtitle')}
+          icon={<TrendingUp className="w-7 h-7 text-white" />}
+          gradient="from-orange-700 via-red-700 to-red-800"
+        />
+
+        <PageContent>
         {/* Estadísticas generales */}
         <StatsGrid columns={3}>
           <StatCard
@@ -319,6 +331,7 @@ export default function ProgressPage() {
               )}
             </CardContent>
           </Card>
+        </PageContent>
       </PageLayout>
     </ProtectedRoute>
   );
