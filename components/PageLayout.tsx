@@ -9,6 +9,7 @@ interface PageLayoutProps {
   actions?: React.ReactNode;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '6xl';
+  gradient?: string;
 }
 
 export function PageLayout({
@@ -17,7 +18,8 @@ export function PageLayout({
   icon,
   actions,
   children,
-  maxWidth = '6xl'
+  maxWidth = '6xl',
+  gradient = 'from-blue-500 to-indigo-600'
 }: PageLayoutProps) {
   const maxWidthClass = {
     sm: 'max-w-sm',
@@ -30,27 +32,31 @@ export function PageLayout({
   }[maxWidth];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-20">
-      <div className={`${maxWidthClass} mx-auto px-4 py-4`}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            {icon && <div className="shrink-0">{icon}</div>}
-            <div>
-              <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
-                {title}
-              </h1>
-              {description && (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                  {description}
-                </p>
-              )}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header Section */}
+      <div className={`bg-linear-to-r ${gradient} dark:opacity-95`}>
+        <div className={`${maxWidthClass} mx-auto px-4 py-6 sm:py-8`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {icon && <div className="shrink-0 text-white">{icon}</div>}
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                  {title}
+                </h1>
+                {description && (
+                  <p className="text-white/80 mt-1 text-sm sm:text-base">
+                    {description}
+                  </p>
+                )}
+              </div>
             </div>
+            {actions && <div className="shrink-0">{actions}</div>}
           </div>
-          {actions && <div className="shrink-0">{actions}</div>}
         </div>
+      </div>
 
-        {/* Content */}
+      {/* Content */}
+      <div className={`${maxWidthClass} mx-auto px-4 py-6 sm:py-8`}>
         {children}
       </div>
     </div>

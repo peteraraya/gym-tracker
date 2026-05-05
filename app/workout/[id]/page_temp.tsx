@@ -666,19 +666,20 @@ export default function WorkoutPage() {
     return () => clearInterval(interval);
   }, [workoutStartTime]);
 
-  useEffect(() => {
-    if (!currentExercise || !isInitialized) return;
-    
-    const currentWeightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : 0;
-    
-    if (prediction.weight !== workoutState.currentWeight) {
-      workoutState.setCurrentWeight(prediction.weight);
-      
-      if (prediction.reasoning) {
-        success(`💡 ${prediction.reasoning}`, 3000);
-      }
-    }
-  }, [currentExercise, workoutState.currentSet, isInitialized, workoutState.currentWeight]);
+   useEffect(() => {
+     if (!currentExercise || !isInitialized) return;
+     
+     const currentWeightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : 0;
+     const prediction = weightPrediction.predictWeightForSet(currentWeightValue);
+     
+     if (prediction.weight !== workoutState.currentWeight) {
+       workoutState.setCurrentWeight(prediction.weight);
+       
+       if (prediction.reasoning) {
+         success(`💡 ${prediction.reasoning}`, 3000);
+       }
+     }
+   }, [currentExercise, workoutState.currentSet, isInitialized, workoutState.currentWeight, weightPrediction]);
 
   // ==================== HANDLERS ====================
   // ✅ Función de récord personal eliminada - no se muestran durante el entrenamiento
