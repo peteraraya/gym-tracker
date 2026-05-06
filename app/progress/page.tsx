@@ -7,12 +7,14 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { EXERCISE_DATABASE, type MuscleGroup } from '@/data/exercises';
 import { useValidSessions } from '@/hooks/useValidSessions';
 import { APP_CONFIG } from '@/config/app.config';
-import { LoadingState } from '@/components/LoadingState';
-import { EmptyState } from '@/components/EmptyState';
 import { StatsGrid, StatCard } from '@/components/StatsGrid';
 import { TrendingUp } from '@/components/icons/lucide';
 import { useLocale } from '@/context/LocaleContext';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
+import { 
+  LoadingSpinner,
+  EmptyStateCard
+} from '@/components/shared';
 
 const MUSCLE_GROUPS = Object.keys(APP_CONFIG.muscleGroupColors) as MuscleGroup[];
 const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
@@ -140,7 +142,7 @@ export default function ProgressPage() {
             gradient="from-orange-700 via-red-700 to-red-800"
           />
           <PageContent>
-            <LoadingState message="Cargando tus sesiones y rutinas" />
+            <LoadingSpinner size="lg" message="Cargando tus sesiones y rutinas" />
           </PageContent>
         </PageLayout>
       </ProtectedRoute>
@@ -158,7 +160,7 @@ export default function ProgressPage() {
             gradient="from-orange-700 via-red-700 to-red-800"
           />
           <PageContent>
-            <EmptyState
+            <EmptyStateCard
               icon="📊"
               title={t('progress.noData')}
               description={t('progress.noDataDesc')}

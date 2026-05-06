@@ -37,7 +37,8 @@ export default function Onboarding() {
     // Detect theme (light/dark) on client to tweak spotlight halo
     try {
       if (typeof document !== 'undefined') {
-        setIsDark(document.documentElement.classList.contains('dark'));
+        const id = setTimeout(() => setIsDark(document.documentElement.classList.contains('dark')), 0);
+        return () => clearTimeout(id);
       }
     } catch (e) { /* ignore */ }
 

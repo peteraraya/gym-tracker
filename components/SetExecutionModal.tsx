@@ -38,16 +38,19 @@ export function SetExecutionModal({
   const [editingField, setEditingField] = useState<'reps' | 'weight' | null>(null);
   const [weightHistory, setWeightHistory] = useState<number[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = useRef<number>(Date.now());
+  const startTimeRef = useRef<number>(0);
 
   // Cargar historial de pesos del ejercicio
   useEffect(() => {
     if (isOpen && exerciseId) {
       try {
         const stored = localStorage.getItem(`weight-history-${exerciseId}`);
-        if (stored) setWeightHistory(JSON.parse(stored));
+        const parsed = stored ? (JSON.parse(stored) as number[]) : [];
+        const id = setTimeout(() => setWeightHistory(parsed), 0);
+        return () => clearTimeout(id);
       } catch {
-        setWeightHistory([]);
+        const id = setTimeout(() => setWeightHistory([]), 0);
+        return () => clearTimeout(id);
       }
     }
   }, [isOpen, exerciseId]);
@@ -55,10 +58,14 @@ export function SetExecutionModal({
   // Start timer when modal opens
   useEffect(() => {
     if (isOpen) {
-      setElapsedTime(0);
-      setIsRunning(true);
       startTimeRef.current = Date.now();
+      const id = setTimeout(() => {
+        setElapsedTime(0);
+        setIsRunning(true);
+      }, 0);
+      return () => clearTimeout(id);
     }
+    return;
   }, [isOpen]);
 
   // Timer logic
@@ -196,7 +203,7 @@ export function SetExecutionModal({
       <EditValueModal
         isOpen={editingField === 'reps'}
         onClose={() => setEditingField(null)}
-        title="Repeticiones"
+        title={`${exerciseName} · Serie ${currentSet} — ${currentReps === '' ? '–' : currentReps} reps`}
         field="reps"
         currentValue={currentReps}
         onSave={(v) => { onRepsChange(v); setEditingField(null); }}
@@ -204,7 +211,7 @@ export function SetExecutionModal({
       <EditValueModal
         isOpen={editingField === 'weight'}
         onClose={() => setEditingField(null)}
-        title="Peso"
+        title={`${exerciseName} · Serie ${currentSet} — ${currentReps === '' ? '–' : currentReps} reps`}
         field="weight"
         currentValue={currentWeight}
         onSave={(v) => { onWeightChange(v); setEditingField(null); }}

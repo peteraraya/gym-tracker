@@ -7,6 +7,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
+import { 
+  StatBadge,
+  CardGrid
+} from '@/components/shared';
 
 export default function EquipmentPage() {
   const { selectedEquipment, toggleEquipment, clearEquipment } = useEquipment();
@@ -100,25 +104,25 @@ export default function EquipmentPage() {
           </div>
 
           {/* Equipment Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardGrid cols={3}>
             {filteredEquipment.map(equipment => {
               const isSelected = selectedEquipment.has(equipment.id);
               return (
                 <button
                   key={equipment.id}
                   onClick={() => toggleEquipment(equipment.id)}
-                  className={`text-left p-4 rounded-xl border-2 transition-all ${
+                  className={`text-left p-5 rounded-xl border-2 transition-all duration-300 ${
                     isSelected
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-lg scale-105'
-                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md'
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-xl scale-105'
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-lg'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="text-3xl">{equipment.emoji}</div>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="text-4xl">{equipment.emoji}</div>
                     <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
                         isSelected
-                          ? 'bg-blue-600 border-blue-600'
+                          ? 'bg-blue-600 border-blue-600 shadow-md'
                           : 'border-gray-300 dark:border-gray-500'
                       }`}
                     >
@@ -137,21 +141,21 @@ export default function EquipmentPage() {
                       )}
                     </div>
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-lg">
                     {equipment.name}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {equipment.description}
                   </p>
                   <div className="mt-3">
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium">
                       {EQUIPMENT_CATEGORIES.find(c => c.id === equipment.category)?.name}
                     </span>
                   </div>
                 </button>
               );
             })}
-          </div>
+          </CardGrid>
 
           {/* Info Card */}
           <Card className="mt-4 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">

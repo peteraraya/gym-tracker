@@ -9,8 +9,8 @@ import {
   searchTerms 
 } from '@/data/glossary';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
 import { Search, BookOpen, Link as LinkIcon, Lightbulb } from '@/components/icons/lucide';
+import { SearchInput, EmptyStateCard } from '@/components/shared';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 export default function GlossaryPage() {
@@ -68,16 +68,13 @@ export default function GlossaryPage() {
           {/* Búsqueda */}
           <Card className="shadow-lg">
             <CardContent className="p-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Buscar términos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+              <SearchInput
+                value={searchQuery}
+                onChange={(v) => setSearchQuery(v)}
+                placeholder="Buscar términos..."
+                debounceMs={250}
+                className="w-full"
+              />
             </CardContent>
           </Card>
 
@@ -144,17 +141,11 @@ export default function GlossaryPage() {
         {/* Lista de Términos */}
         <div className="lg:col-span-3">
           {filteredTerms.length === 0 ? (
-            <Card className="shadow-lg">
-              <CardContent className="p-8 text-center">
-                <Search className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  No se encontraron términos
-                </p>
-                <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
-                  Intenta con otros términos de búsqueda
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyStateCard
+              icon="🔍"
+              title="No se encontraron términos"
+              description="Intenta con otros términos de búsqueda"
+            />
           ) : (
             <div className="space-y-4">
               {Object.entries(termsByLetter).sort().map(([letter, terms]) => (

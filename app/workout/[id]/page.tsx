@@ -29,6 +29,7 @@ import { AddExerciseButton } from './components/AddExerciseButton';
 import { QuickEditMode as QuickEditModeBase } from './components/QuickEditMode';
 import { FinishWorkoutModal } from './components/FinishWorkoutModal';
 import { EditValueModal } from '@/components/EditValueModal';
+import SetsReference from '@/components/SetsReference';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { Exercise } from '@/types';
 import { 
@@ -88,6 +89,8 @@ export default function WorkoutPage() {
   
   // Modo de edición: true = Edición Rápida (defecto), false = Modo Guiado
   const [isQuickEditMode, setIsQuickEditMode] = useState(true);
+  // Omitir descansos (estado global para que ambos modos lo respeten)
+  const [skipRestTimers, setSkipRestTimers] = useState(false);
   
   // ✅ Ref para el callback de guardado (se actualiza después de que timerHandlers esté disponible)
   const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
@@ -705,6 +708,12 @@ export default function WorkoutPage() {
     const repsValue = typeof workoutState.currentReps === 'number' ? workoutState.currentReps : currentExercise.sets[setIndex]?.reps || 0;
     const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
 
+    // No permitir completar si faltan reps o peso
+    if (!(repsValue > 0 && weightValue > 0)) {
+      error('No puedes completar la serie sin repeticiones y peso');
+      return;
+    }
+
     workoutState.completeSet(exerciseId, repsValue, weightValue);
 
     // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
@@ -744,7 +753,10 @@ export default function WorkoutPage() {
         
         // Haptic feedback al iniciar descanso entre ejercicios
         haptic.restStart();
-        timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+        // Respetar la opción global de omitir descansos
+        if (!skipRestTimers) {
+          timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+        }
       }
     } else {
       const restTime = calculateNextRestTime({
@@ -758,7 +770,10 @@ export default function WorkoutPage() {
       
       // Haptic feedback al iniciar descanso entre series
       haptic.restStart();
-      timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
+      // Respetar la opción global de omitir descansos
+      if (!skipRestTimers) {
+        timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
+      }
     }
   }, [
     currentExercise, 
@@ -779,7 +794,8 @@ export default function WorkoutPage() {
     haptic.setComplete,
     haptic.restStart,
     completion.openCompletionModal,
-    setExecution.completeSet
+    setExecution.completeSet,
+    skipRestTimers
   ]);
 
   const handleTimerComplete = useCallback(() => {
@@ -904,26 +920,45 @@ export default function WorkoutPage() {
     success('⏱️ Tiempo actualizado', 2000);
   }, [editingTime, success]);
 
-  const handleMoveExercise = useCallback((fromIndex: number, toIndex: number) => {
+  const handleMoveExercise = useCallback(async (fromIndex: number, toIndex: number) => {
     if (!routine || fromIndex === toIndex) return;
-    
+
+    const prevRoutine = routine;
+    const prevCurrentIndex = workoutState.currentExerciseIndex;
+
     const newExercises = [...routine.exercises];
     const [movedExercise] = newExercises.splice(fromIndex, 1);
     newExercises.splice(toIndex, 0, movedExercise);
-    
+
     const updatedRoutine = { ...routine, exercises: newExercises };
+
+    // Aplicar cambio localmente primero para respuesta instantánea
     setRoutine(updatedRoutine);
-    
-    if (workoutState.currentExerciseIndex === fromIndex) {
+
+    // Ajustar índice actual en memoria (se revertirá si falla la persistencia)
+    if (prevCurrentIndex === fromIndex) {
       workoutState.setCurrentExerciseIndex(toIndex);
-    } else if (fromIndex < workoutState.currentExerciseIndex && toIndex >= workoutState.currentExerciseIndex) {
-      workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex - 1);
-    } else if (fromIndex > workoutState.currentExerciseIndex && toIndex <= workoutState.currentExerciseIndex) {
-      workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
+    } else if (fromIndex < prevCurrentIndex && toIndex >= prevCurrentIndex) {
+      workoutState.setCurrentExerciseIndex(prevCurrentIndex - 1);
+    } else if (fromIndex > prevCurrentIndex && toIndex <= prevCurrentIndex) {
+      workoutState.setCurrentExerciseIndex(prevCurrentIndex + 1);
     }
-    
-    success('Orden de ejercicios actualizado', 2000);
-  }, [routine, workoutState, success]);
+
+    try {
+      // Persistir la rutina modificada (updateModifiedRoutine también actualiza Supabase)
+      await updateModifiedRoutine(updatedRoutine);
+      // Redundancia: asegurar que la rutina esté en el backend
+      await updateRoutine(id, updatedRoutine);
+
+      success('Orden de ejercicios actualizado', 2000);
+    } catch (err) {
+      console.error('[handleMoveExercise] Error saving moved exercise:', err);
+      error('Error al reordenar ejercicios');
+      // Revertir cambios locales
+      setRoutine(prevRoutine);
+      workoutState.setCurrentExerciseIndex(prevCurrentIndex);
+    }
+  }, [routine, workoutState, updateModifiedRoutine, updateRoutine, id, success, error]);
 
   const handleEditReps = useCallback((setIndex: number, reps: number) => {
     if (!currentExercise) return;
@@ -1202,7 +1237,10 @@ export default function WorkoutPage() {
             useSmartRest
           });
           
-          timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+          // Respetar la opción global de omitir descansos
+          if (!skipRestTimers) {
+            timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+          }
         }
       }
     } else {
@@ -1223,7 +1261,7 @@ export default function WorkoutPage() {
         workoutState.setCurrentSet(setIndex + 1);
       }
     }
-  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, timerHandlers, completion]);
+  }, [currentExercise, routine, workoutState, workoutStartTime, useSmartRest, timerHandlers, completion, skipRestTimers]);
 
   const handleAddSet = useCallback(async () => {
     // ✅ FASE 2 - Problema #8: Validar que existan currentExercise y routine
@@ -1330,26 +1368,36 @@ export default function WorkoutPage() {
       };
 
       // Actualizar la rutina en el estado local
+      const prevRoutine = routine;
       setRoutine(updatedRoutine);
 
-      // Guardar la rutina actualizada en el storage
-      await updateRoutine(id, updatedRoutine);
+      try {
+        // Persistir la rutina modificada (actualiza backend y activeWorkout)
+        await updateModifiedRoutine(updatedRoutine);
 
-      // IMPORTANTE: Actualizar el activeWorkout para mantener los registros existentes
-      // Los nuevos ejercicios no tendrán registros aún, pero los existentes se preservan
-      updateWorkoutProgress(
-        workoutState.currentExerciseIndex,
-        workoutState.currentSet,
-        workoutState.workoutData.completedSets,
-        workoutState.workoutData.actualReps,
-        workoutState.workoutData.actualWeights,
-        undefined,
-        totalPausedTime
-      );
+        // Asegurar sincronización adicional con backend por redundancia
+        await updateRoutine(id, updatedRoutine);
 
-      success(`${exercises.length} ejercicio${exercises.length > 1 ? 's' : ''} agregado${exercises.length > 1 ? 's' : ''} a la rutina`, 3000);
+        // IMPORTANTE: Actualizar el activeWorkout para mantener los registros existentes
+        updateWorkoutProgress(
+          workoutState.currentExerciseIndex,
+          workoutState.currentSet,
+          workoutState.workoutData.completedSets,
+          workoutState.workoutData.actualReps,
+          workoutState.workoutData.actualWeights,
+          undefined,
+          totalPausedTime
+        );
+
+        success(`${exercises.length} ejercicio${exercises.length > 1 ? 's' : ''} agregado${exercises.length > 1 ? 's' : ''} a la rutina`, 3000);
+      } catch (err) {
+        console.error('Error adding exercises:', err);
+        error('Error al agregar ejercicios');
+        // Revertir cambio local si falla
+        setRoutine(prevRoutine);
+      }
     } catch (err) {
-      console.error('Error adding exercises:', err);
+      console.error('Error preparing exercises to add:', err);
       error('Error al agregar ejercicios');
     }
   }, [routine, id, updateRoutine, success, error, workoutState, updateWorkoutProgress, totalPausedTime]);
@@ -1397,6 +1445,21 @@ export default function WorkoutPage() {
     const newWeights = [...currentWeights];
     
     if (isComplete) {
+      // Validar que exista reps y peso (usar actual o fallback a la rutina)
+      const currentRepsArr = workoutState.workoutData.actualReps[exerciseId] || [];
+      const currentWeightsArr = workoutState.workoutData.actualWeights[exerciseId] || [];
+      const displayReps = (currentRepsArr[setIndex] !== undefined && currentRepsArr[setIndex] > 0)
+        ? currentRepsArr[setIndex]
+        : (exercise.sets[setIndex]?.reps ?? 0);
+      const displayWeight = (currentWeightsArr[setIndex] !== undefined && currentWeightsArr[setIndex] > 0)
+        ? currentWeightsArr[setIndex]
+        : (exercise.sets[setIndex]?.weight ?? 0);
+
+      if (!(displayReps > 0 && displayWeight > 0)) {
+        error('No puedes completar la serie sin repeticiones y peso');
+        return;
+      }
+
       // Marcar como completada - usar valor actual o el de la rutina como fallback
       if (!newReps[setIndex] || newReps[setIndex] === 0) {
         newReps[setIndex] = exercise.sets[setIndex]?.reps || 10;
@@ -1452,8 +1515,11 @@ export default function WorkoutPage() {
             perSetOverrides: workoutState.workoutData.perSetRestOverrides,
             useSmartRest
           });
-          
-          timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+
+          // Respetar la opción global de omitir descansos
+          if (!skipRestTimers) {
+            timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+          }
         }
       } else {
         // Descanso entre series - solo si no es la última serie
@@ -1484,10 +1550,13 @@ export default function WorkoutPage() {
           newReps: newReps.map((r, i) => `${i + 1}:${r || 0}`)
         });
         
-        timerHandlers.startTimer(restTime, `Descanso - ${exercise.name}`, `Serie ${nextSetNumber}`);
+        // Respetar la opción global de omitir descansos
+        if (!skipRestTimers) {
+          timerHandlers.startTimer(restTime, `Descanso - ${exercise.name}`, `Serie ${nextSetNumber}`);
+        }
       }
     }
-  }, [routine, workoutState, haptic, currentExercise, useSmartRest, timerHandlers]);
+  }, [routine, workoutState, haptic, currentExercise, useSmartRest, timerHandlers, skipRestTimers]);
 
   const handleQuickAddSet = useCallback(async (exerciseId: string) => {
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
@@ -1609,6 +1678,7 @@ export default function WorkoutPage() {
   return (
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-8 pb-32">
+        
         {timerHandlers.showTimer && timerHandlers.timerMinimized && (
           <MinimizedTimer
             timeLeft={timerHandlers.currentTimeLeft}
@@ -1720,6 +1790,8 @@ export default function WorkoutPage() {
               }
             }}
             onAddExercises={handleAddExercises}
+            onSkipRestTimersChange={setSkipRestTimers}
+            skipRestTimers={skipRestTimers}
           />
         ) : (
           /* Modo guiado - Flujo normal */

@@ -11,9 +11,11 @@ import { RestSettings } from '@/components/RestSettings';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import RestartOnboardingButton from '@/components/RestartOnboardingButton';
 import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
-import { LoadingState } from '@/components/LoadingState';
 import { usePageData } from '@/hooks/usePageData';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
+import { 
+  LoadingSpinner
+} from '@/components/shared';
 
 export default function ProfilePage() {
   const { user } = useAuth();

@@ -20,14 +20,15 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
   useEffect(() => {
     try {
       const stored = localStorage.getItem(`weight-history-${exerciseId}`);
-      if (stored) {
-        const parsed = JSON.parse(stored) as number[];
-        // Ordenar de mayor a menor y eliminar duplicados
-        const unique = Array.from(new Set(parsed)).sort((a, b) => b - a);
-        setSavedWeights(unique.slice(0, 10)); // Máximo 10 pesos guardados
-      }
+      const parsed = stored ? (JSON.parse(stored) as number[]) : [];
+      // Ordenar de mayor a menor y eliminar duplicados
+      const unique = Array.from(new Set(parsed)).sort((a, b) => b - a).slice(0, 10);
+      const id = setTimeout(() => setSavedWeights(unique), 0);
+      return () => clearTimeout(id);
     } catch (e) {
       console.warn('Error loading weight history', e);
+      const id = setTimeout(() => setSavedWeights([]), 0);
+      return () => clearTimeout(id);
     }
   }, [exerciseId]);
 
@@ -47,7 +48,8 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
 
   // Sincronizar inputValue con value prop
   useEffect(() => {
-    setInputValue(value === '' ? '' : value.toString());
+    const id = setTimeout(() => setInputValue(value === '' ? '' : value.toString()), 0);
+    return () => clearTimeout(id);
   }, [value]);
 
   const saveWeight = (weight: number) => {

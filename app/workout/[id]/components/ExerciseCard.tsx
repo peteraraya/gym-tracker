@@ -406,7 +406,7 @@ export function ExerciseCard({
       <EditValueModal
         isOpen={editingField === 'reps'}
         onClose={() => setEditingField(null)}
-        title={`${exercise.name} - Serie ${currentSet}`}
+        title={`${exercise.name} · Serie ${currentSet} — ${currentReps === '' ? '–' : currentReps} reps`}
         field="reps"
         currentValue={currentReps}
         onSave={(value) => onRepsChange(value)}
@@ -416,7 +416,7 @@ export function ExerciseCard({
       <EditValueModal
         isOpen={editingField === 'weight'}
         onClose={() => setEditingField(null)}
-        title={`${exercise.name} - Serie ${currentSet}`}
+        title={`${exercise.name} · Serie ${currentSet} — ${currentReps === '' ? '–' : currentReps} reps`}
         field="weight"
         currentValue={currentWeight}
         onSave={(value) => onWeightChange(value)}

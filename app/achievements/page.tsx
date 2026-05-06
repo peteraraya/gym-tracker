@@ -4,12 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AchievementsGrid from '@/components/AchievementsGrid';
-import { LoadingState } from '@/components/LoadingState';
 import { Button } from '@/components/ui/Button';
 import type { WorkoutSession } from '@/types';
 import { calculateAchievements, calculateStreak, calculateTotalVolume } from '@/lib/achievements';
 import { 
-  Award, 
   Trophy, 
   Flame, 
   Calendar, 
@@ -18,6 +16,12 @@ import {
   Zap
 } from 'lucide-react';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
+import { 
+  LoadingSpinner,
+  EmptyStateCard,
+  StatBadge,
+  StatsGrid
+} from '@/components/shared';
 
 export default function AchievementsPage() {
   const router = useRouter();
@@ -55,7 +59,17 @@ export default function AchievementsPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <LoadingState message="Cargando logros..." />
+        <PageLayout>
+          <PageHeader
+            title="Logros y Medallas"
+            subtitle="Desbloquea logros por tu dedicación y progreso"
+            icon={<Trophy className="w-7 h-7 text-white" />}
+            gradient="from-amber-700 via-orange-700 to-orange-800"
+          />
+          <PageContent>
+            <LoadingSpinner size="lg" message="Cargando logros..." />
+          </PageContent>
+        </PageLayout>
       </ProtectedRoute>
     );
   }
@@ -83,14 +97,14 @@ export default function AchievementsPage() {
         <PageContent>
 
         {/* Key Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-5 border-2 border-blue-200 dark:border-blue-800">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <Calendar className="w-5 h-5 text-white" />
+              <div className="p-2.5 bg-blue-600 rounded-lg shadow-md">
+                <Calendar className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                   Entrenamientos
                 </p>
                 <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -100,13 +114,13 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-5 border-2 border-purple-200 dark:border-purple-800">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-600 rounded-lg">
-                <Zap className="w-5 h-5 text-white" />
+              <div className="p-2.5 bg-purple-600 rounded-lg shadow-md">
+                <Zap className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                   Volumen Total
                 </p>
                 <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -116,13 +130,13 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-linear-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-5 border-2 border-orange-200 dark:border-orange-800">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-600 rounded-lg">
-                <Flame className="w-5 h-5 text-white" />
+              <div className="p-2.5 bg-orange-600 rounded-lg shadow-md">
+                <Flame className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                   Racha Actual
                 </p>
                 <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -132,13 +146,13 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-linear-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-5 border-2 border-emerald-200 dark:border-emerald-800">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-600 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-white" />
+              <div className="p-2.5 bg-emerald-600 rounded-lg shadow-md">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                   Mejor Racha
                 </p>
                 <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -181,23 +195,13 @@ export default function AchievementsPage() {
 
         {/* Empty State */}
         {sessions.length === 0 && (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 text-center border border-zinc-200 dark:border-zinc-800">
-            <Award className="w-12 h-12 mx-auto mb-3 text-zinc-400 dark:text-zinc-600" />
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              Aún no hay logros
-            </h3>
-            <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
-              Comienza a entrenar para desbloquear medallas y logros increíbles
-            </p>
-            <Button
-              variant="gradient"
-              onClick={() => router.push('/routines')}
-              className="gap-2"
-            >
-              <Trophy className="w-4 h-4" />
-              Comenzar Ahora
-            </Button>
-          </div>
+          <EmptyStateCard
+            icon={<Trophy className="w-16 h-16" />}
+            title="Aún no hay logros"
+            description="Comienza a entrenar para desbloquear medallas y logros increíbles"
+            actionLabel="Comenzar Ahora"
+            onAction={() => router.push('/routines')}
+          />
         )}
         </PageContent>
       </PageLayout>

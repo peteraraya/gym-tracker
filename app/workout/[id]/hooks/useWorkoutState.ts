@@ -270,11 +270,21 @@ export function useWorkoutState(
    * Actualiza el descanso global del ejercicio
    */
   const updateRestOverride = useCallback((exerciseId: string, duration: number) => {
-    setWorkoutData(prev => ({
-      ...prev,
-      restOverrides: { ...prev.restOverrides, [exerciseId]: duration },
-      _lastUpdate: Date.now()
-    }));
+    setWorkoutData(prev => {
+      const newData = {
+        ...prev,
+        restOverrides: { ...prev.restOverrides, [exerciseId]: duration },
+        _lastUpdate: Date.now()
+      };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
+    });
   }, []);
 
   /**
@@ -284,11 +294,19 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const overrides = [...(prev.perSetRestOverrides[exerciseId] || [])];
       overrides[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         perSetRestOverrides: { ...prev.perSetRestOverrides, [exerciseId]: overrides },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
 
@@ -299,11 +317,19 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const durations = [...(prev.actualSetDurations[exerciseId] || [])];
       durations[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         actualSetDurations: { ...prev.actualSetDurations, [exerciseId]: durations },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
 
@@ -314,11 +340,19 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const durations = [...(prev.actualPauseDurations[exerciseId] || [])];
       durations[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         actualPauseDurations: { ...prev.actualPauseDurations, [exerciseId]: durations },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
 
@@ -329,11 +363,19 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const times = [...(prev.actualRestTimes[exerciseId] || [])];
       times[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         actualRestTimes: { ...prev.actualRestTimes, [exerciseId]: times },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
 

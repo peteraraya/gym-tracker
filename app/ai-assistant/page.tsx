@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LoadingSpinner } from '@/components/shared';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Send, Bot, User, Sparkles, Dumbbell, TrendingUp, AlertCircle } from '@/components/icons/lucide';
 import { EXERCISE_DATABASE } from '@/data/exercises';
@@ -275,16 +276,13 @@ export default function AIAssistantPage() {
                 ))}
 
                 {isLoading && (
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 items-center">
                     <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                       <Bot className="w-5 h-5 text-white" />
                     </div>
-                    <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4">
-                      <div className="flex gap-2">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
-                      </div>
+                    <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                      <LoadingSpinner size="sm" color="gray" />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Escribiendo...</span>
                     </div>
                   </div>
                 )}

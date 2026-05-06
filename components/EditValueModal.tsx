@@ -45,7 +45,10 @@ export function EditValueModal({
   }, [currentValue]);
 
   useEffect(() => {
-    if (isOpen) initDisplay();
+    if (isOpen) {
+      const id = setTimeout(() => initDisplay(), 0);
+      return () => clearTimeout(id);
+    }
   }, [isOpen, initDisplay]);
 
   const numericValue = (): number => {

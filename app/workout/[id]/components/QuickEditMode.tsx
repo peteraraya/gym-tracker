@@ -7,6 +7,7 @@ import SetTypeCycleButton from '@/components/SetTypeCycleButton';
 import { EditValueModal } from '@/components/EditValueModal';
 import { FloatingRestTimer } from './FloatingRestTimer';
 import { AddExerciseButton } from './AddExerciseButton';
+import { useConfirm } from '@/context/ConfirmContext';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { SetType, Routine } from '@/types';
 
@@ -93,6 +94,7 @@ export function QuickEditMode({
       setSkipRestTimersLocal(value);
     }
   };
+  const { confirm } = useConfirm();
   // ✅ Estado para el temporizador flotante
   const [showFloatingTimer, setShowFloatingTimer] = useState(false);
   const [floatingTimerDuration, setFloatingTimerDuration] = useState(0);
@@ -411,6 +413,16 @@ export function QuickEditMode({
     
     setEditingRestTime(null);
     setTempRestTime('');
+  };
+
+  const getEditingCellTitle = () => {
+    if (!editingCell) return '';
+    const fieldLabel = editingCell.field === 'reps' ? 'Repeticiones de' : 'Peso';
+    const exercise = routine.exercises.find(ex => ex.id === editingCell.exerciseId);
+    const setRef = exercise?.sets?.[editingCell.setIndex];
+    const doneReps = workoutData.actualReps[editingCell.exerciseId]?.[editingCell.setIndex];
+    const repsDisplay = (doneReps !== undefined && doneReps > 0) ? doneReps : setRef?.reps ?? '–';
+    return `${fieldLabel}  ${editingCell.exerciseName} Serie: ${editingCell.setIndex + 1} - ${repsDisplay} reps`;
   };
 
   // Calcular progreso total - memoizado para evitar recalcular en cada render
@@ -1069,6 +1081,11 @@ export function QuickEditMode({
                               )}
                               <button
                                 onClick={() => {
+                                  // No permitir completar si no hay reps o peso (a menos que ya esté completada y se esté desmarcando)
+                                  if (!isCompleted && !isReadyToComplete) {
+                                    return;
+                                  }
+
                                   const newIsCompleted = !isCompleted;
                                   onToggleSetComplete(exerciseId, setIdx, newIsCompleted);
                                   if (newIsCompleted) {
@@ -1090,7 +1107,9 @@ export function QuickEditMode({
                                     if (pinnedExerciseId === exerciseId) setPinnedExerciseId(null);
                                   }
                                 }}
-                                className={`relative h-10 w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
+                                disabled={!isReadyToComplete && !isCompleted}
+                                title={!isReadyToComplete && !isCompleted ? 'Completa reps y peso antes de marcar como completada' : undefined}
+                                className={`relative h-12 w-14 md:h-10 md:w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
                                   isCompleted
                                     // ✅ COMPLETADO — verde sólido, sin borde
                                     ? 'bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-300 dark:shadow-green-900'
@@ -1124,15 +1143,39 @@ export function QuickEditMode({
 
                           {/* Eliminar (si aplica, fuera del grid) */}
                           {onDeleteSet && exercise.sets.length > 1 && (
-                            <button
-                              onClick={() => onDeleteSet(exerciseId, setIdx)}
-                              className="ml-1 w-6 h-6 shrink-0 rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 active:scale-90 touch-manipulation"
-                              title="Eliminar serie"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
+                            <div className="ml-1 flex items-center">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onDeleteSet(exerciseId, setIdx); }}
+                                className="hidden md:flex ml-1 w-6 h-6 shrink-0 rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 active:scale-90 touch-manipulation"
+                                title="Eliminar serie"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const confirmed = await confirm({
+                                    title: `Eliminar serie ${setIdx + 1}`,
+                                    message: `¿Eliminar la serie ${setIdx + 1} de ${exercise.name}? Esta acción no se puede deshacer.`,
+                                    confirmText: 'Eliminar',
+                                    cancelText: 'Cancelar',
+                                    variant: 'danger',
+                                  });
+                                  if (confirmed) onDeleteSet(exerciseId, setIdx);
+                                }}
+                                className="md:hidden ml-1 w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 active:scale-95 touch-manipulation"
+                                title="Acciones"
+                              >
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                  <circle cx="5" cy="12" r="1.5" />
+                                  <circle cx="12" cy="12" r="1.5" />
+                                  <circle cx="19" cy="12" r="1.5" />
+                                </svg>
+                              </button>
+                            </div>
                           )}
                         </div>
                       );
@@ -1215,7 +1258,7 @@ export function QuickEditMode({
       <EditValueModal
         isOpen={editingCell !== null}
         onClose={() => setEditingCell(null)}
-        title={editingCell ? `${editingCell.field === 'reps' ? 'Repeticiones' : 'Peso'} - ${editingCell.exerciseName}` : ''}
+        title={getEditingCellTitle()}
         field={editingCell?.field ?? 'reps'}
         currentValue={editingCell?.currentValue ?? ''}
         onSave={(value) => {

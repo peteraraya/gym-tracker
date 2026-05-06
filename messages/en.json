@@ -346,11 +346,15 @@
     },
     "statsCards": {
       "totalSessions": "Total Sessions",
+      "totalSessionsSubtitle": "Sessions recorded",
       "totalVolume": "Total Volume",
+      "totalVolumeSubtitle": "Accumulated volume",
       "vsLastMonth": "vs last month",
       "currentStreak": "Current Streak",
+      "currentStreakSubtitle": "Training streak",
       "days": "days",
       "totalSets": "Sets Completed"
+      ,"totalSetsSubtitle": "Sets completed"
     },
     "charts": {
       "volumeChartTitle": "Volume Chart",

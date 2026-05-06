@@ -314,11 +314,15 @@
     },
     "statsCards": {
       "totalSessions": "Total de Sesiones",
+      "totalSessionsSubtitle": "Sesiones registradas",
       "totalVolume": "Volumen Total",
+      "totalVolumeSubtitle": "Volumen acumulado",
       "vsLastMonth": "vs mes anterior",
       "currentStreak": "Racha Actual",
+      "currentStreakSubtitle": "Racha de entrenamiento",
       "days": "días",
       "totalSets": "Sets Completados"
+      ,"totalSetsSubtitle": "Series completadas"
     },
     "charts": {
       "volumeChartTitle": "Gráfica de Volumen",

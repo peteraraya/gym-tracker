@@ -13,6 +13,7 @@ import { getRecommendedRoutines, getRecommendationReason, type RoutineRecommenda
 import { formatRestTime } from '@/lib/formatTime';
 import Link from 'next/link';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
+import { EmptyStateCard } from '@/components/shared';
 
 export default function RecommendedRoutinesPage() {
   const { addRoutine } = useGym();
@@ -412,12 +413,11 @@ export default function RecommendedRoutinesPage() {
           </div>
 
           {filteredRoutines.length === 0 && (
-            <div className="text-center py-8">
-              <div className="text-5xl mb-3">🔍</div>
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                No hay rutinas en esta categoría
-              </h3>
-            </div>
+            <EmptyStateCard
+              icon="🔍"
+              title="No hay rutinas en esta categoría"
+              description="Prueba otra categoría o explora las rutinas destacadas arriba."
+            />
           )}
 
           {/* Modal de detalles */}

@@ -47,7 +47,7 @@ export const Timer: React.FC<TimerProps> = ({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const onCompleteCalledRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
-  const startTimeRef = useRef<number>(Date.now() - (duration - (initialTimeLeft ?? duration)) * 1000);
+  const startTimeRef = useRef<number>(0);
   const onActualDurationRef = useRef<typeof onActualDurationChange | null>(null);
   
   // Mantener onCompleteRef actualizado
@@ -68,19 +68,24 @@ export const Timer: React.FC<TimerProps> = ({
   useEffect(() => {
     // Solo actualizar cuando cambia la duración (nuevo timer)
     console.log('[Timer] Init effect - duration:', duration, 'initialTimeLeft:', initialTimeLeft);
-    setTimeLeft(initialTimeLeft ?? duration);
-    setIsCompleted(false);
-    setHasAdjusted(false);
     onCompleteCalledRef.current = false;
-    
+
     // Calcular startTimeRef basado en el tiempo restante
     const elapsed = duration - (initialTimeLeft ?? duration);
     startTimeRef.current = Date.now() - elapsed * 1000;
     console.log('[Timer] Set startTimeRef, elapsed:', elapsed);
-    
-    if (autoStart && !isRunning) {
-      setIsRunning(true);
-    }
+
+    // Deferir actualizaciones de estado para evitar setState síncrono en efecto
+    const id = setTimeout(() => {
+      setTimeLeft(initialTimeLeft ?? duration);
+      setIsCompleted(false);
+      setHasAdjusted(false);
+      if (autoStart && !isRunning) {
+        setIsRunning(true);
+      }
+    }, 0);
+
+    return () => clearTimeout(id);
   }, [duration, initialTimeLeft, autoStart, isRunning]); // Incluir initialTimeLeft pero NO timeLeft
 
   useEffect(() => {

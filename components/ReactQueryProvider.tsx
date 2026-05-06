@@ -10,11 +10,7 @@ import { useEffect, useState } from 'react';
 setupQueryErrorHandling(queryClient);
 
 export function ReactQueryProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = true;
   
   return (
     <QueryClientProvider client={queryClient}>
