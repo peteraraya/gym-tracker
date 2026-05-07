@@ -369,7 +369,8 @@ export function usePlanning() {
 
   /**
    * Sincroniza el dailySchedule de una semana con el WeeklyPlanner de /routines.
-   * Esto sobreescribe el plan semanal del WeeklyPlanner con lo planificado en el mesociclo.
+   * Escribe en la clave correcta de localStorage y dispara un CustomEvent para
+   * que WeeklyPlanner recargue sin necesidad de navegar.
    */
   const syncWeekToRoutinesPlanner = useCallback((weekPlan: WeeklyPlan) => {
     if (typeof window === 'undefined') return;
@@ -383,9 +384,10 @@ export function usePlanning() {
           note: ds.notes ?? '',
         };
       });
-      localStorage.setItem('gym-weekly-plan', JSON.stringify(plannerData));
-      // Notifica al WeeklyPlanner para que recargue
-      window.dispatchEvent(new StorageEvent('storage', { key: 'gym-weekly-plan', newValue: JSON.stringify(plannerData) }));
+      // Clave real que usa WeeklyPlanner via getWeeklyPlan()
+      localStorage.setItem('weekly_routine_plan', JSON.stringify(plannerData));
+      // Custom event: WeeklyPlanner escucha 'planning:sync' para recargar en la misma ventana
+      window.dispatchEvent(new CustomEvent('planning:sync', { detail: plannerData }));
     } catch {
       // silencioso
     }

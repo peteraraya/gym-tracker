@@ -81,6 +81,7 @@ function MuscleGroupRow({
   color,
   target,
   actual,
+  projected,
   landmarks,
   onUpdateTarget,
 }: {
@@ -89,31 +90,44 @@ function MuscleGroupRow({
   color: string;
   target: { targetSets: number; targetFrequency: number; targetRPE?: number };
   actual: number;
+  projected: number; // series que cubren las rutinas agendadas
   landmarks: (typeof DEFAULT_VOLUME_LANDMARKS)[string];
   onUpdateTarget: (field: 'targetSets' | 'targetFrequency' | 'targetRPE', value: number) => void;
 }) {
   const freq = RECOMMENDED_FREQUENCY[muscleGroup] ?? { min: 1, max: 3 };
-  const gap = target.targetSets - actual;
-  const statusLabel =
-    actual === 0 ? '—'
-    : actual < landmarks.mev ? 'Sub-MEV'
-    : actual > landmarks.mrv ? 'Sobre MRV'
-    : actual <= landmarks.mav ? 'MAV ✓'
-    : 'Sobre MAV';
-  const statusColor =
-    actual === 0 ? 'text-gray-400'
-    : actual < landmarks.mev ? 'text-yellow-500'
-    : actual > landmarks.mrv ? 'text-red-500'
-    : 'text-green-500';
+  const gap = actual - target.targetSets; // positivo = hiciste más, negativo = falta
+  const projectedGap = projected - target.targetSets; // desfase de lo planeado en rutinas
 
-  // Estado local para edición del campo targetSets — permite borrar (valor vacío) mientras el usuario escribe
+  // Estado de la semana actual
+  const actualStatus =
+    actual === 0 ? 'empty'
+    : actual < landmarks.mev ? 'below'
+    : actual > landmarks.mrv ? 'over'
+    : actual <= landmarks.mav ? 'ok'
+    : 'above';
+
+  const statusCfg: Record<string, { label: string; cls: string }> = {
+    empty: { label: '—', cls: 'text-gray-400' },
+    below: { label: 'Sub-MEV', cls: 'text-yellow-500' },
+    ok:    { label: 'En MAV ✓', cls: 'text-green-500' },
+    above: { label: 'Sobre MAV', cls: 'text-blue-400' },
+    over:  { label: 'Sobre MRV', cls: 'text-red-500' },
+  };
+  const { label: statusLabel, cls: statusCls } = statusCfg[actualStatus];
+
+  // Alertas de rutinas vs target
+  const hasProjected = projected > 0;
+  const projectedShort = target.targetSets > 0 && hasProjected && projected < target.targetSets;
+  const projectedOver = target.targetSets > 0 && hasProjected && projected > target.targetSets;
+  const projectedMissing = target.targetSets > 0 && !hasProjected;
+
+  // Estado local para edición del campo targetSets
   const [editingValue, setEditingValue] = useState<string>(String(target.targetSets ?? ''));
   useEffect(() => {
     setEditingValue(String(target.targetSets ?? ''));
   }, [target.targetSets]);
 
   const onInputChange = (val: string) => {
-    // permitir solo dígitos o cadena vacía
     if (/^\d*$/.test(val)) setEditingValue(val);
     else setEditingValue(val.replace(/\D/g, ''));
   };
@@ -126,15 +140,25 @@ function MuscleGroupRow({
   };
 
   return (
-    <div className="flex flex-col md:grid md:grid-cols-[140px_1fr_80px_80px_70px_100px] gap-2 items-center py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
-      {/* Nombre */}
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
-        <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{label}</span>
+    <div className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-200 dark:hover:border-gray-700 transition-colors p-3 space-y-2.5">
+      {/* Fila superior: nombre + estado + frecuencia */}
+      <div className="flex items-center gap-2">
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex-1 truncate">{label}</span>
+        <span className={`text-[10px] font-semibold ${statusCls}`}>{statusLabel}</span>
+        <select
+          value={target.targetFrequency}
+          onChange={(e) => onUpdateTarget('targetFrequency', Number(e.target.value))}
+          className="text-[11px] bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600 dark:text-gray-400"
+        >
+          {Array.from({ length: freq.max - freq.min + 1 }, (_, i) => freq.min + i).map(n => (
+            <option key={n} value={n}>{n}×/sem</option>
+          ))}
+        </select>
       </div>
 
-      {/* Barra */}
-      <div className="min-w-0">
+      {/* Barra de volumen */}
+      <div>
         <VolumeBar
           actual={actual}
           target={target.targetSets}
@@ -150,54 +174,97 @@ function MuscleGroupRow({
         </div>
       </div>
 
-      {/* Series reales */}
-      <div className="text-center">
-        <div className="text-base font-bold text-gray-900 dark:text-gray-100">{actual}</div>
-        <div className={`text-[10px] font-medium ${statusColor}`}>{statusLabel}</div>
-      </div>
+      {/* Fila de stats: Real | Rutinas | Target | GAP */}
+      <div className="grid grid-cols-4 gap-2">
+        {/* Real */}
+        <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-1.5 px-1">
+          <div className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">{actual}</div>
+          <div className="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Real</div>
+        </div>
 
-      {/* Target series (editable) */}
-      <div className="text-center">
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          min={0}
-          max={landmarks.mrv}
-          value={editingValue ?? ''}
-          onChange={(e) => onInputChange(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-          className="w-full text-center text-sm font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <div className="text-[10px] text-gray-400 mt-0.5">series/sem</div>
-      </div>
-
-      {/* Frecuencia */}
-      <div className="text-center">
-        <select
-          value={target.targetFrequency}
-          onChange={(e) => onUpdateTarget('targetFrequency', Number(e.target.value))}
-          className="w-full text-center text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {Array.from({ length: freq.max - freq.min + 1 }, (_, i) => freq.min + i).map(n => (
-            <option key={n} value={n}>{n}×/sem</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Gap */}
-      <div className="text-center">
-        {target.targetSets > 0 && (
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-            gap === 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-            : gap > 0 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+        {/* Rutinas proyectadas */}
+        <div className={`text-center rounded-lg py-1.5 px-1 ${
+          hasProjected
+            ? projectedShort
+              ? 'bg-amber-50 dark:bg-amber-900/20'
+              : projectedOver
+              ? 'bg-blue-50 dark:bg-blue-900/20'
+              : 'bg-green-50 dark:bg-green-900/20'
+            : 'bg-gray-50 dark:bg-gray-800'
+        }`}>
+          <div className={`text-base font-bold leading-tight ${
+            hasProjected
+              ? projectedShort ? 'text-amber-600 dark:text-amber-400'
+                : projectedOver ? 'text-blue-600 dark:text-blue-400'
+                : 'text-green-600 dark:text-green-400'
+              : 'text-gray-400'
           }`}>
-            {gap > 0 ? `–${gap} falta` : gap < 0 ? `+${Math.abs(gap)} extra` : '✓'}
-          </span>
-        )}
+            {hasProjected ? projected : '—'}
+          </div>
+          <div className="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Rutinas</div>
+        </div>
+
+        {/* Target (editable) */}
+        <div className="text-center">
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={editingValue}
+            onChange={(e) => onInputChange(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            className="w-full text-center text-base font-bold bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-700 dark:text-indigo-300"
+          />
+          <div className="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Target</div>
+        </div>
+
+        {/* GAP */}
+        <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg py-1.5 px-1">
+          {target.targetSets > 0 ? (
+            <>
+              <div className={`text-base font-bold leading-tight ${
+                gap === 0 ? 'text-green-600 dark:text-green-400'
+                : gap > 0 ? 'text-blue-600 dark:text-blue-400'
+                : 'text-rose-500 dark:text-rose-400'
+              }`}>
+                {gap > 0 ? `+${gap}` : gap < 0 ? gap : '✓'}
+              </div>
+              <div className="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">
+                {gap > 0 ? 'extra' : gap < 0 ? 'falta' : 'ok'}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-base font-bold text-gray-300 dark:text-gray-600 leading-tight">—</div>
+              <div className="text-[9px] text-gray-400 uppercase tracking-wider mt-0.5">Gap</div>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Aviso de desfase entre rutinas y target */}
+      {target.targetSets > 0 && (projectedMissing || projectedShort || projectedOver) && (
+        <div className={`flex items-start gap-1.5 text-[11px] rounded-lg px-2.5 py-2 ${
+          projectedMissing
+            ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+            : projectedShort
+            ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+            : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+        }`}>
+          <span className="shrink-0 mt-px">
+            {projectedMissing ? '💡' : projectedShort ? '⚠️' : 'ℹ️'}
+          </span>
+          <span>
+            {projectedMissing
+              ? `No tienes rutinas agendadas con ejercicios de ${label}. Asigna rutinas en la agenda semanal.`
+              : projectedShort
+              ? `Tus rutinas aportan ${projected} series de ${label}. Agrega ${Math.abs(projectedGap)} series más para alcanzar el target de ${target.targetSets}.`
+              : `Tus rutinas aportan ${projected} series de ${label}, ${projectedGap} más que el target (${target.targetSets}). Considera reducir el volumen.`
+            }
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -499,27 +566,58 @@ function WeeklyScheduleEditor({
   );
 }
 
+// ─── Helper: series proyectadas desde rutinas agendadas ──────────────────────
+
+function getProjectedSetsFromSchedule(
+  weekPlan: WeeklyPlan,
+  routines: Routine[]
+): Record<string, number> {
+  const sets: Record<string, number> = {};
+  Object.values(weekPlan.dailySchedule ?? {}).forEach(ds => {
+    if (ds.isRest) return;
+    ds.routineIds.forEach(rid => {
+      const routine = routines.find(r => r.id === rid);
+      if (!routine) return;
+      routine.exercises.forEach(ex => {
+        const dbEx = EXERCISE_DATABASE.find(e => e.id === ex.id || e.name === ex.name);
+        if (!dbEx?.muscleGroup) return;
+        // Contar series efectivas (excluir warmup)
+        const effectiveSets = ex.sets.filter(s => s.type !== 'warmup').length || ex.sets.length;
+        sets[dbEx.muscleGroup] = (sets[dbEx.muscleGroup] ?? 0) + effectiveSets;
+      });
+    });
+  });
+  return sets;
+}
+
 // ─── Vista semanal ────────────────────────────────────────────────────────────
 
 function WeeklyView({
   meso,
   weekPlan,
   actualSets,
+  routines,
   onUpdateTarget,
   onToggleDeload,
 }: {
   meso: Mesocycle;
   weekPlan: WeeklyPlan;
   actualSets: Record<string, number>;
+  routines: Routine[];
   onUpdateTarget: (mg: string, field: 'targetSets' | 'targetFrequency' | 'targetRPE', value: number) => void;
   onToggleDeload: () => void;
 }) {
   const totalTarget = Object.values(weekPlan.muscleGroupTargets).reduce((s, t) => s + t.targetSets, 0);
   const totalActual = Object.values(actualSets).reduce((s, v) => s + v, 0);
 
+  // Series proyectadas desde las rutinas agendadas esta semana
+  const projectedSets = getProjectedSetsFromSchedule(weekPlan, routines);
+  const totalProjected = Object.values(projectedSets).reduce((s, v) => s + v, 0);
+  const hasSchedule = Object.values(weekPlan.dailySchedule ?? {}).some(ds => !ds.isRest && ds.routineIds.length > 0);
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <h3 className="font-bold text-gray-900 dark:text-gray-100">
             Semana {weekPlan.weekNumber}
@@ -530,10 +628,19 @@ function WeeklyView({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">
-            {totalActual} / {totalTarget} series totales
-          </span>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Resumen series */}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>Real <strong className="text-gray-800 dark:text-gray-200">{totalActual}</strong></span>
+            {hasSchedule && (
+              <>
+                <span className="text-gray-300 dark:text-gray-700">·</span>
+                <span>Rutinas <strong className="text-indigo-600 dark:text-indigo-400">{totalProjected}</strong></span>
+              </>
+            )}
+            <span className="text-gray-300 dark:text-gray-700">·</span>
+            <span>Target <strong className="text-gray-800 dark:text-gray-200">{totalTarget}</strong></span>
+          </div>
           <button
             onClick={onToggleDeload}
             className="text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
@@ -543,34 +650,34 @@ function WeeklyView({
         </div>
       </div>
 
-      {/* Cabecera de columnas (oculta en móvil) */}
-      <div className="hidden md:grid md:grid-cols-[140px_1fr_80px_80px_70px_100px] gap-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400 px-0 pb-1">
-        <span>Grupo muscular</span>
-        <span>Volumen (MEV → MRV)</span>
-        <span className="text-center">Real</span>
-        <span className="text-center">Target</span>
-        <span className="text-center">Freq</span>
-        <span className="text-center">Gap</span>
-      </div>
+      {/* Leyenda */}
+      {!hasSchedule && (
+        <div className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg px-3 py-2">
+          💡 Asigna rutinas en la <strong>Agenda de rutinas</strong> de abajo para ver qué volumen cubren respecto al target.
+        </div>
+      )}
 
-      {MUSCLE_GROUPS.map(mg => {
-        const label = APP_CONFIG.muscleGroupLabels[mg as keyof typeof APP_CONFIG.muscleGroupLabels] ?? mg;
-        const color = APP_CONFIG.muscleGroupColors[mg as keyof typeof APP_CONFIG.muscleGroupColors] ?? '#6b7280';
-        const target = weekPlan.muscleGroupTargets[mg] ?? { targetSets: 0, targetFrequency: 2 };
-        const landmarks = meso.volumeLandmarks[mg] ?? DEFAULT_VOLUME_LANDMARKS[mg];
-        return (
-          <MuscleGroupRow
-            key={mg}
-            muscleGroup={mg}
-            label={label}
-            color={color}
-            target={target}
-            actual={actualSets[mg] ?? 0}
-            landmarks={landmarks}
-            onUpdateTarget={(field, value) => onUpdateTarget(mg, field, value)}
-          />
-        );
-      })}
+      <div className="space-y-2">
+        {MUSCLE_GROUPS.map(mg => {
+          const label = APP_CONFIG.muscleGroupLabels[mg as keyof typeof APP_CONFIG.muscleGroupLabels] ?? mg;
+          const color = APP_CONFIG.muscleGroupColors[mg as keyof typeof APP_CONFIG.muscleGroupColors] ?? '#6b7280';
+          const target = weekPlan.muscleGroupTargets[mg] ?? { targetSets: 0, targetFrequency: 2 };
+          const landmarks = meso.volumeLandmarks[mg] ?? DEFAULT_VOLUME_LANDMARKS[mg];
+          return (
+            <MuscleGroupRow
+              key={mg}
+              muscleGroup={mg}
+              label={label}
+              color={color}
+              target={target}
+              actual={actualSets[mg] ?? 0}
+              projected={projectedSets[mg] ?? 0}
+              landmarks={landmarks}
+              onUpdateTarget={(field, value) => onUpdateTarget(mg, field, value)}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -822,6 +929,7 @@ export default function PlanningPage() {
                         meso={viewMeso}
                         weekPlan={weekPlan}
                         actualSets={selectedWeek === (planning.activeMesocycle?.id === viewMeso.id ? planning.getCurrentWeekPlan()?.weekNumber : -1) ? actualSets : {}}
+                        routines={routines}
                         onUpdateTarget={(mg, field, value) =>
                           planning.updateMuscleGroupTarget(viewMeso.id, weekPlan.weekNumber, mg, { [field]: value })
                         }

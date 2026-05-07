@@ -130,6 +130,25 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
     return () => { mounted = false; };
   }, []);
 
+  // Escuchar sincronización desde el módulo de planificación
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const data = (e as CustomEvent).detail as Record<string, { routines: string[]; blocked: boolean; note: string }>;
+      if (!data) return;
+      const normalized = DAYS.reduce((acc, d) => ({
+        ...acc,
+        [d]: {
+          routines: data[d]?.routines ?? [],
+          blocked: data[d]?.blocked ?? false,
+          note: data[d]?.note ?? '',
+        },
+      }), {} as Plan);
+      setPlan(normalized);
+    };
+    window.addEventListener('planning:sync', handler);
+    return () => window.removeEventListener('planning:sync', handler);
+  }, []);
+
   // ✅ FASE 3 - Problema #15: Debounce compartido para guardar ambos planes
   // Usar refs para acceder a los valores más recientes sin causar re-renders
   const planRef = useRef(plan);
@@ -478,6 +497,7 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           <MonthlyCalendar
             currentDate={currentDate}
             monthlyPlan={monthlyPlan}
+            weeklyPlan={plan}
             routines={routines}
             onPreviousMonth={goToPreviousMonth}
             onNextMonth={goToNextMonth}

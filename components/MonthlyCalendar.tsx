@@ -12,12 +12,17 @@ const MONTH_NAMES = [
 
 const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 type DayPlan = { routines: string[]; blocked?: boolean; note?: string };
 type MonthlyPlan = Record<string, DayPlan>;
+type WeeklyPlan = Partial<Record<DayKey, DayPlan>>;
+
+const JS_DAY_TO_KEY: DayKey[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
 interface MonthlyCalendarProps {
   currentDate: Date;
   monthlyPlan: MonthlyPlan;
+  weeklyPlan?: WeeklyPlan;
   routines: Routine[];
   onPreviousMonth: () => void;
   onNextMonth: () => void;
@@ -59,6 +64,7 @@ const formatDateKey = (date: Date): string => {
 export default function MonthlyCalendar({
   currentDate,
   monthlyPlan,
+  weeklyPlan = {},
   routines,
   onPreviousMonth,
   onNextMonth,
@@ -68,6 +74,15 @@ export default function MonthlyCalendar({
 }: MonthlyCalendarProps) {
   const today = new Date();
   const todayKey = formatDateKey(today);
+
+  // Obtiene el plan efectivo de un día: override mensual > plan semanal recurrente > vacío
+  const getEffectivePlan = (date: Date, dateKey: string): DayPlan & { isFromWeekly?: boolean } => {
+    if (monthlyPlan[dateKey]) return monthlyPlan[dateKey];
+    const weekDayKey = JS_DAY_TO_KEY[date.getDay()];
+    const weekly = weeklyPlan[weekDayKey];
+    if (weekly) return { ...weekly, isFromWeekly: true };
+    return { routines: [], blocked: false, note: '' };
+  };
 
   return (
     <div className="space-y-4">
@@ -119,54 +134,78 @@ export default function MonthlyCalendar({
                 }
 
                 const dateKey = formatDateKey(date);
-                const dayPlan = monthlyPlan[dateKey] || { routines: [], blocked: false, note: '' };
+                const dayPlan = getEffectivePlan(date, dateKey);
+                const isFromWeekly = !!(dayPlan as any).isFromWeekly;
                 const isToday = dateKey === todayKey;
-                const isPast = date < new Date(today.setHours(0, 0, 0, 0));
+                const isPast = date < new Date(new Date(today).setHours(0, 0, 0, 0));
+                const hasRoutines = dayPlan.routines.length > 0;
 
                 return (
                   <button
                     key={dateKey}
                     onClick={() => onDayClick(dateKey)}
-                    className={`aspect-square p-2 rounded-lg border transition-all hover:scale-105 ${
+                    className={`min-h-20 p-1.5 rounded-lg border transition-all text-left ${
                       dayPlan.blocked
-                        ? 'bg-red-900/20 border-red-600/30 hover:bg-red-900/30'
-                        : dayPlan.routines.length > 0
-                        ? 'bg-emerald-900/20 border-emerald-600/30 hover:bg-emerald-900/30'
-                        : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+                        ? 'bg-purple-900/20 border-purple-600/30 hover:bg-purple-900/30'
+                        : hasRoutines
+                        ? isFromWeekly
+                          ? 'bg-blue-900/15 border-blue-600/25 hover:bg-blue-900/25'
+                          : 'bg-emerald-900/20 border-emerald-600/30 hover:bg-emerald-900/30'
+                        : 'bg-gray-800/60 border-gray-700/60 hover:bg-gray-700/60'
                     } ${isToday ? 'ring-2 ring-blue-500' : ''} ${
-                      isPast ? 'opacity-60' : ''
+                      isPast ? 'opacity-50' : ''
                     }`}
                   >
-                    <div className="flex flex-col h-full">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-sm font-semibold ${isToday ? 'text-blue-400' : 'text-gray-300'}`}>
+                    <div className="flex flex-col h-full gap-0.5">
+                      {/* Número del día */}
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-bold ${
+                          isToday ? 'text-blue-400' : isPast ? 'text-gray-500' : 'text-gray-300'
+                        }`}>
                           {date.getDate()}
                         </span>
-                        {dayPlan.routines.length > 0 && (
-                          <span className="text-xs bg-emerald-600 text-white px-1.5 py-0.5 rounded">
+                        {hasRoutines && (
+                          <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${
+                            isFromWeekly
+                              ? 'bg-blue-700/60 text-blue-200'
+                              : 'bg-emerald-700/60 text-emerald-200'
+                          }`}>
                             {dayPlan.routines.length}
                           </span>
                         )}
                       </div>
 
+                      {/* Contenido del día */}
                       {dayPlan.blocked ? (
-                        <div className="text-xs text-red-400">Descanso</div>
+                        <div className="text-[9px] text-purple-400 font-medium">💤 Descanso</div>
                       ) : (
-                        <div className="flex-1 overflow-hidden text-left">
-                          {dayPlan.routines.slice(0, 2).map(rid => {
+                        <div className="flex-1 overflow-hidden space-y-0.5">
+                          {dayPlan.routines.slice(0, 3).map(rid => {
                             const routine = routines.find(r => r.id === rid);
                             return routine ? (
-                              <div key={rid} className="text-[10px] text-gray-400 truncate">
-                                • {routine.name}
+                              <div
+                                key={rid}
+                                className={`text-[9px] truncate leading-tight px-1 py-px rounded ${
+                                  isFromWeekly
+                                    ? 'text-blue-300 bg-blue-900/20'
+                                    : 'text-emerald-300 bg-emerald-900/20'
+                                }`}
+                              >
+                                {routine.name}
                               </div>
                             ) : null;
                           })}
-                          {dayPlan.routines.length > 2 && (
-                            <div className="text-[10px] text-gray-500">
-                              +{dayPlan.routines.length - 2} más
+                          {dayPlan.routines.length > 3 && (
+                            <div className="text-[9px] text-gray-500 px-1">
+                              +{dayPlan.routines.length - 3} más
                             </div>
                           )}
                         </div>
+                      )}
+
+                      {/* Indicador de origen */}
+                      {isFromWeekly && hasRoutines && (
+                        <div className="text-[8px] text-blue-500/70 mt-auto">↻ semanal</div>
                       )}
                     </div>
                   </button>
