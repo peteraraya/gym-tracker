@@ -5,8 +5,9 @@ interface RestCalculationParams {
   currentExercise: any;
   nextExercise?: any;
   routine: any;
-  restOverrides: Record<string, number>;
-  perSetOverrides: Record<string, Record<number, number>>;
+  restOverrides?: Record<string, number>;
+  // per-set overrides are stored as arrays indexed 0-based in workout state
+  perSetOverrides?: Record<string, number[]>;
   currentSet?: number;
   useSmartRest: boolean;
 }
@@ -23,10 +24,12 @@ export function calculateNextRestTime({
   useSmartRest
 }: RestCalculationParams): number {
   const exerciseId = currentExercise.id;
-  
-  // Check for per-set override first
-  if (perSetOverrides[exerciseId]?.[currentSet!]) {
-    return perSetOverrides[exerciseId][currentSet!];
+  // Normalize to 0-based set index (currentSet may be 1-based)
+  const setIndex = (typeof currentSet === 'number' && currentSet > 0) ? currentSet - 1 : 0;
+
+  // Check for per-set override first (workout stores per-set overrides as arrays 0-based)
+  if (perSetOverrides?.[exerciseId] && typeof perSetOverrides[exerciseId][setIndex] === 'number') {
+    return perSetOverrides[exerciseId][setIndex];
   }
   
   // Check for exercise-level override

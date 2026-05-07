@@ -54,7 +54,7 @@ export function calculateNextRestTime(params: {
   }
   
   // 6. Default
-  return 60;
+  return 90;
 }
 
 /**

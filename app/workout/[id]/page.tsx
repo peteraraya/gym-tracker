@@ -1293,17 +1293,15 @@ export default function WorkoutPage() {
     } else {
       const newActualReps = [...(workoutState.workoutData.actualReps[exerciseId] || [])];
       newActualReps[setIndex] = 0;
-      
-      const newActualWeights = [...(workoutState.workoutData.actualWeights[exerciseId] || [])];
-      newActualWeights[setIndex] = 0;
-      
+
+      // No borrar el peso al desmarcar la serie: conservar el valor previo si existe.
+      // Dejar actualWeights sin cambios evita que el UI pierda el peso mostrado.
       workoutState.updateActualReps(exerciseId, newActualReps);
-      workoutState.updateActualWeights(exerciseId, newActualWeights);
-      
+
       // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
       const newCompletedCount = calculateCompletedSets(newActualReps);
       workoutState.updateCompletedSets(exerciseId, newCompletedCount);
-      
+
       if (setIndex + 1 < workoutState.currentSet) {
         workoutState.setCurrentSet(setIndex + 1);
       }
@@ -1603,7 +1601,21 @@ export default function WorkoutPage() {
         }
       }
     }
-  }, [routine, workoutState, haptic, currentExercise, useSmartRest, timerHandlers, skipRestTimers]);
+
+    // Si se desmarca una serie (undo o corrección), detener cualquier temporizador de descanso
+    if (!isComplete) {
+      try {
+        timerHandlers.stopTimer();
+      } catch (err) {
+        console.warn('[handleQuickToggleSetComplete] stopTimer error', err);
+      }
+      try {
+        clearRestState();
+      } catch (err) {
+        // ignore
+      }
+    }
+  }, [routine, workoutState, haptic, currentExercise, useSmartRest, timerHandlers, skipRestTimers, clearRestState]);
 
   const handleQuickAddSet = useCallback(async (exerciseId: string) => {
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);

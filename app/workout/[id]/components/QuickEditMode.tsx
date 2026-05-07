@@ -121,6 +121,21 @@ export function QuickEditMode({
   const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
   const setInputRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
+  // Estado para resaltar campos faltantes cuando el usuario intenta completar una serie
+  const [fieldValidation, setFieldValidation] = useState<Record<string, { reps?: boolean; weight?: boolean }>>({});
+
+  const triggerFieldValidation = (exerciseId: string, setIdx: number, fields: { reps?: boolean; weight?: boolean }) => {
+    const key = `${exerciseId}-${setIdx}`;
+    setFieldValidation((prev) => ({ ...prev, [key]: fields }));
+    setTimeout(() => {
+      setFieldValidation((prev) => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
+    }, 2500);
+  };
+
   // Mantener el foco en el input cuando se abre el modal
   useEffect(() => {
     if (editingCell && inputRef.current) {
@@ -843,23 +858,7 @@ export function QuickEditMode({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="font-medium">
-                    Descanso: {(() => {
-                      const override = workoutData.restOverrides?.[exerciseId];
-                      const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
-                      
-                      // Formatear en minutos y segundos
-                      if (restTime >= 60) {
-                        const minutes = Math.floor(restTime / 60);
-                        const seconds = restTime % 60;
-                        return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
-                      }
-                      return `${restTime}s`;
-                    })()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {onEditRestTime && (
+                  {onEditRestTime ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -867,14 +866,36 @@ export function QuickEditMode({
                         const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
                         startEditingRestTime(exerciseId, exercise.name, restTime);
                       }}
-                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded text-[10px] font-medium transition-colors flex items-center gap-1"
+                      className="font-medium text-left hover:underline focus:outline-none"
+                      aria-label={"Editar descanso de " + exercise.name}
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                      Editar
+                      Descanso: {(() => {
+                        const override = workoutData.restOverrides?.[exerciseId];
+                        const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
+                        if (restTime >= 60) {
+                          const minutes = Math.floor(restTime / 60);
+                          const seconds = restTime % 60;
+                          return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+                        }
+                        return `${restTime}s`;
+                      })()}
                     </button>
+                  ) : (
+                    <span className="font-medium">
+                      Descanso: {(() => {
+                        const override = workoutData.restOverrides?.[exerciseId];
+                        const restTime = override ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
+                        if (restTime >= 60) {
+                          const minutes = Math.floor(restTime / 60);
+                          const seconds = restTime % 60;
+                          return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+                        }
+                        return `${restTime}s`;
+                      })()}
+                    </span>
                   )}
+                </div>
+                <div className="flex items-center gap-1">
                   {/* Botón de omitir/restaurar ejercicio */}
                   {(onSkipExercise || onUnskipExercise) && (
                     <button
@@ -980,6 +1001,9 @@ export function QuickEditMode({
                       // Mostrar valor explícito si > 0; si no, usar el valor de la rutina como referencia
                       const displayReps = (doneReps !== undefined && doneReps > 0) ? doneReps : set.reps;
                       const displayWeight = (doneWeight !== undefined && doneWeight > 0) ? doneWeight : (set.weight || 0);
+
+                      const validationKey = `${exerciseId}-${setIdx}`;
+                      const validation = fieldValidation[validationKey] || {};
                       
                       const canCopyPrevious = setIdx > 0;
                       const previousReps = canCopyPrevious ? (actualReps[setIdx - 1] || exercise.sets[setIdx - 1]?.reps) : null;
@@ -1031,15 +1055,18 @@ export function QuickEditMode({
                             <button
                               ref={(el) => { setInputRefs.current[`${exerciseId}-${setIdx}-reps`] = el; }}
                               onClick={() => startEditing(exerciseId, setIdx, 'reps', displayReps, exercise.name)}
+                              aria-invalid={validation.reps ? 'true' : 'false'}
                               className={`w-full h-11 rounded-xl font-black text-lg tabular-nums active:scale-95 touch-manipulation border-2 transition-all ${
                                 displayReps === 0
                                   ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-200 dark:border-gray-700'
                                   : isCompleted
                                   ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
                                   : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700'
-                              }`}
-                            >
+                              }`}>
                               {displayReps === 0 ? '—' : displayReps}
+                              {validation.reps && (
+                                <span className="absolute -inset-px rounded-xl ring-2 ring-red-500 dark:ring-red-700 animate-pulse pointer-events-none" />
+                              )}
                             </button>
                             {hasRepsProgress && displayReps > 0 && (
                               <div className={`absolute -top-1 -right-1 px-1 py-0.5 rounded-full text-[8px] font-bold shadow ${
@@ -1055,6 +1082,7 @@ export function QuickEditMode({
                             <button
                               ref={(el) => { setInputRefs.current[`${exerciseId}-${setIdx}-weight`] = el; }}
                               onClick={() => startEditing(exerciseId, setIdx, 'weight', displayWeight, exercise.name)}
+                              aria-invalid={validation.weight ? 'true' : 'false'}
                               className={`w-full h-11 rounded-xl font-black text-sm tabular-nums active:scale-95 touch-manipulation border-2 transition-all flex flex-col items-center justify-center leading-none ${
                                 displayWeight === 0
                                   ? 'text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-200 dark:border-gray-700'
@@ -1070,6 +1098,9 @@ export function QuickEditMode({
                                   <span className="text-base font-black">{displayWeight}</span>
                                   <span className="text-[9px] font-normal opacity-60">kg</span>
                                 </>
+                              )}
+                              {validation.weight && (
+                                <span className="absolute -inset-px rounded-xl ring-2 ring-red-500 dark:ring-red-700 animate-pulse pointer-events-none" />
                               )}
                             </button>
                             {hasWeightProgress && displayWeight > 0 && (
@@ -1121,10 +1152,25 @@ export function QuickEditMode({
                               )}
                               <button
                                 onClick={(e) => {
-                                  // No permitir completar si no hay reps o peso (a menos que ya esté completada y se esté desmarcando)
-                                  if (!isCompleted && !isReadyToComplete) {
-                                    return;
-                                  }
+                                    // Si falta reps/peso, mostrar validación y abrir editor del campo faltante
+                                    if (!isCompleted && !isReadyToComplete) {
+                                      const missingReps = !(displayReps > 0);
+                                      const missingWeight = !(displayWeight > 0);
+                                      if (missingReps || missingWeight) {
+                                        const parts: string[] = [];
+                                        if (missingReps) parts.push('reps');
+                                        if (missingWeight) parts.push('peso');
+                                        showToast(`Falta ${parts.join(' y ')} en la serie ${setIdx + 1}`, 'warning', 3000);
+                                        triggerFieldValidation(exerciseId, setIdx, { reps: missingReps, weight: missingWeight });
+                                        // Abrir editor en el primer campo faltante
+                                        if (missingWeight) {
+                                          startEditing(exerciseId, setIdx, 'weight', displayWeight, exercise.name);
+                                        } else if (missingReps) {
+                                          startEditing(exerciseId, setIdx, 'reps', displayReps, exercise.name);
+                                        }
+                                      }
+                                      return;
+                                    }
 
                                   const newIsCompleted = !isCompleted;
                                   onToggleSetComplete(exerciseId, setIdx, newIsCompleted);
@@ -1151,7 +1197,15 @@ export function QuickEditMode({
                                         6000,
                                         {
                                           label: 'Deshacer',
-                                          onClick: () => onToggleSetComplete(exerciseId, setIdx, false),
+                                          onClick: () => {
+                                            try {
+                                              onToggleSetComplete(exerciseId, setIdx, false);
+                                            } catch {}
+                                            // Limpiar efectos UI locales (pinned + floating timer)
+                                            setPinnedExerciseId(prev => (prev === exerciseId ? null : prev));
+                                            setShowFloatingTimer(false);
+                                            setFloatingTimerDuration(0);
+                                          },
                                         },
                                       );
                                     } catch {}
@@ -1167,7 +1221,7 @@ export function QuickEditMode({
                                     if (pinnedExerciseId === exerciseId) setPinnedExerciseId(null);
                                   }
                                 }}
-                                disabled={!isReadyToComplete && !isCompleted}
+                                aria-disabled={!isReadyToComplete && !isCompleted}
                                 title={!isReadyToComplete && !isCompleted ? 'Completa reps y peso antes de marcar como completada' : undefined}
                                 className={`relative h-12 w-14 md:h-10 md:w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
                                   isCompleted
@@ -1178,7 +1232,7 @@ export function QuickEditMode({
                                     ? 'bg-orange-400 hover:bg-orange-500 text-white shadow-md shadow-orange-200 dark:shadow-orange-900'
                                     // ⬜ VACÍO — gris sutil, borde discontinuo
                                     : 'bg-transparent border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-300 dark:text-gray-600'
-                                }`}
+                                } ${!isReadyToComplete && !isCompleted ? 'opacity-60 cursor-pointer' : ''}`}
                               >
                                 {isCompleted ? (
                                   // Checkmark relleno (path relleno + stroke)

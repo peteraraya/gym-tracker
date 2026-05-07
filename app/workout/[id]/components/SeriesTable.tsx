@@ -171,12 +171,29 @@ export function SeriesTable({
                             />
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setMobileEditingField({setIndex: idx, field: 'weight'})}
-                            className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
-                          >
-                            {doneWeight || set.weight || 0}
-                          </button>
+                          <div>
+                            <button
+                              onClick={() => setMobileEditingField({setIndex: idx, field: 'weight'})}
+                              className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
+                            >
+                              {doneWeight || set.weight || 0}
+                            </button>
+                            {/* Hint cuando no hay peso */}
+                            {!(typeof doneWeight === 'number' && doneWeight > 0) && (
+                              <div className="mt-1 text-[11px] text-gray-500">
+                                {idx > 0 && (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) ? (
+                                  <button
+                                    onClick={() => onEditWeight(idx, (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) as number)}
+                                    className="text-blue-600 dark:text-blue-400 underline text-[11px]"
+                                  >
+                                    Usar anterior {(actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight)}kg
+                                  </button>
+                                ) : (
+                                  <span>Toca para editar el peso</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                         <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">kg</span>
                       </div>
@@ -343,11 +360,28 @@ export function SeriesTable({
 
                     {/* Peso */}
                     <td className="py-3 px-2">
-                      <WeightSelector
-                        value={doneWeight}
-                        onChange={(weight) => onEditWeight(idx, weight)}
-                        exerciseId={exerciseId}
-                      />
+                      <div className="flex flex-col">
+                        <WeightSelector
+                          value={doneWeight}
+                          onChange={(weight) => onEditWeight(idx, weight)}
+                          exerciseId={exerciseId}
+                        />
+                        {/* Hint cuando no hay peso */}
+                        {!(typeof doneWeight === 'number' && doneWeight > 0) && (
+                          <div className="mt-1 text-[11px] text-gray-500">
+                            {idx > 0 && (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) ? (
+                              <button
+                                onClick={() => onEditWeight(idx, (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) as number)}
+                                className="text-blue-600 dark:text-blue-400 underline text-[11px]"
+                              >
+                                Usar anterior {(actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight)}kg
+                              </button>
+                            ) : (
+                              <span>Toca para editar el peso</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     {/* Descanso personalizado - Hidden on mobile */}

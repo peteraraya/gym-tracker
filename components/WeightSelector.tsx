@@ -15,6 +15,7 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
   const [savedWeights, setSavedWeights] = useState<number[]>([]);
   const [inputValue, setInputValue] = useState(value === '' ? '' : value.toString());
   const containerRef = useRef<HTMLDivElement>(null);
+  const saveTimeoutRef = useRef<number | null>(null);
 
   // Cargar pesos guardados del localStorage
   useEffect(() => {
@@ -51,6 +52,35 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
     const id = setTimeout(() => setInputValue(value === '' ? '' : value.toString()), 0);
     return () => clearTimeout(id);
   }, [value]);
+
+  // Guardar automáticamente el peso escrito después de un pequeño debounce
+  useEffect(() => {
+    // Normalizar y parsear
+    const val = inputValue;
+    if (!val) return;
+    const normalized = val.replace(',', '.');
+    if (!/^[0-9]*\.?[0-9]*$/.test(normalized)) return;
+    const num = parseFloat(normalized);
+    if (isNaN(num) || num <= 0) return;
+
+    // Si ya está en el historial, no intentar guardarlo de nuevo
+    if (savedWeights.includes(num)) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = window.setTimeout(() => {
+      saveWeight(num);
+      saveTimeoutRef.current = null;
+    }, 600);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+    };
+  }, [inputValue, savedWeights]);
 
   const saveWeight = (weight: number) => {
     if (weight <= 0) return;
@@ -104,6 +134,17 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
     // Si el valor es 0 o vacío, no guardarlo en el historial
   };
 
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const normalized = inputValue.replace(',', '.');
+      const num = parseFloat(normalized);
+      if (!isNaN(num) && num > 0) {
+        saveWeight(num);
+      }
+      setIsOpen(false);
+    }
+  };
+
   const handleSelectWeight = (weight: number) => {
     onChange(weight);
     setInputValue(weight.toString());
@@ -125,6 +166,7 @@ export function WeightSelector({ value, onChange, exerciseId, placeholder = '0',
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
+        onKeyDown={handleInputKeyDown}
         onFocus={handleInputFocus}
         placeholder={placeholder}
         aria-label="Peso"

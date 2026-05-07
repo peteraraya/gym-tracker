@@ -89,6 +89,17 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     );
 
     const allSuggestions = [...generalSuggestions, ...liveSuggestions];
+
+    // Dedupe suggestions by a stable key (type + title + message)
+    const seen = new Set<string>();
+    const uniqueSuggestions: WorkoutSuggestion[] = [];
+    for (const s of allSuggestions) {
+      const key = `${s.type}::${s.title}::${s.message}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueSuggestions.push(s);
+      }
+    }
     
     // Mostrar sugerencias como toasts (solo las más importantes) - SOLO UNA VEZ
     if (allSuggestions.length > 0 && !dismissedSuggestions.has(0)) {
@@ -110,7 +121,7 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
       }
     }
     
-    setSuggestions(allSuggestions);
+    setSuggestions(uniqueSuggestions);
   }, [
     currentExercise?.id,
     currentSet,
