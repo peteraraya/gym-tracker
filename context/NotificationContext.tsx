@@ -10,11 +10,17 @@ import { useTranslations } from '@/context/LocaleContext';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface Toast {
   id: string;
   message: string;
   type: ToastType;
   duration?: number;
+  action?: ToastAction;
 }
 
 // ==================== Confirm Types ====================
@@ -31,11 +37,11 @@ interface ConfirmOptions {
 
 interface NotificationContextType {
   // Toast API
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
-  success: (message: string, duration?: number) => void;
-  error: (message: string, duration?: number) => void;
-  info: (message: string, duration?: number) => void;
-  warning: (message: string, duration?: number) => void;
+  showToast: (message: string, type?: ToastType, duration?: number, action?: ToastAction) => void;
+  success: (message: string, duration?: number, action?: ToastAction) => void;
+  error: (message: string, duration?: number, action?: ToastAction) => void;
+  info: (message: string, duration?: number, action?: ToastAction) => void;
+  warning: (message: string, duration?: number, action?: ToastAction) => void;
   // Confirm API
   confirm: (options: ConfirmOptions) => Promise<boolean>;
 }
@@ -59,18 +65,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const showToast = useCallback((message: string, type: ToastType = 'info', duration: number = 5000) => {
-    const id = `${Date.now()}-${Math.random()}`;
-    setToasts((prev) => [...prev, { id, message, type, duration }]);
-    if (duration > 0) {
-      setTimeout(() => removeToast(id), duration);
-    }
-  }, [removeToast]);
+  const showToast = useCallback(
+    (message: string, type: ToastType = 'info', duration: number = 5000, action?: ToastAction) => {
+      const id = `${Date.now()}-${Math.random()}`;
+      setToasts((prev) => [...prev, { id, message, type, duration, action }]);
+      if (duration > 0) {
+        setTimeout(() => removeToast(id), duration);
+      }
+    },
+    [removeToast],
+  );
 
-  const success = useCallback((message: string, duration?: number) => showToast(message, 'success', duration), [showToast]);
-  const error = useCallback((message: string, duration?: number) => showToast(message, 'error', duration), [showToast]);
-  const info = useCallback((message: string, duration?: number) => showToast(message, 'info', duration), [showToast]);
-  const warning = useCallback((message: string, duration?: number) => showToast(message, 'warning', duration), [showToast]);
+  const success = useCallback((message: string, duration?: number, action?: ToastAction) => showToast(message, 'success', duration, action), [showToast]);
+  const error = useCallback((message: string, duration?: number, action?: ToastAction) => showToast(message, 'error', duration, action), [showToast]);
+  const info = useCallback((message: string, duration?: number, action?: ToastAction) => showToast(message, 'info', duration, action), [showToast]);
+  const warning = useCallback((message: string, duration?: number, action?: ToastAction) => showToast(message, 'warning', duration, action), [showToast]);
 
   // ==================== Confirm Methods ====================
 
@@ -138,6 +147,19 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           <div key={toast.id} className={`${getToastStyles(toast.type)} pointer-events-auto`}>
             {getToastIcon(toast.type)}
             <p className="flex-1 text-sm font-medium leading-relaxed">{toast.message}</p>
+            {toast.action && (
+              <button
+                onClick={() => {
+                  try {
+                    toast.action?.onClick();
+                  } catch {}
+                  removeToast(toast.id);
+                }}
+                className="ml-3 shrink-0 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold"
+              >
+                {toast.action.label}
+              </button>
+            )}
             <button onClick={() => removeToast(toast.id)} className="shrink-0 hover:opacity-70 transition-opacity" aria-label="Cerrar notificación">
               <X className="w-4 h-4" />
             </button>

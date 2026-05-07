@@ -38,6 +38,7 @@ import {
   calculateSmartRestTime,
   applySmartRestToAllSets
 } from './services/restCalculationService';
+import { LoadingState } from '@/components/LoadingState';
 import { 
   getPersonalRecord, 
   compareWithRecord,
@@ -105,6 +106,8 @@ export default function WorkoutPage() {
   });
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [selectedExerciseName, setSelectedExerciseName] = useState<string>('');
+  const [exerciseInfo, setExerciseInfo] = useState<any | null>(null);
+  const [loadingExerciseInfo, setLoadingExerciseInfo] = useState(false);
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
   // ✅ isQuickEditMode ya está definido arriba como constante true
   const [useSmartRest] = useState(true);
@@ -141,16 +144,60 @@ export default function WorkoutPage() {
   
   // Actualizar tiempo transcurrido cada segundo SOLO si NO está pausado
   useEffect(() => {
+    let mounted = true;
+    // Cuando se abre el panel de info, intentar localizar los datos del ejercicio
+    if (showExerciseInfo && selectedExerciseName) {
+      // Si ya existe en la DB estática, usarla inmediatamente
+      const local = EXERCISE_DATABASE.find(e => e.name === selectedExerciseName || e.id === selectedExerciseName);
+      if (local) {
+        setExerciseInfo(local);
+        setLoadingExerciseInfo(false);
+        return;
+      }
+
+      // Si no está, cargar dinámicamente usando los helpers asíncronos
+      setLoadingExerciseInfo(true);
+      (async () => {
+        try {
+          const mod = await import('@/data/exercises');
+          const byName = await mod.getExerciseByName(selectedExerciseName);
+          if (mounted && byName) {
+            setExerciseInfo(byName);
+            return;
+          }
+
+          // Intentar por id como fallback
+          const byId = await mod.getExerciseById(selectedExerciseName);
+          if (mounted && byId) {
+            setExerciseInfo(byId);
+            return;
+          }
+        } catch (err) {
+          console.error('[ExerciseInfo] Error loading exercise details', err);
+        } finally {
+          if (mounted) setLoadingExerciseInfo(false);
+        }
+      })();
+    } else {
+      // Limpiar cuando se cierra
+      setExerciseInfo(null);
+      setLoadingExerciseInfo(false);
+    }
+
+    return () => { mounted = false; };
+  }, [showExerciseInfo, selectedExerciseName]);
+
+  useEffect(() => {
     if (isPaused) {
       // Si está pausado, no actualizar el tiempo
       return;
     }
-    
+
     const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
       setElapsedTime(elapsed);
     }, 1000);
-    
+
     return () => clearInterval(interval);
   }, [workoutStartTime, totalPausedTime, isPaused]);
   
@@ -1844,7 +1891,11 @@ export default function WorkoutPage() {
           onRepsChange={workoutState.setCurrentReps}
           onWeightChange={workoutState.setCurrentWeight}
           onCompleteSet={handleCompleteSet}
-          onShowInfo={() => setShowExerciseInfo(true)}
+          onShowInfo={() => {
+            // Asegurarnos de pasar el nombre del ejercicio antes de abrir el panel
+            if (currentExercise && currentExercise.name) setSelectedExerciseName(currentExercise.name);
+            setShowExerciseInfo(true);
+          }}
           isSetStarted={setExecution.isExecutingSet}
           weightSuggestion={weightPrediction.weightSuggestion}
           onDismissWeightSuggestion={() => weightPrediction.setDismissedWeightSuggestion(true)}
@@ -2007,18 +2058,26 @@ export default function WorkoutPage() {
         />
 
         {showExerciseInfo && (
-          <Suspense fallback={<div />}>
-            <ExerciseInfoPanel
-              exercise={EXERCISE_DATABASE.find(e => e.name === selectedExerciseName) || {
-                id: selectedExerciseName,
-                name: selectedExerciseName,
-                muscleGroup: 'pecho'
-              } as any}
-              onClose={() => {
-                setShowExerciseInfo(false);
-                setSelectedExerciseName('');
-              }}
-            />
+          <Suspense fallback={<LoadingState message="Cargando ejercicio..." />}>
+            {loadingExerciseInfo ? (
+              <div className="p-6"><LoadingState message="Cargando ejercicio..." /></div>
+            ) : (
+              <ExerciseInfoPanel
+                exercise={
+                  exerciseInfo || EXERCISE_DATABASE.find(e => e.name === selectedExerciseName) || {
+                    id: selectedExerciseName,
+                    name: selectedExerciseName,
+                    muscleGroup: 'pecho'
+                  } as any
+                }
+                onClose={() => {
+                  setShowExerciseInfo(false);
+                  setSelectedExerciseName('');
+                  setExerciseInfo(null);
+                  setLoadingExerciseInfo(false);
+                }}
+              />
+            )}
           </Suspense>
         )}
 

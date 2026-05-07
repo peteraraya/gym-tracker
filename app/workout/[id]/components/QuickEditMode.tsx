@@ -8,6 +8,7 @@ import { EditValueModal } from '@/components/EditValueModal';
 import { FloatingRestTimer } from './FloatingRestTimer';
 import { AddExerciseButton } from './AddExerciseButton';
 import { useConfirm } from '@/context/ConfirmContext';
+import { useToast } from '@/context/NotificationContext';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { SetType, Routine } from '@/types';
 
@@ -36,6 +37,9 @@ interface QuickEditModeProps {
   onUnskipExercise?: (exerciseId: string) => void;
   onSkipRestTimersChange?: (skip: boolean) => void; // ✅ NUEVO: Callback para notificar cambio
   skipRestTimers?: boolean; // ✅ NUEVO: Estado controlado desde el padre
+  // Auto-advance: control para avanzar foco automáticamente a la siguiente serie
+  onAutoAdvanceChange?: (value: boolean) => void;
+  autoAdvance?: boolean;
   onShowExerciseInfo?: (exerciseName: string) => void; // ✅ NUEVO: Callback para mostrar info del ejercicio
   sessions?: any[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
   onAddExercises?: (exercises: ExerciseTemplate[]) => void; // Callback para agregar ejercicios durante el entrenamiento
@@ -62,6 +66,8 @@ export function QuickEditMode({
   onUnskipExercise,
   onSkipRestTimersChange,
   skipRestTimers: skipRestTimersProp,
+  onAutoAdvanceChange,
+  autoAdvance: autoAdvanceProp,
   onShowExerciseInfo,
   sessions = [],
   onAddExercises,
@@ -94,7 +100,18 @@ export function QuickEditMode({
       setSkipRestTimersLocal(value);
     }
   };
+  // Auto-advance control (por defecto true)
+  const [autoAdvanceLocal, setAutoAdvanceLocal] = useState(true);
+  const autoAdvance = autoAdvanceProp !== undefined ? autoAdvanceProp : autoAdvanceLocal;
+  const setAutoAdvance = (value: boolean) => {
+    if (onAutoAdvanceChange) {
+      onAutoAdvanceChange(value);
+    } else {
+      setAutoAdvanceLocal(value);
+    }
+  };
   const { confirm } = useConfirm();
+  const { showToast } = useToast();
   // ✅ Estado para el temporizador flotante
   const [showFloatingTimer, setShowFloatingTimer] = useState(false);
   const [floatingTimerDuration, setFloatingTimerDuration] = useState(0);
@@ -494,7 +511,7 @@ export function QuickEditMode({
           </div>
         </div>
         
-        {/* Switch para omitir descansos */}
+        {/* Switch para omitir descansos + Auto-advance */}
         <div className="flex items-center justify-between gap-3 mt-3 p-2 bg-white/10 rounded-lg backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -502,20 +519,42 @@ export function QuickEditMode({
             </svg>
             <span className="text-sm font-medium">Omitir descansos</span>
           </div>
-          <button
-            onClick={() => setSkipRestTimers(!skipRestTimers)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
-              skipRestTimers ? 'bg-green-500' : 'bg-white/30'
-            }`}
-            role="switch"
-            aria-checked={skipRestTimers}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                skipRestTimers ? 'translate-x-6' : 'translate-x-1'
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSkipRestTimers(!skipRestTimers)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
+                skipRestTimers ? 'bg-green-500' : 'bg-white/30'
               }`}
-            />
-          </button>
+              role="switch"
+              aria-checked={skipRestTimers}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  skipRestTimers ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Avanzar auto</span>
+              <button
+                onClick={() => setAutoAdvance(!autoAdvance)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
+                  autoAdvance ? 'bg-blue-500' : 'bg-white/30'
+                }`}
+                role="switch"
+                aria-checked={autoAdvance}
+                title={autoAdvance ? 'Avanzar automáticamente activado' : 'Avanzar automáticamente desactivado'}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    autoAdvance ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
         </div>
         
         {/* Barra de progreso mejorada */}
@@ -1077,10 +1116,11 @@ export function QuickEditMode({
                             <div className="relative">
                               {/* Anillo pulsante naranja cuando está listo */}
                               {isReadyToComplete && (
-                                <span className="absolute inset-0 rounded-xl animate-ping bg-orange-400 opacity-40 pointer-events-none" />
+                                // Menos intrusivo: usar pulse y bajar opacidad para atención sutil
+                                <span className="absolute inset-0 rounded-xl animate-pulse bg-orange-400 opacity-25 pointer-events-none" />
                               )}
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
                                   // No permitir completar si no hay reps o peso (a menos que ya esté completada y se esté desmarcando)
                                   if (!isCompleted && !isReadyToComplete) {
                                     return;
@@ -1102,7 +1142,27 @@ export function QuickEditMode({
                                     } else {
                                       setPinnedExerciseId(null);
                                     }
-                                    setTimeout(() => focusNextIncompleteSet(exerciseId, setIdx), 100);
+
+                                    // Mostrar snackbar "Deshacer" para revertir la marcación
+                                    try {
+                                      showToast(
+                                        'Serie marcada como completada',
+                                        'success',
+                                        6000,
+                                        {
+                                          label: 'Deshacer',
+                                          onClick: () => onToggleSetComplete(exerciseId, setIdx, false),
+                                        },
+                                      );
+                                    } catch {}
+
+                                    // Sólo avanzar y abrir el siguiente input automáticamente si la activación fue por teclado
+                                    // (event.detail === 0 para activaciones por teclado o programáticas). Esto evita
+                                    // que la UI haga foco molesto tras clicks táctiles/ratón.
+                                    const isKeyboardActivation = (e?.detail === 0);
+                                    if (autoAdvance && isKeyboardActivation) {
+                                      setTimeout(() => focusNextIncompleteSet(exerciseId, setIdx), 100);
+                                    }
                                   } else {
                                     if (pinnedExerciseId === exerciseId) setPinnedExerciseId(null);
                                   }

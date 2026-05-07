@@ -1772,7 +1772,10 @@ export default function WorkoutPage() {
           onRepsChange={workoutState.setCurrentReps}
           onWeightChange={workoutState.setCurrentWeight}
           onCompleteSet={handleCompleteSet}
-          onShowInfo={() => setShowExerciseInfo(true)}
+          onShowInfo={() => {
+            if (currentExercise && currentExercise.name) setSelectedExerciseName(currentExercise.name);
+            setShowExerciseInfo(true);
+          }}
           isSetStarted={setExecution.isExecutingSet}
           weightSuggestion={weightPrediction.weightSuggestion}
           onDismissWeightSuggestion={() => weightPrediction.setDismissedWeightSuggestion(true)}
