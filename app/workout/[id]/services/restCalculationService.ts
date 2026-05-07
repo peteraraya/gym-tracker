@@ -33,8 +33,9 @@ export function calculateNextRestTime({
   }
   
   // Check for exercise-level override
-  if (restOverrides[exerciseId]) {
-    return restOverrides[exerciseId];
+  const exerciseOverride = restOverrides?.[exerciseId];
+  if (typeof exerciseOverride === 'number') {
+    return exerciseOverride;
   }
   
   // Use smart rest if enabled for this exercise
@@ -63,8 +64,9 @@ export function calculateExerciseRestTime({
   const nextExerciseId = nextExercise.id;
   
   // Check for override on next exercise
-  if (restOverrides[nextExerciseId]) {
-    return restOverrides[nextExerciseId];
+  const nextOverride = restOverrides?.[nextExerciseId];
+  if (typeof nextOverride === 'number') {
+    return nextOverride;
   }
   
   // Use smart rest if enabled

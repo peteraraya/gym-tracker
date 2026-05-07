@@ -17,9 +17,10 @@ export function saveProfileLocally(profile: Partial<Omit<UserProfile, 'id' | 'us
 
   const existingProfile = getProfileLocally();
   
-  // Normalizar null a undefined para compatibilidad con UserProfile
-  const normalizeValue = <T>(value: T | null | undefined): T | null => {
-    return value === undefined ? null : value;
+  // Normalizar null/undefined a `undefined` para compatibilidad con UserProfile
+  const normalizeValue = <T>(value: T | null | undefined): T | undefined => {
+    // Si es null o undefined, devolvemos undefined (campos opcionales en UserProfile)
+    return value == null ? undefined : value;
   };
   
   const updatedProfile: UserProfile = {
@@ -32,8 +33,8 @@ export function saveProfileLocally(profile: Partial<Omit<UserProfile, 'id' | 'us
     fitnessGoal: normalizeValue(profile.fitnessGoal ?? existingProfile?.fitnessGoal),
     fitnessLevel: normalizeValue(profile.fitnessLevel ?? existingProfile?.fitnessLevel),
     weeklyWorkouts: normalizeValue(profile.weeklyWorkouts ?? existingProfile?.weeklyWorkouts),
-    createdAt: existingProfile?.createdAt || new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: existingProfile?.createdAt ?? new Date(),
+    updatedAt: new Date()
   };
 
   try {
