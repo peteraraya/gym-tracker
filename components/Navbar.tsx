@@ -26,7 +26,8 @@ import {
   Dumbbell,
   BookOpen,
   Sparkles,
-  Settings
+  Settings,
+  BarChart3
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -50,6 +51,7 @@ export const Navbar: React.FC = () => {
     { href: '/routines', icon: ClipboardList, label: t('routines') },
     { href: '/exercises', icon: Lightbulb, label: t('exercises') },
     { href: '/equipment', icon: Dumbbell, label: t('equipment') },
+    { href: '/planning', icon: BarChart3, label: t('planning') },
     { href: '/recommended', icon: Target, label: t('recommended') },
     { href: '/glossary', icon: BookOpen, label: t('glossary') },
     { href: '/calculators', icon: Calculator, label: t('calculators') },
@@ -85,11 +87,11 @@ export const Navbar: React.FC = () => {
                 <NavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} color="blue" data-tour="routines" />
                 <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" data-tour="exercises" />
                 <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
+                <NavLink href="/planning" icon={BarChart3} label={t('planning')} isActive={isActive('/planning')} color="indigo" />
                 <NavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} color="emerald" data-tour="recommended" />
                 {/* <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" /> */}
                 <NavLink href="/glossary" icon={BookOpen} label={t('glossary')} isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
                 <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
-                <NavLink href="/ai-assistant" icon={Sparkles} label={t('aiAssistant')} isActive={isActive('/ai-assistant')} color="purple" data-tour="ai-assistant" />
                 <NavLink href="/settings" icon={Settings} label={t('settings')} isActive={isActive('/settings')} color="zinc" />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
                 {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" data-tour="profile" />}
@@ -99,12 +101,13 @@ export const Navbar: React.FC = () => {
                 <DropdownNav
                   label={t('dashboard')}
                   icon={LayoutDashboard}
-                  parentActive={isActive('/dashboard') || isActive('/progress') || isActive('/achievements') || isActive('/sessions')}
+                  parentActive={isActive('/dashboard') || isActive('/progress') || isActive('/achievements') || isActive('/sessions') || isActive('/ai-assistant')}
                   items={[
                     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard, dataTour: undefined },
                     { href: '/progress', label: t('progress'), icon: TrendingUp, dataTour: 'progress' },
                     { href: '/achievements', label: t('achievements'), icon: Trophy, dataTour: 'achievements' },
                     { href: '/sessions', label: t('sessions'), icon: Calendar, dataTour: 'sessions' },
+                    { href: '/ai-assistant', label: t('aiAssistant'), icon: Sparkles, dataTour: 'ai-assistant' },
                   ]}
                 />
               </div>

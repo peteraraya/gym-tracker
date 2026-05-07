@@ -224,10 +224,11 @@ useEffect(() => {
                 setTimeout(() => setStatusMsg(''), 1200);
               } else if (res.status === 401) {
                 // No autenticado - dejar silencioso
-              console.debug('No autenticado al guardar perfil remoto');
-            } else {
-              const data = await res.json().catch(() => ({}));
-              console.warn('Error guardando perfil remoto', data);
+                console.debug('No autenticado al guardar perfil remoto');
+              } else {
+                const data = await res.json().catch(() => ({}));
+                console.warn('Error guardando perfil remoto', data);
+              }
             }
           } catch (err) {
             console.warn('Fallo al guardar perfil remoto', err);

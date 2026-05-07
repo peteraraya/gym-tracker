@@ -57,6 +57,7 @@ export const APP_CONFIG = {
       routines: 'gym-routines',
       profile: 'gym-profile',
       weeklyPlan: 'gym-weekly-plan',
+      planning: 'gym-planning-data',
       equipment: 'gym-equipment',
       lastSavedSession: 'gym_tracker_last_saved_session_local'
     }

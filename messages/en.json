@@ -46,7 +46,8 @@
     "logout": "Sign out",
     "glossary": "Glossary",
     "aiAssistant": "AI Assistant",
-    "settings": "Settings"
+    "settings": "Settings",
+    "planning": "Planning"
   },
   "auth": {
     "signIn": "Sign In",

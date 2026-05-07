@@ -48,7 +48,8 @@
     "logout": "Cerrar sesión",
     "glossary": "Glosario",
     "aiAssistant": "Asistente IA",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "planning": "Planificación"
   },
   "auth": {
     "signIn": "Iniciar Sesión",

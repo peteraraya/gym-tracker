@@ -26,6 +26,9 @@ import {
   LoadingSpinner,
   CardGrid 
 } from '@/components/shared';
+import { usePlanning } from '@/hooks/usePlanning';
+import { GOAL_LABELS, DAYS, DAY_LABELS_SHORT } from '@/types/planning';
+import Link from 'next/link';
 
 export default function RoutinesPage() {
   const router = useRouter();
@@ -34,6 +37,7 @@ export default function RoutinesPage() {
   const { success, error } = useToast();
   const { confirm } = useConfirm();
   const t = useTranslations('routines');
+  const planning = usePlanning();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingRoutine, setEditingRoutine] = useState<string | null>(null);
@@ -276,6 +280,54 @@ export default function RoutinesPage() {
 
         <PageContent>
 
+
+          {/* Banner de mesociclo activo */}
+          {planning.activeMesocycle && (() => {
+            const currentWeek = planning.getCurrentWeekPlan();
+            const todayKey = (['sunday','monday','tuesday','wednesday','thursday','friday','saturday'] as const)[new Date().getDay()];
+            const todaySchedule = currentWeek?.dailySchedule?.[todayKey];
+            const todayRoutines = (todaySchedule?.routineIds ?? [])
+              .map(id => routines.find(r => r.id === id))
+              .filter(Boolean);
+            return (
+              <div className="mb-4 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/40 dark:bg-indigo-900/10 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-2xl">📅</span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                        Mesociclo activo
+                      </span>
+                      <span className="text-xs px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full font-medium">
+                        {GOAL_LABELS[planning.activeMesocycle.goal]}
+                      </span>
+                      {currentWeek && (
+                        <span className="text-xs text-gray-500">Sem. {currentWeek.weekNumber}/{planning.activeMesocycle.weeks}</span>
+                      )}
+                    </div>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+                      {planning.activeMesocycle.name}
+                    </p>
+                    {todaySchedule?.isRest ? (
+                      <p className="text-xs text-purple-500">💤 Hoy es día de descanso según tu planificación</p>
+                    ) : todayRoutines.length > 0 ? (
+                      <p className="text-xs text-gray-500">
+                        Hoy ({DAY_LABELS_SHORT[todayKey]}): {todayRoutines.map(r => r!.name).join(', ')}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-400">Sin rutina asignada para hoy</p>
+                    )}
+                  </div>
+                </div>
+                <Link
+                  href="/planning"
+                  className="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors"
+                >
+                  Ver planificación →
+                </Link>
+              </div>
+            );
+          })()}
 
           {/* Weekly Planner */}
           <div className="mb-6">
