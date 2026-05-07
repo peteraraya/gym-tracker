@@ -31,17 +31,40 @@ export default function RecommendedRoutinesPage() {
 
   const loadProfile = async () => {
     try {
-      const response = await fetch('/api/profile');
-      if (response.ok) {
-        const profile: UserProfile | null = await response.json();
-        setUserProfile(profile);
-        if (profile) {
-          const recommendations = getRecommendedRoutines(profile);
-          setPersonalizedRecommendations(recommendations);
+      // Verificar modo de almacenamiento
+      const { useLocalStorage } = await import('@/lib/storageConfig');
+      
+      if (useLocalStorage()) {
+        // Modo LOCAL: Cargar desde localStorage
+        if (typeof window !== 'undefined') {
+          const { getProfileLocally } = await import('@/lib/localProfile');
+          const localProfile = getProfileLocally();
+          
+          if (localProfile) {
+            console.log('[Recommended] ✅ Loaded from localStorage');
+            setUserProfile(localProfile);
+            const recommendations = getRecommendedRoutines(localProfile);
+            setPersonalizedRecommendations(recommendations);
+            setProfileLoading(false);
+            return;
+          }
+        }
+      } else {
+        // Modo DATABASE: Cargar desde Supabase
+        console.log('[Recommended] ☁️ Loading from Supabase...');
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const profile: UserProfile | null = await response.json();
+          console.log('[Recommended] ✅ Loaded from Supabase');
+          setUserProfile(profile);
+          if (profile) {
+            const recommendations = getRecommendedRoutines(profile);
+            setPersonalizedRecommendations(recommendations);
+          }
         }
       }
     } catch (err) {
-      console.error('Error loading profile:', err);
+      console.error('[Recommended] ❌ Error loading profile:', err);
     } finally {
       setProfileLoading(false);
     }

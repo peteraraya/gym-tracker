@@ -75,14 +75,33 @@ export default function DashboardPage() {
 
   const loadData = async () => {
     try {
-      const profileRes = await fetch('/api/profile');
+      // Verificar modo de almacenamiento
+      const { useLocalStorage } = await import('@/lib/storageConfig');
+      
+      if (useLocalStorage()) {
+        // Modo LOCAL: Cargar desde localStorage
+        if (typeof window !== 'undefined') {
+          const { getProfileLocally } = await import('@/lib/localProfile');
+          const localProfile = getProfileLocally();
+          
+          if (localProfile) {
+            console.log('[Dashboard] ✅ Loaded from localStorage');
+            setProfile(localProfile);
+          }
+        }
+      } else {
+        // Modo DATABASE: Cargar desde Supabase
+        console.log('[Dashboard] ☁️ Loading from Supabase...');
+        const profileRes = await fetch('/api/profile');
 
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
-        setProfile(profileData);
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          console.log('[Dashboard] ✅ Loaded from Supabase');
+          setProfile(profileData);
+        }
       }
     } catch (error) {
-      console.error('Error loading dashboard:', error);
+      console.error('[Dashboard] ❌ Error loading dashboard:', error);
     } finally {
       setLoading(false);
     }

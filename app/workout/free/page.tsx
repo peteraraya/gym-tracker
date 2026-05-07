@@ -22,6 +22,8 @@ import {
   formatRestTime
 } from '@/lib/restCalculator';
 import { EXERCISE_DATABASE, ExerciseTemplate } from '@/data/exercises';
+import { getExerciseRecommendations } from '@/lib/exerciseRecommendations';
+import type { UserProfile } from '@/types';
 import {
   Plus,
   Trash2,
@@ -43,6 +45,10 @@ interface FreeExercise {
     checked?: boolean; // Para trackear si está marcado o no
   }[];
   restBetweenSets?: number;
+  // Recomendaciones inteligentes
+  recommendedSets?: number;
+  recommendedReps?: number;
+  recommendedWeight?: number;
 }
 
 export default function FreeWorkoutPage() {
@@ -85,6 +91,45 @@ export default function FreeWorkoutPage() {
   const [proposedDuration, setProposedDuration] = useState<number>(0); // seconds
   const [workoutStartTime] = useState(() => Date.now());
   const [totalPausedTime, setTotalPausedTime] = useState(0);
+  
+  // Estado para el perfil del usuario
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  // Cargar perfil del usuario
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        // Verificar modo de almacenamiento
+        const { useLocalStorage } = await import('@/lib/storageConfig');
+        
+        if (useLocalStorage()) {
+          // Modo LOCAL: Cargar desde localStorage
+          if (typeof window !== 'undefined') {
+            const { getProfileLocally } = await import('@/lib/localProfile');
+            const localProfile = getProfileLocally();
+            
+            if (localProfile) {
+              console.log('[FreeWorkout] ✅ Loaded profile from localStorage:', localProfile);
+              setUserProfile(localProfile);
+              return;
+            }
+          }
+        } else {
+          // Modo DATABASE: Cargar desde Supabase
+          console.log('[FreeWorkout] ☁️ Loading profile from Supabase...');
+          const response = await fetch('/api/profile');
+          if (response.ok) {
+            const profile = await response.json();
+            console.log('[FreeWorkout] ✅ Loaded profile from Supabase:', profile);
+            setUserProfile(profile);
+          }
+        }
+      } catch (error) {
+        console.error('[FreeWorkout] ❌ Error loading profile:', error);
+      }
+    };
+    loadProfile();
+  }, []);
 
   // Timer state
   const [showTimer, setShowTimer] = useState(false);
@@ -123,23 +168,32 @@ export default function FreeWorkoutPage() {
 
   // Añadir ejercicios seleccionados desde el selector
   const handleAddExercises = (templates: ExerciseTemplate[]) => {
-    const newItems: FreeExercise[] = templates.map(t => ({
-      id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2,9)}`,
-      name: t.name,
-      equipment: t.equipment,
-      completedSets: [],
-      restBetweenSets: (() => {
-        if (t.restTime) {
-          const m = t.restTime.match(/(\d+)/);
-          if (m) {
-            let v = parseInt(m[1], 10);
-            if (t.restTime.toLowerCase().includes('minuto')) v = v * 60;
-            return v;
-          }
+    const newItems: FreeExercise[] = templates.map(t => {
+      // Obtener recomendaciones inteligentes
+      const recommendations = getExerciseRecommendations(t, userProfile);
+      
+      // Convertir tiempo de descanso a segundos
+      let restSecs: number | undefined;
+      const restTimeMatch = recommendations.restTime.match(/(\d+)/);
+      if (restTimeMatch) {
+        restSecs = parseInt(restTimeMatch[1], 10);
+        if (recommendations.restTime.toLowerCase().includes('min')) {
+          restSecs = restSecs * 60;
         }
-        return undefined;
-      })()
-    }));
+      }
+      
+      return {
+        id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2,9)}`,
+        name: t.name,
+        equipment: t.equipment,
+        completedSets: [],
+        restBetweenSets: restSecs,
+        // Guardar recomendaciones para mostrar al usuario
+        recommendedSets: recommendations.sets,
+        recommendedReps: recommendations.reps,
+        recommendedWeight: recommendations.weight
+      };
+    });
 
     setExercises(prev => {
       const next = [...prev, ...newItems];
@@ -147,6 +201,12 @@ export default function FreeWorkoutPage() {
       setActiveExerciseIndex(next.length - newItems.length);
       return next;
     });
+    
+    // Mostrar mensaje informativo
+    if (userProfile) {
+      success(`✨ ${templates.length} ejercicio${templates.length > 1 ? 's' : ''} configurado${templates.length > 1 ? 's' : ''} según tu perfil`);
+    }
+    
     setShowExerciseSelector(false);
   };
 

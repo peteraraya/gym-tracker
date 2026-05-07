@@ -44,21 +44,48 @@ export default function ProfilePage() {
 
   const loadProfile = async () => {
     try {
-      const response = await fetch('/api/profile');
-      if (response.ok) {
-        const profile: UserProfile | null = await response.json();
-        if (profile) {
-          setAge(profile.age || '');
-          setGender(profile.gender || '');
-          setHeight(profile.height || '');
-          setWeight(profile.weight || '');
-          setFitnessGoal(profile.fitnessGoal || '');
-          setFitnessLevel(profile.fitnessLevel || '');
-          setWeeklyWorkouts(profile.weeklyWorkouts || '');
+      // Verificar modo de almacenamiento
+      const { useLocalStorage } = await import('@/lib/storageConfig');
+      
+      if (useLocalStorage()) {
+        // Modo LOCAL: Cargar desde localStorage
+        if (typeof window !== 'undefined') {
+          const { getProfileLocally } = await import('@/lib/localProfile');
+          const localProfile = getProfileLocally();
+          
+          if (localProfile) {
+            console.log('[Profile] ✅ Loaded from localStorage:', localProfile);
+            setAge(localProfile.age || '');
+            setGender(localProfile.gender || '');
+            setHeight(localProfile.height || '');
+            setWeight(localProfile.weight || '');
+            setFitnessGoal(localProfile.fitnessGoal || '');
+            setFitnessLevel(localProfile.fitnessLevel || '');
+            setWeeklyWorkouts(localProfile.weeklyWorkouts || '');
+            setProfileLoading(false);
+            return;
+          }
+        }
+      } else {
+        // Modo DATABASE: Cargar desde Supabase
+        console.log('[Profile] ☁️ Loading from Supabase...');
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const profile: UserProfile | null = await response.json();
+          if (profile) {
+            console.log('[Profile] ✅ Loaded from Supabase:', profile);
+            setAge(profile.age || '');
+            setGender(profile.gender || '');
+            setHeight(profile.height || '');
+            setWeight(profile.weight || '');
+            setFitnessGoal(profile.fitnessGoal || '');
+            setFitnessLevel(profile.fitnessLevel || '');
+            setWeeklyWorkouts(profile.weeklyWorkouts || '');
+          }
         }
       }
     } catch (err) {
-      console.error('Error loading profile:', err);
+      console.error('[Profile] ❌ Error loading profile:', err);
     } finally {
       setProfileLoading(false);
     }
@@ -71,27 +98,48 @@ export default function ProfilePage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          age: age || null,
-          gender: gender || null,
-          height: height || null,
-          weight: weight || null,
-          fitnessGoal: fitnessGoal || null,
-          fitnessLevel: fitnessLevel || null,
-          weeklyWorkouts: weeklyWorkouts || null
-        })
-      });
+      const profileData = {
+        age: age || undefined,
+        gender: gender || undefined,
+        height: height || undefined,
+        weight: weight || undefined,
+        fitnessGoal: fitnessGoal || undefined,
+        fitnessLevel: fitnessLevel || undefined,
+        weeklyWorkouts: weeklyWorkouts || undefined
+      };
 
-      if (response.ok) {
-        setProfileMessage('✓ Perfil actualizado correctamente');
+      // Verificar modo de almacenamiento
+      const { useLocalStorage } = await import('@/lib/storageConfig');
+      
+      if (useLocalStorage()) {
+        // Modo LOCAL: Guardar en localStorage
+        if (typeof window !== 'undefined') {
+          const { saveProfileLocally } = await import('@/lib/localProfile');
+          saveProfileLocally(profileData);
+          console.log('[Profile] ✅ Saved to localStorage');
+          setProfileMessage('✓ Perfil guardado localmente correctamente');
+          setLoading(false);
+          return;
+        }
       } else {
-        const data = await response.json();
-        setProfileError(data.error || 'Error al guardar el perfil');
+        // Modo DATABASE: Guardar en Supabase
+        console.log('[Profile] ☁️ Saving to Supabase...');
+        const response = await fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profileData)
+        });
+
+        if (response.ok) {
+          console.log('[Profile] ✅ Saved to Supabase');
+          setProfileMessage('✓ Perfil actualizado correctamente');
+        } else {
+          const data = await response.json();
+          setProfileError(data.error || 'Error al guardar el perfil');
+        }
       }
     } catch (err) {
+      console.error('[Profile] ❌ Error saving profile:', err);
       setProfileError('Error al guardar el perfil');
     } finally {
       setLoading(false);
@@ -173,143 +221,190 @@ export default function ProfilePage() {
         <PageContent maxWidth="2xl">
 
           <div className="space-y-4">
+            {/* Indicador de modo de almacenamiento */}
+            {process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'false' ? (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">💾</span>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                      Modo de Almacenamiento Local
+                    </h3>
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      Tu perfil se guarda localmente en tu navegador. Los datos no se sincronizan con la nube.
+                    </p>
+                    <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                      💡 <strong>Importante:</strong> Si borras los datos del navegador, perderás tu perfil guardado.
+                    </p>
+                    {/* <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-mono">
+                      NEXT_PUBLIC_ENABLE_DATABASE=false
+                    </p> */}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">☁️</span>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                      Modo de Base de Datos (Supabase)
+                    </h3>
+                    <p className="text-sm text-green-800 dark:text-green-200">
+                      Tu perfil se guarda en la nube y se sincroniza entre dispositivos.
+                    </p>
+                    <p className="text-xs text-green-700 dark:text-green-300 mt-2">
+                      ✅ <strong>Ventaja:</strong> Tus datos están seguros y accesibles desde cualquier lugar.
+                    </p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-mono">
+                      NEXT_PUBLIC_ENABLE_DATABASE=true
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Datos Personales y Fitness */}
             <Card>
               <CardHeader>
                 <CardTitle>Datos Personales y Objetivos</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSaveProfile} className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <Input
-                      type="number"
-                      label="Edad (años)"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : '')}
-                      placeholder="25"
-                      min="10"
-                      max="120"
-                    />
+                {profileLoading ? (
+                  <LoadingSpinner size="lg" message="Cargando perfil..." />
+                ) : (
+                  <form onSubmit={handleSaveProfile} className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Input
+                        type="number"
+                        label="Edad (años)"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : '')}
+                        placeholder="25"
+                        min="10"
+                        max="120"
+                      />
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Género
+                        </label>
+                        <select
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value as Gender)}
+                          className="w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Seleccionar</option>
+                          <option value="male">Masculino</option>
+                          <option value="female">Femenino</option>
+                          <option value="other">Otro</option>
+                        </select>
+                      </div>
+
+                      <Input
+                        type="number"
+                        label="Altura (cm)"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value ? parseFloat(e.target.value) : '')}
+                        placeholder="170"
+                        min="100"
+                        max="250"
+                        step="0.1"
+                      />
+
+                      <Input
+                        type="number"
+                        label="Peso (kg)"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value ? parseFloat(e.target.value) : '')}
+                        placeholder="70"
+                        min="30"
+                        max="300"
+                        step="0.1"
+                      />
+                    </div>
+
+                    {/* IMC Calculation */}
+                    {calculateBMI() && (
+                      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <strong>IMC:</strong> {calculateBMI()} 
+                          <span className="ml-2 text-gray-600 dark:text-gray-400">
+                            {parseFloat(calculateBMI()!) < 18.5 && '(Bajo peso)'}
+                            {parseFloat(calculateBMI()!) >= 18.5 && parseFloat(calculateBMI()!) < 25 && '(Peso normal)'}
+                            {parseFloat(calculateBMI()!) >= 25 && parseFloat(calculateBMI()!) < 30 && '(Sobrepeso)'}
+                            {parseFloat(calculateBMI()!) >= 30 && '(Obesidad)'}
+                          </span>
+                        </p>
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Género
+                        Objetivo de Fitness
                       </label>
                       <select
-                        value={gender}
-                        onChange={(e) => setGender(e.target.value as Gender)}
+                        value={fitnessGoal}
+                        onChange={(e) => setFitnessGoal(e.target.value as FitnessGoal)}
                         className="w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="">Seleccionar</option>
-                        <option value="male">Masculino</option>
-                        <option value="female">Femenino</option>
-                        <option value="other">Otro</option>
+                        <option value="">Seleccionar objetivo</option>
+                        <option value="muscle_gain">💪 Ganar músculo (Hipertrofia)</option>
+                        <option value="strength">🏋️ Ganar fuerza</option>
+                        <option value="weight_loss">🔥 Perder peso</option>
+                        <option value="endurance">⚡ Mejorar resistencia</option>
+                        <option value="general_fitness">🎯 Fitness general</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Nivel de Experiencia
+                      </label>
+                      <select
+                        value={fitnessLevel}
+                        onChange={(e) => setFitnessLevel(e.target.value as FitnessLevel)}
+                        className="w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Seleccionar nivel</option>
+                        <option value="beginner">🌱 Principiante (0-6 meses)</option>
+                        <option value="intermediate">📈 Intermedio (6-24 meses)</option>
+                        <option value="advanced">🏆 Avanzado (2+ años)</option>
                       </select>
                     </div>
 
                     <Input
                       type="number"
-                      label="Altura (cm)"
-                      value={height}
-                      onChange={(e) => setHeight(e.target.value ? parseFloat(e.target.value) : '')}
-                      placeholder="170"
-                      min="100"
-                      max="250"
-                      step="0.1"
+                      label="Días disponibles por semana"
+                      value={weeklyWorkouts}
+                      onChange={(e) => setWeeklyWorkouts(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder="4"
+                      min="1"
+                      max="7"
                     />
 
-                    <Input
-                      type="number"
-                      label="Peso (kg)"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value ? parseFloat(e.target.value) : '')}
-                      placeholder="70"
-                      min="30"
-                      max="300"
-                      step="0.1"
-                    />
-                  </div>
+                    {profileError && (
+                      <div className="p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">
+                        {profileError}
+                      </div>
+                    )}
 
-                  {/* IMC Calculation */}
-                  {calculateBMI() && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>IMC:</strong> {calculateBMI()} 
-                        <span className="ml-2 text-gray-600 dark:text-gray-400">
-                          {parseFloat(calculateBMI()!) < 18.5 && '(Bajo peso)'}
-                          {parseFloat(calculateBMI()!) >= 18.5 && parseFloat(calculateBMI()!) < 25 && '(Peso normal)'}
-                          {parseFloat(calculateBMI()!) >= 25 && parseFloat(calculateBMI()!) < 30 && '(Sobrepeso)'}
-                          {parseFloat(calculateBMI()!) >= 30 && '(Obesidad)'}
-                        </span>
-                      </p>
-                    </div>
-                  )}
+                    {profileMessage && (
+                      <div className="p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">
+                        {profileMessage}
+                      </div>
+                    )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Objetivo de Fitness
-                    </label>
-                    <select
-                      value={fitnessGoal}
-                      onChange={(e) => setFitnessGoal(e.target.value as FitnessGoal)}
-                      className="w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="w-full"
+                      disabled={loading || profileLoading}
                     >
-                      <option value="">Seleccionar objetivo</option>
-                      <option value="muscle_gain">💪 Ganar músculo (Hipertrofia)</option>
-                      <option value="strength">🏋️ Ganar fuerza</option>
-                      <option value="weight_loss">🔥 Perder peso</option>
-                      <option value="endurance">⚡ Mejorar resistencia</option>
-                      <option value="general_fitness">🎯 Fitness general</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Nivel de Experiencia
-                    </label>
-                    <select
-                      value={fitnessLevel}
-                      onChange={(e) => setFitnessLevel(e.target.value as FitnessLevel)}
-                      className="w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Seleccionar nivel</option>
-                      <option value="beginner">🌱 Principiante (0-6 meses)</option>
-                      <option value="intermediate">📈 Intermedio (6-24 meses)</option>
-                      <option value="advanced">🏆 Avanzado (2+ años)</option>
-                    </select>
-                  </div>
-
-                  <Input
-                    type="number"
-                    label="Días disponibles por semana"
-                    value={weeklyWorkouts}
-                    onChange={(e) => setWeeklyWorkouts(e.target.value ? parseInt(e.target.value) : '')}
-                    placeholder="4"
-                    min="1"
-                    max="7"
-                  />
-
-                  {profileError && (
-                    <div className="p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">
-                      {profileError}
-                    </div>
-                  )}
-
-                  {profileMessage && (
-                    <div className="p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">
-                      {profileMessage}
-                    </div>
-                  )}
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="w-full"
-                    disabled={loading || profileLoading}
-                  >
-                    {loading ? 'Guardando...' : 'Guardar perfil'}
-                  </Button>
-                </form>
+                      {loading ? 'Guardando...' : 'Guardar perfil'}
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
 

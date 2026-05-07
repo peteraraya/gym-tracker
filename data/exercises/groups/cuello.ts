@@ -190,6 +190,186 @@ export const cuelExercises: ExerciseTemplate[] = [
     recommendedSets: '2-3 series',
     recommendedReps: '12-20 repeticiones',
     restTime: '45 segundos'
+  },
+  {
+    id: 'neck-retraction',
+    name: 'Retracción de Cuello',
+    muscleGroup: 'cuello',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 15,
+    technique: [
+      'De pie o sentado, mira al frente',
+      'Lleva la barbilla hacia atrás (doble mentón)',
+      'Mantén 3-5 segundos',
+      'Mejora la postura y fortalece flexores profundos',
+      'Excelente para dolor de cuello por postura'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '30-45 segundos'
+  },
+  {
+    id: 'supine-neck-flexion',
+    name: 'Flexión de Cuello Supino',
+    muscleGroup: 'cuello',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 15,
+    technique: [
+      'Acostado boca arriba sin almohada',
+      'Levanta solo la cabeza del suelo',
+      'Lleva la barbilla al pecho',
+      'Mantén 2-3 segundos',
+      'Fortalece flexores del cuello sin equipo'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '45 segundos'
+  },
+  {
+    id: 'neck-circles',
+    name: 'Círculos de Cuello con Resistencia',
+    muscleGroup: 'cuello',
+    equipment: 'Banda elástica',
+    defaultSets: 3,
+    defaultReps: 10,
+    technique: [
+      'Banda alrededor de la cabeza',
+      'Haz círculos lentos y controlados',
+      'Trabaja todos los músculos del cuello',
+      'Mejora movilidad y fuerza',
+      'Círculos en ambas direcciones'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '8-12 círculos por dirección',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'plate-loaded-neck-extension',
+    name: 'Extensión con Disco',
+    muscleGroup: 'cuello',
+    equipment: 'Disco',
+    defaultSets: 3,
+    defaultReps: 15,
+    technique: [
+      'Acostado boca abajo en banco, disco en la nuca',
+      'Sostén el disco con las manos',
+      'Extiende el cuello hacia arriba',
+      'Método clásico de fortalecimiento',
+      'Progresión gradual del peso'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'wrestlers-bridge',
+    name: 'Puente de Luchador',
+    muscleGroup: 'cuello',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 1,
+    technique: [
+      'Posición de puente apoyado en cabeza y pies',
+      'Balancea adelante y atrás',
+      'Ejercicio avanzado de lucha libre',
+      'Desarrolla fuerza extrema del cuello',
+      'Solo para practicantes experimentados'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '20-45 segundos',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'front-neck-bridge',
+    name: 'Puente Frontal de Cuello',
+    muscleGroup: 'cuello',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 1,
+    technique: [
+      'Posición de plancha apoyado en la frente',
+      'Mantén el cuerpo recto',
+      'Ejercicio muy avanzado',
+      'Fortalece flexores del cuello intensamente',
+      'Requiere progresión gradual'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '15-30 segundos',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'neck-shrugs',
+    name: 'Encogimientos de Cuello',
+    muscleGroup: 'cuello',
+    equipment: 'Arnés de cuello',
+    defaultSets: 3,
+    defaultReps: 15,
+    technique: [
+      'De pie con arnés de cuello y peso',
+      'Encoge los hombros hacia las orejas',
+      'Trabaja trapecio superior y cuello',
+      'Movimiento combinado',
+      'Fortalece la conexión cuello-hombros'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-neck-extension',
+    name: 'Extensión de Cuello en Polea',
+    muscleGroup: 'cuello',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    technique: [
+      'Arnés conectado a polea baja',
+      'De espaldas a la máquina',
+      'Extiende el cuello contra la resistencia',
+      'Tensión constante durante el movimiento',
+      'Permite progresión precisa del peso'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-neck-flexion',
+    name: 'Flexión de Cuello en Polea',
+    muscleGroup: 'cuello',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    technique: [
+      'Arnés conectado a polea alta',
+      'De frente a la máquina',
+      'Flexiona el cuello llevando barbilla al pecho',
+      'Resistencia constante',
+      'Excelente para desarrollo simétrico'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'neck-plank',
+    name: 'Plancha de Cuello',
+    muscleGroup: 'cuello',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 1,
+    technique: [
+      'Posición de plancha con frente apoyada en toalla',
+      'Mantén el cuerpo recto',
+      'Isométrico para flexores del cuello',
+      'Menos intenso que puente frontal',
+      'Buena progresión intermedia'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '20-45 segundos',
+    restTime: '60 segundos'
   }
 ];
 

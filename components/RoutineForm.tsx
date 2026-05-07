@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRoutines } from '@/context/GymContext';
 import { useToast } from '@/context/ToastContext';
-import { Exercise } from '@/types';
+import { Exercise, UserProfile } from '@/types';
 import { Input, TextArea } from '@/components/ui/Input';
 import { useTranslations } from '@/context/LocaleContext';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +18,7 @@ import { WarmupExercise } from '@/data/warmupExercises';
 import { WarmupRecommendation } from '@/components/WarmupRecommendation';
 import { useConfirm } from '@/context/ConfirmContext';
 import { getRoutineStats } from '@/lib/routineEstimation';
+import { getExerciseRecommendations, getRecommendationExplanation } from '@/lib/exerciseRecommendations';
 
 interface RoutineFormProps {
   routineId?: string | null;
@@ -52,6 +53,45 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     field: 'reps' | 'weight';
     currentValue: number;
   } | null>(null);
+  
+  // Estado para el perfil del usuario
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  // Cargar perfil del usuario
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        // Verificar modo de almacenamiento
+        const { useLocalStorage } = await import('@/lib/storageConfig');
+        
+        if (useLocalStorage()) {
+          // Modo LOCAL: Cargar desde localStorage
+          if (typeof window !== 'undefined') {
+            const { getProfileLocally } = await import('@/lib/localProfile');
+            const localProfile = getProfileLocally();
+            
+            if (localProfile) {
+              console.log('[RoutineForm] ✅ Loaded profile from localStorage:', localProfile);
+              setUserProfile(localProfile);
+              return;
+            }
+          }
+        } else {
+          // Modo DATABASE: Cargar desde Supabase
+          console.log('[RoutineForm] ☁️ Loading profile from Supabase...');
+          const response = await fetch('/api/profile');
+          if (response.ok) {
+            const profile = await response.json();
+            console.log('[RoutineForm] ✅ Loaded profile from Supabase:', profile);
+            setUserProfile(profile);
+          }
+        }
+      } catch (error) {
+        console.error('[RoutineForm] ❌ Error loading profile:', error);
+      }
+    };
+    loadProfile();
+  }, []);
 
   // Calcular estadísticas de la rutina
   const routineStats = useMemo(() => {
@@ -204,30 +244,46 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({ routineId, onClose }) 
     console.log('[RoutineForm] Exercise names:', exerciseTemplates.map(e => e.name));
     
     const newExercises: Omit<Exercise, 'id'>[] = exerciseTemplates.map(template => {
+      // Obtener recomendaciones inteligentes basadas en el perfil del usuario
+      const recommendations = getExerciseRecommendations(template, userProfile);
+      
+      console.log(`[RoutineForm] Recommendations for ${template.name}:`, recommendations);
+      
+      // Crear sets pre-configurados con los valores recomendados
+      const sets = Array(recommendations.sets).fill(null).map(() => ({ 
+        reps: recommendations.reps, 
+        weight: recommendations.weight,
+        type: 'normal' as import('@/types').SetType
+      }));
+      
+      // Convertir tiempo de descanso a segundos
       let defaultRestSecs: number | undefined;
-      if (template.restTime) {
-        const match = template.restTime.match(/(\d+)/);
-        if (match) {
-          defaultRestSecs = parseInt(match[1]);
-          if (template.restTime.toLowerCase().includes('minuto')) {
-            defaultRestSecs = defaultRestSecs * 60;
-          }
+      const restTimeMatch = recommendations.restTime.match(/(\d+)/);
+      if (restTimeMatch) {
+        defaultRestSecs = parseInt(restTimeMatch[1]);
+        if (recommendations.restTime.toLowerCase().includes('min')) {
+          defaultRestSecs = defaultRestSecs * 60;
         }
       }
+      
       return {
         name: template.name,
-        sets: Array(template.defaultSets || 3).fill(null).map(() => ({ 
-          reps: template.defaultReps || 10, 
-          weight: 0,
-          type: 'normal' as import('@/types').SetType
-        })),
+        sets,
         equipment: template.equipment,
         notes: '',
         restBetweenSets: defaultRestSecs
       };
     });
     
-    console.log('[RoutineForm] Created', newExercises.length, 'new exercises');
+    console.log('[RoutineForm] Created', newExercises.length, 'new exercises with intelligent recommendations');
+    
+    // Mostrar mensaje informativo al usuario
+    if (userProfile) {
+      success(`✨ Ejercicios configurados automáticamente según tu perfil (${userProfile.fitnessLevel || 'principiante'}, ${userProfile.fitnessGoal || 'fitness general'})`);
+    } else {
+      success('✨ Ejercicios configurados con valores recomendados por defecto');
+    }
+    
     console.log('[RoutineForm] Current exercises:', exercises.length);
     
     setExercises([...exercises, ...newExercises]);

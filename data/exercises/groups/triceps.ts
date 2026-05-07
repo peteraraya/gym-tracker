@@ -288,6 +288,94 @@ export const tricepsExercises: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '12-15 repeticiones',
     restTime: '45-60 segundos'
+  },
+  {
+    id: 'cable-lying-tricep-extension',
+    name: 'Extensión Acostado en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Mayor rango de movimiento que skull crushers tradicionales',
+    defaultSets: 3,
+    defaultReps: 12,
+    difficulty: 'intermedio',
+    category: 'aislamiento',
+    primaryMuscles: ['Tríceps Braquial'],
+    secondaryMuscles: ['Anconeo'],
+    technique: [
+      'Acuéstate en banco frente a polea baja',
+      'Agarra la barra con brazos extendidos hacia arriba',
+      'Baja la barra detrás de la cabeza flexionando codos',
+      'Extiende de vuelta manteniendo codos fijos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'incline-cable-tricep-extension',
+    name: 'Extensión Inclinado en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Ajusta el ángulo para enfatizar diferentes cabezas del tríceps',
+    defaultSets: 3,
+    defaultReps: 12,
+    difficulty: 'intermedio',
+    category: 'aislamiento',
+    primaryMuscles: ['Tríceps Braquial (Cabeza Larga)'],
+    secondaryMuscles: ['Tríceps Lateral', 'Tríceps Medial'],
+    technique: [
+      'Siéntate en banco inclinado frente a polea baja',
+      'Agarra la cuerda con ambas manos detrás de la cabeza',
+      'Extiende los brazos hacia arriba',
+      'Ángulo ajustable para variar el énfasis'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-high-cross-tricep-extension',
+    name: 'Extensión Cruzada Alta en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Híbrido entre pushdown y kickback con gran contracción',
+    defaultSets: 3,
+    defaultReps: 12,
+    difficulty: 'intermedio',
+    category: 'aislamiento',
+    primaryMuscles: ['Tríceps Braquial'],
+    secondaryMuscles: ['Deltoides Posterior'],
+    technique: [
+      'Coloca ambas poleas en posición alta',
+      'Agarra el cable derecho con mano izquierda y viceversa',
+      'Extiende los brazos cruzando al frente',
+      'Contracción intensa en la posición final'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-concentration-tricep-extension',
+    name: 'Extensión Concentrada en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Aislamiento total del tríceps con tensión constante',
+    defaultSets: 3,
+    defaultReps: 12,
+    difficulty: 'intermedio',
+    category: 'aislamiento',
+    primaryMuscles: ['Tríceps Braquial'],
+    secondaryMuscles: ['Anconeo'],
+    technique: [
+      'Siéntate en banco, agarra manija de polea baja',
+      'Apoya el codo en la parte interna del muslo',
+      'Extiende el brazo completamente',
+      'Enfoque total en el tríceps trabajado'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por brazo',
+    restTime: '45-60 segundos'
   }
 ];
 

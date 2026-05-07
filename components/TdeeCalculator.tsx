@@ -66,10 +66,36 @@ useEffect(() => {
 
   const loadProfile = async () => {
     try {
-      const response = await fetch('/api/profile');
-      if (response.ok) {
-        const profile: UserProfile | null = await response.json();
-        if (profile) {
+      // Verificar modo de almacenamiento
+      const { useLocalStorage } = await import('@/lib/storageConfig');
+      
+      if (useLocalStorage()) {
+        // Modo LOCAL: Cargar desde localStorage
+        if (typeof window !== 'undefined') {
+          const { getProfileLocally } = await import('@/lib/localProfile');
+          const localProfile = getProfileLocally();
+          
+          if (localProfile) {
+            console.log('[TdeeCalculator] ✅ Loaded from localStorage');
+            setAge(localProfile.age || '');
+            if (localProfile.gender === 'male' || localProfile.gender === 'female') setSex(localProfile.gender as 'male'|'female');
+            setHeight(localProfile.height || '');
+            setWeight(localProfile.weight || '');
+            setFitnessGoal(localProfile.fitnessGoal || '');
+            setFitnessLevel(localProfile.fitnessLevel || '');
+            setWeeklyWorkouts(localProfile.weeklyWorkouts || '');
+            setProfileLoading(false);
+            return;
+          }
+        }
+      } else {
+        // Modo DATABASE: Cargar desde Supabase
+        console.log('[TdeeCalculator] ☁️ Loading from Supabase...');
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const profile: UserProfile | null = await response.json();
+          if (profile) {
+            console.log('[TdeeCalculator] ✅ Loaded from Supabase');
             setAge(profile.age || '');
             if (profile.gender === 'male' || profile.gender === 'female') setSex(profile.gender as 'male'|'female');
             setHeight(profile.height || '');
@@ -78,9 +104,10 @@ useEffect(() => {
             setFitnessLevel(profile.fitnessLevel || '');
             setWeeklyWorkouts(profile.weeklyWorkouts || '');
           }
+        }
       }
     } catch (err) {
-      console.error('Error loading profile:', err);
+      console.error('[TdeeCalculator] ❌ Error loading profile:', err);
     } finally {
       setProfileLoading(false);
     }
@@ -169,28 +196,34 @@ useEffect(() => {
         setStatusMsg('Guardado localmente');
         setTimeout(() => setStatusMsg(''), 1200);
 
-        // Intentar enviar al backend (guardado automático remoto)
+        // Intentar enviar al backend (guardado automático remoto) solo si la base de datos está habilitada
         (async () => {
           try {
-            const res = await fetch('/api/profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                age: age || null,
-                gender: sex || null,
-                height: height || null,
-                weight: weight || null,
-                fitnessGoal: fitnessGoal || null,
-                fitnessLevel: fitnessLevel || null,
-                weeklyWorkouts: weeklyWorkouts || null
-              })
-            });
+            const { useLocalStorage } = await import('@/lib/storageConfig');
+            
+            if (!useLocalStorage()) {
+              // Modo DATABASE: Guardar en Supabase
+              console.log('[TdeeCalculator] ☁️ Auto-saving to Supabase...');
+              const res = await fetch('/api/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  age: age || null,
+                  gender: sex || null,
+                  height: height || null,
+                  weight: weight || null,
+                  fitnessGoal: fitnessGoal || null,
+                  fitnessLevel: fitnessLevel || null,
+                  weeklyWorkouts: weeklyWorkouts || null
+                })
+              });
 
-            if (res.ok) {
-              setStatusMsg('Guardado remoto');
-              setTimeout(() => setStatusMsg(''), 1200);
-            } else if (res.status === 401) {
-              // No autenticado - dejar silencioso
+              if (res.ok) {
+                console.log('[TdeeCalculator] ✅ Auto-saved to Supabase');
+                setStatusMsg('Guardado remoto');
+                setTimeout(() => setStatusMsg(''), 1200);
+              } else if (res.status === 401) {
+                // No autenticado - dejar silencioso
               console.debug('No autenticado al guardar perfil remoto');
             } else {
               const data = await res.json().catch(() => ({}));

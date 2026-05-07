@@ -21,8 +21,14 @@ interface ExerciseListItemProps {
 
 function ExerciseImage({ exercise }: { exercise: ExerciseTemplate }) {
   const [failed, setFailed] = useState(false);
-
-  if (!exercise.image || failed) return null;
+  // Si no hay imagen o la carga falló, mostrar fallback (mismo estilo que el placeholder)
+  if (!exercise.image || failed) {
+    return (
+      <div className="flex justify-center items-center h-40 sm:h-full rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 overflow-hidden">
+        <ExerciseIcon muscleGroup={exercise.muscleGroup} className="w-24 h-24" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-40 sm:h-full relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">

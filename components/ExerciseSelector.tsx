@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { MuscleGroup, MUSCLE_GROUPS, getExercisesByMuscleGroup, ExerciseTemplate, EXERCISE_DATABASE } from '@/data/exercises';
 import { getWarmupsByMuscleGroup, WARMUP_CATEGORY_LABELS, WarmupExercise, WarmupCategory, getAllWarmups } from '@/data/warmupExercises';
@@ -11,6 +11,8 @@ import { ExerciseDetails } from '@/components/ExerciseDetails';
 import { ExerciseIcon } from '@/components/ExerciseIcon';
 import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { useEquipment } from '@/context/EquipmentContext';
+import { getCustomExercises, getCustomExercisesByMuscleGroup } from '@/lib/customExercises';
+import { AddCustomExerciseModal } from '@/components/AddCustomExerciseModal';
 
 interface ExerciseSelectorProps {
   onSelectExercises: (exercises: ExerciseTemplate[]) => void;
@@ -30,15 +32,27 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
   const [searchTerm, setSearchTerm] = useState('');
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
   const [selectedExercises, setSelectedExercises] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<'body' | 'grid'>('body');
+  const [viewMode, setViewMode] = useState<'body' | 'grid'>('grid');
   const [detailsExercise, setDetailsExercise] = useState<ExerciseTemplate | null>(null);
   const [exerciseTab, setExerciseTab] = useState<'training' | 'warmup'>('training');
   const [warmupCategoryFilter, setWarmupCategoryFilter] = useState<'all' | WarmupCategory>('all');
+  const [showAddCustomModal, setShowAddCustomModal] = useState(false);
+  const [customExercises, setCustomExercises] = useState<ExerciseTemplate[]>([]);
   const { hasEquipment, selectedEquipment } = useEquipment();
 
   // Refs para contenedores virtualizados
   const globalSearchParentRef = useRef<HTMLDivElement>(null);
   const exerciseListParentRef = useRef<HTMLDivElement>(null);
+
+  // Cargar ejercicios personalizados al montar
+  useEffect(() => {
+    setCustomExercises(getCustomExercises());
+  }, []);
+
+  // Recargar ejercicios personalizados cuando se agrega uno nuevo
+  const handleExerciseAdded = () => {
+    setCustomExercises(getCustomExercises());
+  };
 
   const handleMuscleSelect = (muscleGroup: MuscleGroup) => {
     setSelectedMuscle(muscleGroup);
@@ -68,8 +82,14 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
         type: 'warmup' as const
       }));
     
-    return [...trainingResults, ...warmupResults];
-  }, [globalSearchTerm, selectedMuscle, hasEquipment]);
+    // Agregar ejercicios personalizados
+    const customResults = customExercises
+      .filter(ex => normalizeText(ex.name).includes(normalizedTerm))
+      .filter(ex => hasEquipment(ex.equipment))
+      .map(ex => ({ ...ex, type: 'custom' as const }));
+    
+    return [...trainingResults, ...warmupResults, ...customResults];
+  }, [globalSearchTerm, selectedMuscle, hasEquipment, customExercises]);
 
   const handleExerciseToggle = (exercise: ExerciseTemplate) => {
     const newSelected = new Set(selectedExercises);
@@ -116,7 +136,10 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
   };
 
   const filteredExercises = selectedMuscle
-    ? getExercisesByMuscleGroup(selectedMuscle)
+    ? [
+        ...getExercisesByMuscleGroup(selectedMuscle),
+        ...getCustomExercisesByMuscleGroup(selectedMuscle)
+      ]
       .filter(ex => normalizeText(ex.name).includes(normalizeText(searchTerm)))
       .filter(ex => hasEquipment(ex.equipment))
     : [];
@@ -166,9 +189,23 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
       {!selectedMuscle ? (
         <>
           <div className="text-center mb-4">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Selecciona un grupo muscular
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1"></div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Selecciona un grupo muscular
+              </h3>
+              <div className="flex-1 flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAddCustomModal(true)}
+                  className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  title="Crear ejercicio personalizado"
+                >
+                  ✨ Nuevo
+                </Button>
+              </div>
+            </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Haz clic en el músculo que quieres entrenar
             </p>
@@ -289,6 +326,11 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                                     <MuscleGroupIcon muscleGroup={exercise.muscleGroup} size={12} />
                                     {muscleGroupName}
                                   </span>
+                                  {exercise.id.startsWith('custom-') && (
+                                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full font-medium">
+                                      ✨ Personalizado
+                                    </span>
+                                  )}
                                   {exercise.equipment && (
                                     <span className="text-xs text-gray-600 dark:text-gray-400">📦 {exercise.equipment}</span>
                                   )}
@@ -360,18 +402,18 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
               {/* Toggle de vista */}
               <div className="flex justify-center gap-2 mb-4">
                 <Button
-                  variant={viewMode === 'body' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('body')}
-                >
-                  👤 Cuerpo Humano
-                </Button>
-                <Button
                   variant={viewMode === 'grid' ? 'primary' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
                 >
                   📋 Vista de Lista
+                </Button>
+                <Button
+                  variant={viewMode === 'body' ? 'primary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('body')}
+                >
+                  👤 Cuerpo Humano
                 </Button>
               </div>
 
@@ -446,9 +488,20 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                 </p>
               )}
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedMuscle(null)}>
-              ← Volver
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAddCustomModal(true)}
+                className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                title="Crear ejercicio personalizado"
+              >
+                ✨ Nuevo
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedMuscle(null)}>
+                ← Volver
+              </Button>
+            </div>
           </div>
 
           <Input
@@ -577,9 +630,17 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                             )}
                             <div className="flex-1">
                               <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{exercise.name}</h4>
-                              {exercise.equipment && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400">📦 {exercise.equipment}</p>
-                              )}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {exercise.id.startsWith('custom-') && (
+                                  <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full font-medium">
+                                    ✨ Personalizado
+                                  </span>
+                                )}
+                                {exercise.equipment && (
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">📦 {exercise.equipment}</span>
+                                )}
+                              </div>
+                              
                               {exercise.description && (
                                 <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{exercise.description}</p>
                               )}
@@ -644,6 +705,14 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
         <ExerciseDetails
           exercise={detailsExercise}
           onClose={() => setDetailsExercise(null)}
+        />
+      )}
+
+      {showAddCustomModal && (
+        <AddCustomExerciseModal
+          onClose={() => setShowAddCustomModal(false)}
+          onExerciseAdded={handleExerciseAdded}
+          preselectedMuscleGroup={selectedMuscle || undefined}
         />
       )}
     </div>

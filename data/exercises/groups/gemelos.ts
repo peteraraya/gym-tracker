@@ -343,6 +343,23 @@ export const gemelosExercises: ExerciseTemplate[] = [
     recommendedReps: '15-25 repeticiones',
     restTime: '30-45 segundos'
   },
+  {
+    id: 'squat-hold-calf-raise',
+    name: 'Gemelos en Posición de Sentadilla',
+    muscleGroup: 'gemelos',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 15,
+    technique: [
+      'Mantén una posición de sentadilla (muslos paralelos al suelo)',
+      'Eleva los talones mientras mantienes la posición de sentadilla',
+      'Trabaja gemelos bajo tensión isométrica de piernas',
+      'Excelente para resistencia y estabilidad'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '15-20 repeticiones',
+    restTime: '60 segundos'
+  },
 ];
 
 
