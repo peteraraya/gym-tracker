@@ -221,6 +221,8 @@ export const Timer: React.FC<TimerProps> = ({
   };
 
   const percentage = ((plannedDuration - timeLeft) / plannedDuration) * 100;
+  const circumference = 2 * Math.PI * 88;
+  const strokeDashoffset = circumference * (1 - Math.max(0, Math.min(percentage, 100)) / 100);
   const motivationMessage = showMotivation ? getRestMessage(timeLeft, plannedDuration) : '';
   const t = useTranslations('timer');
 
@@ -280,13 +282,13 @@ export const Timer: React.FC<TimerProps> = ({
             stroke="currentColor"
             strokeWidth="8"
             fill="none"
-            strokeDasharray={`${2 * Math.PI * 88}`}
-            strokeDashoffset={`${2 * Math.PI * 88 * (1 - percentage / 100)}`}
-            className={`transition-all duration-1000 ${
-              isCompleted 
-                ? 'text-green-500' 
-                : timeLeft <= 10 
-                  ? 'text-red-500' 
+            strokeDasharray={`${circumference}`}
+            style={{ strokeDashoffset, transition: 'stroke-dashoffset 1000ms linear' }}
+            className={`transition-colors duration-300 ${
+              isCompleted
+                ? 'text-green-500'
+                : timeLeft <= 10
+                  ? 'text-red-500'
                   : 'text-blue-500'
             }`}
             strokeLinecap="round"
@@ -295,13 +297,13 @@ export const Timer: React.FC<TimerProps> = ({
         
         {/* Tiempo */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className={`text-3xl sm:text-5xl md:text-6xl font-bold leading-tight tabular-nums ${
+          <div className={`text-5xl sm:text-6xl md:text-7xl font-extrabold leading-tight tabular-nums tracking-tight ${
               isCompleted 
                 ? 'text-green-600 dark:text-green-400' 
                 : timeLeft <= 10 
                   ? 'text-red-600 dark:text-red-400 animate-pulse' 
                   : 'text-gray-900 dark:text-gray-100'
-            }`}>
+            }`} style={{ transition: 'color 200ms ease, transform 150ms ease' }}>
               {formatTime(timeLeft)}
             </div>
         </div>

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Timer } from '@/components/Timer';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MinimizedTimer } from '@/components/MinimizedTimer';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import * as storageService from '@/lib/storage/storage';
@@ -1741,18 +1742,32 @@ export default function WorkoutPage() {
 
   if (timerHandlers.showTimer && !timerHandlers.timerMinimized) {
     return (
-      <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-        <Timer
-          duration={timerHandlers.timerDuration}
-          initialTimeLeft={timerHandlers.currentTimeLeft}
-          title={timerHandlers.timerTitle}
-          nextExerciseName={timerHandlers.nextExerciseName}
-          onComplete={handleTimerComplete}
-          onSkip={timerHandlers.skipAndAdvance}
-          autoStart={true}
-          showMotivation={true}
-          onMinimize={timerHandlers.minimizeTimer}
-        />
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        {/* Fondo degradado semitransparente + blur para difuminar la UI detrás */}
+        <div className="absolute inset-0 bg-linear-to-br from-blue-600/40 via-purple-600/30 to-indigo-700/25 backdrop-blur-md" />
+        <div className="relative z-10 px-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="timer"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.18 }}
+            >
+              <Timer
+                duration={timerHandlers.timerDuration}
+                initialTimeLeft={timerHandlers.currentTimeLeft}
+                title={timerHandlers.timerTitle}
+                nextExerciseName={timerHandlers.nextExerciseName}
+                onComplete={handleTimerComplete}
+                onSkip={timerHandlers.skipAndAdvance}
+                autoStart={true}
+                showMotivation={true}
+                onMinimize={timerHandlers.minimizeTimer}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     );
   }

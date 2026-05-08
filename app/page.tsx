@@ -213,9 +213,30 @@ export default function Home() {
                       </Button>
                     </Link>
                   </CardContent>
-                </Card>
+                  </Card>
 
-                {routines.length === 0 ? (
+                  <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-indigo-600" />
+                        Planificación
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                        Planifica tus próximas sesiones y crea objetivos.
+                      </p>
+                      <Link href="/planning">
+                        <Button variant="secondary" className="w-full">
+                          <Calendar className="w-4 h-4" />
+                          Ir a Planificación
+                          <ArrowRight className="w-4 h-4 ml-auto" />
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+
+                  {routines.length === 0 ? (
                   <Card className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
