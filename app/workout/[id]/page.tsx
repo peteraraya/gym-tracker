@@ -803,6 +803,15 @@ export default function WorkoutPage() {
         // Respetar la opción global de omitir descansos
         if (!skipRestTimers) {
           timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+        } else {
+          // Sin timer: avanzar directamente al siguiente ejercicio
+          haptic.exerciseChange();
+          workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
+          workoutState.setCurrentSet(1);
+          if (nextExercise.sets[0]) {
+            workoutState.setCurrentReps(nextExercise.sets[0].reps);
+            workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
+          }
         }
       }
     } else {
@@ -820,6 +829,15 @@ export default function WorkoutPage() {
       // Respetar la opción global de omitir descansos
       if (!skipRestTimers) {
         timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
+      } else {
+        // Sin timer: avanzar directamente a la siguiente serie
+        const newSet = workoutState.currentSet + 1;
+        workoutState.setCurrentSet(newSet);
+        const nextSetData = currentExercise.sets[newSet - 1];
+        if (nextSetData) {
+          workoutState.setCurrentReps(nextSetData.reps);
+          workoutState.setCurrentWeight(nextSetData.weight || 0);
+        }
       }
     }
   }, [
@@ -833,6 +851,10 @@ export default function WorkoutPage() {
     workoutState.workoutData.restOverrides,
     workoutState.workoutData.perSetRestOverrides,
     workoutState.completeSet,
+    workoutState.setCurrentSet,
+    workoutState.setCurrentExerciseIndex,
+    workoutState.setCurrentReps,
+    workoutState.setCurrentWeight,
     workoutStartTime, 
     totalPausedTime, 
     useSmartRest, 
@@ -840,6 +862,7 @@ export default function WorkoutPage() {
     timerHandlers.startTimer,
     haptic.setComplete,
     haptic.restStart,
+    haptic.exerciseChange,
     completion.openCompletionModal,
     setExecution.completeSet,
     skipRestTimers

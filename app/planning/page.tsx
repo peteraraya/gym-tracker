@@ -23,7 +23,10 @@ import {
   type DayKey,
 } from '@/types/planning';
 import { APP_CONFIG } from '@/config/app.config';
+import { useToast } from '@/context/NotificationContext';
 import type { Routine } from '@/types';
+import InfoTooltip from '@/components/ui/InfoTooltip';
+import { Modal } from '@/components/ui/Modal';
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
@@ -167,10 +170,19 @@ function MuscleGroupRow({
           mrv={landmarks.mrv}
           color={color}
         />
-        <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
-          <span>MEV {landmarks.mev}</span>
-          <span>MAV {landmarks.mav_max}</span>
-          <span>MRV {landmarks.mrv}</span>
+        <div className="flex justify-between items-center text-[10px] text-gray-400 mt-0.5">
+          <span className="flex items-center gap-1">
+            <span>MEV {landmarks.mev}</span>
+            <InfoTooltip title="MEV" content="Minimum Effective Volume: volumen mínimo semanal para provocar adaptación en este grupo muscular." />
+          </span>
+          <span className="flex items-center gap-1">
+            <span>MAV {landmarks.mav_max}</span>
+            <InfoTooltip title="MAV" content="Maximum Adaptive Volume: rango objetivo semanal donde se maximiza la adaptación (área útil)." />
+          </span>
+          <span className="flex items-center gap-1">
+            <span>MRV {landmarks.mrv}</span>
+            <InfoTooltip title="MRV" content="Maximum Recoverable Volume: volumen máximo recuperable sin un riesgo alto de sobreentrenamiento." />
+          </span>
         </div>
       </div>
 
@@ -276,7 +288,7 @@ function CreateMesocycleModal({
   onCreate,
 }: {
   onClose: () => void;
-  onCreate: (p: { name: string; goal: PlanningGoal; weeks: number; startDate: string; progressionScheme: Mesocycle['progressionScheme']; notes?: string }) => void;
+  onCreate: (p: { name: string; goal: PlanningGoal; weeks: number; startDate: string; progressionScheme: Mesocycle['progressionScheme']; notes?: string; preset?: 'none' | PlanningGoal }) => void;
 }) {
   const today = new Date().toISOString().split('T')[0];
   const [name, setName] = useState('');
@@ -285,6 +297,15 @@ function CreateMesocycleModal({
   const [startDate, setStartDate] = useState(today);
   const [scheme, setScheme] = useState<Mesocycle['progressionScheme']>('linear');
   const [notes, setNotes] = useState('');
+  const [preset, setPreset] = useState<'none' | PlanningGoal>('none');
+  const [presetManuallyChanged, setPresetManuallyChanged] = useState(false);
+
+  useEffect(() => {
+    // Autoselecciona la plantilla según el objetivo si el usuario no la cambió manualmente
+    if (!presetManuallyChanged) {
+      setPreset(goal);
+    }
+  }, [goal, presetManuallyChanged]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
@@ -303,7 +324,7 @@ function CreateMesocycleModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Objetivo</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Objetivo <InfoTooltip title="Objetivo" content="El objetivo determina textos, etiquetas y valores por defecto. Puedes elegir una plantilla para aplicar ajustes concretos." /></label>
             <select
               className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={goal}
@@ -315,7 +336,7 @@ function CreateMesocycleModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duración</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duración <InfoTooltip title="Duración" content="Número de semanas del mesociclo; afecta el calendario y el deload final automático." /></label>
             <select
               className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={weeks}
@@ -337,7 +358,7 @@ function CreateMesocycleModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Progresión</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Progresión <InfoTooltip title="Progresión" content="El esquema de progresión determina cómo aumentan sets/intensidad entre semanas (p. ej. lineal: incremento constante)." /></label>
             <select
               className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={scheme}
@@ -348,6 +369,28 @@ function CreateMesocycleModal({
               <option value="block">Por bloques</option>
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Plantilla (opcional) <InfoTooltip title="Plantilla" content="La plantilla aplica valores iniciales (sets/RPE/frecuencia) para todas las semanas. Se autoselecciona según el Objetivo, puedes cambiarla o dejar 'Ninguna'." /></label>
+          <select
+            className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={preset}
+            onChange={e => {
+              const v = e.target.value as 'none' | PlanningGoal;
+              setPreset(v);
+              setPresetManuallyChanged(v !== 'none');
+            }}
+          >
+            <option value="none">Ninguna</option>
+            <option value="hypertrophy">Hipertrofia</option>
+            <option value="strength">Fuerza</option>
+            <option value="endurance">Resistencia</option>
+            <option value="power">Potencia</option>
+            <option value="cut">Definición</option>
+            <option value="recomp">Recomp</option>
+          </select>
+          
         </div>
 
         <div>
@@ -367,7 +410,7 @@ function CreateMesocycleModal({
             variant="primary"
             className="flex-1"
             disabled={!name.trim() || !startDate}
-            onClick={() => { onCreate({ name: name.trim(), goal, weeks, startDate, progressionScheme: scheme, notes: notes || undefined }); onClose(); }}
+            onClick={() => { onCreate({ name: name.trim(), goal, weeks, startDate, progressionScheme: scheme, notes: notes || undefined, preset }); onClose(); }}
           >
             Crear mesociclo
           </Button>
@@ -421,7 +464,7 @@ function WeeklyScheduleEditor({
     <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">🗓️ Agenda de rutinas</h4>
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">🗓️ Agenda de rutinas <InfoTooltip title="Agenda de rutinas" content="Programa qué días quieres entrenar y asigna rutinas. Las rutinas proyectadas muestran el volumen estimado que cubrirán contra tus targets." /></h4>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             {totalScheduled} día{totalScheduled !== 1 ? 's' : ''} con rutina · {7 - totalScheduled} de descanso/libre
           </p>
@@ -635,7 +678,7 @@ function WeeklyView({
             {hasSchedule && (
               <>
                 <span className="text-gray-300 dark:text-gray-700">·</span>
-                <span>Rutinas <strong className="text-indigo-600 dark:text-indigo-400">{totalProjected}</strong></span>
+                <span className="flex items-center gap-1">Rutinas <InfoTooltip title="Rutinas proyectadas" content="Suma estimada de series que aportarán las rutinas agendadas esta semana (excluye series de calentamiento)." /> <strong className="text-indigo-600 dark:text-indigo-400">{totalProjected}</strong></span>
               </>
             )}
             <span className="text-gray-300 dark:text-gray-700">·</span>
@@ -687,9 +730,16 @@ function WeeklyView({
 export default function PlanningPage() {
   const planning = usePlanning();
   const { sessions, routines } = useGym();
+  const { success, warning } = useToast();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedMesoId, setSelectedMesoId] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  const [confirmPresetToRemove, setConfirmPresetToRemove] = useState<null | { mesoId: string; preset: PlanningGoal }>(null);
+  const [showProgressionModal, setShowProgressionModal] = useState(false);
+  const [progressionIncrement, setProgressionIncrement] = useState<number>(2);
+  const [progressionUseWeek1Start, setProgressionUseWeek1Start] = useState(true);
+  const [progressionCustomStart, setProgressionCustomStart] = useState<number | ''>('');
+  const [progressionSelectedGroups, setProgressionSelectedGroups] = useState<Record<string, boolean>>(() => Object.fromEntries(MUSCLE_GROUPS.map(m => [m, true])) as Record<string, boolean>);
 
   // Calcular series reales de esta semana
   const actualSets = getActualSetsThisWeek(sessions, EXERCISE_DATABASE);
@@ -721,10 +771,153 @@ export default function PlanningPage() {
               onClose={() => setShowCreate(false)}
               onCreate={(params) => {
                 const meso = planning.createMesocycle(params);
+                // Aplicar plantilla si el usuario la eligió
+                if ((params as any).preset && (params as any).preset !== 'none') {
+                  planning.applyPresetToMesocycle(meso.id, (params as any).preset);
+                  success(`Plantilla ${GOAL_LABELS[(params as any).preset as PlanningGoal]} aplicada`);
+                }
                 setSelectedMesoId(meso.id);
                 setSelectedWeek(1);
               }}
             />
+          )}
+
+          {confirmPresetToRemove && (
+            <Modal
+              isOpen={true}
+              onClose={() => setConfirmPresetToRemove(null)}
+              title="Quitar plantilla"
+            >
+              <p className="text-sm text-gray-700 dark:text-gray-200 mb-4">¿Seguro que quieres quitar la plantilla <strong>{GOAL_LABELS[confirmPresetToRemove.preset]}</strong>? Esto restaurará los targets a los valores por defecto y perderás cambios manuales en targets.</p>
+              <div className="flex gap-3 justify-end">
+                <Button variant="ghost" onClick={() => setConfirmPresetToRemove(null)}>Cancelar</Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    const res = planning.togglePresetOnMesocycle(confirmPresetToRemove.mesoId, confirmPresetToRemove.preset);
+                    if (res === 'none') success(`Plantilla ${GOAL_LABELS[confirmPresetToRemove.preset]} eliminada`);
+                    else success(`Plantilla ${GOAL_LABELS[confirmPresetToRemove.preset]} aplicada`);
+                    setConfirmPresetToRemove(null);
+                  }}
+                >
+                  Quitar plantilla
+                </Button>
+              </div>
+            </Modal>
+          )}
+
+          {showProgressionModal && (
+            <Modal isOpen={true} onClose={() => setShowProgressionModal(false)} title="Auto-progresión lineal">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 items-center">
+                  <label className="text-sm font-medium">Incremento por semana</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={progressionIncrement}
+                    onChange={(e) => setProgressionIncrement(Number(e.target.value || 0))}
+                    className="w-28 px-3 py-2 border rounded"
+                  />
+
+                  <label className="text-sm font-medium">Usar inicio (semana 1)</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="useWeek1"
+                      type="checkbox"
+                      checked={progressionUseWeek1Start}
+                      onChange={(e) => setProgressionUseWeek1Start(e.target.checked)}
+                    />
+                    <label htmlFor="useWeek1" className="text-sm text-gray-600">Usar las series objetivo de la semana 1 como inicio</label>
+                  </div>
+
+                  {!progressionUseWeek1Start && (
+                    <>
+                      <label className="text-sm font-medium">Sets iniciales</label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={progressionCustomStart === '' ? '' : progressionCustomStart}
+                        onChange={(e) => setProgressionCustomStart(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-28 px-3 py-2 border rounded"
+                      />
+                    </>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Grupos musculares</label>
+                  <div className="grid grid-cols-3 gap-2 max-h-40 overflow-auto p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                    {MUSCLE_GROUPS.map(mg => (
+                      <label key={mg} className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={!!progressionSelectedGroups[mg]} onChange={() => setProgressionSelectedGroups(prev => ({ ...prev, [mg]: !prev[mg] }))} />
+                        <span className="truncate">{mg}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Vista previa</label>
+                  <div className="text-xs text-gray-700 dark:text-gray-300 space-y-2 max-h-48 overflow-auto border rounded p-2 bg-white dark:bg-gray-900">
+                    {viewMeso ? (
+                      MUSCLE_GROUPS.filter(mg => progressionSelectedGroups[mg]).map(mg => {
+                        const weeks = viewMeso.weeklyPlans.length;
+                        const startSets = progressionUseWeek1Start
+                          ? (viewMeso.weeklyPlans[0]?.muscleGroupTargets[mg]?.targetSets ?? DEFAULT_VOLUME_LANDMARKS[mg].mev)
+                          : (progressionCustomStart === '' ? DEFAULT_VOLUME_LANDMARKS[mg].mev : progressionCustomStart as number);
+                        const arr = Array.from({ length: weeks }, (_, idx) => {
+                          const isDeload = viewMeso.weeklyPlans[idx]?.isDeload || (weeks > 4 && idx === weeks - 1);
+                          const target = isDeload
+                            ? Math.round(startSets * 0.6)
+                            : Math.min(
+                                startSets + progressionIncrement * idx,
+                                viewMeso.volumeLandmarks?.[mg]?.mrv ?? DEFAULT_VOLUME_LANDMARKS[mg].mrv
+                              );
+                          return target;
+                        });
+                        return (
+                          <div key={mg} className="flex items-center gap-2">
+                            <strong className="w-28 text-sm capitalize">{mg}</strong>
+                            <div className="flex gap-2 overflow-auto">
+                              {arr.map((v, i) => (
+                                <span key={i} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{v}</span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-sm text-gray-500">Selecciona un mesociclo para generar la vista previa.</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button variant="ghost" onClick={() => setShowProgressionModal(false)}>Cancelar</Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      if (!viewMeso) {
+                        warning('No hay mesociclo seleccionado');
+                        return;
+                      }
+                      Object.keys(progressionSelectedGroups)
+                        .filter(mg => progressionSelectedGroups[mg])
+                        .forEach(mg => {
+                          const start = progressionUseWeek1Start
+                            ? (viewMeso.weeklyPlans[0]?.muscleGroupTargets[mg]?.targetSets ?? DEFAULT_VOLUME_LANDMARKS[mg].mev)
+                            : (progressionCustomStart === '' ? DEFAULT_VOLUME_LANDMARKS[mg].mev : progressionCustomStart as number);
+                          planning.applyLinearProgression(viewMeso.id, mg, start, progressionIncrement);
+                        });
+                      success('Auto‑progresión aplicada');
+                      setShowProgressionModal(false);
+                    }}
+                  >
+                    Aplicar
+                  </Button>
+                </div>
+              </div>
+            </Modal>
           )}
 
           <div className="space-y-4">
@@ -750,16 +943,32 @@ export default function PlanningPage() {
                         </p>
                       )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedMesoId(planning.activeMesocycle!.id);
-                        setSelectedWeek(currentWeekPlan?.weekNumber ?? 1);
-                      }}
-                    >
-                      Ver semana actual →
-                    </Button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {(['hypertrophy','strength','endurance','power','cut','recomp'] as PlanningGoal[]).map(p => {
+                        const isActive = planning.activeMesocycle?.appliedPreset === p;
+                        return (
+                          <Button
+                            key={p}
+                            variant={isActive ? 'primary' : 'ghost'}
+                            size="sm"
+                            onClick={() => {
+                              if (isActive) {
+                                setConfirmPresetToRemove({ mesoId: planning.activeMesocycle!.id, preset: p });
+                                return;
+                              }
+                              const res = planning.togglePresetOnMesocycle(planning.activeMesocycle!.id, p);
+                              if (res === 'none') success(`Plantilla ${GOAL_LABELS[p]} eliminada`);
+                              else success(`Plantilla ${GOAL_LABELS[p]} aplicada`);
+                            }}
+                          >
+                            {GOAL_LABELS[p]}
+                          </Button>
+                        );
+                      })}
+                      <Button variant="ghost" size="sm" onClick={() => { setSelectedMesoId(planning.activeMesocycle!.id); setSelectedWeek(currentWeekPlan?.weekNumber ?? 1); }}>
+                        Ver semana actual →
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Resumen rápido de volumen esta semana */}
@@ -829,13 +1038,18 @@ export default function PlanningPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                meso.status === 'active' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                                : meso.status === 'completed' ? 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                                : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                              }`}>{STATUS_LABELS[meso.status]}</span>
-                              <span className="text-[10px] text-gray-500">{GOAL_LABELS[meso.goal]}</span>
-                            </div>
+                                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                    meso.status === 'active' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                    : meso.status === 'completed' ? 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                                    : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                                  }`}>{STATUS_LABELS[meso.status]}</span>
+                                  <span className="text-[10px] text-gray-500">objetivo inicial: {GOAL_LABELS[meso.goal]}</span>
+                                  {meso.appliedPreset && meso.appliedPreset !== 'none' && (
+                                    <span className="text-[10px] px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full font-medium">
+                                      Plantilla: {meso.appliedPreset === 'balanced' ? 'Equilibrada' : GOAL_LABELS[meso.appliedPreset as PlanningGoal]}
+                                    </span>
+                                  )}
+                                </div>
                             <p className="font-bold text-gray-900 dark:text-gray-100 truncate mt-0.5">{meso.name}</p>
                             <p className="text-xs text-gray-500">
                               {meso.weeks} semanas · {new Date(meso.startDate).toLocaleDateString('es-CL')} → {endDate.toLocaleDateString('es-CL')}
@@ -880,22 +1094,43 @@ export default function PlanningPage() {
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <CardTitle className="flex items-center gap-2">
                       <span>{viewMeso.name}</span>
-                      <span className="text-sm font-normal text-gray-500">· {GOAL_LABELS[viewMeso.goal]}</span>
+                      <span className="text-sm font-normal text-gray-500"> - objetivo inicial: {GOAL_LABELS[viewMeso.goal]}</span>
+                      {viewMeso.appliedPreset && viewMeso.appliedPreset !== 'none' && (
+                        <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full font-medium">
+                          Plantilla: {viewMeso.appliedPreset === 'balanced' ? 'Equilibrada' : GOAL_LABELS[viewMeso.appliedPreset as PlanningGoal]}
+                        </span>
+                      )}
                     </CardTitle>
-                    {/* Botón de progresión lineal rápida */}
-                    <button
-                      onClick={() => {
-                        const ok = confirm('Aplicar progresión lineal automática (+2 series/semana) a todos los grupos musculares. ¿Continuar?');
-                        if (!ok) return;
-                        MUSCLE_GROUPS.forEach(mg => {
-                          const start = viewMeso.weeklyPlans[0]?.muscleGroupTargets[mg]?.targetSets ?? DEFAULT_VOLUME_LANDMARKS[mg].mev;
-                          planning.applyLinearProgression(viewMeso.id, mg, start, 2);
-                        });
-                      }}
-                      className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 font-medium border border-indigo-200 dark:border-indigo-800"
-                    >
-                      ⚡ Auto-progresión lineal
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {(['hypertrophy','strength','endurance','power','cut','recomp'] as PlanningGoal[]).map(p => {
+                        const isActive = viewMeso.appliedPreset === p;
+                        return (
+                          <Button
+                            key={p}
+                            variant={isActive ? 'primary' : 'ghost'}
+                            size="sm"
+                            onClick={() => {
+                              if (isActive) {
+                                setConfirmPresetToRemove({ mesoId: viewMeso.id, preset: p });
+                                return;
+                              }
+                              const res = planning.togglePresetOnMesocycle(viewMeso.id, p);
+                              if (res === 'none') success(`Plantilla ${GOAL_LABELS[p]} eliminada`);
+                              else success(`Plantilla ${GOAL_LABELS[p]} aplicada`);
+                            }}
+                          >
+                            {GOAL_LABELS[p]}
+                          </Button>
+                        );
+                      })}
+                      {/* Botón de progresión lineal rápida */}
+                      <button
+                        onClick={() => setShowProgressionModal(true)}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 font-medium border border-indigo-200 dark:border-indigo-800"
+                      >
+                        ⚡ Auto-progresión lineal
+                      </button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pb-4">
@@ -950,7 +1185,14 @@ export default function PlanningPage() {
                         onToggleRest={(day) =>
                           planning.toggleRestDay(viewMeso.id, weekPlan.weekNumber, day)
                         }
-                        onSync={() => planning.syncWeekToRoutinesPlanner(weekPlan)}
+                        onSync={() => {
+                          const ok = planning.syncWeekToRoutinesPlanner(weekPlan);
+                          if (!ok) {
+                            warning('Agrega rutinas en la Agenda antes de sincronizar', 4000);
+                          } else {
+                            success('Se sincronizaron los cambios en el Planificador', 3000);
+                          }
+                        }}
                       />
                     </>
                   )}
@@ -971,6 +1213,23 @@ export default function PlanningPage() {
                 </ul>
               </CardContent>
             </Card>
+
+              {/* ── Guía rápida: Cómo planificar bien ───────────────────────────────── */}
+              <Card className="border-dashed border-gray-200 dark:border-gray-700">
+                <CardContent className="py-4 px-5">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">📝 Guía: Cómo planificar bien</p>
+                  <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-2">
+                    <li><strong>Define un objetivo:</strong> Hipertrofia / Fuerza / Resistencia / Cut / Recomposición.</li>
+                    <li><strong>Elige duración:</strong> 4–8 semanas y un esquema de progresión (lineal / ondulante / por bloques).</li>
+                    <li><strong>Targets iniciales:</strong> usamos MAV como punto de partida; ajusta según nivel: Principiante ~60–80% MAV, Intermedio ~MAV, Avanzado MAV+10–20%.</li>
+                    <li><strong>Frecuencia:</strong> sigue el rango mínimo/máximo recomendado por grupo muscular (2–3×/sem suele ser adecuado).</li>
+                    <li><strong>Deloads:</strong> planifica semanas de descarga (ej. cada 4–6 semanas o antes de alcanzar MRV).</li>
+                    <li><strong>Progresión:</strong> define incrementos semanales (sets o % de carga) y límites (no superar MRV).</li>
+                    <li><strong>Validación y sincronización:</strong> asigna rutinas en la Agenda y usa "Sincronizar con Planificador"; la app validará si faltan rutinas y mostrará feedback.</li>
+                    <li><strong>Checklist final:</strong> objetivo, semanas, rutinas asignadas, progresión definida, deloads marcados, sincronizar.</li>
+                  </ul>
+                </CardContent>
+              </Card>
           </div>
         </PageContent>
       </PageLayout>

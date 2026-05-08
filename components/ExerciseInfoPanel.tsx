@@ -28,17 +28,15 @@ export const ExerciseInfoPanel: React.FC<ExerciseInfoPanelProps> = ({ exercise, 
           {/* Header con imagen */}
           <div className="relative">
             {/* Imagen del ejercicio */}
-            {exercise.image && (
-              <div className="w-full h-64 sm:h-80 overflow-hidden rounded-t-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={exercise.image}
-                  alt={exercise.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-              </div>
-            )}
+            <div className="w-full h-64 sm:h-80 overflow-hidden rounded-t-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={exercise.image || '/images/not-available.svg'}
+                alt={exercise.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
+            </div>
 
             {/* Botón cerrar */}
             <button

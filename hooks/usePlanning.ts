@@ -11,7 +11,7 @@ import type {
   DayKey,
   DaySchedule,
 } from '@/types/planning';
-import { DEFAULT_VOLUME_LANDMARKS, DAYS } from '@/types/planning';
+import { DEFAULT_VOLUME_LANDMARKS, DAYS, RECOMMENDED_FREQUENCY } from '@/types/planning';
 
 const STORAGE_KEY = 'gym-planning-data';
 
@@ -43,12 +43,40 @@ function saveToStorage(data: PlanningData): void {
   }
 }
 
-/** Genera un WeeklyPlan vacío para la semana indicada, con targets en 0 */
-function buildEmptyWeeklyPlan(weekNumber: number, muscleGroups: string[]): WeeklyPlan {
+/** Genera un WeeklyPlan inicial para la semana indicada.
+ * Si se proporcionan `goal` y `volumeLandmarks`, crea targets "ideales"
+ * basados en MAV y frecuencia recomendada; el usuario puede luego editarlos.
+ */
+function buildEmptyWeeklyPlan(
+  weekNumber: number,
+  muscleGroups: string[],
+  opts?: { goal?: PlanningGoal; volumeLandmarks?: Record<string, VolumeLandmarks> }
+): WeeklyPlan {
   const targets: Record<string, MuscleGroupTarget> = {};
+  const landmarks = opts?.volumeLandmarks ?? DEFAULT_VOLUME_LANDMARKS;
+  const goal = opts?.goal ?? 'hypertrophy';
+
+  const DEFAULT_RPE_BY_GOAL: Record<PlanningGoal, number> = {
+    hypertrophy: 7,
+    strength: 8,
+    endurance: 6,
+    power: 8,
+    cut: 7,
+    recomp: 7,
+  };
+
   for (const mg of muscleGroups) {
-    targets[mg] = { targetSets: 0, targetFrequency: 2, targetRPE: 7 };
+    const lm = landmarks[mg] ?? { mev: 0, mav: 0, mav_max: 0, mrv: 999 };
+    const freqRec = RECOMMENDED_FREQUENCY[mg] ?? { min: 1, max: 3 };
+    const freq = Math.round((freqRec.min + freqRec.max) / 2);
+
+    // Target ideal: usar MAV (redondeado) como referencia de series semanales
+    const targetSets = Math.max(0, Math.round(lm.mav));
+    const targetRPE = DEFAULT_RPE_BY_GOAL[goal] ?? 7;
+
+    targets[mg] = { targetSets, targetFrequency: freq, targetRPE };
   }
+
   return { id: generateId(), weekNumber, muscleGroupTargets: targets };
 }
 
@@ -65,6 +93,51 @@ export function usePlanning() {
   useEffect(() => {
     setData(loadFromStorage());
     setHydrated(true);
+  }, []);
+
+  /** Aplica plantilla/preset por objetivo a todo el mesociclo (actualiza targets) */
+  const applyPresetToMesocycle = useCallback((mesocycleId: string, preset: PlanningGoal | 'balanced' | 'none') => {
+    const FACTORS: Record<string, number> = {
+      hypertrophy: 1.0,
+      strength: 0.6,
+      endurance: 0.7,
+      power: 0.5,
+      cut: 0.9,
+      recomp: 1.0,
+      balanced: 1.0,
+    };
+    const RPE_BY_GOAL: Record<PlanningGoal, number> = {
+      hypertrophy: 7,
+      strength: 8,
+      endurance: 6,
+      power: 8,
+      cut: 7,
+      recomp: 7,
+    };
+
+    setData(prev => ({
+      ...prev,
+      mesocycles: prev.mesocycles.map(m => {
+        if (m.id !== mesocycleId) return m;
+        const factor = (FACTORS as any)[preset] ?? 1.0;
+        const rpe = (RPE_BY_GOAL as any)[preset] ?? 7;
+        const newWeeklyPlans = m.weeklyPlans.map(w => {
+          const newTargets: Record<string, MuscleGroupTarget> = { ...w.muscleGroupTargets };
+          for (const mg of MUSCLE_GROUPS) {
+            const lm = m.volumeLandmarks[mg] ?? DEFAULT_VOLUME_LANDMARKS[mg] ?? { mev: 0, mav: 0, mav_max: 0, mrv: 999 };
+            const freqRec = RECOMMENDED_FREQUENCY[mg] ?? { min: 1, max: 3 };
+            const freq = Math.round((freqRec.min + freqRec.max) / 2);
+            let base = Math.max(0, Math.round((lm.mav ?? 0) * factor));
+            if (w.isDeload) base = Math.max(0, Math.round(base * 0.6));
+            const safeSets = Math.min(base, lm.mrv ?? 999);
+            newTargets[mg] = { ...(newTargets[mg] ?? { targetSets: 0, targetFrequency: freq }), targetSets: safeSets, targetFrequency: freq, targetRPE: rpe };
+          }
+          return { ...w, muscleGroupTargets: newTargets };
+        });
+
+        return { ...m, weeklyPlans: newWeeklyPlans, updatedAt: new Date().toISOString(), appliedPreset: preset };
+      }),
+    }));
   }, []);
 
   // Auto-guardar con debounce cada vez que cambien los datos
@@ -86,10 +159,11 @@ export function usePlanning() {
     startDate: string;
     progressionScheme?: Mesocycle['progressionScheme'];
     notes?: string;
+    preset?: PlanningGoal | 'none' | 'balanced';
   }): Mesocycle => {
     const now = new Date().toISOString();
     const weeklyPlans: WeeklyPlan[] = Array.from({ length: params.weeks }, (_, i) =>
-      buildEmptyWeeklyPlan(i + 1, MUSCLE_GROUPS)
+      buildEmptyWeeklyPlan(i + 1, MUSCLE_GROUPS, { goal: params.goal, volumeLandmarks: DEFAULT_VOLUME_LANDMARKS })
     );
     const newMeso: Mesocycle = {
       id: generateId(),
@@ -102,6 +176,7 @@ export function usePlanning() {
       volumeLandmarks: { ...DEFAULT_VOLUME_LANDMARKS },
       progressionScheme: params.progressionScheme ?? 'linear',
       notes: params.notes,
+      appliedPreset: params.preset && params.preset !== 'none' ? params.preset : undefined,
       createdAt: now,
       updatedAt: now,
     };
@@ -253,6 +328,33 @@ export function usePlanning() {
     }));
   }, []);
 
+  /** Restaura los targets por defecto (recalcula usando buildEmptyWeeklyPlan) conservando isDeload y agenda */
+  const resetMesocycleToDefaults = useCallback((mesocycleId: string) => {
+    setData(prev => ({
+      ...prev,
+      mesocycles: prev.mesocycles.map(m => {
+        if (m.id !== mesocycleId) return m;
+        const newWeeklyPlans = m.weeklyPlans.map(w => {
+          const base = buildEmptyWeeklyPlan(w.weekNumber, MUSCLE_GROUPS, { goal: m.goal, volumeLandmarks: m.volumeLandmarks });
+          return { ...base, isDeload: w.isDeload, dailySchedule: w.dailySchedule, notes: w.notes };
+        });
+        return { ...m, weeklyPlans: newWeeklyPlans, appliedPreset: 'none', updatedAt: new Date().toISOString() };
+      }),
+    }));
+  }, []);
+
+  /** Alterna la aplicación de una plantilla: si ya está aplicada, la quita (resetea), si no, la aplica */
+  const togglePresetOnMesocycle = useCallback((mesocycleId: string, preset: PlanningGoal | 'balanced' | 'none') => {
+    const meso = data.mesocycles.find(m => m.id === mesocycleId);
+    if (!meso) return undefined;
+    if (meso.appliedPreset === preset) {
+      resetMesocycleToDefaults(mesocycleId);
+      return 'none';
+    }
+    applyPresetToMesocycle(mesocycleId, preset);
+    return preset;
+  }, [data, applyPresetToMesocycle, resetMesocycleToDefaults]);
+
   // ── Derivados ─────────────────────────────────────────────────────────────
 
   const activeMesocycle = data.mesocycles.find(m => m.id === data.activeMesocycleId) ?? null;
@@ -372,24 +474,34 @@ export function usePlanning() {
    * Escribe en la clave correcta de localStorage y dispara un CustomEvent para
    * que WeeklyPlanner recargue sin necesidad de navegar.
    */
-  const syncWeekToRoutinesPlanner = useCallback((weekPlan: WeeklyPlan) => {
-    if (typeof window === 'undefined') return;
+  const syncWeekToRoutinesPlanner = useCallback((weekPlan: WeeklyPlan): boolean => {
+    if (typeof window === 'undefined') return false;
     try {
       const plannerData: Record<string, { routines: string[]; blocked: boolean; note: string }> = {};
+      let hasScheduled = false;
+
       DAYS.forEach(day => {
         const ds = weekPlan.dailySchedule?.[day] ?? { routineIds: [], isRest: false };
+        const routines = ds.routineIds ?? [];
+        const blocked = ds.isRest ?? false;
         plannerData[day] = {
-          routines: ds.routineIds,
-          blocked: ds.isRest ?? false,
+          routines,
+          blocked,
           note: ds.notes ?? '',
         };
+        if (!blocked && routines.length > 0) hasScheduled = true;
       });
+
+      // Si no hay rutinas programadas, no sincronizamos
+      if (!hasScheduled) return false;
+
       // Clave real que usa WeeklyPlanner via getWeeklyPlan()
       localStorage.setItem('weekly_routine_plan', JSON.stringify(plannerData));
       // Custom event: WeeklyPlanner escucha 'planning:sync' para recargar en la misma ventana
       window.dispatchEvent(new CustomEvent('planning:sync', { detail: plannerData }));
+      return true;
     } catch {
-      // silencioso
+      return false;
     }
   }, []);
 
@@ -408,6 +520,9 @@ export function usePlanning() {
     updateMuscleGroupTarget,
     applyLinearProgression,
     updateVolumeLandmarks,
+    applyPresetToMesocycle,
+    resetMesocycleToDefaults,
+    togglePresetOnMesocycle,
     // Agenda diaria
     scheduleRoutineForDay,
     unscheduleRoutineFromDay,

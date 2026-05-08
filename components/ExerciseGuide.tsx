@@ -141,26 +141,24 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
             {activeTab === 'overview' && (
               <div className="space-y-6 animate-fadeIn">
                 {/* Image/Video */}
-                {exercise.image && (
-                  <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    <img
-                      src={exercise.image}
-                      alt={exercise.name}
-                      className="w-full h-64 object-contain"
-                    />
-                    {exercise.videoUrl && (
-                      <a
-                        href={exercise.videoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-lg"
-                      >
-                        <Play className="w-4 h-4" />
-                        Ver Video
-                      </a>
-                    )}
-                  </div>
-                )}
+                <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <img
+                    src={exercise.image || '/images/not-available.svg'}
+                    alt={exercise.name}
+                    className="w-full h-64 object-contain"
+                  />
+                  {exercise.videoUrl && (
+                    <a
+                      href={exercise.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-lg"
+                    >
+                      <Play className="w-4 h-4" />
+                      Ver Video
+                    </a>
+                  )}
+                </div>
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-4">

@@ -112,6 +112,8 @@ export interface Mesocycle {
   weeklyPlans: WeeklyPlan[];
   volumeLandmarks: Record<string, VolumeLandmarks>; // Personalizados o DEFAULT
   progressionScheme?: 'linear' | 'undulating' | 'block'; // Esquema de progresión
+  // Plantilla/preset aplicada (opcional). 'none' indica explícitamente ninguna plantilla.
+  appliedPreset?: PlanningGoal | 'balanced' | 'none';
   notes?: string;
   createdAt: string;
   updatedAt: string;

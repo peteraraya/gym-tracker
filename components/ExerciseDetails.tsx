@@ -74,32 +74,25 @@ export const ExerciseDetails: React.FC<ExerciseDetailsProps> = React.memo(({ exe
         <div className="p-6 space-y-6">
           {/* Exercise Image/Icon */}
           <div className="flex justify-center">
-            {exercise.image ? (
-              <div className="w-full max-w-md rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 shadow-lg">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={exercise.image}
-                  alt={exercise.name}
-                  className="w-full h-auto object-contain"
-                  loading="lazy"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.dataset.fallback) {
-                      target.dataset.fallback = '1';
-                      target.src = '/images/not-available.svg';
-                    } else {
-                      const parent = target.parentElement;
-                      if (parent) parent.style.display = 'none';
-                    }
-                  }}
-                />
-              </div>
-            ) : (
-              <ExerciseIcon 
-                muscleGroup={exercise.muscleGroup}
-                className="w-48 h-48"
+            <div className="w-full max-w-md rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 shadow-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={exercise.image || '/images/not-available.svg'}
+                alt={exercise.name}
+                className="w-full h-auto object-contain"
+                loading="lazy"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.dataset.fallback) {
+                    target.dataset.fallback = '1';
+                    target.src = '/images/not-available.svg';
+                  } else {
+                    const parent = target.parentElement;
+                    if (parent) parent.style.display = 'none';
+                  }
+                }}
               />
-            )}
+            </div>
           </div>
 
           {/* Description */}

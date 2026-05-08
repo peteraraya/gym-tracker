@@ -45,7 +45,7 @@ export const Navbar: React.FC = () => {
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
-  // Mobile items: include all nav links and dashboard subitems
+  // Mobile items: mirror desktop order (main links first, then dashboard group)
   const mobileItems = [
     { href: '/', icon: Home, label: t('home') },
     { href: '/routines', icon: ClipboardList, label: t('routines') },
@@ -55,13 +55,13 @@ export const Navbar: React.FC = () => {
     { href: '/recommended', icon: Target, label: t('recommended') },
     { href: '/glossary', icon: BookOpen, label: t('glossary') },
     { href: '/calculators', icon: Calculator, label: t('calculators') },
-    { href: '/ai-assistant', icon: Sparkles, label: t('aiAssistant') },
     { href: '/settings', icon: Settings, label: t('settings') },
-    // Dashboard group
+    // Dashboard group items (same order as dropdown)
     { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
     { href: '/progress', icon: TrendingUp, label: t('progress') },
     { href: '/achievements', icon: Trophy, label: t('achievements') },
     { href: '/sessions', icon: Calendar, label: t('sessions') },
+    { href: '/ai-assistant', icon: Sparkles, label: t('aiAssistant') },
   ];
 
   const handleSignOut = async () => {

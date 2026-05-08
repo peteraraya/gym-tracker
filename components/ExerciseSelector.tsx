@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { AnatomicalBodyMap } from '@/components/AnatomicalBodyMap';
 import { ExerciseDetails } from '@/components/ExerciseDetails';
-import { ExerciseIcon } from '@/components/ExerciseIcon';
 import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { useEquipment } from '@/context/EquipmentContext';
 import { getCustomExercises, getCustomExercisesByMuscleGroup } from '@/lib/customExercises';
@@ -297,28 +296,24 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                                   </svg>
                                 )}
                               </div>
-                              {exercise.image ? (
-                                <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    src={exercise.image}
-                                    alt={exercise.name}
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      if (!target.dataset.fallback) {
-                                        target.dataset.fallback = '1';
-                                        target.src = '/images/not-available.svg';
-                                      } else {
-                                        target.style.display = 'none';
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <ExerciseIcon muscleGroup={exercise.muscleGroup} className="shrink-0 w-16 h-16" />
-                              )}
+                              <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={exercise.image || '/images/not-available.svg'}
+                                  alt={exercise.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    if (!target.dataset.fallback) {
+                                      target.dataset.fallback = '1';
+                                      target.src = '/images/not-available.svg';
+                                    } else {
+                                      target.style.display = 'none';
+                                    }
+                                  }}
+                                />
+                              </div>
                               <div className="flex-1">
                                 <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{exercise.name}</h4>
                                 <div className="flex items-center gap-2 flex-wrap">
@@ -606,28 +601,24 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                                 </svg>
                               )}
                             </div>
-                            {exercise.image ? (
-                              <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={exercise.image}
-                                  alt={exercise.name}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    if (!target.dataset.fallback) {
-                                      target.dataset.fallback = '1';
-                                      target.src = '/images/not-available.svg';
-                                    } else {
-                                      target.style.display = 'none';
-                                    }
-                                  }}
-                                />
-                              </div>
-                            ) : (
-                              <ExerciseIcon muscleGroup={exercise.muscleGroup} className="shrink-0 w-16 h-16" />
-                            )}
+                            <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={exercise.image || '/images/not-available.svg'}
+                                alt={exercise.name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  if (!target.dataset.fallback) {
+                                    target.dataset.fallback = '1';
+                                    target.src = '/images/not-available.svg';
+                                  } else {
+                                    target.style.display = 'none';
+                                  }
+                                }}
+                              />
+                            </div>
                             <div className="flex-1">
                               <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{exercise.name}</h4>
                               <div className="flex items-center gap-2 flex-wrap">

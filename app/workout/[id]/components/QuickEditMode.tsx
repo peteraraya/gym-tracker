@@ -1022,7 +1022,11 @@ export function QuickEditMode({
                       const repsDiff = (displayReps && lastReps) ? displayReps - lastReps : null;
                       const weightDiff = (displayWeight && lastWeight) ? displayWeight - lastWeight : null;
                       const hasRepsProgress = repsDiff !== null && repsDiff !== 0;
-                      const hasWeightProgress = weightDiff !== null && weightDiff !== 0;
+                      // Mostrar el delta de peso SIN decimales: redondear a entero.
+                      // Si al redondear queda en 0, ocultamos la etiqueta para evitar mostrar +0 o -0.
+                      const weightDiffRounded = weightDiff !== null ? Math.round(weightDiff) : null;
+                      const hasWeightProgress = weightDiffRounded !== null && weightDiffRounded !== 0;
+                      const weightDiffLabel = weightDiffRounded !== null ? (weightDiffRounded > 0 ? `+${weightDiffRounded}` : `${weightDiffRounded}`) : null;
 
                       // Serie lista para marcar: tiene valores pero aún no completada
                       const isReadyToComplete = displayReps > 0 && displayWeight > 0 && !isCompleted;
@@ -1105,9 +1109,9 @@ export function QuickEditMode({
                             </button>
                             {hasWeightProgress && displayWeight > 0 && (
                               <div className={`absolute -top-1 -right-1 px-1 py-0.5 rounded-full text-[8px] font-bold shadow ${
-                                weightDiff! > 0 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
+                                (weightDiffRounded! > 0) ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
                               }`}>
-                                {weightDiff! > 0 ? '+' : ''}{weightDiff}
+                                {weightDiffLabel}
                               </div>
                             )}
                           </div>
@@ -1260,7 +1264,7 @@ export function QuickEditMode({
                             <div className="ml-1 flex items-center">
                               <button
                                 onClick={(e) => { e.stopPropagation(); onDeleteSet(exerciseId, setIdx); }}
-                                className="hidden md:flex ml-1 w-6 h-6 shrink-0 rounded-full flex items-center justify-center bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 active:scale-90 touch-manipulation"
+                                className="hidden md:flex ml-1 w-6 h-6 shrink-0 rounded-full items-center justify-center bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 active:scale-90 touch-manipulation"
                                 title="Eliminar serie"
                               >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
