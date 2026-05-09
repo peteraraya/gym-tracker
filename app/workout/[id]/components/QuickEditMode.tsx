@@ -100,8 +100,8 @@ export function QuickEditMode({
       setSkipRestTimersLocal(value);
     }
   };
-  // Auto-advance control (por defecto true)
-  const [autoAdvanceLocal, setAutoAdvanceLocal] = useState(true);
+  // Auto-advance control (por defecto false)
+  const [autoAdvanceLocal, setAutoAdvanceLocal] = useState(false);
   const autoAdvance = autoAdvanceProp !== undefined ? autoAdvanceProp : autoAdvanceLocal;
   const setAutoAdvance = (value: boolean) => {
     if (onAutoAdvanceChange) {

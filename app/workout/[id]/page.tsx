@@ -29,8 +29,6 @@ import { QuickExerciseSwitcher } from './components/QuickExerciseSwitcher';
 import { AddExerciseButton } from './components/AddExerciseButton';
 import { QuickEditMode as QuickEditModeBase } from './components/QuickEditMode';
 import { FinishWorkoutModal } from './components/FinishWorkoutModal';
-import { EditValueModal } from '@/components/EditValueModal';
-import SetsReference from '@/components/SetsReference';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { Exercise } from '@/types';
 import { 
@@ -94,6 +92,8 @@ export default function WorkoutPage() {
   const [isQuickEditMode, setIsQuickEditMode] = useState(true);
   // Omitir descansos (estado global para que ambos modos lo respeten)
   const [skipRestTimers, setSkipRestTimers] = useState(false);
+  // Avanzar automáticamente entre series/ejercicios (controlado desde QuickEditMode)
+  const [autoAdvance, setAutoAdvance] = useState(false);
   
   // ✅ Ref para el callback de guardado (se actualiza después de que timerHandlers esté disponible)
   const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
@@ -289,6 +289,31 @@ export default function WorkoutPage() {
   // ==================== CUSTOM HOOKS ====================
     const handleTimerCompleteRef = useRef(() => {});
     const timerHandlers = useWorkoutTimer(() => handleTimerCompleteRef.current());
+
+    // Ref para encolar procesamiento exclusivo por ejercicio (no descartar requests)
+    // Antes se ignoraban llamadas concurrentes; eso podía descartar un "deshacer" rápido.
+    // Ahora las operaciones se encadenan y se ejecutan secuencialmente por clave.
+    const processingQueueRef = useRef<Record<string, Promise<void> | null>>({});
+    const runExclusive = (key: string, fn: () => void | Promise<void>): Promise<void> => {
+      const prev = processingQueueRef.current[key] || Promise.resolve();
+      const next = prev
+        .catch(() => {
+          // ignorar errores previos para no romper la cadena
+        })
+        .then(() => Promise.resolve().then(() => fn()))
+        .catch(err => {
+          console.error('[runExclusive] error', err);
+        })
+        .finally(() => {
+          // limpiar solo si la referencia actual apunta a esta promesa
+          if (processingQueueRef.current[key] === next) {
+            processingQueueRef.current[key] = null;
+          }
+        });
+
+      processingQueueRef.current[key] = next;
+      return next;
+    };
     
     // ✅ Crear el callback de guardado usando useCallback
     const handleWorkoutDataChange = useCallback((data: any) => {
@@ -884,46 +909,49 @@ export default function WorkoutPage() {
     haptic.restComplete();
     
     if (!currentExercise || !routine) return;
-    
+
     const exerciseId = currentExercise.id;
     const completedCount = workoutState.workoutData.completedSets[exerciseId] || 0;
     const totalSets = currentExercise.sets.length;
     const isLastSet = completedCount >= totalSets;
     const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
-    
-    if (isLastSet && isLastExercise) {
-      const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
-      completion.openCompletionModal(duration);
-    } else if (isLastSet && !isLastExercise) {
-      const nextIndex = workoutState.currentExerciseIndex + 1;
-      if (routine.exercises[nextIndex]) {
-        // Haptic feedback al cambiar de ejercicio
-        haptic.exerciseChange();
-        
-        workoutState.setCurrentExerciseIndex(nextIndex);
-        workoutState.setCurrentSet(1);
-        const nextExercise = routine.exercises[nextIndex];
-        const firstSet = nextExercise.sets[0];
-        if (firstSet) {
-          workoutState.setCurrentReps(firstSet.reps);
-          workoutState.setCurrentWeight(firstSet.weight || 0);
+
+    // Evitar procesar el mismo ejercicio varias veces (race conditions)
+    runExclusive(exerciseId, () => {
+      if (isLastSet && isLastExercise) {
+        const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+        completion.openCompletionModal(duration);
+      } else if (isLastSet && !isLastExercise) {
+        const nextIndex = workoutState.currentExerciseIndex + 1;
+        if (routine.exercises[nextIndex]) {
+          // Haptic feedback al cambiar de ejercicio
+          haptic.exerciseChange();
+
+          workoutState.setCurrentExerciseIndex(nextIndex);
+          workoutState.setCurrentSet(1);
+          const nextExercise = routine.exercises[nextIndex];
+          const firstSet = nextExercise.sets[0];
+          if (firstSet) {
+            workoutState.setCurrentReps(firstSet.reps);
+            workoutState.setCurrentWeight(firstSet.weight || 0);
+          }
+
+          // ✅ Iniciar preparación automáticamente después del descanso
+          setExecution.startSet();
         }
-        
+      } else if (!isLastSet) {
+        const newSet = workoutState.currentSet + 1;
+        workoutState.setCurrentSet(newSet);
+        const nextSetData = currentExercise.sets[newSet - 1];
+        if (nextSetData) {
+          workoutState.setCurrentReps(nextSetData.reps);
+          workoutState.setCurrentWeight(nextSetData.weight || 0);
+        }
+
         // ✅ Iniciar preparación automáticamente después del descanso
         setExecution.startSet();
       }
-    } else if (!isLastSet) {
-      const newSet = workoutState.currentSet + 1;
-      workoutState.setCurrentSet(newSet);
-      const nextSetData = currentExercise.sets[newSet - 1];
-      if (nextSetData) {
-        workoutState.setCurrentReps(nextSetData.reps);
-        workoutState.setCurrentWeight(nextSetData.weight || 0);
-      }
-      
-      // ✅ Iniciar preparación automáticamente después del descanso
-      setExecution.startSet();
-    }
+    });
   }, [
     currentExercise, 
     routine, 
@@ -1295,30 +1323,49 @@ export default function WorkoutPage() {
       const nextIncompleteSet = currentExercise.sets.findIndex((_: any, idx: number) => {
         return idx > setIndex && !newActualReps[idx];
       });
-      
-      if (nextIncompleteSet !== -1) {
-        workoutState.setCurrentSet(nextIncompleteSet + 1);
-      } else if (newCompletedCount >= currentExercise.sets.length) {
-        const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
-        
-        if (isLastExercise) {
-          const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-          completion.openCompletionModal(duration);
-        } else {
-          const nextExercise = routine.exercises[workoutState.currentExerciseIndex + 1];
-          const restTime = calculateExerciseRestTime({
-            currentExercise,
-            nextExercise,
-            routine,
-            restOverrides: workoutState.workoutData.restOverrides,
-            perSetOverrides: workoutState.workoutData.perSetRestOverrides,
-            useSmartRest
+
+      if (autoAdvance) {
+        if (nextIncompleteSet !== -1) {
+          workoutState.setCurrentSet(nextIncompleteSet + 1);
+        } else if (newCompletedCount >= currentExercise.sets.length) {
+          // Evitar race conditions: procesar avance/descanso una sola vez por ejercicio
+          runExclusive(exerciseId, () => {
+            const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
+
+            if (isLastExercise) {
+              const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+              completion.openCompletionModal(duration);
+            } else {
+              const nextExercise = routine.exercises[workoutState.currentExerciseIndex + 1];
+              const restTime = calculateExerciseRestTime({
+                currentExercise: currentExercise,
+                nextExercise,
+                routine,
+                restOverrides: workoutState.workoutData.restOverrides,
+                perSetOverrides: workoutState.workoutData.perSetRestOverrides,
+                useSmartRest
+              });
+
+              // Respetar la opción global de omitir descansos
+              if (!skipRestTimers) {
+                timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+              } else {
+                // Si se omiten descansos, avanzar inmediatamente al siguiente ejercicio
+                const nextIndex = workoutState.currentExerciseIndex + 1;
+                if (routine.exercises[nextIndex]) {
+                  haptic.exerciseChange();
+                  workoutState.setCurrentExerciseIndex(nextIndex);
+                  workoutState.setCurrentSet(1);
+                  const firstSet = routine.exercises[nextIndex].sets[0];
+                  if (firstSet) {
+                    workoutState.setCurrentReps(firstSet.reps);
+                    workoutState.setCurrentWeight(firstSet.weight || 0);
+                  }
+                  setExecution.startSet();
+                }
+              }
+            }
           });
-          
-          // Respetar la opción global de omitir descansos
-          if (!skipRestTimers) {
-            timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
-          }
         }
       }
     } else {
@@ -1559,44 +1606,63 @@ export default function WorkoutPage() {
     // Si estamos en el ejercicio actual, actualizar también currentSet
     if (currentExercise && currentExercise.id === exerciseId) {
       // Encontrar la siguiente serie no completada
-      const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
-      if (nextIncompleteSet !== -1) {
-        workoutState.setCurrentSet(nextIncompleteSet + 1);
-      } else {
-        // Todas completadas, ir a la última
-        workoutState.setCurrentSet(exercise.sets.length);
+      if (autoAdvance) {
+        const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
+        if (nextIncompleteSet !== -1) {
+          workoutState.setCurrentSet(nextIncompleteSet + 1);
+        } else {
+          // Todas completadas, ir a la última
+          workoutState.setCurrentSet(currentExercise.sets.length);
+        }
       }
     }
     
     // ✅ NUEVO: Iniciar temporizador de descanso si se completó una serie
-    if (isComplete) {
+    // Solo ejecutar la lógica de avance automático si el usuario tiene autoAdvance habilitado
+    if (isComplete && autoAdvance) {
       // Feedback háptico
       haptic.success();
       
       // Determinar si es la última serie del ejercicio
-      const isLastSetOfExercise = completedCount >= exercise.sets.length;
+      const isLastSetOfExercise = completedCount >= currentExercise.sets.length;
       
       if (isLastSetOfExercise) {
-        // Descanso entre ejercicios
-        const exerciseIndex = routine.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
-        const isLastExercise = exerciseIndex >= routine.exercises.length - 1;
-        
-        if (!isLastExercise) {
-          const nextExercise = routine.exercises[exerciseIndex + 1];
-          const restTime = calculateExerciseRestTime({
-            currentExercise: exercise,
-            nextExercise,
-            routine,
-            restOverrides: workoutState.workoutData.restOverrides,
-            perSetOverrides: workoutState.workoutData.perSetRestOverrides,
-            useSmartRest
-          });
+        // Descanso entre ejercicios — manejar de forma exclusiva para evitar race conditions
+        runExclusive(exerciseId, () => {
+          const exerciseIndex = routine.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
+          const isLastExercise = exerciseIndex >= routine.exercises.length - 1;
 
-          // Respetar la opción global de omitir descansos
-          if (!skipRestTimers) {
-            timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+          if (!isLastExercise) {
+            const nextExercise = routine.exercises[exerciseIndex + 1];
+            const restTime = calculateExerciseRestTime({
+              currentExercise: currentExercise,
+              nextExercise,
+              routine,
+              restOverrides: workoutState.workoutData.restOverrides,
+              perSetOverrides: workoutState.workoutData.perSetRestOverrides,
+              useSmartRest
+            });
+
+            // Respetar la opción global de omitir descansos
+            if (!skipRestTimers) {
+              timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+            } else {
+              // Avanzar inmediatamente si se omiten descansos
+              const nextIndex = exerciseIndex + 1;
+              if (routine.exercises[nextIndex]) {
+                haptic.exerciseChange();
+                workoutState.setCurrentExerciseIndex(nextIndex);
+                workoutState.setCurrentSet(1);
+                const firstSet = routine.exercises[nextIndex].sets[0];
+                if (firstSet) {
+                  workoutState.setCurrentReps(firstSet.reps);
+                  workoutState.setCurrentWeight(firstSet.weight || 0);
+                }
+                setExecution.startSet();
+              }
+            }
           }
-        }
+        });
       } else {
         // Descanso entre series - solo si no es la última serie
         // Calcular tiempo de descanso
@@ -1896,6 +1962,8 @@ export default function WorkoutPage() {
             onAddExercises={handleAddExercises}
             onSkipRestTimersChange={setSkipRestTimers}
             skipRestTimers={skipRestTimers}
+            onAutoAdvanceChange={setAutoAdvance}
+            autoAdvance={autoAdvance}
           />
         ) : (
           /* Modo guiado - Flujo normal */

@@ -434,6 +434,19 @@ export function useWorkoutState(
         }
       }
     }
+
+    // ✅ Recompute completedSets from actualReps to keep a single source of truth
+    // Esto evita que un completedSets guardado desincronizado muestre series completadas al entrar
+    if (sanitizedData.actualReps) {
+      const computedCompleted: { [key: string]: number } = {};
+      for (const [key, arr] of Object.entries(sanitizedData.actualReps)) {
+        if (Array.isArray(arr)) {
+          computedCompleted[key] = arr.filter((r: any) => typeof r === 'number' && r > 0).length;
+        }
+      }
+      sanitizedData.completedSets = computedCompleted;
+      console.log('[useWorkoutState] 🔁 Recomputed completedSets from actualReps:', computedCompleted);
+    }
     
     setWorkoutData(prev => ({
       ...prev,
