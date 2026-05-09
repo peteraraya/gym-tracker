@@ -47,20 +47,37 @@ import {
   type RecordComparison
 } from '@/lib/personalRecords';
 
+// ✅ CRÍTICO #1 FIX: Utility para debounce
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null;
+  
+  return function executedFunction(...args: Parameters<T>) {
+    const later = () => {
+      timeout = null;
+      func(...args);
+    };
+    
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(later, wait);
+  };
+}
+
 // Lazy load componentes pesados que no se usan inmediatamente
 const SeriesTable = lazy(() => import('./components/SeriesTable').then(m => ({ default: m.SeriesTable })));
 const ExerciseInfoPanel = lazy(() => import('@/components/ExerciseInfoPanel').then(m => ({ default: m.ExerciseInfoPanel })));
 const SetExecutionModal = lazy(() => import('@/components/SetExecutionModal').then(m => ({ default: m.SetExecutionModal })));
 
+// ✅ CRÍTICO #6 FIX: Import estático en lugar de lazy loading
+import { EXERCISE_DATABASE } from '@/data/exercises';
+
 // ✅ Memoización de componentes pesados para evitar re-renders innecesarios
 const ExerciseCard = memo(ExerciseCardBase);
 const QuickEditMode = memo(QuickEditModeBase);
-
-// Lazy load de datos pesados
-let EXERCISE_DATABASE: any[] = [];
-import('@/data/exercises').then(m => {
-  EXERCISE_DATABASE = m.EXERCISE_DATABASE;
-});
 
 /**
  * ✅ FASE 2 - Problema #6: Función centralizada para calcular completedSets
@@ -94,24 +111,20 @@ export default function WorkoutPage() {
   // Omitir descansos (estado global para que ambos modos lo respeten)
   const [skipRestTimers, setSkipRestTimers] = useState(false);
   
-  // ✅ Ref para el callback de guardado (se actualiza después de que timerHandlers esté disponible)
-  const handleWorkoutDataChangeRef = useRef<((data: any) => void) | null>(null);
+  // ✅ CRÍTICO #1 FIX: Placeholder para el callback (se define después)
+  const handleWorkoutDataChangeRef = useRef<(data: any) => void>(() => {});
   
-  // Inicializar workoutState con callback que usa la ref
+  // Inicializar workoutState con callback desde ref
   const workoutState = useWorkoutState(routine || null, {
-    onDataChange: (data) => {
-      if (handleWorkoutDataChangeRef.current) {
-        handleWorkoutDataChangeRef.current(data);
-      }
-    }
+    onDataChange: (data) => handleWorkoutDataChangeRef.current(data)
   });
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [selectedExerciseName, setSelectedExerciseName] = useState<string>('');
   const [exerciseInfo, setExerciseInfo] = useState<any | null>(null);
   const [loadingExerciseInfo, setLoadingExerciseInfo] = useState(false);
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
-  // ✅ isQuickEditMode ya está definido arriba como constante true
-  const [useSmartRest] = useState(true);
+  // ✅ CÓDIGO NO USADO: useSmartRest siempre es true, eliminado el setter
+  const useSmartRest = true;
   const [pendingToast, setPendingToast] = useState<{message: string, duration: number} | null>(null);
   // ✅ Estados de récord personal eliminados - no se muestran durante el entrenamiento
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
@@ -143,10 +156,10 @@ export default function WorkoutPage() {
   const [showEditTimeModal, setShowEditTimeModal] = useState(false);
   const [editingTime, setEditingTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
   
-  // Actualizar tiempo transcurrido cada segundo SOLO si NO está pausado
+  // ✅ CRÍTICO #2 FIX: Cargar info del ejercicio cuando se abre el panel
   useEffect(() => {
     let mounted = true;
-    // Cuando se abre el panel de info, intentar localizar los datos del ejercicio
+    
     if (showExerciseInfo && selectedExerciseName) {
       // Si ya existe en la DB estática, usarla inmediatamente
       const local = EXERCISE_DATABASE.find(e => e.name === selectedExerciseName || e.id === selectedExerciseName);
@@ -188,6 +201,8 @@ export default function WorkoutPage() {
     return () => { mounted = false; };
   }, [showExerciseInfo, selectedExerciseName]);
 
+  // ✅ CRÍTICO #2 FIX: UN SOLO intervalo para actualizar elapsedTime
+  // Consolidado - elimina el intervalo duplicado que estaba en línea ~650
   useEffect(() => {
     if (isPaused) {
       // Si está pausado, no actualizar el tiempo
@@ -203,7 +218,7 @@ export default function WorkoutPage() {
   }, [workoutStartTime, totalPausedTime, isPaused]);
   
   // ==================== COMPUTED VALUES ====================
-  // ✅ FASE 3 - Problema #14: Memoizar exercises con routine.id para evitar re-renders
+  // ✅ CRÍTICO #4 FIX: Memoizar exercises con routine.id para evitar re-renders
   const exercises = useMemo(() => routine?.exercises || [], [routine?.id]);
   
   const currentExercise = useMemo(() => {
@@ -227,11 +242,6 @@ export default function WorkoutPage() {
     if (!useSmartRestForExercise) return undefined;
     return calculateSmartRestTime(currentExercise);
   }, [currentExercise]);
-
-  const currentExerciseRecord = useMemo(() => {
-    if (!currentExercise || sessions.length === 0) return null;
-    return getPersonalRecord(currentExercise.id, sessions);
-  }, [currentExercise?.id, sessions]);
 
   const lastSetData = useMemo(() => {
     if (!currentExercise) return null;
@@ -263,13 +273,13 @@ export default function WorkoutPage() {
     return null;
   }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);
 
-  // ✅ FASE 3 - Problema #14: Memoizar completedSets con JSON.stringify para comparación profunda
-  const completedSetsKey = useMemo(
-    () => JSON.stringify(workoutState.workoutData.completedSets),
+  // ✅ CRÍTICO #4 FIX: Eliminar JSON.stringify y usar conteo directo
+  const completedSetsCount = useMemo(() => 
+    Object.values(workoutState.workoutData.completedSets).reduce((sum: number, count: any) => sum + (count || 0), 0),
     [workoutState.workoutData.completedSets]
   );
 
-  // ✅ Memoizar cálculo de progreso total para evitar recalcular en cada render
+  // ✅ CRÍTICO #10 FIX: Memoizar cálculo de progreso total con dependencias específicas
   const workoutProgress = useMemo(() => {
     if (!exercises.length) {
       return { totalSets: 0, completedSets: 0, percentage: 0 };
@@ -283,44 +293,52 @@ export default function WorkoutPage() {
     const percentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
     return { totalSets, completedSets, percentage };
-  }, [exercises, completedSetsKey]);
+  }, [exercises.length, completedSetsCount]); // ✅ Dependencias optimizadas
 
   // ==================== CUSTOM HOOKS ====================
     const handleTimerCompleteRef = useRef(() => {});
     const timerHandlers = useWorkoutTimer(() => handleTimerCompleteRef.current());
     
+    // ✅ CRÍTICO #1 FIX: Debounced save para evitar guardados excesivos
+    const debouncedSave = useMemo(
+      () => debounce((data: any) => {
+        if (!routine || !isInitialized) {
+          console.log('[Workout] ⏸️ Skipping save - not initialized or no routine');
+          return;
+        }
+        
+        console.log('[Workout] 💾 Saving workout data (debounced):', data);
+        
+        updateWorkoutProgress(
+          workoutState.currentExerciseIndex,
+          workoutState.currentSet,
+          data.completedSets,
+          data.actualReps,
+          data.actualWeights,
+          timerHandlers.showTimer ? {
+            isResting: true,
+            restTimerDuration: timerHandlers.timerDuration,
+            restTimerTitle: timerHandlers.timerTitle,
+            restTimerNextExercise: timerHandlers.nextExerciseName,
+            restTimerStartedAt: Date.now()
+          } : undefined,
+          totalPausedTime,
+          {
+            setTypes: data.setTypes,
+            restOverrides: data.restOverrides,
+            perSetRestOverrides: data.perSetRestOverrides
+          }
+        );
+      }, 500), // Guardar máximo cada 500ms
+      [routine, isInitialized, updateWorkoutProgress, totalPausedTime, timerHandlers, workoutState.currentExerciseIndex, workoutState.currentSet]
+    );
+    
     // ✅ Crear el callback de guardado usando useCallback
     const handleWorkoutDataChange = useCallback((data: any) => {
-      if (!routine || !isInitialized) {
-        console.log('[Workout] ⏸️ Skipping save - not initialized or no routine');
-        return;
-      }
-      
-      console.log('[Workout] 💾 Saving workout data immediately:', data);
-      
-      updateWorkoutProgress(
-        workoutState.currentExerciseIndex,
-        workoutState.currentSet,
-        data.completedSets,
-        data.actualReps,
-        data.actualWeights,
-        timerHandlers.showTimer ? {
-          isResting: true,
-          restTimerDuration: timerHandlers.timerDuration,
-          restTimerTitle: timerHandlers.timerTitle,
-          restTimerNextExercise: timerHandlers.nextExerciseName,
-          restTimerStartedAt: Date.now()
-        } : undefined,
-        totalPausedTime,
-        {
-          setTypes: data.setTypes,
-          restOverrides: data.restOverrides,
-          perSetRestOverrides: data.perSetRestOverrides
-        }
-      );
-    }, [routine, isInitialized, updateWorkoutProgress, totalPausedTime, timerHandlers, workoutState.currentExerciseIndex, workoutState.currentSet]);
+      debouncedSave(data);
+    }, [debouncedSave]);
     
-    // Actualizar la ref cuando el callback cambie
+    // ✅ CRÍTICO #1 FIX: Actualizar la ref para que workoutState use el callback actualizado
     useEffect(() => {
       handleWorkoutDataChangeRef.current = handleWorkoutDataChange;
     }, [handleWorkoutDataChange]);
@@ -338,12 +356,12 @@ export default function WorkoutPage() {
   });
   
   // Debug: Log setExecution state changes
-  useEffect(() => {
-    console.log('[Workout] setExecution state:', {
-      showSetExecution: setExecution.showSetExecution,
-      isExecutingSet: setExecution.isExecutingSet
-    });
-  }, [setExecution.showSetExecution, setExecution.isExecutingSet]);
+  // useEffect(() => {
+  //   console.log('[Workout] setExecution state:', {
+  //     showSetExecution: setExecution.showSetExecution,
+  //     isExecutingSet: setExecution.isExecutingSet
+  //   });
+  // }, [setExecution.showSetExecution, setExecution.isExecutingSet]);
   
   const completion = useWorkoutCompletion({
     routine,
@@ -382,17 +400,23 @@ export default function WorkoutPage() {
   const haptic = useHapticFeedback();
 
   // ==================== INITIALIZATION ====================
-  const lastSyncedRoutineRef = useRef<string | null>(null);
-  const hasLoadedModifiedRoutineRef = useRef(false);
-  const lastRoutineIdRef = useRef<string | null>(null);
+  // ✅ CRÍTICO #9 FIX: Estado consolidado para inicialización
+  const [initState, setInitState] = useState({
+    lastRoutineId: null as string | null,
+    hasLoadedModified: false,
+    isInitialized: false
+  });
   
   useEffect(() => {
     if (gymLoading) return;
     
-    // ✅ Resetear el flag cuando cambia el id del workout
-    if (lastRoutineIdRef.current !== id) {
-      hasLoadedModifiedRoutineRef.current = false;
-      lastRoutineIdRef.current = id;
+    // ✅ Resetear el estado cuando cambia el id del workout
+    if (initState.lastRoutineId !== id) {
+      setInitState({
+        lastRoutineId: id,
+        hasLoadedModified: false,
+        isInitialized: false
+      });
     }
     
     let mounted = true;
@@ -403,9 +427,9 @@ export default function WorkoutPage() {
       // Solo cargar una vez para evitar loops
       let foundRoutine = null;
       
-      if (activeWorkout?.modifiedRoutine && !hasLoadedModifiedRoutineRef.current) {
+      if (activeWorkout?.modifiedRoutine && !initState.hasLoadedModified) {
         foundRoutine = activeWorkout.modifiedRoutine;
-        hasLoadedModifiedRoutineRef.current = true;
+        setInitState(prev => ({ ...prev, hasLoadedModified: true }));
       }
       
       if (!foundRoutine) {
@@ -517,7 +541,7 @@ export default function WorkoutPage() {
     return () => {
       mounted = false;
     };
-  }, [id, gymLoading]);
+  }, [id, gymLoading, initState.lastRoutineId, initState.hasLoadedModified]);
 
   // ==================== EFFECTS ====================
   useEffect(() => {
@@ -573,58 +597,23 @@ export default function WorkoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skipRestTimers]);
 
-  // Sincronizar estado cuando se cambia de modo de edición rápida a modo guiado
+  // ✅ CRÍTICO #7 FIX: Dividir useEffect gigante en efectos específicos
+  
+  // Efecto 1: Sincronizar currentSet cuando se completan todas las series en modo guiado
   useEffect(() => {
     if (!isQuickEditMode && currentExercise && isInitialized) {
       const exerciseId = currentExercise.id;
-      
-      // Calcular cuántas series están realmente completadas
       const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
       const completedCount = actualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
       
-      // ✅ Usar un flag para evitar múltiples ejecuciones
-      const hasCompletedAllSets = completedCount >= currentExercise.sets.length;
-      
-      // Si todas las series están completadas, avanzar al siguiente ejercicio
-      if (hasCompletedAllSets) {
-        const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
-        
-        if (isLastExercise) {
-          // Último ejercicio completado - abrir modal de finalización solo si no está ya abierto
-          if (!completion.showNotesModal) {
-            const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
-            completion.openCompletionModal(duration);
-          }
-        } else {
-          // ✅ Usar setTimeout para evitar cambios de estado en cascada
-          setTimeout(() => {
-            const nextIndex = workoutState.currentExerciseIndex + 1;
-            const nextExercise = routine.exercises[nextIndex];
-            
-            if (nextExercise) {
-              workoutState.setCurrentExerciseIndex(nextIndex);
-              workoutState.setCurrentSet(1);
-              
-              // Cargar datos del siguiente ejercicio
-              if (nextExercise.sets[0]) {
-                workoutState.setCurrentReps(nextExercise.sets[0].reps);
-                workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
-              }
-            }
-          }, 0);
-        }
-        return;
-      }
-      
-      // ✅ Sincronizar currentSet solo si es necesario
+      // Sincronizar currentSet con la primera serie incompleta
       const nextIncompleteIndex = actualReps.findIndex((r: number) => !r || r === 0);
       const nextSet = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : completedCount + 1;
       
-      // Actualizar currentSet si es diferente
       if (nextSet !== workoutState.currentSet && nextSet <= currentExercise.sets.length) {
         workoutState.setCurrentSet(nextSet);
         
-        // ✅ Cargar datos de la serie actual
+        // Cargar datos de la serie actual
         const nextSetData = currentExercise.sets[nextSet - 1];
         if (nextSetData) {
           const savedReps = actualReps[nextSet - 1];
@@ -635,11 +624,47 @@ export default function WorkoutPage() {
         }
       }
     }
-  }, [isQuickEditMode, currentExercise?.id, isInitialized, 
-      workoutState.currentSet, workoutState.currentExerciseIndex, workoutState.workoutData, 
-      routine?.exercises, workoutStartTime, completion]);
+  }, [isQuickEditMode, currentExercise?.id, isInitialized, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights]);
+  
+  // Efecto 2: Manejar completación de ejercicio en modo guiado
+  useEffect(() => {
+    if (!isQuickEditMode && currentExercise && isInitialized && routine) {
+      const exerciseId = currentExercise.id;
+      const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
+      const completedCount = actualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+      const hasCompletedAllSets = completedCount >= currentExercise.sets.length;
+      
+      if (hasCompletedAllSets) {
+        const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
+        
+        if (isLastExercise) {
+          // Último ejercicio completado - abrir modal de finalización
+          if (!completion.showNotesModal) {
+            const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+            completion.openCompletionModal(duration);
+          }
+        } else {
+          // Avanzar al siguiente ejercicio
+          setTimeout(() => {
+            const nextIndex = workoutState.currentExerciseIndex + 1;
+            const nextExercise = routine.exercises[nextIndex];
+            
+            if (nextExercise) {
+              workoutState.setCurrentExerciseIndex(nextIndex);
+              workoutState.setCurrentSet(1);
+              
+              if (nextExercise.sets[0]) {
+                workoutState.setCurrentReps(nextExercise.sets[0].reps);
+                workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
+              }
+            }
+          }, 0);
+        }
+      }
+    }
+  }, [isQuickEditMode, currentExercise?.id, isInitialized, routine?.exercises, workoutState.currentExerciseIndex, workoutState.workoutData.actualReps, workoutStartTime, totalPausedTime, completion.showNotesModal]);
 
-  // Limpiar datos residuales de series que ya no existen y corregir currentSet
+  // ✅ CRÍTICO #7 FIX: Efecto 3 - Limpiar datos residuales de series eliminadas
   useEffect(() => {
     if (!routine || !isInitialized || !currentExercise) return;
     
@@ -649,7 +674,7 @@ export default function WorkoutPage() {
       const exerciseId = exercise.id;
       const maxSets = exercise.sets.length;
       
-      // Limpiar actualReps
+      // Limpiar actualReps si excede el número de series
       const currentReps = workoutState.workoutData.actualReps[exerciseId];
       if (currentReps && currentReps.length > maxSets) {
         console.log(`[Cleanup] Trimming actualReps for ${exerciseId} from ${currentReps.length} to ${maxSets}`);
@@ -657,35 +682,34 @@ export default function WorkoutPage() {
         hasChanges = true;
       }
       
-      // Limpiar actualWeights
+      // Limpiar actualWeights si excede el número de series
       const currentWeights = workoutState.workoutData.actualWeights[exerciseId];
       if (currentWeights && currentWeights.length > maxSets) {
         console.log(`[Cleanup] Trimming actualWeights for ${exerciseId} from ${currentWeights.length} to ${maxSets}`);
         workoutState.updateActualWeights(exerciseId, currentWeights.slice(0, maxSets));
         hasChanges = true;
       }
-      
-      // NO recalcular completedSets automáticamente - debe ser manual con el checkbox
-      // El usuario controla explícitamente qué series están completadas
-      
-      // Si es el ejercicio actual, corregir currentSet si está fuera de rango
-      if (exerciseId === currentExercise.id) {
-        if (workoutState.currentSet > maxSets) {
-          console.log(`[Cleanup] Correcting currentSet from ${workoutState.currentSet} to ${maxSets}`);
-          workoutState.setCurrentSet(maxSets);
-          hasChanges = true;
-        } else if (workoutState.currentSet < 1) {
-          console.log(`[Cleanup] Correcting currentSet from ${workoutState.currentSet} to 1`);
-          workoutState.setCurrentSet(1);
-          hasChanges = true;
-        }
-      }
     });
     
     if (hasChanges) {
       console.log('[Cleanup] Data inconsistencies were corrected');
     }
-  }, [routine, isInitialized, currentExercise, workoutState.currentExerciseIndex, workoutState.workoutData]);
+  }, [routine?.exercises, isInitialized, currentExercise?.id, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights]);
+  
+  // ✅ CRÍTICO #7 FIX: Efecto 4 - Corregir currentSet si está fuera de rango
+  useEffect(() => {
+    if (!currentExercise || !isInitialized) return;
+    
+    const maxSets = currentExercise.sets.length;
+    
+    if (workoutState.currentSet > maxSets) {
+      console.log(`[Cleanup] Correcting currentSet from ${workoutState.currentSet} to ${maxSets}`);
+      workoutState.setCurrentSet(maxSets);
+    } else if (workoutState.currentSet < 1) {
+      console.log(`[Cleanup] Correcting currentSet from ${workoutState.currentSet} to 1`);
+      workoutState.setCurrentSet(1);
+    }
+  }, [currentExercise?.id, currentExercise?.sets.length, workoutState.currentSet, isInitialized]);
 
   // Activar Wake Lock cuando el entrenamiento está activo
   useEffect(() => {
@@ -722,14 +746,6 @@ export default function WorkoutPage() {
   }, [timerHandlers.showTimer, pendingToast, success]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - workoutStartTime) / 1000));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [workoutStartTime]);
-
-  useEffect(() => {
     if (!currentExercise || !isInitialized) return;
     
     const currentWeightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : 0;
@@ -745,151 +761,227 @@ export default function WorkoutPage() {
   }, [currentExercise, workoutState.currentSet, isInitialized, workoutState.currentWeight]);
 
   // ==================== HANDLERS ====================
-  // ✅ Función de récord personal eliminada - no se muestran durante el entrenamiento
-  // Los récords aún se calculan y guardan, simplemente no se celebran en tiempo real
-
-  // RC-2: Lock ref para evitar doble-complete por taps rápidos.
-  // El estado React es asíncrono; sin este guard, dos taps simultáneos pueden
-  // pasar la comprobación de existingReps antes de que el primer update se propague.
-  const isCompletingSetRef = useRef(false);
-
-  const handleCompleteSet = useCallback(() => {
-    if (!currentExercise || !routine) return;
-
-    // RC-2: Bloquear si ya se está procesando una completación
-    if (isCompletingSetRef.current) return;
-    isCompletingSetRef.current = true;
-    setTimeout(() => { isCompletingSetRef.current = false; }, 500);
+  // ✅ CRÍTICO #5 FIX: Función consolidada para completar series
+  // Elimina duplicación entre handleCompleteSet y handleQuickToggleSetComplete
+  const completeSetLogic = useCallback((params: {
+    exerciseId: string;
+    setIndex: number;
+    reps: number;
+    weight: number;
+    isFromQuickMode?: boolean;
+  }) => {
+    const { exerciseId, setIndex, reps, weight, isFromQuickMode = false } = params;
     
-    const exerciseId = currentExercise.id;
-    const setIndex = workoutState.currentSet - 1;
+    console.log('[completeSetLogic] Completing set:', params);
     
-    // Verificar si esta serie ya está completada
-    const existingReps = workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
-    if (existingReps && existingReps > 0) {
-      // Serie ya completada, no hacer nada
-      console.log('[Workout] Serie ya completada, ignorando');
-      isCompletingSetRef.current = false;
-      return;
-    }
-    
-    // ✅ Resetear el timer de serie al completar
-    setExecution.completeSet();
-    
-    const repsValue = typeof workoutState.currentReps === 'number' ? workoutState.currentReps : currentExercise.sets[setIndex]?.reps || 0;
-    const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
-
-    // No permitir completar si faltan reps o peso
-    if (!(repsValue > 0 && weightValue > 0)) {
+    // Validar datos
+    if (!(reps > 0 && weight > 0)) {
       error('No puedes completar la serie sin repeticiones y peso');
-      return;
+      return { success: false, reason: 'invalid-data', nextAction: 'none' as const };
     }
-
-    workoutState.completeSet(exerciseId, repsValue, weightValue);
-
-    // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
-
-    // Haptic feedback al completar serie
-    haptic.setComplete();
-
-    if (weightPrediction.weightSuggestion && weightPrediction.weightSuggestion.suggested > weightValue) {
-      setPendingToast({
-        message: `💪 Próxima vez intenta con ${weightPrediction.weightSuggestion.suggested}kg (+${weightPrediction.weightSuggestion.increase}kg)`,
-        duration: 4000
-      });
-    } else if (repsValue >= (currentExercise.sets[setIndex]?.reps || 10)) {
-      setPendingToast({
-        message: `✅ ¡Excelente serie! Completaste todas las repeticiones`,
-        duration: 3000
-      });
+    
+    // Completar la serie
+    workoutState.completeSet(exerciseId, reps, weight);
+    
+    // Feedback háptico
+    if (isFromQuickMode) {
+      haptic.success();
+    } else {
+      haptic.setComplete();
     }
-
-    const isLastSet = workoutState.currentSet >= currentExercise.sets.length;
-    const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
-
-    if (isLastSet) {
+    
+    // Encontrar el ejercicio
+    const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
+    if (!exercise || !routine) {
+      return { success: false, reason: 'exercise-not-found', nextAction: 'none' as const };
+    }
+    
+    // Calcular si es la última serie del ejercicio
+    const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
+    const completedCount = actualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
+    const isLastSetOfExercise = completedCount >= exercise.sets.length;
+    const exerciseIndex = routine.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
+    const isLastExercise = exerciseIndex >= routine.exercises.length - 1;
+    
+    // Determinar el tipo de descanso y siguiente acción
+    let nextAction: 'next-set' | 'next-exercise' | 'finish-workout' | 'none' = 'none';
+    let restTime = 0;
+    let restTitle = '';
+    let nextExerciseName = '';
+    
+    if (isLastSetOfExercise) {
       if (isLastExercise) {
-        const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
-        completion.openCompletionModal(duration);
+        nextAction = 'finish-workout';
       } else {
-        const nextExercise = routine.exercises[workoutState.currentExerciseIndex + 1];
-        const restTime = calculateExerciseRestTime({
-          currentExercise,
+        nextAction = 'next-exercise';
+        const nextExercise = routine.exercises[exerciseIndex + 1];
+        nextExerciseName = nextExercise.name;
+        restTime = calculateExerciseRestTime({
+          currentExercise: exercise,
           nextExercise,
           routine,
           restOverrides: workoutState.workoutData.restOverrides,
           perSetOverrides: workoutState.workoutData.perSetRestOverrides,
           useSmartRest
         });
+        restTitle = 'Descanso entre ejercicios';
         
-        // Haptic feedback al iniciar descanso entre ejercicios
+        // Haptic feedback para cambio de ejercicio
         haptic.restStart();
+      }
+    } else {
+      nextAction = 'next-set';
+      restTime = calculateNextRestTime({
+        currentExercise: exercise,
+        routine,
+        restOverrides: workoutState.workoutData.restOverrides,
+        perSetOverrides: workoutState.workoutData.perSetRestOverrides,
+        currentSet: setIndex + 1,
+        useSmartRest
+      });
+      
+      if (isFromQuickMode) {
+        // Para quick mode, calcular el número de la siguiente serie
+        const nextIncompleteIndex = actualReps.findIndex((r, idx) => idx > setIndex && (!r || r === 0));
+        const nextSetNumber = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : setIndex + 2;
+        restTitle = `Descanso - ${exercise.name}`;
+        nextExerciseName = `Serie ${nextSetNumber}`;
+      } else {
+        // Para modo guiado
+        restTitle = `Descanso - Serie ${setIndex + 2}/${exercise.sets.length}`;
+      }
+      
+      // Haptic feedback para descanso entre series
+      haptic.restStart();
+    }
+    
+    return {
+      success: true,
+      nextAction,
+      restTime,
+      restTitle,
+      nextExerciseName,
+      isLastSetOfExercise,
+      isLastExercise,
+      exerciseIndex
+    };
+  }, [
+    workoutState, 
+    routine, 
+    error, 
+    haptic, 
+    useSmartRest
+  ]);
+
+  // ✅ Función de récord personal eliminada - no se muestran durante el entrenamiento
+  // Los récords aún se calculan y guardan, simplemente no se celebran en tiempo real
+
+  // ✅ CRÍTICO #8 FIX: Reemplazar lock manual con estado
+  const [isCompletingSet, setIsCompletingSet] = useState(false);
+
+  const handleCompleteSet = useCallback(async () => {
+    if (!currentExercise || !routine) return;
+
+    // Prevenir doble-completación
+    if (isCompletingSet) return;
+    
+    setIsCompletingSet(true);
+    
+    try {
+      const exerciseId = currentExercise.id;
+      const setIndex = workoutState.currentSet - 1;
+      
+      // Verificar si esta serie ya está completada
+      const existingReps = workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
+      if (existingReps && existingReps > 0) {
+        console.log('[Workout] Serie ya completada, ignorando');
+        return;
+      }
+      
+      // Resetear el timer de serie al completar
+      setExecution.completeSet();
+      
+      const repsValue = typeof workoutState.currentReps === 'number' ? workoutState.currentReps : currentExercise.sets[setIndex]?.reps || 0;
+      const weightValue = typeof workoutState.currentWeight === 'number' ? workoutState.currentWeight : currentExercise.sets[setIndex]?.weight || 0;
+
+      // ✅ Usar función consolidada
+      const result = completeSetLogic({
+        exerciseId,
+        setIndex,
+        reps: repsValue,
+        weight: weightValue,
+        isFromQuickMode: false
+      });
+      
+      if (!result.success) {
+        return;
+      }
+
+      // Mostrar sugerencias de peso
+      if (weightPrediction.weightSuggestion && weightPrediction.weightSuggestion.suggested > weightValue) {
+        setPendingToast({
+          message: `💪 Próxima vez intenta con ${weightPrediction.weightSuggestion.suggested}kg (+${weightPrediction.weightSuggestion.increase}kg)`,
+          duration: 4000
+        });
+      } else if (repsValue >= (currentExercise.sets[setIndex]?.reps || 10)) {
+        setPendingToast({
+          message: `✅ ¡Excelente serie! Completaste todas las repeticiones`,
+          duration: 3000
+        });
+      }
+
+      // Manejar siguiente acción
+      if (result.nextAction === 'finish-workout') {
+        const duration = Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+        completion.openCompletionModal(duration);
+      } else if (result.nextAction === 'next-exercise') {
         // Respetar la opción global de omitir descansos
         if (!skipRestTimers) {
-          timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+          timerHandlers.startTimer(result.restTime, result.restTitle, result.nextExerciseName);
         } else {
           // Sin timer: avanzar directamente al siguiente ejercicio
           haptic.exerciseChange();
-          workoutState.setCurrentExerciseIndex(workoutState.currentExerciseIndex + 1);
+          workoutState.setCurrentExerciseIndex(result.exerciseIndex + 1);
           workoutState.setCurrentSet(1);
-          if (nextExercise.sets[0]) {
+          const nextExercise = routine.exercises[result.exerciseIndex + 1];
+          if (nextExercise?.sets[0]) {
             workoutState.setCurrentReps(nextExercise.sets[0].reps);
             workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
           }
         }
-      }
-    } else {
-      const restTime = calculateNextRestTime({
-        currentExercise,
-        routine,
-        restOverrides: workoutState.workoutData.restOverrides,
-        perSetOverrides: workoutState.workoutData.perSetRestOverrides,
-        currentSet: workoutState.currentSet,
-        useSmartRest
-      });
-      
-      // Haptic feedback al iniciar descanso entre series
-      haptic.restStart();
-      // Respetar la opción global de omitir descansos
-      if (!skipRestTimers) {
-        timerHandlers.startTimer(restTime, `Descanso - Serie ${workoutState.currentSet + 1}/${currentExercise.sets.length}`);
-      } else {
-        // Sin timer: avanzar directamente a la siguiente serie
-        const newSet = workoutState.currentSet + 1;
-        workoutState.setCurrentSet(newSet);
-        const nextSetData = currentExercise.sets[newSet - 1];
-        if (nextSetData) {
-          workoutState.setCurrentReps(nextSetData.reps);
-          workoutState.setCurrentWeight(nextSetData.weight || 0);
+      } else if (result.nextAction === 'next-set') {
+        // Respetar la opción global de omitir descansos
+        if (!skipRestTimers) {
+          timerHandlers.startTimer(result.restTime, result.restTitle);
+        } else {
+          // Sin timer: avanzar directamente a la siguiente serie
+          const newSet = workoutState.currentSet + 1;
+          workoutState.setCurrentSet(newSet);
+          const nextSetData = currentExercise.sets[newSet - 1];
+          if (nextSetData) {
+            workoutState.setCurrentReps(nextSetData.reps);
+            workoutState.setCurrentWeight(nextSetData.weight || 0);
+          }
         }
       }
+    } finally {
+      setIsCompletingSet(false);
     }
   }, [
     currentExercise, 
-    routine?.exercises, 
-    workoutState.currentSet,
-    workoutState.currentExerciseIndex,
-    workoutState.currentReps,
-    workoutState.currentWeight,
-    workoutState.workoutData.actualReps,
-    workoutState.workoutData.restOverrides,
-    workoutState.workoutData.perSetRestOverrides,
-    workoutState.completeSet,
-    workoutState.setCurrentSet,
-    workoutState.setCurrentExerciseIndex,
-    workoutState.setCurrentReps,
-    workoutState.setCurrentWeight,
+    routine, 
+    isCompletingSet,
+    workoutState,
+    setExecution,
+    completeSetLogic,
+    weightPrediction.weightSuggestion,
+    setPendingToast,
     workoutStartTime, 
     totalPausedTime, 
-    useSmartRest, 
-    weightPrediction.weightSuggestion, 
-    timerHandlers.startTimer,
-    haptic.setComplete,
-    haptic.restStart,
-    haptic.exerciseChange,
     completion.openCompletionModal,
-    setExecution.completeSet,
-    skipRestTimers
+    skipRestTimers,
+    timerHandlers,
+    haptic.exerciseChange
   ]);
 
   const handleTimerComplete = useCallback(() => {
@@ -1498,8 +1590,7 @@ export default function WorkoutPage() {
   }, [routine, id, updateRoutine, success, error, workoutState, updateWorkoutProgress, totalPausedTime]);
 
   // ==================== QUICK EDIT MODE HANDLERS ====================
-  // Lock para evitar double-clicks en toggles rápidos (clave: `${exerciseId}:${setIndex}`)
-  const togglingSetRef = useRef<Record<string, boolean>>({});
+  // ✅ CRÍTICO #8 FIX: Usar solo estado en lugar de ref manual para locks
   const [togglingKeys, setTogglingKeys] = useState<Record<string, boolean>>({});
 
   const handleQuickEditReps = useCallback((exerciseId: string, setIndex: number, reps: number) => {
@@ -1533,20 +1624,18 @@ export default function WorkoutPage() {
 
   const handleQuickToggleSetComplete = useCallback((exerciseId: string, setIndex: number, isComplete: boolean) => {
     const key = `${exerciseId}:${setIndex}`;
-    // Bloquear si ya hay una operación en curso para este índice
-    if (togglingSetRef.current[key]) {
+    // ✅ Bloquear si ya hay una operación en curso para este índice (usando solo estado)
+    if (togglingKeys[key]) {
       console.log('[handleQuickToggleSetComplete] Ignorado - operación en curso:', key);
       return;
     }
 
-    // Marcar bloqueo UI inmediatamente
-    togglingSetRef.current[key] = true;
+    // ✅ Marcar bloqueo UI inmediatamente (solo estado)
     setTogglingKeys((prev) => ({ ...prev, [key]: true }));
 
-    // Helper para limpiar el lock (con small delay para evitar parpadeos)
+    // ✅ Helper para limpiar el lock (con small delay para evitar parpadeos) - solo estado
     const clearToggle = (delay = 300) => {
       if (delay <= 0) {
-        togglingSetRef.current[key] = false;
         setTogglingKeys((prev) => {
           const copy = { ...prev };
           delete copy[key];
@@ -1555,7 +1644,6 @@ export default function WorkoutPage() {
         return;
       }
       setTimeout(() => {
-        togglingSetRef.current[key] = false;
         setTogglingKeys((prev) => {
           const copy = { ...prev };
           delete copy[key];
@@ -1572,7 +1660,7 @@ export default function WorkoutPage() {
         return;
       }
 
-      // Leer desde ref (workoutDataRef.current) para evitar closure stale en taps rápidos o undo diferido
+      // Leer desde ref para evitar closure stale en taps rápidos
       const { actualReps: currentReps, actualWeights: currentWeights } = workoutState.getExerciseData(exerciseId);
       
       // Solo tocar el índice específico — no rellenar con ceros los demás
@@ -1588,8 +1676,16 @@ export default function WorkoutPage() {
           ? currentWeights[setIndex]
           : (exercise.sets[setIndex]?.weight ?? 0);
 
-        if (!(displayReps > 0 && displayWeight > 0)) {
-          error('No puedes completar la serie sin repeticiones y peso');
+        // ✅ Usar función consolidada para completar
+        const result = completeSetLogic({
+          exerciseId,
+          setIndex,
+          reps: displayReps,
+          weight: displayWeight,
+          isFromQuickMode: true
+        });
+        
+        if (!result.success) {
           clearToggle(0);
           return;
         }
@@ -1601,107 +1697,57 @@ export default function WorkoutPage() {
         if (!newWeights[setIndex]) {
           newWeights[setIndex] = exercise.sets[setIndex]?.weight || 0;
         }
+        
+        // Actualizar datos
+        workoutState.updateActualReps(exerciseId, newReps);
+        workoutState.updateActualWeights(exerciseId, newWeights);
+        
+        // Calcular completedSets
+        const completedCount = calculateCompletedSets(newReps);
+        workoutState.updateCompletedSets(exerciseId, completedCount);
+        
+        // Si estamos en el ejercicio actual, actualizar también currentSet
+        if (currentExercise && currentExercise.id === exerciseId) {
+          const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
+          if (nextIncompleteSet !== -1) {
+            workoutState.setCurrentSet(nextIncompleteSet + 1);
+          } else {
+            workoutState.setCurrentSet(exercise.sets.length);
+          }
+        }
+        
+        // ✅ Usar resultado de función consolidada para manejar descansos
+        if (result.nextAction && result.nextAction !== 'none' && !skipRestTimers) {
+          timerHandlers.startTimer(result.restTime || 0, result.restTitle, result.nextExerciseName);
+        }
+        
       } else {
         // Desmarcar - limpiar solo este índice
         newReps[setIndex] = 0;
         newWeights[setIndex] = 0;
-      }
-      
-      workoutState.updateActualReps(exerciseId, newReps);
-      workoutState.updateActualWeights(exerciseId, newWeights);
-      
-      // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
-      const completedCount = calculateCompletedSets(newReps);
-      workoutState.updateCompletedSets(exerciseId, completedCount);
-      
-      // Si estamos en el ejercicio actual, actualizar también currentSet
-      if (currentExercise && currentExercise.id === exerciseId) {
-        // Encontrar la siguiente serie no completada
-        const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
-        if (nextIncompleteSet !== -1) {
-          workoutState.setCurrentSet(nextIncompleteSet + 1);
-        } else {
-          // Todas completadas, ir a la última
-          workoutState.setCurrentSet(exercise.sets.length);
-        }
-      }
-      
-      // ✅ NUEVO: Iniciar temporizador de descanso si se completó una serie
-      if (isComplete) {
-        // Feedback háptico
-        haptic.success();
         
-        // Determinar si es la última serie del ejercicio
-        const isLastSetOfExercise = completedCount >= exercise.sets.length;
+        workoutState.updateActualReps(exerciseId, newReps);
+        workoutState.updateActualWeights(exerciseId, newWeights);
         
-        if (isLastSetOfExercise) {
-          // Descanso entre ejercicios
-          const exerciseIndex = routine.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
-          const isLastExercise = exerciseIndex >= routine.exercises.length - 1;
-          
-          if (!isLastExercise) {
-            const nextExercise = routine.exercises[exerciseIndex + 1];
-            const restTime = calculateExerciseRestTime({
-              currentExercise: exercise,
-              nextExercise,
-              routine,
-              restOverrides: workoutState.workoutData.restOverrides,
-              perSetOverrides: workoutState.workoutData.perSetRestOverrides,
-              useSmartRest
-            });
-
-            // Respetar la opción global de omitir descansos
-            if (!skipRestTimers) {
-              timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
-            }
-          }
-        } else {
-          // Descanso entre series - solo si no es la última serie
-          // Calcular tiempo de descanso
-          const perSetOverride = workoutState.workoutData.perSetRestOverrides[exerciseId]?.[setIndex];
-          const exerciseOverride = workoutState.workoutData.restOverrides[exerciseId];
-          
-          let restTime: number;
-          if (perSetOverride) {
-            restTime = perSetOverride;
-          } else if (exerciseOverride) {
-            restTime = exerciseOverride;
-          } else if (exercise.restBetweenSets) {
-            restTime = exercise.restBetweenSets;
+        const completedCount = calculateCompletedSets(newReps);
+        workoutState.updateCompletedSets(exerciseId, completedCount);
+        
+        // Si estamos en el ejercicio actual, actualizar también currentSet
+        if (currentExercise && currentExercise.id === exerciseId) {
+          const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
+          if (nextIncompleteSet !== -1) {
+            workoutState.setCurrentSet(nextIncompleteSet + 1);
           } else {
-            restTime = routine.restBetweenSets || 90;
-          }
-          
-          // Buscar la siguiente serie no completada DESPUÉS de la actual
-          const nextIncompleteIndex = newReps.findIndex((r, idx) => idx > setIndex && (!r || r === 0));
-          const nextSetNumber = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : setIndex + 2;
-          
-          console.log('[QuickToggle] Rest timer:', {
-            setIndex,
-            nextIncompleteIndex,
-            nextSetNumber,
-            totalSets: exercise.sets.length,
-            newReps: newReps.map((r, i) => `${i + 1}:${r || 0}`)
-          });
-          
-          // Respetar la opción global de omitir descansos
-          if (!skipRestTimers) {
-            timerHandlers.startTimer(restTime, `Descanso - ${exercise.name}`, `Serie ${nextSetNumber}`);
+            workoutState.setCurrentSet(exercise.sets.length);
           }
         }
-      }
-
-      // Si se desmarca una serie (undo o corrección), detener cualquier temporizador de descanso
-      if (!isComplete) {
+        
+        // Detener cualquier temporizador de descanso
         try {
           timerHandlers.stopTimer();
-        } catch (err) {
-          console.warn('[handleQuickToggleSetComplete] stopTimer error', err);
-        }
-        try {
           clearRestState();
         } catch (err) {
-          // ignore
+          console.warn('[handleQuickToggleSetComplete] stopTimer error', err);
         }
       }
 
@@ -1711,7 +1757,7 @@ export default function WorkoutPage() {
       console.error('[handleQuickToggleSetComplete] error', err);
       clearToggle(0);
     }
-  }, [routine, workoutState, haptic, currentExercise, useSmartRest, timerHandlers, skipRestTimers, clearRestState]);
+  }, [routine, workoutState, currentExercise, completeSetLogic, skipRestTimers, timerHandlers, clearRestState]);
 
   const handleQuickAddSet = useCallback(async (exerciseId: string) => {
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
