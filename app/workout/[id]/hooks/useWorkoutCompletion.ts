@@ -3,6 +3,7 @@ import { calculateAchievements, getRecentAchievements } from '@/lib/achievements
 
 interface UseWorkoutCompletionProps {
   routine: any;
+  originalRoutine?: any; // la rutina sin modificar del store (opcional)
   workoutStartTime: number;
   totalPausedTime: number;
   sessions: any[];
@@ -13,10 +14,12 @@ interface UseWorkoutCompletionProps {
   router: any;
   onWorkoutComplete?: () => void;
   onAchievementUnlocked?: () => void;
+  onUpdateRoutine?: (routine: any) => Promise<void>;
 }
 
 export function useWorkoutCompletion({
   routine,
+  originalRoutine,
   workoutStartTime,
   totalPausedTime,
   sessions,
@@ -26,7 +29,8 @@ export function useWorkoutCompletion({
   onError,
   router,
   onWorkoutComplete,
-  onAchievementUnlocked
+  onAchievementUnlocked,
+  onUpdateRoutine
 }: UseWorkoutCompletionProps) {
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [proposedDuration, setProposedDuration] = useState<number>(0);
@@ -41,7 +45,7 @@ export function useWorkoutCompletion({
     setShowNotesModal(true);
   }, [workoutStartTime, totalPausedTime]);
   
-  const finishWorkout = useCallback(async (workoutData: any) => {
+  const finishWorkout = useCallback(async (workoutData: any, shouldUpdateRoutine = false) => {
     if (!routine) return;
 
     const totalDuration = proposedDuration && proposedDuration > 0
@@ -70,6 +74,29 @@ export function useWorkoutCompletion({
     }));
 
     try {
+      // Siempre guardar los últimos pesos usados en la rutina.
+      // Si el usuario pidió actualizar la estructura, se usa la rutina modificada como base;
+      // si no, se usa la original para no aplicar cambios estructurales.
+      if (onUpdateRoutine) {
+        const baseRoutine = shouldUpdateRoutine ? routine : (originalRoutine || routine);
+        const routineWithLastWeights = {
+          ...baseRoutine,
+          exercises: baseRoutine.exercises.map((ex: any) => ({
+            ...ex,
+            sets: ex.sets.map((set: any, idx: number) => {
+              const usedWeight = workoutData.actualWeights?.[ex.id]?.[idx];
+              return (usedWeight !== undefined && usedWeight !== null && usedWeight > 0)
+                ? { ...set, weight: usedWeight }
+                : set;
+            })
+          }))
+        };
+        await onUpdateRoutine(routineWithLastWeights);
+        if (shouldUpdateRoutine) {
+          onSuccess('✅ Rutina actualizada con cambios y últimos pesos', 3000);
+        }
+      }
+
       await addSession({
         routineId: routine.id,
         date: new Date(),
@@ -117,7 +144,7 @@ export function useWorkoutCompletion({
       console.error('Error saving session:', err);
       onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
     }
-  }, [routine, proposedDuration, workoutStartTime, totalPausedTime, sessionNotes, addSession, finishWorkoutContext, onSuccess, onError, router, sessions, shownAchievements]);
+  }, [routine, proposedDuration, workoutStartTime, totalPausedTime, sessionNotes, addSession, finishWorkoutContext, onSuccess, onError, router, sessions, shownAchievements, onUpdateRoutine]);
   
   return {
     showNotesModal,

@@ -1,7 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+
+interface RoutineChange {
+  type: 'added_exercise' | 'added_set' | 'removed_set' | 'removed_exercise';
+  exerciseName: string;
+  detail?: string;
+}
 
 interface FinishWorkoutModalProps {
   isOpen: boolean;
@@ -10,8 +17,9 @@ interface FinishWorkoutModalProps {
   onDurationChange: (duration: number) => void;
   sessionNotes: string;
   onNotesChange: (notes: string) => void;
-  onFinish: () => void;
+  onFinish: (updateRoutine: boolean) => void;
   isSaving: boolean;
+  routineChanges?: RoutineChange[];
 }
 
 export function FinishWorkoutModal({
@@ -22,8 +30,17 @@ export function FinishWorkoutModal({
   sessionNotes,
   onNotesChange,
   onFinish,
-  isSaving
+  isSaving,
+  routineChanges = []
 }: FinishWorkoutModalProps) {
+  const [wantsUpdate, setWantsUpdate] = useState<boolean | null>(null);
+  const hasChanges = routineChanges.length > 0;
+
+  // Reset selection when modal opens/closes
+  const handleClose = () => {
+    setWantsUpdate(null);
+    onClose();
+  };
   const hours = Math.floor(proposedDuration / 3600);
   const minutes = Math.floor((proposedDuration % 3600) / 60);
   const seconds = proposedDuration % 60;
@@ -34,7 +51,7 @@ export function FinishWorkoutModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Finalizar Entrenamiento">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Finalizar Entrenamiento">
       <div className="space-y-6 p-4">
         {/* Duración */}
         <div>
@@ -115,10 +132,57 @@ export function FinishWorkoutModal({
           />
         </div>
 
+        {/* Cambios en la rutina */}
+        {hasChanges && (
+          <div className="rounded-xl border-2 border-amber-400 dark:border-amber-500 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <p className="font-semibold text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-2">
+              ✏️ Modificaste la rutina durante el entrenamiento
+            </p>
+            <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1 mb-4">
+              {routineChanges.map((c, i) => (
+                <li key={i} className="flex items-center gap-1">
+                  <span className="opacity-60">•</span>
+                  <span>
+                    {c.type === 'added_exercise' && `Ejercicio agregado: ${c.exerciseName}`}
+                    {c.type === 'removed_exercise' && `Ejercicio eliminado: ${c.exerciseName}`}
+                    {c.type === 'added_set' && `Serie agregada en ${c.exerciseName}${c.detail ? ` (${c.detail})` : ''}`}
+                    {c.type === 'removed_set' && `Serie eliminada en ${c.exerciseName}${c.detail ? ` (${c.detail})` : ''}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-3">
+              ¿Deseas guardar estos cambios en la rutina permanentemente?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setWantsUpdate(true)}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold border-2 transition-all ${
+                  wantsUpdate === true
+                    ? 'bg-amber-500 border-amber-500 text-white'
+                    : 'border-amber-400 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+                }`}
+              >
+                ✅ Sí, actualizar rutina
+              </button>
+              <button
+                onClick={() => setWantsUpdate(false)}
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold border-2 transition-all ${
+                  wantsUpdate === false
+                    ? 'bg-gray-500 border-gray-500 text-white'
+                    : 'border-gray-400 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                No, solo esta vez
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Botones */}
         <div className="flex gap-3">
           <Button
-            onClick={onClose}
+            onClick={handleClose}
             variant="secondary"
             disabled={isSaving}
             className="flex-1"
@@ -126,8 +190,8 @@ export function FinishWorkoutModal({
             Cancelar
           </Button>
           <Button
-            onClick={onFinish}
-            disabled={isSaving}
+            onClick={() => onFinish(hasChanges ? wantsUpdate === true : false)}
+            disabled={isSaving || (hasChanges && wantsUpdate === null)}
             className="flex-1 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? (
@@ -139,7 +203,7 @@ export function FinishWorkoutModal({
                 <span>Guardando...</span>
               </span>
             ) : (
-              'Guardar Sesión'
+              hasChanges && wantsUpdate === null ? 'Elige una opción arriba' : 'Guardar Sesión'
             )}
           </Button>
         </div>

@@ -87,6 +87,7 @@ export default function WorkoutPage() {
   
   // ==================== STATE ====================
   const [routine, setRoutine] = useState<any>(null);
+  const [originalRoutine, setOriginalRoutine] = useState<any>(null); // rutina sin modificar para comparar al final
   const [isInitialized, setIsInitialized] = useState(false);
   
   // Modo de edición: true = Edición Rápida (defecto), false = Modo Guiado
@@ -347,6 +348,7 @@ export default function WorkoutPage() {
   
   const completion = useWorkoutCompletion({
     routine,
+    originalRoutine,
     workoutStartTime,
     totalPausedTime,
     sessions,
@@ -357,6 +359,9 @@ export default function WorkoutPage() {
     router,
     onWorkoutComplete: () => haptic.workoutComplete(),
     onAchievementUnlocked: () => haptic.achievement(),
+    onUpdateRoutine: async (updatedRoutine) => {
+      await updateRoutine(id, updatedRoutine);
+    },
   });
   
   useWorkoutSuggestions({
@@ -429,6 +434,8 @@ export default function WorkoutPage() {
       };
       
       setRoutine(routineWithDefaults);
+      // Guardar una copia inmutable de la rutina original para detectar cambios al finalizar
+      setOriginalRoutine(JSON.parse(JSON.stringify(routineWithDefaults)));
       
       // Optimización: Leer storage de forma síncrona si es posible
       const storedWorkout = await storageService.getActiveWorkout();
@@ -2103,8 +2110,31 @@ export default function WorkoutPage() {
           onDurationChange={completion.setProposedDuration}
           sessionNotes={completion.sessionNotes}
           onNotesChange={completion.setSessionNotes}
-          onFinish={() => completion.finishWorkout(workoutState.workoutData)}
+          onFinish={(shouldUpdate) => completion.finishWorkout(workoutState.workoutData, shouldUpdate)}
           isSaving={false}
+          routineChanges={(() => {
+            if (!originalRoutine || !routine) return [];
+            const changes: Array<{ type: 'added_exercise' | 'removed_exercise' | 'added_set' | 'removed_set'; exerciseName: string; detail?: string }> = [];
+            const origExIds = new Set(originalRoutine.exercises.map((e: any) => e.id));
+            const currExIds = new Set(routine.exercises.map((e: any) => e.id));
+            // Ejercicios nuevos
+            routine.exercises.forEach((ex: any) => {
+              if (!origExIds.has(ex.id)) changes.push({ type: 'added_exercise', exerciseName: ex.name });
+            });
+            // Ejercicios eliminados
+            originalRoutine.exercises.forEach((ex: any) => {
+              if (!currExIds.has(ex.id)) changes.push({ type: 'removed_exercise', exerciseName: ex.name });
+            });
+            // Series por ejercicio
+            originalRoutine.exercises.forEach((origEx: any) => {
+              const currEx = routine.exercises.find((e: any) => e.id === origEx.id);
+              if (!currEx) return;
+              const diff = currEx.sets.length - origEx.sets.length;
+              if (diff > 0) changes.push({ type: 'added_set', exerciseName: origEx.name, detail: `${diff} serie${diff > 1 ? 's' : ''}` });
+              else if (diff < 0) changes.push({ type: 'removed_set', exerciseName: origEx.name, detail: `${Math.abs(diff)} serie${Math.abs(diff) > 1 ? 's' : ''}` });
+            });
+            return changes;
+          })()}
         />
 
         {showExerciseInfo && (
