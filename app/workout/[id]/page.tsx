@@ -561,6 +561,18 @@ export default function WorkoutPage() {
     };
   }, [timerHandlers.showTimer]);
 
+  // RC-1: Si el usuario activa "omitir descansos" mientras un timer está corriendo,
+  // detenerlo inmediatamente para evitar que handleTimerComplete avance el estado
+  // de forma inesperada después de que el usuario ya avanzó manualmente.
+  useEffect(() => {
+    if (skipRestTimers && timerHandlers.showTimer) {
+      timerHandlers.stopTimer();
+      clearRestState();
+    }
+    // Intencionalmente solo reacciona al cambio de skipRestTimers, no al timer
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipRestTimers]);
+
   // Sincronizar estado cuando se cambia de modo de edición rápida a modo guiado
   useEffect(() => {
     if (!isQuickEditMode && currentExercise && isInitialized) {
@@ -736,8 +748,18 @@ export default function WorkoutPage() {
   // ✅ Función de récord personal eliminada - no se muestran durante el entrenamiento
   // Los récords aún se calculan y guardan, simplemente no se celebran en tiempo real
 
+  // RC-2: Lock ref para evitar doble-complete por taps rápidos.
+  // El estado React es asíncrono; sin este guard, dos taps simultáneos pueden
+  // pasar la comprobación de existingReps antes de que el primer update se propague.
+  const isCompletingSetRef = useRef(false);
+
   const handleCompleteSet = useCallback(() => {
     if (!currentExercise || !routine) return;
+
+    // RC-2: Bloquear si ya se está procesando una completación
+    if (isCompletingSetRef.current) return;
+    isCompletingSetRef.current = true;
+    setTimeout(() => { isCompletingSetRef.current = false; }, 500);
     
     const exerciseId = currentExercise.id;
     const setIndex = workoutState.currentSet - 1;
@@ -747,6 +769,7 @@ export default function WorkoutPage() {
     if (existingReps && existingReps > 0) {
       // Serie ya completada, no hacer nada
       console.log('[Workout] Serie ya completada, ignorando');
+      isCompletingSetRef.current = false;
       return;
     }
     
@@ -879,7 +902,10 @@ export default function WorkoutPage() {
     if (!currentExercise || !routine) return;
     
     const exerciseId = currentExercise.id;
-    const completedCount = workoutState.workoutData.completedSets[exerciseId] || 0;
+    // RC-3: Leer desde ref (no desde estado React) para obtener el valor más reciente.
+    // workoutData.completedSets puede estar desactualizado si el estado cambió
+    // mientras el timer estaba corriendo (e.g. usuario marcó sets manualmente).
+    const { completedSets: completedCount } = workoutState.getExerciseData(exerciseId);
     const totalSets = currentExercise.sets.length;
     const isLastSet = completedCount >= totalSets;
     const isLastExercise = workoutState.currentExerciseIndex >= routine.exercises.length - 1;
@@ -1400,7 +1426,7 @@ export default function WorkoutPage() {
     workoutState.setCurrentSet(1);
     timerHandlers.stopTimer();
     setExecution.cancelSetExecution();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [workoutState, timerHandlers, setExecution]);
 
   const handleRepeatPrevious = useCallback(() => {
@@ -1472,6 +1498,10 @@ export default function WorkoutPage() {
   }, [routine, id, updateRoutine, success, error, workoutState, updateWorkoutProgress, totalPausedTime]);
 
   // ==================== QUICK EDIT MODE HANDLERS ====================
+  // Lock para evitar double-clicks en toggles rápidos (clave: `${exerciseId}:${setIndex}`)
+  const togglingSetRef = useRef<Record<string, boolean>>({});
+  const [togglingKeys, setTogglingKeys] = useState<Record<string, boolean>>({});
+
   const handleQuickEditReps = useCallback((exerciseId: string, setIndex: number, reps: number) => {
     console.log('[handleQuickEditReps] Called:', { exerciseId, setIndex, reps });
     const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
@@ -1502,142 +1532,184 @@ export default function WorkoutPage() {
   }, [workoutState]);
 
   const handleQuickToggleSetComplete = useCallback((exerciseId: string, setIndex: number, isComplete: boolean) => {
-    console.log('[handleQuickToggleSetComplete] Called:', { exerciseId, setIndex, isComplete });
-    const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
-    if (!exercise || !routine) return;
+    const key = `${exerciseId}:${setIndex}`;
+    // Bloquear si ya hay una operación en curso para este índice
+    if (togglingSetRef.current[key]) {
+      console.log('[handleQuickToggleSetComplete] Ignorado - operación en curso:', key);
+      return;
+    }
 
-    const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
-    const currentWeights = workoutState.workoutData.actualWeights[exerciseId] || [];
-    
-    // Solo tocar el índice específico — no rellenar con ceros los demás
-    const newReps = [...currentReps];
-    const newWeights = [...currentWeights];
-    
-    if (isComplete) {
-      // Validar que exista reps y peso (usar actual o fallback a la rutina)
-      const currentRepsArr = workoutState.workoutData.actualReps[exerciseId] || [];
-      const currentWeightsArr = workoutState.workoutData.actualWeights[exerciseId] || [];
-      const displayReps = (currentRepsArr[setIndex] !== undefined && currentRepsArr[setIndex] > 0)
-        ? currentRepsArr[setIndex]
-        : (exercise.sets[setIndex]?.reps ?? 0);
-      const displayWeight = (currentWeightsArr[setIndex] !== undefined && currentWeightsArr[setIndex] > 0)
-        ? currentWeightsArr[setIndex]
-        : (exercise.sets[setIndex]?.weight ?? 0);
+    // Marcar bloqueo UI inmediatamente
+    togglingSetRef.current[key] = true;
+    setTogglingKeys((prev) => ({ ...prev, [key]: true }));
 
-      if (!(displayReps > 0 && displayWeight > 0)) {
-        error('No puedes completar la serie sin repeticiones y peso');
+    // Helper para limpiar el lock (con small delay para evitar parpadeos)
+    const clearToggle = (delay = 300) => {
+      if (delay <= 0) {
+        togglingSetRef.current[key] = false;
+        setTogglingKeys((prev) => {
+          const copy = { ...prev };
+          delete copy[key];
+          return copy;
+        });
+        return;
+      }
+      setTimeout(() => {
+        togglingSetRef.current[key] = false;
+        setTogglingKeys((prev) => {
+          const copy = { ...prev };
+          delete copy[key];
+          return copy;
+        });
+      }, delay);
+    };
+
+    try {
+      console.log('[handleQuickToggleSetComplete] Called:', { exerciseId, setIndex, isComplete });
+      const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
+      if (!exercise || !routine) {
+        clearToggle(0);
         return;
       }
 
-      // Marcar como completada - usar valor actual o el de la rutina como fallback
-      if (!newReps[setIndex] || newReps[setIndex] === 0) {
-        newReps[setIndex] = exercise.sets[setIndex]?.reps || 10;
-      }
-      if (!newWeights[setIndex]) {
-        newWeights[setIndex] = exercise.sets[setIndex]?.weight || 0;
-      }
-    } else {
-      // Desmarcar - limpiar solo este índice
-      newReps[setIndex] = 0;
-      newWeights[setIndex] = 0;
-    }
-    
-    workoutState.updateActualReps(exerciseId, newReps);
-    workoutState.updateActualWeights(exerciseId, newWeights);
-    
-    // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
-    const completedCount = calculateCompletedSets(newReps);
-    workoutState.updateCompletedSets(exerciseId, completedCount);
-    
-    // Si estamos en el ejercicio actual, actualizar también currentSet
-    if (currentExercise && currentExercise.id === exerciseId) {
-      // Encontrar la siguiente serie no completada
-      const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
-      if (nextIncompleteSet !== -1) {
-        workoutState.setCurrentSet(nextIncompleteSet + 1);
-      } else {
-        // Todas completadas, ir a la última
-        workoutState.setCurrentSet(exercise.sets.length);
-      }
-    }
-    
-    // ✅ NUEVO: Iniciar temporizador de descanso si se completó una serie
-    if (isComplete) {
-      // Feedback háptico
-      haptic.success();
+      // Leer desde ref (workoutDataRef.current) para evitar closure stale en taps rápidos o undo diferido
+      const { actualReps: currentReps, actualWeights: currentWeights } = workoutState.getExerciseData(exerciseId);
       
-      // Determinar si es la última serie del ejercicio
-      const isLastSetOfExercise = completedCount >= exercise.sets.length;
+      // Solo tocar el índice específico — no rellenar con ceros los demás
+      const newReps = [...currentReps];
+      const newWeights = [...currentWeights];
       
-      if (isLastSetOfExercise) {
-        // Descanso entre ejercicios
-        const exerciseIndex = routine.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
-        const isLastExercise = exerciseIndex >= routine.exercises.length - 1;
-        
-        if (!isLastExercise) {
-          const nextExercise = routine.exercises[exerciseIndex + 1];
-          const restTime = calculateExerciseRestTime({
-            currentExercise: exercise,
-            nextExercise,
-            routine,
-            restOverrides: workoutState.workoutData.restOverrides,
-            perSetOverrides: workoutState.workoutData.perSetRestOverrides,
-            useSmartRest
-          });
+      if (isComplete) {
+        // Validar que exista reps y peso (usar actual o fallback a la rutina)
+        const displayReps = (currentReps[setIndex] !== undefined && currentReps[setIndex] > 0)
+          ? currentReps[setIndex]
+          : (exercise.sets[setIndex]?.reps ?? 0);
+        const displayWeight = (currentWeights[setIndex] !== undefined && currentWeights[setIndex] > 0)
+          ? currentWeights[setIndex]
+          : (exercise.sets[setIndex]?.weight ?? 0);
 
+        if (!(displayReps > 0 && displayWeight > 0)) {
+          error('No puedes completar la serie sin repeticiones y peso');
+          clearToggle(0);
+          return;
+        }
+
+        // Marcar como completada - usar valor actual o el de la rutina como fallback
+        if (!newReps[setIndex] || newReps[setIndex] === 0) {
+          newReps[setIndex] = exercise.sets[setIndex]?.reps || 10;
+        }
+        if (!newWeights[setIndex]) {
+          newWeights[setIndex] = exercise.sets[setIndex]?.weight || 0;
+        }
+      } else {
+        // Desmarcar - limpiar solo este índice
+        newReps[setIndex] = 0;
+        newWeights[setIndex] = 0;
+      }
+      
+      workoutState.updateActualReps(exerciseId, newReps);
+      workoutState.updateActualWeights(exerciseId, newWeights);
+      
+      // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
+      const completedCount = calculateCompletedSets(newReps);
+      workoutState.updateCompletedSets(exerciseId, completedCount);
+      
+      // Si estamos en el ejercicio actual, actualizar también currentSet
+      if (currentExercise && currentExercise.id === exerciseId) {
+        // Encontrar la siguiente serie no completada
+        const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
+        if (nextIncompleteSet !== -1) {
+          workoutState.setCurrentSet(nextIncompleteSet + 1);
+        } else {
+          // Todas completadas, ir a la última
+          workoutState.setCurrentSet(exercise.sets.length);
+        }
+      }
+      
+      // ✅ NUEVO: Iniciar temporizador de descanso si se completó una serie
+      if (isComplete) {
+        // Feedback háptico
+        haptic.success();
+        
+        // Determinar si es la última serie del ejercicio
+        const isLastSetOfExercise = completedCount >= exercise.sets.length;
+        
+        if (isLastSetOfExercise) {
+          // Descanso entre ejercicios
+          const exerciseIndex = routine.exercises.findIndex((ex: Exercise) => ex.id === exerciseId);
+          const isLastExercise = exerciseIndex >= routine.exercises.length - 1;
+          
+          if (!isLastExercise) {
+            const nextExercise = routine.exercises[exerciseIndex + 1];
+            const restTime = calculateExerciseRestTime({
+              currentExercise: exercise,
+              nextExercise,
+              routine,
+              restOverrides: workoutState.workoutData.restOverrides,
+              perSetOverrides: workoutState.workoutData.perSetRestOverrides,
+              useSmartRest
+            });
+
+            // Respetar la opción global de omitir descansos
+            if (!skipRestTimers) {
+              timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+            }
+          }
+        } else {
+          // Descanso entre series - solo si no es la última serie
+          // Calcular tiempo de descanso
+          const perSetOverride = workoutState.workoutData.perSetRestOverrides[exerciseId]?.[setIndex];
+          const exerciseOverride = workoutState.workoutData.restOverrides[exerciseId];
+          
+          let restTime: number;
+          if (perSetOverride) {
+            restTime = perSetOverride;
+          } else if (exerciseOverride) {
+            restTime = exerciseOverride;
+          } else if (exercise.restBetweenSets) {
+            restTime = exercise.restBetweenSets;
+          } else {
+            restTime = routine.restBetweenSets || 90;
+          }
+          
+          // Buscar la siguiente serie no completada DESPUÉS de la actual
+          const nextIncompleteIndex = newReps.findIndex((r, idx) => idx > setIndex && (!r || r === 0));
+          const nextSetNumber = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : setIndex + 2;
+          
+          console.log('[QuickToggle] Rest timer:', {
+            setIndex,
+            nextIncompleteIndex,
+            nextSetNumber,
+            totalSets: exercise.sets.length,
+            newReps: newReps.map((r, i) => `${i + 1}:${r || 0}`)
+          });
+          
           // Respetar la opción global de omitir descansos
           if (!skipRestTimers) {
-            timerHandlers.startTimer(restTime, 'Descanso entre ejercicios', nextExercise.name);
+            timerHandlers.startTimer(restTime, `Descanso - ${exercise.name}`, `Serie ${nextSetNumber}`);
           }
         }
-      } else {
-        // Descanso entre series - solo si no es la última serie
-        // Calcular tiempo de descanso
-        const perSetOverride = workoutState.workoutData.perSetRestOverrides[exerciseId]?.[setIndex];
-        const exerciseOverride = workoutState.workoutData.restOverrides[exerciseId];
-        
-        let restTime: number;
-        if (perSetOverride) {
-          restTime = perSetOverride;
-        } else if (exerciseOverride) {
-          restTime = exerciseOverride;
-        } else if (exercise.restBetweenSets) {
-          restTime = exercise.restBetweenSets;
-        } else {
-          restTime = routine.restBetweenSets || 90;
-        }
-        
-        // Buscar la siguiente serie no completada DESPUÉS de la actual
-        const nextIncompleteIndex = newReps.findIndex((r, idx) => idx > setIndex && (!r || r === 0));
-        const nextSetNumber = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : setIndex + 2;
-        
-        console.log('[QuickToggle] Rest timer:', {
-          setIndex,
-          nextIncompleteIndex,
-          nextSetNumber,
-          totalSets: exercise.sets.length,
-          newReps: newReps.map((r, i) => `${i + 1}:${r || 0}`)
-        });
-        
-        // Respetar la opción global de omitir descansos
-        if (!skipRestTimers) {
-          timerHandlers.startTimer(restTime, `Descanso - ${exercise.name}`, `Serie ${nextSetNumber}`);
-        }
       }
-    }
 
-    // Si se desmarca una serie (undo o corrección), detener cualquier temporizador de descanso
-    if (!isComplete) {
-      try {
-        timerHandlers.stopTimer();
-      } catch (err) {
-        console.warn('[handleQuickToggleSetComplete] stopTimer error', err);
+      // Si se desmarca una serie (undo o corrección), detener cualquier temporizador de descanso
+      if (!isComplete) {
+        try {
+          timerHandlers.stopTimer();
+        } catch (err) {
+          console.warn('[handleQuickToggleSetComplete] stopTimer error', err);
+        }
+        try {
+          clearRestState();
+        } catch (err) {
+          // ignore
+        }
       }
-      try {
-        clearRestState();
-      } catch (err) {
-        // ignore
-      }
+
+      // Mantener el bloqueo durante una pequeña fracción para prevenir dobles clicks
+      clearToggle(350);
+    } catch (err) {
+      console.error('[handleQuickToggleSetComplete] error', err);
+      clearToggle(0);
     }
   }, [routine, workoutState, haptic, currentExercise, useSmartRest, timerHandlers, skipRestTimers, clearRestState]);
 
@@ -1837,6 +1909,7 @@ export default function WorkoutPage() {
             onEditWeight={handleQuickEditWeight}
             onEditSetType={handleQuickEditSetType}
             onToggleSetComplete={handleQuickToggleSetComplete}
+          togglingKeys={togglingKeys}
             onAddSet={handleQuickAddSet}
             onDeleteSet={handleQuickDeleteSet}
             onFinishWorkout={() => completion.openCompletionModal()}

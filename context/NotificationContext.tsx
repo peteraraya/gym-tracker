@@ -169,7 +169,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
       {/* Confirm Modal */}
       {confirmOpen && confirmOptions && (
-        <Modal isOpen={confirmOpen} onClose={handleCancel} title={confirmOptions.title || t('confirm') || 'Confirmar acción'}>
+        <Modal
+          isOpen={confirmOpen}
+          onClose={handleCancel}
+          title={confirmOptions.title || t('confirm') || 'Confirmar acción'}
+          backdropClassName="bg-black/40 backdrop-blur-sm dark:bg-black/50"
+        >
           <div className="p-6">
             <div className="flex items-start gap-4 mb-4">
               <div className={`shrink-0 ${getConfirmVariantColor()}`}>

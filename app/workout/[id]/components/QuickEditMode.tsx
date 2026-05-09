@@ -27,6 +27,7 @@ interface QuickEditModeProps {
   onEditWeight: (exerciseId: string, setIndex: number, weight: number) => void;
   onEditSetType: (exerciseId: string, setIndex: number, type: SetType) => void;
   onToggleSetComplete: (exerciseId: string, setIndex: number, isComplete: boolean) => void;
+  togglingKeys?: { [key: string]: boolean };
   onAddSet?: (exerciseId: string) => void;
   onDeleteSet?: (exerciseId: string, setIndex: number) => void;
   onFinishWorkout?: () => void;
@@ -71,6 +72,7 @@ export function QuickEditMode({
   onShowExerciseInfo,
   sessions = [],
   onAddExercises,
+  togglingKeys = {},
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -996,7 +998,11 @@ export function QuickEditMode({
                       const setType = setTypes[setIdx] || 'normal';
                       
                       const completedCount = workoutData.completedSets[exerciseId] || 0;
-                      const isCompleted = setIdx < completedCount;
+                      // Usar contenido del array (reps > 0) en lugar de posición ordinal
+                      // para evitar marcar sets como completados cuando se completan fuera de orden
+                      const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                      const togglingKey = `${exerciseId}:${setIdx}`;
+                      const isToggling = Boolean(togglingKeys?.[togglingKey]);
                       
                       // Mostrar valor explícito si > 0; si no, usar el valor de la rutina como referencia
                       const displayReps = (doneReps !== undefined && doneReps > 0) ? doneReps : set.reps;
@@ -1156,6 +1162,7 @@ export function QuickEditMode({
                               )}
                               <button
                                 onClick={(e) => {
+                                  if (isToggling) return;
                                     // Si falta reps/peso, mostrar validación y abrir editor del campo faltante
                                     if (!isCompleted && !isReadyToComplete) {
                                       const missingReps = !(displayReps > 0);
@@ -1179,13 +1186,9 @@ export function QuickEditMode({
                                   const newIsCompleted = !isCompleted;
                                   onToggleSetComplete(exerciseId, setIdx, newIsCompleted);
                                   if (newIsCompleted) {
-                                    if (!skipRestTimers) {
-                                      const perSetOverride = workoutData.perSetRestOverrides?.[exerciseId]?.[setIdx];
-                                      const exerciseOverride = workoutData.restOverrides?.[exerciseId];
-                                      const restTime = perSetOverride ?? exerciseOverride ?? exercise.restBetweenSets ?? routine.restBetweenSets ?? 90;
-                                      setFloatingTimerDuration(restTime);
-                                      setShowFloatingTimer(true);
-                                    }
+                                    // RC-4: No iniciar FloatingRestTimer local aquí — el timer global
+                                    // ya se inicia en handleQuickToggleSetComplete vía onToggleSetComplete.
+                                    // Iniciar ambos causaba dos timers simultáneos.
                                     const newCompletedCount = completedCount + 1;
                                     if (newCompletedCount < exercise.sets.length) {
                                       setPinnedExerciseId(exerciseId);
@@ -1205,10 +1208,14 @@ export function QuickEditMode({
                                             try {
                                               onToggleSetComplete(exerciseId, setIdx, false);
                                             } catch {}
-                                            // Limpiar efectos UI locales (pinned + floating timer)
-                                            setPinnedExerciseId(prev => (prev === exerciseId ? null : prev));
-                                            setShowFloatingTimer(false);
-                                            setFloatingTimerDuration(0);
+                                            // Evitar mover la lista al deshacer. En su lugar,
+                                            // simplemente enfocamos el control de reps para que
+                                            // el usuario pueda editar o continuar sin desplazamiento.
+                                            setTimeout(() => {
+                                              try {
+                                                setInputRefs.current[`${exerciseId}-${setIdx}-reps`]?.focus();
+                                              } catch {}
+                                            }, 50);
                                           },
                                         },
                                       );
@@ -1222,11 +1229,16 @@ export function QuickEditMode({
                                       setTimeout(() => focusNextIncompleteSet(exerciseId, setIdx), 100);
                                     }
                                   } else {
-                                    if (pinnedExerciseId === exerciseId) setPinnedExerciseId(null);
+                                    // No limpiar `pinnedExerciseId` al desmarcar para evitar
+                                    // que la lista se mueva. Mantener el anclaje y solo
+                                    // enfocar si es necesario.
+                                    // (Historicamente se limpiaba aquí y eso provocaba
+                                    // desplazamientos inesperados en la UI.)
                                   }
                                 }}
-                                aria-disabled={!isReadyToComplete && !isCompleted}
+                                aria-disabled={isToggling || (!isReadyToComplete && !isCompleted)}
                                 title={!isReadyToComplete && !isCompleted ? 'Completa reps y peso antes de marcar como completada' : undefined}
+                                disabled={isToggling || (!isReadyToComplete && !isCompleted)}
                                 className={`relative h-12 w-14 md:h-10 md:w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
                                   isCompleted
                                     // ✅ COMPLETADO — verde sólido, sin borde
@@ -1238,7 +1250,12 @@ export function QuickEditMode({
                                     : 'bg-transparent border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-300 dark:text-gray-600'
                                 } ${!isReadyToComplete && !isCompleted ? 'opacity-60 cursor-pointer' : ''}`}
                               >
-                                {isCompleted ? (
+                                {isToggling ? (
+                                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                  </svg>
+                                ) : isCompleted ? (
                                   // Checkmark relleno (path relleno + stroke)
                                   <svg className="h-5 w-5 stroke-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

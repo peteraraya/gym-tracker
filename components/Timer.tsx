@@ -3,7 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from '@/context/LocaleContext';
 import { Button } from '@/components/ui/Button';
-import { Plus, Minus } from '@/components/icons/lucide';
+import {
+  Plus,
+  Minus,
+  Play,
+  Pause,
+  Minimize2,
+  ArrowRight,
+  Check,
+  RefreshCw,
+} from '@/components/icons/lucide';
 import { 
   getRestMessage, 
   showRestCompleteNotification, 
@@ -67,13 +76,13 @@ export const Timer: React.FC<TimerProps> = ({
 
   useEffect(() => {
     // Solo actualizar cuando cambia la duración (nuevo timer)
-    console.log('[Timer] Init effect - duration:', duration, 'initialTimeLeft:', initialTimeLeft);
+    // console.log('[Timer] Init effect - duration:', duration, 'initialTimeLeft:', initialTimeLeft);
     onCompleteCalledRef.current = false;
 
     // Calcular startTimeRef basado en el tiempo restante
     const elapsed = duration - (initialTimeLeft ?? duration);
     startTimeRef.current = Date.now() - elapsed * 1000;
-    console.log('[Timer] Set startTimeRef, elapsed:', elapsed);
+    // console.log('[Timer] Set startTimeRef, elapsed:', elapsed);
 
     // Deferir actualizaciones de estado para evitar setState síncrono en efecto
     const id = setTimeout(() => {
@@ -86,15 +95,15 @@ export const Timer: React.FC<TimerProps> = ({
     }, 0);
 
     return () => clearTimeout(id);
-  }, [duration, initialTimeLeft, autoStart, isRunning]); // Incluir initialTimeLeft pero NO timeLeft
+  }, [duration, initialTimeLeft, autoStart]); // Incluir initialTimeLeft; NO incluir `isRunning` para evitar reinicios al pausar
 
   useEffect(() => {
-    console.log('[Timer] Interval effect - isRunning:', isRunning);
+    // console.log('[Timer] Interval effect - isRunning:', isRunning);
     if (isRunning) {
-      console.log('[Timer] Starting interval');
+      // console.log('[Timer] Starting interval');
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
-          console.log('[Timer] Interval tick - prev:', prev);
+          // console.log('[Timer] Interval tick - prev:', prev);
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
@@ -117,12 +126,12 @@ export const Timer: React.FC<TimerProps> = ({
         });
       }, 1000);
     } else {
-      console.log('[Timer] Clearing interval');
+      // console.log('[Timer] Clearing interval');
     }
 
     return () => {
       if (intervalRef.current) {
-        console.log('[Timer] Cleanup - clearing interval');
+        // console.log('[Timer] Cleanup - clearing interval');
         clearInterval(intervalRef.current);
       }
     };
@@ -177,16 +186,15 @@ export const Timer: React.FC<TimerProps> = ({
     // Prevenir propagación y comportamiento por defecto
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('[Timer] handleSkip called, onCompleteCalledRef:', onCompleteCalledRef.current);
+    // console.log('[Timer] handleSkip called, onCompleteCalledRef:', onCompleteCalledRef.current);
     
     // Prevenir múltiples llamadas
     if (onCompleteCalledRef.current) {
-      console.log('[Timer] Skip already called, ignoring');
+      // console.log('[Timer] Skip already called, ignoring');
       return;
     }
     
-    console.log('[Timer] Executing skip');
+    // console.log('[Timer] Executing skip');
     onCompleteCalledRef.current = true;
     setIsRunning(false);
     
@@ -195,13 +203,13 @@ export const Timer: React.FC<TimerProps> = ({
     
     // Llamar onSkip si está definido, sino onComplete
     if (onSkip) {
-      console.log('[Timer] Calling onSkip');
+      // console.log('[Timer] Calling onSkip');
       onSkip();
     } else if (onComplete) {
-      console.log('[Timer] Calling onComplete from skip (no onSkip defined)');
+      // console.log('[Timer] Calling onComplete from skip (no onSkip defined)');
       onComplete();
     } else {
-      console.log('[Timer] ERROR: Neither onSkip nor onComplete is defined!');
+      // console.log('[Timer] ERROR: Neither onSkip nor onComplete is defined!');
     }
   };
 
@@ -239,10 +247,12 @@ export const Timer: React.FC<TimerProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onMinimize(timeLeft)} // ✨ Pass current time left
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            onClick={() => onMinimize(timeLeft)}
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-2"
           >
-            ⬇️ Minimizar
+            <Minimize2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Minimizar</span>
+            <span className="sm:hidden">Min.</span>
           </Button>
         </div>
       )}
@@ -350,7 +360,7 @@ export const Timer: React.FC<TimerProps> = ({
             </div>
             {hasAdjusted && (
               <div className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
-                ⚙️ Tiempo ajustado manualmente
+                Tiempo ajustado manualmente
               </div>
             )}
           </div>
@@ -365,7 +375,7 @@ export const Timer: React.FC<TimerProps> = ({
           </p>
           {hasAdjusted && (
             <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-              ⚙️ Ajustado manualmente
+              Ajustado manualmente
             </p>
           )}
         </div>
@@ -411,18 +421,20 @@ export const Timer: React.FC<TimerProps> = ({
                 variant={isRunning ? 'secondary' : 'primary'}
                 onClick={handleStartPause}
                 size="lg"
-                className="px-8 py-3 text-base font-semibold"
+                className="px-8 py-3 text-base font-semibold flex items-center justify-center gap-2"
               >
-                {isRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+                {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                <span>{isRunning ? 'Pausar' : 'Iniciar'}</span>
               </Button>
               
               <Button
                 variant="secondary"
                 onClick={handleSkip}
                 size="lg"
-                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700 text-white"
+                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-2"
               >
-                ⏭️ Saltar
+                <ArrowRight className="w-5 h-5" />
+                <span>Saltar</span>
               </Button>
             </div>
           </>
@@ -437,17 +449,19 @@ export const Timer: React.FC<TimerProps> = ({
                 }
               }} 
               size="lg" 
-              className="w-full py-4 text-lg font-bold"
+              className="w-full py-4 text-lg font-bold flex items-center justify-center gap-2"
             >
-              ✅ Continuar
+              <Check className="w-5 h-5" />
+              <span>Continuar</span>
             </Button>
             <Button 
               variant="ghost" 
               onClick={handleReset} 
               size="lg" 
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2"
             >
-              🔄 Más descanso
+              <RefreshCw className="w-5 h-5" />
+              <span>Más descanso</span>
             </Button>
           </div>
         )}
