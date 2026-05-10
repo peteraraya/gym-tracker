@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { createClient } from '@/lib/supabase/client';
+// createClient se importa dinámicamente solo cuando la DB está habilitada
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -155,10 +155,18 @@ export default function ProfilePage() {
     return null;
   };
 
+  const isDatabaseEnabled = process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true';
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setMessage('');
+
+    // En modo local, no se puede cambiar la contraseña
+    if (!isDatabaseEnabled) {
+      setError('El cambio de contraseña no está disponible en modo local.');
+      return;
+    }
 
     // Validaciones
     if (newPassword.length < 6) {
@@ -174,6 +182,7 @@ export default function ProfilePage() {
     setLoading(true);
 
     try {
+      const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
 
       // Primero verificamos la contraseña actual intentando hacer signIn
@@ -408,95 +417,99 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Información del usuario */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Información de la cuenta</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Email
-                    </label>
-                    <p className="text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                      {user?.email}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      ID de Usuario
-                    </label>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg font-mono break-all">
-                      {user?.id}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cambiar contraseña */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Cambiar contraseña</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <Input
-                    type="password"
-                    label="Contraseña actual"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    autoComplete="current-password"
-                  />
-
-                  <Input
-                    type="password"
-                    label="Nueva contraseña"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                  />
-
-                  <Input
-                    type="password"
-                    label="Confirmar nueva contraseña"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                  />
-
-                  {error && (
-                    <div className="p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">
-                      {error}
+            {/* Información del usuario - solo en modo database */}
+            {isDatabaseEnabled && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Información de la cuenta</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Email
+                      </label>
+                      <p className="text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                        {user?.email}
+                      </p>
                     </div>
-                  )}
-
-                  {message && (
-                    <div className="p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">
-                      {message}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        ID de Usuario
+                      </label>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg font-mono break-all">
+                        {user?.id}
+                      </p>
                     </div>
-                  )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="w-full"
-                    disabled={loading}
-                  >
-                    {loading ? 'Cambiando contraseña...' : 'Cambiar contraseña'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            {/* Cambiar contraseña - solo en modo database */}
+            {isDatabaseEnabled && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cambiar contraseña</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <Input
+                      type="password"
+                      label="Contraseña actual"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      autoComplete="current-password"
+                    />
+
+                    <Input
+                      type="password"
+                      label="Nueva contraseña"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                    />
+
+                    <Input
+                      type="password"
+                      label="Confirmar nueva contraseña"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                    />
+
+                    {error && (
+                      <div className="p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">
+                        {error}
+                      </div>
+                    )}
+
+                    {message && (
+                      <div className="p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300">
+                        {message}
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      {loading ? 'Cambiando contraseña...' : 'Cambiar contraseña'}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Configuración de descansos */}
             <RestSettings />

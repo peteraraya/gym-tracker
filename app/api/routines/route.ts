@@ -1,6 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+// Guard: retornar error si la base de datos está deshabilitada
+function dbDisabledResponse() {
+  if (process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
+    return NextResponse.json(
+      { error: 'Base de datos deshabilitada. Usa almacenamiento local.' },
+      { status: 503 }
+    );
+  }
+  return null;
+}
+
 // Tipos para mejor validación
 interface SetData {
   reps: number;
@@ -25,6 +36,8 @@ interface CreateRoutineBody {
 }
 
 export async function GET() {
+  const guard = dbDisabledResponse();
+  if (guard) return guard;
   try {
     const supabase = await createClient()
     
@@ -113,6 +126,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const guard = dbDisabledResponse();
+  if (guard) return guard;
   try {
     const supabase = await createClient()
     
