@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Check,
   Calendar,
   Clock,
@@ -24,12 +24,12 @@ interface WizardData {
   daysPerWeek: number;
   minutesPerSession: number;
   level: DifficultyLevel | '';
-  
+
   // Paso 2: Equipo
   equipment: string[];
-  
+
   // Paso 3: Objetivos
-  goal: 'strength' | 'hypertrophy' | 'weight_loss' | 'endurance' | 'general' | '';
+  goal: string[];
   focusAreas: string[];
 }
 
@@ -62,13 +62,15 @@ const FOCUS_AREAS = [
 export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardProps) {
   const [step, setStep] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<WizardData>({
-    name: '',
+    name: 'Rutina de ejemplo',
     daysPerWeek: 3,
     minutesPerSession: 60,
-    level: '',
+    level: 'intermedio',
     equipment: [],
-    goal: '',
+    goal: [],
     focusAreas: []
   });
 
@@ -77,6 +79,17 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
 
   const updateData = (updates: Partial<WizardData>) => {
     setData({ ...data, ...updates });
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  const toggleGoal = (id: string) => {
+    const newGoals = data.goal.includes(id)
+      ? data.goal.filter(g => g !== id)
+      : [...data.goal, id];
+    updateData({ goal: newGoals });
   };
 
   const toggleEquipment = (id: string) => {
@@ -100,7 +113,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
       case 2:
         return data.equipment.length > 0;
       case 3:
-        return data.goal && data.focusAreas.length > 0;
+        return data.goal.length > 0 && data.focusAreas.length > 0;
       case 4:
         return true;
       default:
@@ -109,6 +122,12 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
   };
 
   const nextStep = async () => {
+    if (!canProceed()) {
+      setShowErrors(true);
+      return;
+    }
+    setShowErrors(false);
+
     if (step < totalSteps) {
       setStep(step + 1);
       // Scroll al inicio del modal cuando cambia de paso
@@ -121,7 +140,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
     } else {
       // Último paso: crear rutina
       if (isCreating) return; // Prevenir múltiples clicks
-      
+
       setIsCreating(true);
       try {
         await onComplete(data);
@@ -159,9 +178,9 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               <p className="text-blue-100 text-xs sm:text-sm">
                 Paso {step} de {totalSteps}: {
                   step === 1 ? 'Información Básica' :
-                  step === 2 ? 'Equipo Disponible' :
-                  step === 3 ? 'Objetivos y Enfoque' :
-                  'Revisión'
+                    step === 2 ? 'Equipo Disponible' :
+                      step === 3 ? 'Objetivos y Enfoque' :
+                        'Revisión'
                 }
               </p>
             </div>
@@ -173,11 +192,11 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               <span className="text-2xl text-white">×</span>
             </button>
           </div>
-          
+
           {/* Progress bar */}
           <div className="mt-3 sm:mt-4">
             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-white transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
@@ -191,10 +210,13 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
             <div className="space-y-6 animate-fadeIn">
               <div>
                 <Input
-                  label="Nombre de la Rutina"
+                  label="Nombre de la Rutina (Obligatorio)"
                   placeholder="Ej: Mi Rutina de Fuerza"
                   value={data.name}
                   onChange={(e) => updateData({ name: e.target.value })}
+                  onBlur={() => handleBlur('name')}
+                  error={(showErrors || touched.name) && !data.name.trim() ? "El nombre de la rutina es obligatorio" : undefined}
+                  required
                 />
               </div>
 
@@ -209,11 +231,10 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                       <button
                         key={days}
                         onClick={() => updateData({ daysPerWeek: days })}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          data.daysPerWeek === days
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                        }`}
+                        className={`p-3 rounded-lg border-2 transition-all ${data.daysPerWeek === days
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                          }`}
                       >
                         <div className="text-2xl font-bold">{days}</div>
                         <div className="text-xs">días</div>
@@ -232,18 +253,17 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                       <button
                         key={minutes}
                         onClick={() => updateData({ minutesPerSession: minutes })}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          data.minutesPerSession === minutes
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                        }`}
+                        className={`p-3 rounded-lg border-2 transition-all ${data.minutesPerSession === minutes
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                          }`}
                       >
                         <div className="text-xl font-bold">{minutes}</div>
                         <div className="text-xs">min</div>
                       </button>
                     ))}
                   </div>
-                  
+
                   {/* Selector personalizado */}
                   <div className="mt-3">
                     <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
@@ -272,6 +292,9 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Award className="w-4 h-4 inline mr-2" />
                   ¿Cuál es tu nivel?
+                  {showErrors && !data.level && (
+                    <span className="text-red-500 text-xs ml-2 font-normal">Selecciona un nivel</span>
+                  )}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
@@ -282,11 +305,10 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                     <button
                       key={level.value}
                       onClick={() => updateData({ level: level.value as DifficultyLevel })}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        data.level === level.value
-                          ? `border-${level.color}-500 bg-${level.color}-50 dark:bg-${level.color}-900/20`
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all ${data.level === level.value
+                        ? `border-${level.color}-500 bg-${level.color}-50 dark:bg-${level.color}-900/20`
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                        }`}
                     >
                       <div className="font-bold text-sm sm:text-base">{level.label}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">{level.desc}</div>
@@ -301,23 +323,41 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
           {step === 2 && (
             <div className="space-y-6 animate-fadeIn">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  <Dumbbell className="w-4 h-4 inline mr-2" />
-                  ¿Qué equipo tienes disponible?
-                </label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Dumbbell className="w-4 h-4 inline mr-2" />
+                    ¿Qué equipo tienes disponible?
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (data.equipment.length === EQUIPMENT_OPTIONS.length) {
+                        updateData({ equipment: [] });
+                      } else {
+                        updateData({ equipment: EQUIPMENT_OPTIONS.map(e => e.id) });
+                      }
+                    }}
+                    className="text-xs py-1 h-auto"
+                  >
+                    {data.equipment.length === EQUIPMENT_OPTIONS.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                  </Button>
+                </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Selecciona todo el equipo que puedas usar
+                  {showErrors && data.equipment.length === 0 && (
+                    <span className="block text-red-500 text-xs mt-1">Debes seleccionar al menos un tipo de equipo</span>
+                  )}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {EQUIPMENT_OPTIONS.map(eq => (
                     <button
                       key={eq.id}
                       onClick={() => toggleEquipment(eq.id)}
-                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
-                        data.equipment.includes(eq.id)
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-105'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                      }`}
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${data.equipment.includes(eq.id)
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-105'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                        }`}
                     >
                       <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{eq.icon}</div>
                       <div className="text-xs sm:text-sm font-medium">{eq.name}</div>
@@ -342,7 +382,10 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   <Target className="w-4 h-4 inline mr-2" />
-                  ¿Cuál es tu objetivo principal?
+                  ¿Cuáles son tus objetivos? (Selecciona uno o más)
+                  {showErrors && data.goal.length === 0 && (
+                    <span className="block text-red-500 text-xs mt-1 font-normal">Selecciona al menos un objetivo</span>
+                  )}
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   {[
@@ -354,12 +397,11 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                   ].map(goal => (
                     <button
                       key={goal.value}
-                      onClick={() => updateData({ goal: goal.value as any })}
-                      className={`p-4 rounded-lg border-2 transition-all text-left ${
-                        data.goal === goal.value
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                      }`}
+                      onClick={() => toggleGoal(goal.value)}
+                      className={`p-4 rounded-lg border-2 transition-all text-left ${data.goal.includes(goal.value)
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-2xl sm:text-3xl shrink-0">{goal.icon}</span>
@@ -374,23 +416,41 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  <Zap className="w-4 h-4 inline mr-2" />
-                  ¿Qué áreas quieres enfatizar?
-                </label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <Zap className="w-4 h-4 inline mr-2" />
+                    ¿Qué áreas quieres enfatizar?
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (data.focusAreas.length === FOCUS_AREAS.length) {
+                        updateData({ focusAreas: [] });
+                      } else {
+                        updateData({ focusAreas: FOCUS_AREAS.map(a => a.id) });
+                      }
+                    }}
+                    className="text-xs py-1 h-auto"
+                  >
+                    {data.focusAreas.length === FOCUS_AREAS.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                  </Button>
+                </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Selecciona al menos una área de enfoque
+                  {showErrors && data.focusAreas.length === 0 && (
+                    <span className="block text-red-500 text-xs mt-1">Debes seleccionar al menos un área</span>
+                  )}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {FOCUS_AREAS.map(area => (
                     <button
                       key={area.id}
                       onClick={() => toggleFocusArea(area.id)}
-                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
-                        data.focusAreas.includes(area.id)
-                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20 scale-105'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                      }`}
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${data.focusAreas.includes(area.id)
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20 scale-105'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                        }`}
                     >
                       <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{area.icon}</div>
                       <div className="text-xs sm:text-sm font-medium">{area.name}</div>
@@ -444,13 +504,25 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
                 <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">🎯 Objetivo y Enfoque</div>
                   <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-                    <p>• Objetivo: <strong className="capitalize">
-                      {data.goal === 'strength' ? 'Fuerza Máxima' :
-                       data.goal === 'hypertrophy' ? 'Hipertrofia' :
-                       data.goal === 'weight_loss' ? 'Pérdida de Peso' :
-                       data.goal === 'endurance' ? 'Resistencia' :
-                       'Fitness General'}
-                    </strong></p>
+                    <div>
+                      <p className="mb-1">• Objetivos:</p>
+                      <div className="flex flex-wrap gap-2 ml-4">
+                        {data.goal.map(g => {
+                          const goalLabels: Record<string, string> = {
+                            strength: 'Fuerza Máxima',
+                            hypertrophy: 'Hipertrofia',
+                            weight_loss: 'Pérdida de Peso',
+                            endurance: 'Resistencia',
+                            general: 'Fitness General'
+                          };
+                          return (
+                            <span key={g} className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
+                              {goalLabels[g] || g}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <div>
                       <p className="mb-1">• Áreas de enfoque:</p>
                       <div className="flex flex-wrap gap-2 ml-4">
@@ -498,13 +570,12 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
               {Array.from({ length: totalSteps }).map((_, i) => (
                 <div
                   key={i}
-                  className={`h-2 rounded-full transition-all ${
-                    i + 1 === step
-                      ? 'w-8 bg-linear-to-r from-blue-500 to-purple-600'
-                      : i + 1 < step
+                  className={`h-2 rounded-full transition-all ${i + 1 === step
+                    ? 'w-8 bg-linear-to-r from-blue-500 to-purple-600'
+                    : i + 1 < step
                       ? 'w-2 bg-green-500'
                       : 'w-2 bg-gray-300 dark:bg-gray-600'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -512,7 +583,7 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
             <Button
               variant="primary"
               onClick={nextStep}
-              disabled={!canProceed() || isCreating}
+              disabled={isCreating}
               className={`w-full sm:w-auto order-3 ${step === totalSteps ? 'bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : ''}`}
             >
               {isCreating ? (

@@ -386,36 +386,10 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
 
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
+      {/* Header — apilado en móvil, fila en desktop */}
+      <div className="flex flex-col gap-2 mb-4">
+        <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Planificador</h2>
-          
-          {/* Selector de vista */}
-          <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('weekly')}
-              className={`px-3 py-1 rounded text-sm transition-all ${
-                viewMode === 'weekly'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              📅 Semanal
-            </button>
-            <button
-              onClick={() => setViewMode('monthly')}
-              className={`px-3 py-1 rounded text-sm transition-all ${
-                viewMode === 'monthly'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              🗓️ Mensual
-            </button>
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -436,14 +410,6 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     try { saveMonthlyPlan({}); } catch (e) { }
                   }
                   try { info('Planificación eliminada'); } catch { }
-                  try { console.log(`${viewMode} plan cleared`); } catch { }
-                  try {
-                    if (typeof window !== 'undefined' && (window as any).gtag) {
-                      (window as any).gtag('event', `${viewMode}_plan_cleared`, { method: 'manual' });
-                    }
-                  } catch (e) {
-                    // ignore analytics errors
-                  }
                 }
               } catch (e) {
                 // ignore
@@ -452,42 +418,30 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
           >
             Limpiar
           </Button>
+        </div>
 
-          {/* <Button
-            variant={exporting ? 'primary' : 'ghost'}
-            size="sm"
-            disabled={exporting}
-            aria-busy={exporting}
-            onClick={async () => {
-              setExporting(true);
-              try {
-                const routinesMap = routines.reduce((acc, r) => ({ ...acc, [r.id]: r }), {} as Record<string, any>);
-                const res = await fetch('/api/weekly-export', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ plan, routines: routinesMap })
-                });
-                if (!res.ok) throw new Error('Export failed');
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `weekly-plan-${new Date().toISOString().slice(0,10)}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-                try { info('PDF descargado desde servidor'); } catch {}
-              } catch (e) {
-                console.error('Server export error', e);
-                try { info('Error al exportar PDF en servidor'); } catch {}
-              } finally {
-                setExporting(false);
-              }
-            }}
+        {/* Selector de vista — full-width en móvil */}
+        <div className="flex gap-1 bg-gray-800 rounded-xl p-1">
+          <button
+            onClick={() => setViewMode('weekly')}
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              viewMode === 'weekly'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-400 hover:text-white'
+            }`}
           >
-            {exporting ? 'Exportando...' : 'Exportar PDF'}
-          </Button> */}
+            📅 Semanal
+          </button>
+          <button
+            onClick={() => setViewMode('monthly')}
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              viewMode === 'monthly'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            🗓️ Mensual
+          </button>
         </div>
       </div>
 
@@ -524,36 +478,28 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       ) : (
         /* Vista Semanal */
         <>
-      {/* Toggle entre modo visualización y edición */}
-      <div className="mb-4 flex items-center justify-between bg-gray-800 p-3 rounded-lg">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setWeeklyViewMode('view')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              weeklyViewMode === 'view'
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-          >
-            👁️ Visualizar
-          </button>
-          <button
-            onClick={() => setWeeklyViewMode('edit')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              weeklyViewMode === 'edit'
-                ? 'bg-emerald-600 text-white shadow-lg'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-          >
-            ✏️ Planificar
-          </button>
-        </div>
-        
-        {weeklyViewMode === 'view' && (
-          <div className="text-xs text-gray-300">
-            Toca un día para ver detalles
-          </div>
-        )}
+      {/* Toggle compacto entre modo visualización y edición */}
+      <div className="mb-4 flex gap-1 bg-gray-800 rounded-xl p-1">
+        <button
+          onClick={() => setWeeklyViewMode('view')}
+          className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            weeklyViewMode === 'view'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          👁️ Visualizar
+        </button>
+        <button
+          onClick={() => setWeeklyViewMode('edit')}
+          className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            weeklyViewMode === 'edit'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          ✏️ Planificar
+        </button>
       </div>
 
       {/* MODO VISUALIZACIÓN */}
@@ -875,11 +821,13 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
       ) : (
         /* MODO EDICIÓN (código existente) */
         <>
-      <div className="mb-2 relative">
-        <div ref={daysRef} onScroll={updateIndicators} className="flex gap-3 overflow-x-auto py-2 -mx-2 md:mx-0 md:grid md:grid-cols-7 md:gap-3 touch-pan-x snap-x snap-mandatory">
+      {/* Tarjetas de días — vertical en móvil, grid en desktop */}
+      <div className="mb-2">
+        <div className="flex flex-col gap-2 md:grid md:grid-cols-7 md:gap-3">
           {DAYS.map(day => {
             const routineCount = plan[day]?.routines?.length || 0;
             const isBlocked = plan[day]?.blocked;
+            const isToday = getCurrentDayKey() === day;
             
             return (
             <div
@@ -887,7 +835,11 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
               onClick={() => setSelectedWeekDay(day)}
               onDrop={(e) => onDropToDay(e as any, day)}
               onDragOver={onDragOver as any}
-              className={`min-w-[140px] md:min-w-0 shrink-0 md:shrink snap-center p-4 rounded-xl shadow-md min-h-40 text-left transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
+              className={`relative p-3 md:p-4 rounded-xl shadow-md md:min-h-40 text-left transition-all active:scale-[0.98] cursor-pointer ${
+                isToday
+                  ? 'ring-2 ring-blue-400 ring-offset-1 ring-offset-gray-900'
+                  : ''
+              } ${
                 isBlocked 
                   ? 'bg-linear-to-br from-red-900/30 to-red-800/20 border-2 border-red-600/50' 
                   : routineCount > 0 
@@ -895,111 +847,120 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
                     : 'bg-linear-to-br from-gray-900/60 to-gray-800/50 border-2 border-gray-700'
               }`}
             >
-              <div className="mb-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs text-gray-300 uppercase tracking-wider font-semibold">{LABELS[day]}</div>
-                    {isBlocked && (
-                      <div className="text-sm font-bold text-red-300 mt-1">🔒 Descanso</div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {/* Botón de quick add primero (izquierda) */}
-                    {!isBlocked && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedDayForQuickAdd(day);
-                          setIsRoutineSheetOpen(true);
-                        }}
-                        className="p-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg transition-all active:scale-90"
-                        title="Agregar rutina rápida"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    )}
-                    {/* Badge con número */}
-                    <span className={`text-sm font-bold px-3 py-1.5 rounded-full shadow-lg ${
-                      routineCount > 0 
-                        ? 'bg-emerald-500 text-white' 
-                        : 'bg-gray-700/80 text-gray-400'
-                    }`}>
-                      {routineCount}
-                    </span>
-                  </div>
+              {/* Badge HOY */}
+              {isToday && (
+                <div className="absolute -top-2 left-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg z-10">
+                  HOY
                 </div>
-                <div className="mt-2 border-b border-gray-700/50" />
+              )}
+
+              {/* Header del día — fila horizontal en móvil para compactar */}
+              <div className="flex items-center gap-3">
+                {/* Nombre del día */}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className={`text-sm font-bold uppercase tracking-wider ${
+                    isToday ? 'text-blue-300' : 'text-gray-300'
+                  }`}>{LABELS[day]}</span>
+                  {isBlocked && (
+                    <span className="text-xs font-bold text-red-300">🔒</span>
+                  )}
+                </div>
+
+                {/* Rutinas inline en móvil */}
+                <div className="flex items-center gap-1.5 md:hidden flex-1 min-w-0 overflow-hidden">
+                  {!isBlocked && !isLoadingPlan && !routinesLoading && (
+                    (plan[day]?.routines || []).length > 0 ? (
+                      <div className="flex items-center gap-1 overflow-hidden">
+                        {(plan[day]?.routines || []).slice(0, 2).map(rid => {
+                          const r = routinesMap[rid];
+                          if (!r) return null;
+                          return (
+                            <span key={rid} className="text-xs bg-gray-800/60 text-gray-200 px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                              {r.name}
+                            </span>
+                          );
+                        })}
+                        {(plan[day]?.routines || []).length > 2 && (
+                          <span className="text-xs text-gray-400">+{(plan[day]?.routines || []).length - 2}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-500 italic">Sin rutinas</span>
+                    )
+                  )}
+                  {isBlocked && (
+                    <span className="text-xs text-red-300/80">Descanso</span>
+                  )}
+                </div>
+
+                {/* Acciones */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {!isBlocked && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDayForQuickAdd(day);
+                        setIsRoutineSheetOpen(true);
+                      }}
+                      className="p-2.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg transition-all active:scale-90"
+                      title="Agregar rutina rápida"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  )}
+                  <span className={`text-sm font-bold min-w-[32px] text-center px-2.5 py-1.5 rounded-full shadow-lg ${
+                    routineCount > 0 
+                      ? 'bg-emerald-500 text-white' 
+                      : 'bg-gray-700/80 text-gray-400'
+                  }`}>
+                    {routineCount}
+                  </span>
+                </div>
               </div>
 
-              {/* Dia bloqueado */}
-              {plan[day]?.blocked ? (
-                <div className="space-y-2">
-                  <div className="p-3 rounded-md bg-linear-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24">
-                    <p className="text-sm font-semibold text-red-300">Día de descanso</p>
-                    {plan[day]?.note ? (
-                      <p className="text-xs text-gray-300 mt-1">{plan[day].note}</p>
-                    ) : (
-                      <p className="text-xs text-gray-300 mt-1">Sin nota</p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                // Mostrar loader por día mientras se carga el plan o las rutinas
-                (isLoadingPlan || routinesLoading) ? (
-                  <div className="flex items-center justify-center py-6">
-                    <div className="flex items-center gap-2">
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                      </svg>
+              {/* Contenido expandido — solo visible en desktop */}
+              <div className="hidden md:block mt-3 border-t border-gray-700/50 pt-3">
+                {plan[day]?.blocked ? (
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-md bg-linear-to-r from-red-900/10 to-red-900/5 border border-red-700/20 overflow-auto max-h-24">
+                      <p className="text-sm font-semibold text-red-300">Día de descanso</p>
+                      {plan[day]?.note ? (
+                        <p className="text-xs text-gray-300 mt-1">{plan[day].note}</p>
+                      ) : (
+                        <p className="text-xs text-gray-300 mt-1">Sin nota</p>
+                      )}
                     </div>
+                  </div>
+                ) : (isLoadingPlan || routinesLoading) ? (
+                  <div className="flex items-center justify-center py-6">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {/* Rutinas del día */}
                     {(plan[day]?.routines || []).map(rid => {
                       const r = routinesMap[rid];
                       if (!r) return null;
-                      const displayName = r.name.length > 30 ? r.name.substring(0, 30) + '...' : r.name;
                       return (
-                        <div key={rid} className="flex items-center gap-2 bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left " title={r.name}>
-                          <p className="text-xs text-gray-100 truncate flex-1 min-w-0 gap-0">{displayName}</p>
+                        <div key={rid} className="flex items-center gap-2 bg-gray-800/40 hover:bg-gray-700/50 p-2 rounded-md border border-gray-700 transition-colors text-left" title={r.name}>
+                          <p className="text-xs text-gray-100 truncate flex-1 min-w-0">{r.name}</p>
                         </div>
                       );
                     })}
-                    
-                    {/* Indicador de nota */}
                     {plan[day]?.note && (
                       <div className="text-xs text-gray-300 italic truncate">
                         📝 {plan[day].note}
                       </div>
                     )}
                   </div>
-                )
-              )}
+                )}
+              </div>
             </div>
             );
           })}
         </div>
-
-        {/* Scroll indicators mejorados */}
-        <div className={`md:hidden pointer-events-none absolute left-0 top-0 bottom-0 w-8 flex items-center transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="h-full w-full bg-linear-to-r from-gray-900 to-transparent" />
-        </div>
-        <div className={`md:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-8 flex items-center transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="h-full w-full bg-linear-to-l from-gray-900 to-transparent" />
-        </div>
-      </div>
-
-      {/* Botón flotante para agregar rutinas (móvil) */}
-      <div className="md:hidden fixed bottom-0 left-4 z-30 w-[calc(100%-32px)]">
-        <button
-          onClick={() => setIsRoutineSheetOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-2xl hover:shadow-emerald-500/50 transition-all active:scale-95 w-full"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="font-semibold">Agregar Rutina al planificador</span>
-        </button>
       </div>
 
       {/* Bottom Sheet para rutinas (móvil) */}
@@ -1094,77 +1055,87 @@ export default function WeeklyPlanner({ searchQuery = '' }: { searchQuery?: stri
         </div>
       </BottomSheet>
 
-      {/* Desktop: Mostrar rutinas disponibles abajo */}
+      {/* Desktop: Rutinas disponibles */}
       <div className="mt-4 hidden md:block">
-        <h3 className="text-sm font-medium mb-2">Rutinas disponibles (arrastra al día o usa el selector)</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-300">Rutinas disponibles</h3>
+          <span className="text-xs text-gray-500">Arrastra al día o usa el selector</span>
+        </div>
 
-        {/* El input de búsqueda principal está en la página de Rutinas; este componente usa la prop `searchQuery`. */}
-
-        <div className="max-h-64 overflow-auto p-2 border rounded bg-white dark:bg-gray-800">
+        <div className="max-h-72 overflow-auto rounded-xl border border-gray-700/50 bg-gray-800/30 p-3">
           {(isLoadingPlan || routinesLoading) ? (
             <div className="flex items-center justify-center py-6">
-              <svg className="animate-spin h-6 w-6 text-gray-600 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
               </svg>
               <span className="ml-2 text-sm text-gray-500">Cargando rutinas...</span>
             </div>
           ) : availableRoutines.length === 0 ? (
-            <div className="text-sm text-gray-500">No se encontraron rutinas</div>
+            <div className="text-center py-6">
+              <div className="text-3xl mb-2">🏋️</div>
+              <p className="text-sm text-gray-500">No se encontraron rutinas</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="space-y-2">
               {availableRoutines.map(r => (
                 <div
                   key={r.id}
                   draggable
                   onDragStart={(e) => onDragStart(e, r.id)}
-                  className="p-2 border rounded-md bg-gray-900/60 border-gray-700 flex items-center gap-2 w-full hover:shadow-sm hover:scale-[1.006] transition-transform text-sm"
+                  className="group flex items-center gap-3 p-3 rounded-lg bg-gray-900/50 border border-gray-700/50 hover:border-gray-600 hover:bg-gray-800/60 transition-all cursor-grab active:cursor-grabbing"
                 >
-                  <div className="text-gray-300 shrink-0 mr-1">
-                    <GripVertical className="w-4 h-4 cursor-grab opacity-80 hover:opacity-100" />
+                  {/* Drag handle */}
+                  <div className="text-gray-500 group-hover:text-gray-300 shrink-0 transition-colors">
+                    <GripVertical className="w-4 h-4" />
                   </div>
 
+                  {/* Info de la rutina */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-medium text-sm text-white truncate">{r.name}</div>
-                      <div className="text-xs text-gray-300 ml-2 px-2 py-0.5 bg-gray-800/50 rounded-md">{r.exercises.length}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm text-gray-100 truncate">{r.name}</span>
+                      <span className="shrink-0 text-xs text-gray-400 px-2 py-0.5 bg-gray-800 rounded-full border border-gray-700">
+                        {r.exercises.length} ej.
+                      </span>
                     </div>
-                    {r.description ? <div className="text-xs text-gray-500 truncate mt-1">{r.description}</div> : null}
+                    {r.description && (
+                      <p className="text-xs text-gray-500 truncate mt-0.5">{r.description}</p>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2 w-36 sm:w-40">
-                    <div className="w-full">
-                      <select
-                        value={selectedDayByRoutine[r.id] ?? ''}
-                        onChange={(e) => setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: e.target.value as DayKey | '' }))}
-                        className="block w-full px-2 py-1 bg-gray-800 border border-gray-700 text-sm text-gray-200 rounded-md focus:outline-none"
-                        aria-label={`Seleccionar día para ${r.name}`}
-                        title={`Seleccionar día para ${r.name}`}
-                      >
-                        <option value="">Seleccionar...</option>
-                        {DAYS.map(d => {
-                          const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
-                          const isBlocked = !!plan[d]?.blocked;
-                          if (isBlocked) return null;
-                          return (
-                            <option key={d} value={d}>
-                              {LABELS[d]}{alreadyAdded ? ' ✓' : ''}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
+                  {/* Selector de día + botón agregar */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <select
+                      value={selectedDayByRoutine[r.id] ?? ''}
+                      onChange={(e) => setSelectedDayByRoutine(prev => ({ ...prev, [r.id]: e.target.value as DayKey | '' }))}
+                      className="px-3 py-1.5 bg-gray-800 border border-gray-700 text-sm text-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[130px]"
+                      aria-label={`Seleccionar día para ${r.name}`}
+                    >
+                      <option value="">Día...</option>
+                      {DAYS.map(d => {
+                        const alreadyAdded = Array.isArray(plan[d]?.routines) && plan[d].routines.includes(r.id);
+                        const isBlocked = !!plan[d]?.blocked;
+                        if (isBlocked) return null;
+                        return (
+                          <option key={d} value={d}>
+                            {LABELS[d]}{alreadyAdded ? ' ✓' : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
 
-                    <Button
-                      variant="gradient"
-                      className="rounded-full p-0 w-8 h-8 flex items-center justify-center"
-                      size="sm"
+                    <button
                       aria-label={`Agregar ${r.name} al día seleccionado`}
                       onClick={() => addRoutineToDay(r.id, (selectedDayByRoutine[r.id] ?? '') as DayKey | '')}
                       disabled={!(selectedDayByRoutine[r.id])}
+                      className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold transition-all ${
+                        selectedDayByRoutine[r.id]
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md active:scale-95'
+                          : 'bg-gray-800 text-gray-600 border border-gray-700 cursor-not-allowed'
+                      }`}
                     >
-                      +
-                    </Button>
+                      <Plus className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}

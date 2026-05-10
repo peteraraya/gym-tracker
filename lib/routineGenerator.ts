@@ -11,7 +11,7 @@ interface GeneratorConfig {
   minutesPerSession: number;
   level: DifficultyLevel;
   equipment: string[];
-  goal: 'strength' | 'hypertrophy' | 'weight_loss' | 'endurance' | 'general';
+  goal: string[];
   focusAreas: string[];
 }
 
@@ -167,7 +167,7 @@ async function generateDayExercises(
 /**
  * Obtiene parámetros de entrenamiento según objetivo y nivel
  */
-function getGoalParameters(goal: string, level: DifficultyLevel) {
+function getGoalParameters(goals: string[], level: DifficultyLevel) {
   const baseParams = {
     strength: { sets: 5, reps: 5, rest: 180 },
     hypertrophy: { sets: 4, reps: 10, rest: 90 },
@@ -176,7 +176,8 @@ function getGoalParameters(goal: string, level: DifficultyLevel) {
     general: { sets: 3, reps: 12, rest: 75 }
   };
 
-  const params = baseParams[goal as keyof typeof baseParams] || baseParams.general;
+  const primaryGoal = goals.length > 0 ? goals[0] : 'general';
+  const params = baseParams[primaryGoal as keyof typeof baseParams] || baseParams.general;
 
   // Ajustar según nivel
   if (level === 'principiante') {
@@ -194,7 +195,7 @@ function getGoalParameters(goal: string, level: DifficultyLevel) {
 function getRecommendedWeight(
   exerciseName: string,
   level: DifficultyLevel,
-  goal: string
+  goals: string[]
 ): number {
   // Pesos base para principiantes (en kg)
   const baseWeights: Record<string, number> = {
@@ -243,9 +244,9 @@ function getRecommendedWeight(
   weight *= levelMultipliers[level];
 
   // Ajustar por objetivo
-  if (goal === 'strength') {
+  if (goals.includes('strength')) {
     weight *= 1.2; // Más peso para fuerza
-  } else if (goal === 'endurance' || goal === 'weight_loss') {
+  } else if (goals.includes('endurance') || goals.includes('weight_loss')) {
     weight *= 0.7; // Menos peso para resistencia/pérdida de peso
   }
 
@@ -263,7 +264,7 @@ function getExercisesForGroup(
   params: { sets: number; reps: number; rest: number },
   startId: number,
   level: DifficultyLevel,
-  goal: string
+  goals: string[]
 ): Exercise[] {
   // Mapeo de grupos a ejercicios comunes
   const exerciseDatabase: Record<string, ExerciseRecommendation[]> = {
@@ -323,7 +324,7 @@ function getExercisesForGroup(
 
   // Convertir a formato Exercise con pesos recomendados
   return selected.map((ex, index) => {
-    const recommendedWeight = getRecommendedWeight(ex.name, level, goal);
+    const recommendedWeight = getRecommendedWeight(ex.name, level, goals);
     
     return {
       id: `${startId + index}`,
@@ -372,5 +373,8 @@ function generateDayDescription(config: GeneratorConfig, dayName: string, muscle
 
   const groupsText = muscleGroups.map(g => muscleGroupNames[g] || g).join(', ');
 
-  return `Rutina ${goalDescriptions[config.goal]} ${levelDescriptions[config.level]}. Grupos musculares: ${groupsText}. Duración: ${config.minutesPerSession} minutos.`;
+  const goalNames = config.goal.map(g => goalDescriptions[g as keyof typeof goalDescriptions]).filter(Boolean).join(' y ');
+  const finalGoalText = goalNames ? goalNames : goalDescriptions.general;
+
+  return `Rutina ${finalGoalText} ${levelDescriptions[config.level]}. Grupos musculares: ${groupsText}. Duración: ${config.minutesPerSession} minutos.`;
 }

@@ -39,7 +39,7 @@ export const Modal: React.FC<ModalProps> = ({
 
 	if (!isOpen) return null;
 
-	const defaultBackdrop = 'bg-black bg-opacity-50 dark:bg-black/50';
+	const defaultBackdrop = 'bg-black/60 backdrop-blur-sm';
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
