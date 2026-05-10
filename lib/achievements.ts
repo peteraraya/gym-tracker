@@ -215,19 +215,45 @@ const ACHIEVEMENT_DEFINITIONS: Omit<Achievement, 'unlocked' | 'unlockedAt' | 'pr
  * Calcula el volumen total levantado en todas las sesiones
  */
 export function calculateTotalVolume(sessions: WorkoutSession[]): number {
+  console.log('[Achievements] Calculating volume for', sessions.length, 'sessions');
+  
   return sessions.reduce((total, session) => {
-    if (!session.exercises || !Array.isArray(session.exercises)) return total;
+    if (!session.exercises || !Array.isArray(session.exercises)) {
+      console.log('[Achievements] Session has no exercises:', session.id);
+      return total;
+    }
     
     const sessionVolume = session.exercises.reduce((exerciseTotal, exercise) => {
-      if (!exercise.actualWeight || !Array.isArray(exercise.actualWeight)) return exerciseTotal;
-      if (!exercise.actualReps || !Array.isArray(exercise.actualReps)) return exerciseTotal;
-      
-      const exerciseVolume = exercise.actualWeight.reduce((setTotal, weight, index) => {
-        const reps = exercise.actualReps[index] || 0;
-        return setTotal + (weight * reps);
+      // Verificar diferentes formatos de datos y usar checks seguros
+      const actualWeights: number[] = Array.isArray(exercise.actualWeight)
+        ? exercise.actualWeight
+        : Array.isArray((exercise as any).actualWeights)
+        ? (exercise as any).actualWeights
+        : [];
+
+      const actualReps: number[] = Array.isArray(exercise.actualReps)
+        ? exercise.actualReps
+        : Array.isArray((exercise as any).actualReps)
+        ? (exercise as any).actualReps
+        : [];
+
+      if (!Array.isArray(actualWeights) || !Array.isArray(actualReps)) {
+        console.log('[Achievements] Invalid exercise data format:', exercise);
+        return exerciseTotal;
+      }
+
+      const exerciseVolume = actualWeights.reduce((setTotal, weight, index) => {
+        const reps = actualReps[index] || 0;
+        const setVolume = (weight || 0) * reps;
+        console.log(`[Achievements] Set ${index}: ${weight}kg x ${reps} reps = ${setVolume}kg`);
+        return setTotal + setVolume;
       }, 0);
+      
+      console.log(`[Achievements] Exercise ${exercise.exerciseName || exercise.exerciseId} volume: ${exerciseVolume}kg`);
       return exerciseTotal + exerciseVolume;
     }, 0);
+    
+    console.log(`[Achievements] Session ${session.id} volume: ${sessionVolume}kg`);
     return total + sessionVolume;
   }, 0);
 }
@@ -236,6 +262,8 @@ export function calculateTotalVolume(sessions: WorkoutSession[]): number {
  * Calcula la racha actual y la más larga de entrenamientos consecutivos
  */
 export function calculateStreak(sessions: WorkoutSession[]): Streak {
+  console.log('[Achievements] Calculating streak for', sessions.length, 'sessions');
+  
   if (sessions.length === 0) {
     return { current: 0, longest: 0 };
   }
@@ -245,10 +273,17 @@ export function calculateStreak(sessions: WorkoutSession[]): Streak {
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  console.log('[Achievements] Sorted sessions:', sortedSessions.map(s => ({
+    id: s.id,
+    date: new Date(s.date).toDateString()
+  })));
+
   // Obtener fechas únicas (un entrenamiento por día)
   const uniqueDates = Array.from(new Set(
     sortedSessions.map(s => new Date(s.date).toDateString())
   )).map(dateStr => new Date(dateStr));
+
+  console.log('[Achievements] Unique dates:', uniqueDates.map(d => d.toDateString()));
 
   let currentStreak = 0;
   let longestStreak = 0;
@@ -257,14 +292,22 @@ export function calculateStreak(sessions: WorkoutSession[]): Streak {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const lastWorkoutDate = uniqueDates[0];
+  if (uniqueDates.length === 0) {
+    return { current: 0, longest: 0 };
+  }
+
+  const lastWorkoutDate = new Date(uniqueDates[0]);
   lastWorkoutDate.setHours(0, 0, 0, 0);
 
   // Calcular racha actual
   const daysDifference = Math.floor((today.getTime() - lastWorkoutDate.getTime()) / (1000 * 60 * 60 * 24));
   
+  console.log('[Achievements] Days since last workout:', daysDifference);
+  console.log('[Achievements] Last workout date:', lastWorkoutDate.toDateString());
+  console.log('[Achievements] Today:', today.toDateString());
+  
   if (daysDifference <= 1) {
-    // La racha sigue activa
+    // La racha sigue activa (hoy o ayer)
     currentStreak = 1;
 
     for (let i = 1; i < uniqueDates.length; i++) {
@@ -303,6 +346,9 @@ export function calculateStreak(sessions: WorkoutSession[]): Streak {
       tempStreak = 1;
     }
   }
+
+  console.log('[Achievements] Current streak:', currentStreak);
+  console.log('[Achievements] Longest streak:', longestStreak);
 
   return {
     current: currentStreak,

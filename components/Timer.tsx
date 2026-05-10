@@ -15,11 +15,10 @@ import {
 } from '@/components/icons/lucide';
 import { 
   getRestMessage, 
-  showRestCompleteNotification, 
-  playRestCompleteSound,
-  requestNotificationPermission,
   formatRestTime
 } from '@/lib/restCalculator';
+import { soundManager } from '@/lib/audio/soundSystem';
+import { useRestNotifications } from '@/lib/notifications/pwaNotifications';
 
 interface TimerProps {
   duration: number; // duración en segundos
@@ -49,7 +48,6 @@ export const Timer: React.FC<TimerProps> = ({
   const [timeLeft, setTimeLeft] = useState(initialTimeLeft ?? duration);
   const [isRunning, setIsRunning] = useState(autoStart);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState(false);
   const [plannedDuration] = useState(duration);
   const [actualDuration, setActualDuration] = useState(0);
   const [hasAdjusted, setHasAdjusted] = useState(false);
@@ -59,19 +57,63 @@ export const Timer: React.FC<TimerProps> = ({
   const startTimeRef = useRef<number>(0);
   const onActualDurationRef = useRef<typeof onActualDurationChange | null>(null);
   
+  // ✨ NEW: Hooks para notificaciones y sonidos mejorados
+  const notifications = useRestNotifications();
+  const [notificationPermission, setNotificationPermission] = useState(false);
+  
   // Mantener onCompleteRef actualizado
   useEffect(() => {
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
-  // Cargar preferencias del usuario
-  const soundEnabled = typeof window !== 'undefined' 
-    ? (localStorage.getItem('restSoundEnabled') ?? 'true') === 'true'
-    : true;
-
-  // Solicitar permiso de notificaciones al montar
+  // ✨ NEW: Configurar manejadores de acciones de notificación
   useEffect(() => {
-    requestNotificationPermission().then(setNotificationPermission);
+    notifications.setupActionHandlers();
+    
+    // Escuchar eventos de acciones de notificación
+    const handleSkipFromNotification = () => {
+      if (onSkip) {
+        onSkip();
+      } else if (onComplete) {
+        onComplete();
+      }
+    };
+    
+    const handleAddTimeFromNotification = (event: CustomEvent) => {
+      const { seconds } = event.detail;
+      setTimeLeft(prev => prev + seconds);
+      setHasAdjusted(true);
+    };
+    
+    const handleContinueFromNotification = () => {
+      if (onComplete) {
+        onComplete();
+      }
+    };
+    
+    const handleMoreRestFromNotification = () => {
+      setTimeLeft(prev => prev + 60); // Añadir 1 minuto más
+      setHasAdjusted(true);
+      setIsCompleted(false);
+      setIsRunning(true);
+    };
+
+    window.addEventListener('rest-timer-skip', handleSkipFromNotification);
+    window.addEventListener('rest-timer-add-time', handleAddTimeFromNotification as EventListener);
+    window.addEventListener('rest-timer-continue', handleContinueFromNotification);
+    window.addEventListener('rest-timer-more-rest', handleMoreRestFromNotification);
+
+    return () => {
+      window.removeEventListener('rest-timer-skip', handleSkipFromNotification);
+      window.removeEventListener('rest-timer-add-time', handleAddTimeFromNotification as EventListener);
+      window.removeEventListener('rest-timer-continue', handleContinueFromNotification);
+      window.removeEventListener('rest-timer-more-rest', handleMoreRestFromNotification);
+    };
+  }, [onSkip, onComplete]);
+
+  // ✨ NEW: Solicitar permiso de notificaciones al montar
+  useEffect(() => {
+    notifications.requestPermission().then(setNotificationPermission);
   }, []);
 
   useEffect(() => {
@@ -100,6 +142,16 @@ export const Timer: React.FC<TimerProps> = ({
   useEffect(() => {
     // console.log('[Timer] Interval effect - isRunning:', isRunning);
     if (isRunning) {
+      // ✨ NEW: Iniciar notificaciones de progreso si están habilitadas
+      if (notificationPermission && timeLeft > 10) {
+        notifications.startTimerNotifications({
+          timeLeft,
+          totalTime: plannedDuration,
+          nextExercise: nextExerciseName,
+          routineName: title
+        });
+      }
+      
       // console.log('[Timer] Starting interval');
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
@@ -107,6 +159,10 @@ export const Timer: React.FC<TimerProps> = ({
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
+            
+            // ✨ NEW: Detener notificaciones de progreso
+            notifications.stopTimerNotifications();
+            
             // Calcular duración real
             const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
             setActualDuration(realDuration);
@@ -126,6 +182,8 @@ export const Timer: React.FC<TimerProps> = ({
         });
       }, 1000);
     } else {
+      // ✨ NEW: Detener notificaciones cuando se pausa
+      notifications.stopTimerNotifications();
       // console.log('[Timer] Clearing interval');
     }
 
@@ -134,8 +192,10 @@ export const Timer: React.FC<TimerProps> = ({
         // console.log('[Timer] Cleanup - clearing interval');
         clearInterval(intervalRef.current);
       }
+      // ✨ NEW: Limpiar notificaciones al desmontar
+      notifications.stopTimerNotifications();
     };
-  }, [isRunning]); // Removido onComplete de las dependencias
+  }, [isRunning, notificationPermission, timeLeft, plannedDuration, nextExerciseName, title]); // Removido onComplete de las dependencias
 
   // Efecto separado para notificar cambios en la duración real
   useEffect(() => {
@@ -154,17 +214,24 @@ export const Timer: React.FC<TimerProps> = ({
     }
   }, [isCompleted, actualDuration]);
 
-  // Efecto separado para notificaciones al completar
+  // ✨ NEW: Efecto mejorado para notificaciones y sonidos al completar
   useEffect(() => {
     if (isCompleted) {
+      // Mostrar notificación de completado
       if (notificationPermission) {
-        showRestCompleteNotification(nextExerciseName);
+        notifications.showRestComplete({
+          totalTime: plannedDuration,
+          nextExercise: nextExerciseName,
+          routineName: title
+        });
       }
-      if (soundEnabled) {
-        playRestCompleteSound();
-      }
+      
+      // Reproducir sonido mejorado
+      soundManager.playRestCompleteSound().catch(error => {
+        console.warn('Error reproduciendo sonido:', error);
+      });
     }
-  }, [isCompleted, notificationPermission, nextExerciseName, soundEnabled]);
+  }, [isCompleted, notificationPermission, nextExerciseName, title, plannedDuration]);
 
   const handleStartPause = () => {
     if (!isRunning) {

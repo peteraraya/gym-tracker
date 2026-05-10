@@ -31,6 +31,7 @@ import { QuickEditMode as QuickEditModeBase } from './components/QuickEditMode';
 import { FinishWorkoutModal } from './components/FinishWorkoutModal';
 import { EditValueModal } from '@/components/EditValueModal';
 import SetsReference from '@/components/SetsReference';
+import { SoundSettings, useSoundSettingsModal } from '@/components/SoundSettings';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { Exercise } from '@/types';
 import { 
@@ -376,6 +377,9 @@ export default function WorkoutPage() {
     onWorkoutComplete: () => haptic.workoutComplete(),
     onAchievementUnlocked: () => haptic.achievement(),
   });
+  
+  // ✨ NEW: Hook para configuración de sonidos
+  const soundSettingsModal = useSoundSettingsModal();
   
   useWorkoutSuggestions({
     currentExercise,
@@ -1759,6 +1763,27 @@ export default function WorkoutPage() {
     }
   }, [routine, workoutState, currentExercise, completeSetLogic, skipRestTimers, timerHandlers, clearRestState]);
 
+  // ==================== SKIP EXERCISE HANDLERS ====================
+  const handleSkipExercise = useCallback((exerciseId: string) => {
+    // Actualizar el estado local del workout
+    workoutState.skipExercise(exerciseId);
+    
+    // Actualizar el activeWorkout en el contexto
+    skipExercise(exerciseId);
+    
+    success('Ejercicio omitido en esta sesión', 2000);
+  }, [workoutState, skipExercise, success]);
+
+  const handleUnskipExercise = useCallback((exerciseId: string) => {
+    // Actualizar el estado local del workout
+    workoutState.unskipExercise(exerciseId);
+    
+    // Actualizar el activeWorkout en el contexto
+    unskipExercise(exerciseId);
+    
+    success('Ejercicio restaurado', 2000);
+  }, [workoutState, unskipExercise, success]);
+
   const handleQuickAddSet = useCallback(async (exerciseId: string) => {
     const exercise = routine?.exercises.find((ex: Exercise) => ex.id === exerciseId);
     
@@ -1918,6 +1943,7 @@ export default function WorkoutPage() {
               isPaused={isPaused}
               onPauseToggle={handlePauseWorkout}
               onEditTime={handleOpenEditTime}
+              onOpenSoundSettings={soundSettingsModal.openSettings} // ✨ NEW: Callback para abrir configuración
             />
           </div>
         </div>
@@ -1960,8 +1986,8 @@ export default function WorkoutPage() {
             onDeleteSet={handleQuickDeleteSet}
             onFinishWorkout={() => completion.openCompletionModal()}
             onMoveExercise={handleMoveExercise}
-            onSkipExercise={skipExercise}
-            onUnskipExercise={unskipExercise}
+            onSkipExercise={handleSkipExercise}
+            onUnskipExercise={handleUnskipExercise}
             onShowExerciseInfo={(exerciseName) => {
               // Guardar el nombre del ejercicio y mostrar el modal
               setSelectedExerciseName(exerciseName);
@@ -2225,6 +2251,9 @@ export default function WorkoutPage() {
           onFinish={() => completion.finishWorkout(workoutState.workoutData)}
           isSaving={false}
         />
+
+        {/* ✨ NEW: Modal de configuración de sonidos */}
+        <soundSettingsModal.SoundSettingsModal />
 
         {showExerciseInfo && (
           <Suspense fallback={<LoadingState message="Cargando ejercicio..." />}>

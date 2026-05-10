@@ -220,8 +220,11 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 /**
  * Muestra una notificación cuando el descanso termina
+ * @deprecated Use pwaNotificationManager.showRestComplete() instead
  */
 export function showRestCompleteNotification(exerciseName?: string): void {
+  console.warn('showRestCompleteNotification is deprecated. Use pwaNotificationManager.showRestComplete() instead.');
+  
   if (typeof window === 'undefined' || !('Notification' in window)) return;
 
   try {
@@ -239,62 +242,36 @@ export function showRestCompleteNotification(exerciseName?: string): void {
         data: { url: '/' }
       };
 
-      // Preferir mostrar la notificación desde el Service Worker (funciona en background y cuando la app está cerrada)
       try {
-        if ('serviceWorker' in navigator && navigator.serviceWorker && navigator.serviceWorker.ready) {
-          navigator.serviceWorker.ready.then((registration) => {
-            try {
-              (registration as ServiceWorkerRegistration).showNotification(title, options);
-            } catch (swErr) {
-              // Si falla el SW, fallback a la API de Notification en página
-              try {
-                const notification = new Notification(title, options);
-                setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
-                notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
-              } catch (nErr) {
-                console.warn('showRestCompleteNotification fallback failed:', nErr);
-              }
-            }
-          }).catch((readyErr) => {
-            // Fallback si navigator.serviceWorker.ready rechaza
-            try {
-              const notification = new Notification(title, options);
-              setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
-              notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
-            } catch (nErr) {
-              console.warn('showRestCompleteNotification fallback after ready failed:', nErr);
-            }
-          });
-        } else {
-          // Si no hay Service Worker, usar la API de Notification en página
-          const notification = new Notification(title, options);
-          setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
-          notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
-        }
-      } catch (e) {
-        // En entornos restringidos, intentar fallback simple
-        try {
-          const notification = new Notification(title, options);
-          setTimeout(() => { try { if (typeof notification.close === 'function') notification.close(); } catch {} }, 5000);
-          notification.onclick = () => { try { window.focus(); if (typeof notification.close === 'function') notification.close(); } catch {} };
-        } catch (err) {
-          console.warn('showRestCompleteNotification failed:', err);
-        }
+        const notification = new Notification(title, options);
+        setTimeout(() => { 
+          try { 
+            if (typeof notification.close === 'function') notification.close(); 
+          } catch {} 
+        }, 5000);
+        notification.onclick = () => { 
+          try { 
+            window.focus(); 
+            if (typeof notification.close === 'function') notification.close(); 
+          } catch {} 
+        };
+      } catch (nErr) {
+        console.warn('showRestCompleteNotification failed:', nErr);
       }
     }
   } catch (err) {
-    // Evitar que errores en entornos limitados (webviews móviles) rompan la app
-     
     console.warn('showRestCompleteNotification failed:', err);
   }
 }
 
 /**
  * Reproduce un sonido al terminar el descanso
+ * @deprecated Use soundManager.playRestCompleteSound() instead
  */
 export function playRestCompleteSound(): void {
+  console.warn('playRestCompleteSound is deprecated. Use soundManager.playRestCompleteSound() instead.');
   try {
-    // Crear un contexto de audio
+    // Mantener compatibilidad hacia atrás con implementación básica
     const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
     

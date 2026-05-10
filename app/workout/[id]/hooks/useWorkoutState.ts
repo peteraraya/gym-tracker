@@ -24,6 +24,7 @@ interface WorkoutData {
   actualSetDurations: { [key: string]: number[] };
   actualPauseDurations: { [key: string]: number[] };
   actualRestTimes: { [key: string]: number[] };
+  skippedExercises: string[]; // ✅ Array de exerciseIds omitidos
   // ✅ Timestamp para forzar re-renders cuando cambia el estado
   _lastUpdate?: number;
 }
@@ -59,6 +60,8 @@ interface UseWorkoutStateReturn {
   updateSetDuration: (exerciseId: string, setIndex: number, duration: number) => void;
   updatePauseDuration: (exerciseId: string, setIndex: number, duration: number) => void;
   updateRestTime: (exerciseId: string, setIndex: number, duration: number) => void;
+  skipExercise: (exerciseId: string) => void;
+  unskipExercise: (exerciseId: string) => void;
   
   // Utilidades
   reset: () => void;
@@ -90,6 +93,7 @@ export function useWorkoutState(
     actualSetDurations: {},
     actualPauseDurations: {},
     actualRestTimes: {},
+    skippedExercises: [], // ✅ Inicializar array vacío
   });
 
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -380,6 +384,56 @@ export function useWorkoutState(
   }, []);
 
   /**
+   * Omite un ejercicio (lo agrega a la lista de omitidos)
+   */
+  const skipExercise = useCallback((exerciseId: string) => {
+    setWorkoutData(prev => {
+      const skippedExercises = prev.skippedExercises || [];
+      if (skippedExercises.includes(exerciseId)) {
+        return prev; // Ya está omitido
+      }
+      
+      const newData = {
+        ...prev,
+        skippedExercises: [...skippedExercises, exerciseId],
+        _lastUpdate: Date.now()
+      };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          console.log('[useWorkoutState] 💾 Saving after skipExercise');
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
+    });
+  }, []);
+
+  /**
+   * Desomite un ejercicio (lo remueve de la lista de omitidos)
+   */
+  const unskipExercise = useCallback((exerciseId: string) => {
+    setWorkoutData(prev => {
+      const skippedExercises = prev.skippedExercises || [];
+      const newData = {
+        ...prev,
+        skippedExercises: skippedExercises.filter(id => id !== exerciseId),
+        _lastUpdate: Date.now()
+      };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          console.log('[useWorkoutState] 💾 Saving after unskipExercise');
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
+    });
+  }, []);
+
+  /**
    * Valida la estructura de WorkoutData
    */
   const validateWorkoutData = (data: any): boolean => {
@@ -397,6 +451,12 @@ export function useWorkoutState(
         console.warn(`[useWorkoutState] Invalid field type: ${field}`);
         return false;
       }
+    }
+    
+    // Validar que skippedExercises sea un array si existe
+    if (data.skippedExercises && !Array.isArray(data.skippedExercises)) {
+      console.warn(`[useWorkoutState] Invalid field type: skippedExercises must be array`);
+      return false;
     }
     
     return true;
@@ -435,6 +495,15 @@ export function useWorkoutState(
       }
     }
     
+    // ✅ Validar y limpiar skippedExercises
+    if (data.skippedExercises) {
+      if (Array.isArray(data.skippedExercises)) {
+        sanitizedData.skippedExercises = data.skippedExercises.filter(id => typeof id === 'string');
+      } else {
+        sanitizedData.skippedExercises = [];
+      }
+    }
+    
     setWorkoutData(prev => ({
       ...prev,
       ...sanitizedData,
@@ -457,6 +526,7 @@ export function useWorkoutState(
       actualSetDurations: {},
       actualPauseDurations: {},
       actualRestTimes: {},
+      skippedExercises: [], // ✅ Resetear ejercicios omitidos
     });
     setCurrentExerciseIndex(0);
     setCurrentSet(1);
@@ -506,6 +576,8 @@ export function useWorkoutState(
     updateSetDuration,
     updatePauseDuration,
     updateRestTime,
+    skipExercise,
+    unskipExercise,
 
     // Utilidades
     reset,
@@ -518,6 +590,21 @@ export function useWorkoutState(
     currentReps,
     currentWeight,
     sessionNotes,
+    completeSet,
+    updateCompletedSets,
+    updateActualReps,
+    updateActualWeights,
+    updateSetType,
+    updateRestOverride,
+    updatePerSetRestOverride,
+    updateSetDuration,
+    updatePauseDuration,
+    updateRestTime,
+    skipExercise,
+    unskipExercise,
+    reset,
+    restoreData,
+    getExerciseData,
   ]);
 
   return returnValue;

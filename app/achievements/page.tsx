@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AchievementsGrid from '@/components/AchievementsGrid';
 import { Button } from '@/components/ui/Button';
+import { useGym } from '@/context/GymContext'; // ✨ Usar el contexto existente
 import type { WorkoutSession } from '@/types';
 import { calculateAchievements, calculateStreak, calculateTotalVolume } from '@/lib/achievements';
 import { 
@@ -22,30 +23,13 @@ import {
   StatBadge,
   StatsGrid
 } from '@/components/shared';
+import { AchievementDebugPanel } from '@/components/AchievementDebugPanel'; // ✨ Panel de debug
 
 export default function AchievementsPage() {
   const router = useRouter();
-  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { sessions, loading } = useGym(); // ✨ Usar sesiones del contexto
 
-  useEffect(() => {
-    loadSessions();
-  }, []);
-
-  const loadSessions = async () => {
-    try {
-      const response = await fetch('/api/sessions');
-      if (response.ok) {
-        const data = await response.json();
-        setSessions(data);
-      }
-    } catch (error) {
-      console.error('Error loading sessions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ✨ Calcular logros basándose en las sesiones del contexto
   const achievements = calculateAchievements(sessions);
   const streak = calculateStreak(sessions);
   const totalVolume = calculateTotalVolume(sessions);
@@ -55,6 +39,15 @@ export default function AchievementsPage() {
   const completionPercentage = totalCount > 0 
     ? Math.round((unlockedCount / totalCount) * 100)
     : 0;
+
+  // ✨ Debug: Log para verificar datos
+  useEffect(() => {
+    console.log('[Achievements] Sessions loaded:', sessions.length);
+    console.log('[Achievements] Total volume:', totalVolume);
+    console.log('[Achievements] Current streak:', streak.current);
+    console.log('[Achievements] Longest streak:', streak.longest);
+    console.log('[Achievements] Unlocked achievements:', unlockedCount);
+  }, [sessions, totalVolume, streak, unlockedCount]);
 
   if (loading) {
     return (
@@ -205,6 +198,9 @@ export default function AchievementsPage() {
         )}
         </PageContent>
       </PageLayout>
+      
+      {/* ✨ Panel de debug solo en desarrollo */}
+      <AchievementDebugPanel />
     </ProtectedRoute>
   );
 }

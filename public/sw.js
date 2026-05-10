@@ -207,6 +207,73 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
 
+  // ✨ NEW: Manejar acciones específicas de notificaciones de descanso
+  if (event.action === 'skip') {
+    // Enviar mensaje a la app para saltar el descanso
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+          clientList.forEach(client => {
+            client.postMessage({
+              type: 'notification-action',
+              action: 'skip',
+              notificationData: event.notification.data
+            });
+          });
+        })
+    );
+    return;
+  }
+
+  if (event.action === 'add-30s') {
+    // Enviar mensaje a la app para añadir 30 segundos
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+          clientList.forEach(client => {
+            client.postMessage({
+              type: 'notification-action',
+              action: 'add-30s',
+              notificationData: event.notification.data
+            });
+          });
+        })
+    );
+    return;
+  }
+
+  if (event.action === 'continue') {
+    // Enviar mensaje a la app para continuar
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+          clientList.forEach(client => {
+            client.postMessage({
+              type: 'notification-action',
+              action: 'continue',
+              notificationData: event.notification.data
+            });
+          });
+        })
+    );
+  }
+
+  if (event.action === 'more-rest') {
+    // Enviar mensaje a la app para más descanso
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+          clientList.forEach(client => {
+            client.postMessage({
+              type: 'notification-action',
+              action: 'more-rest',
+              notificationData: event.notification.data
+            });
+          });
+        })
+    );
+  }
+
   if (event.action === 'close') {
     return;
   }

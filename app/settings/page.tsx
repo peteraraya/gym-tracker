@@ -3,6 +3,7 @@
 import { Settings } from '@/components/icons/lucide';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ThemeSettings } from '@/components/ThemeSettings';
+import { SoundSettingsContent } from '@/components/SoundSettings';
 import { PushNotificationTester } from '@/components/PushNotificationTester';
 import { DevTools } from '@/components/DevTools';
 import { PageLayout } from '@/components/PageLayout';
@@ -17,6 +18,11 @@ export default function SettingsPage() {
       >
         {/* Secciones */}
         <div className="space-y-4">
+          {/* Sonidos y Notificaciones */}
+          <section>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-3">Sonidos y Notificaciones</h2>
+            <SoundSettingsContent showCloseButton={false} />
+          </section>
           {/* Tema */}
           <section>
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-3">

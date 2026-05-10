@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { calculateAchievements, getRecentAchievements } from '@/lib/achievements';
+import { useAchievementManager } from '@/lib/achievementManager';
 
 interface UseWorkoutCompletionProps {
   routine: any;
@@ -33,6 +33,9 @@ export function useWorkoutCompletion({
   const [sessionNotes, setSessionNotes] = useState('');
   const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
   
+  // ✨ Usar el nuevo sistema de logros
+  const achievementManager = useAchievementManager();
+  
   const openCompletionModal = useCallback((duration?: number) => {
     const calculatedDuration = duration || Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
     // Redondear a intervalos de 5 segundos
@@ -58,8 +61,19 @@ export function useWorkoutCompletion({
       });
     });
 
-    const sessionExercises = routine.exercises.map((ex: any) => ({
-      exerciseId: ex.id,
+    type SessionExercise = {
+      exerciseId: string;
+      exerciseName: string;
+      completedSets: number;
+      actualReps: number[];
+      actualWeight: number[];
+      setDurations: number[];
+      pauseDurations: number[];
+      actualRestTimes: number[];
+    };
+
+    const sessionExercises: SessionExercise[] = routine.exercises.map((ex: any) => ({
+      exerciseId: String(ex.id),
       exerciseName: ex.name,
       completedSets: workoutData.completedSets[ex.id] || 0,
       actualReps: workoutData.actualReps[ex.id] || [],
@@ -69,39 +83,54 @@ export function useWorkoutCompletion({
       actualRestTimes: workoutData.actualRestTimes[ex.id] || []
     }));
 
-    try {
-      await addSession({
-        routineId: routine.id,
-        date: new Date(),
-        exercises: sessionExercises,
-        notes: sessionNotes.trim() || '',
-        totalDuration,
-        totalPausedTime,
-        totalVolume: Math.round(totalVolume)
-      });
-      
-      // Check for new achievements
-      const updatedSessions = [...sessions, {
-        routineId: routine.id,
-        date: new Date(),
-        exercises: sessionExercises,
-        notes: sessionNotes.trim() || '',
-        totalDuration,
-        totalPausedTime
-      } as any];
+    // ✨ Crear la nueva sesión
+    const newSession = {
+      id: `temp-${Date.now()}`, // ID temporal
+      routineId: routine.id,
+      routineName: routine.name,
+      date: new Date(),
+      exercises: sessionExercises,
+      notes: sessionNotes.trim() || '',
+      totalDuration,
+      totalPausedTime,
+      totalVolume: Math.round(totalVolume)
+    };
 
-      const achievements = calculateAchievements(updatedSessions);
-      const recentAchievements = getRecentAchievements(achievements);
+    try {
+      // ✨ Procesar logros ANTES de guardar
+      const allSessionsWithNew = [...sessions, newSession];
+      const newAchievements = achievementManager.processNewSession(newSession, allSessionsWithNew);
+      const stats = achievementManager.getQuickStats(allSessionsWithNew);
+      const records = achievementManager.checkPersonalRecords(newSession, allSessionsWithNew);
+
+      // Guardar la sesión
+      await addSession(newSession);
       
-      // Show achievement notifications
-      recentAchievements.forEach(achievement => {
-        if (achievement.unlocked && !shownAchievements.has(achievement.id)) {
-          onSuccess(`🏆 ¡Logro desbloqueado! ${achievement.name}`, 5000);
-          setShownAchievements(prev => new Set([...prev, achievement.id]));
-          // Haptic feedback para logro
-          onAchievementUnlocked?.();
-        }
-      });
+      // ✨ Mostrar notificaciones de logros
+      if (newAchievements.length > 0) {
+        newAchievements.forEach(({ achievement }) => {
+          if (!shownAchievements.has(achievement.id)) {
+            onSuccess(`🏆 ¡Logro desbloqueado! ${achievement.name}`, 5000);
+            setShownAchievements(prev => new Set([...prev, achievement.id]));
+            onAchievementUnlocked?.();
+          }
+        });
+      }
+
+      // ✨ Mostrar notificaciones de récords personales
+      if (records.volumeRecord) {
+        onSuccess(`💪 ¡Nuevo récord de volumen! ${Math.round(totalVolume)}kg`, 4000);
+      }
+      if (records.setsRecord) {
+        const totalSets = sessionExercises.reduce((sum, ex) => sum + ex.completedSets, 0);
+        onSuccess(`🔥 ¡Nuevo récord de series! ${totalSets} series`, 4000);
+      }
+
+      // ✨ Mensaje motivacional
+      const motivationalMessage = achievementManager.generateMotivationalMessage(newAchievements, stats);
+      if (newAchievements.length === 0) {
+        onSuccess(motivationalMessage, 3000);
+      }
       
       // Haptic feedback al completar entrenamiento
       onWorkoutComplete?.();
@@ -117,7 +146,23 @@ export function useWorkoutCompletion({
       console.error('Error saving session:', err);
       onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
     }
-  }, [routine, proposedDuration, workoutStartTime, totalPausedTime, sessionNotes, addSession, finishWorkoutContext, onSuccess, onError, router, sessions, shownAchievements]);
+  }, [
+    routine, 
+    proposedDuration, 
+    workoutStartTime, 
+    totalPausedTime, 
+    sessionNotes, 
+    addSession, 
+    finishWorkoutContext, 
+    onSuccess, 
+    onError, 
+    router, 
+    sessions, 
+    shownAchievements,
+    achievementManager,
+    onWorkoutComplete,
+    onAchievementUnlocked
+  ]);
   
   return {
     showNotesModal,

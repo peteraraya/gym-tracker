@@ -7,6 +7,7 @@ import * as storageService from '@/lib/storage/storage';
 import { recommendForSession } from '@/lib/progression';
 import { useRoutines as useRoutinesQuery } from '@/hooks/queries/useRoutines';
 import { useSessions as useSessionsQuery } from '@/hooks/queries/useSessions';
+import { achievementManager } from '@/lib/achievementManager'; // ✨ Importar el gestor de logros
 
 interface RoutinesContextType {
   routines: Routine[];
@@ -56,6 +57,14 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     })();
     return () => { mounted = false };
   }, [reactQuerySessions]);
+
+  // ✨ Inicializar el sistema de logros cuando las sesiones estén cargadas
+  useEffect(() => {
+    if (!reactQuerySessions.isLoading && reactQuerySessions.sessions) {
+      console.log('[GymContext] Initializing achievement manager with', reactQuerySessions.sessions.length, 'sessions');
+      achievementManager.initialize(reactQuerySessions.sessions);
+    }
+  }, [reactQuerySessions.isLoading, reactQuerySessions.sessions]);
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true') {

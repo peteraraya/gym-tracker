@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Clock, Weight, ListChecks, Repeat } from '@/components/icons/lucide';
+import { Clock, Weight, ListChecks, Repeat, Settings } from '@/components/icons/lucide';
 import type { Routine } from '@/types';
 
 interface CompactWorkoutHeaderProps {
@@ -19,6 +19,7 @@ interface CompactWorkoutHeaderProps {
   onPauseToggle?: () => void;
   onEditTime?: () => void;
   onDeleteExercise?: () => void;
+  onOpenSoundSettings?: () => void; // ✨ NEW: Callback para abrir configuración de sonidos
 }
 
 /**
@@ -39,6 +40,7 @@ export function CompactWorkoutHeader({
   onPauseToggle,
   onEditTime,
   onDeleteExercise,
+  onOpenSoundSettings, // ✨ NEW: Receive callback
 }: CompactWorkoutHeaderProps) {
   
   // Calcular progreso basado en series completadas vs total de series
@@ -131,16 +133,31 @@ export function CompactWorkoutHeader({
           </div>
         </div>
         
-        {onCancel && (
-          <Button
-            variant="ghost"
-            onClick={onCancel}
-            size="sm"
-            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 ml-2 px-3 py-1.5 text-xs font-medium"
-          >
-            Descartar entrenamiento
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* ✨ NEW: Botón de configuración de sonidos */}
+          {onOpenSoundSettings && (
+            <Button
+              variant="ghost"
+              onClick={onOpenSoundSettings}
+              size="sm"
+              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-2"
+              title="Configurar sonidos y notificaciones"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          )}
+          
+          {onCancel && (
+            <Button
+              variant="ghost"
+              onClick={onCancel}
+              size="sm"
+              className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 text-xs font-medium"
+            >
+              Descartar entrenamiento
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Fila 2: Estadísticas compactas */}
