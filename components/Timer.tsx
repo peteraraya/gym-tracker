@@ -143,6 +143,8 @@ export const Timer: React.FC<TimerProps> = ({
     // console.log('[Timer] Interval effect - isRunning:', isRunning);
     if (isRunning) {
       // ✨ NEW: Iniciar notificaciones de progreso si están habilitadas
+      // Nota: no dependemos de `timeLeft` aquí para evitar reiniciar
+      // las notificaciones en cada tick (evita notificaciones cada segundo).
       if (notificationPermission && timeLeft > 10) {
         notifications.startTimerNotifications({
           timeLeft,
@@ -151,7 +153,7 @@ export const Timer: React.FC<TimerProps> = ({
           routineName: title
         });
       }
-      
+
       // console.log('[Timer] Starting interval');
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
@@ -159,14 +161,14 @@ export const Timer: React.FC<TimerProps> = ({
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
-            
+
             // ✨ NEW: Detener notificaciones de progreso
             notifications.stopTimerNotifications();
-            
+
             // Calcular duración real
             const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
             setActualDuration(realDuration);
-            
+
             // Llamar onComplete automáticamente cuando el timer llega a 0
             if (onCompleteRef.current && !onCompleteCalledRef.current) {
               onCompleteCalledRef.current = true;
@@ -175,7 +177,7 @@ export const Timer: React.FC<TimerProps> = ({
                 onCompleteRef.current?.();
               }, 100);
             }
-            
+
             return 0;
           }
           return prev - 1;
@@ -195,7 +197,22 @@ export const Timer: React.FC<TimerProps> = ({
       // ✨ NEW: Limpiar notificaciones al desmontar
       notifications.stopTimerNotifications();
     };
-  }, [isRunning, notificationPermission, timeLeft, plannedDuration, nextExerciseName, title]); // Removido onComplete de las dependencias
+  }, [isRunning, notificationPermission, plannedDuration, nextExerciseName, title]); // Removido timeLeft de las dependencias para evitar reinicios frecuentes
+
+  // Si el tiempo se ajusta manualmente mientras el timer está corriendo,
+  // reiniciamos las notificaciones con el nuevo valor una sola vez.
+  useEffect(() => {
+    if (hasAdjusted && isRunning && notificationPermission) {
+      notifications.startTimerNotifications({
+        timeLeft,
+        totalTime: plannedDuration,
+        nextExercise: nextExerciseName,
+        routineName: title
+      });
+      // Resetear la bandera para no reiniciar continuamente
+      setHasAdjusted(false);
+    }
+  }, [hasAdjusted]);
 
   // Efecto separado para notificar cambios en la duración real
   useEffect(() => {
