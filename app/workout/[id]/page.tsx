@@ -1062,9 +1062,9 @@ export default function WorkoutPage() {
 
       console.log("[completeSetLogic] Completing set:", params);
 
-      // Validar datos
-      if (!(reps > 0 && weight > 0)) {
-        error("No puedes completar la serie sin repeticiones y peso");
+      // Validar datos: exigir al menos repeticiones (peso puede ser 0 para ejercicios corporales)
+      if (!(reps > 0)) {
+        error("No puedes completar la serie sin repeticiones");
         return {
           success: false,
           reason: "invalid-data",
@@ -1072,7 +1072,7 @@ export default function WorkoutPage() {
         };
       }
 
-      // Completar la serie en la posición correcta
+      // Completar la serie en la posición correcta (state update asincrónica)
       workoutState.completeSetAt(exerciseId, setIndex, reps, weight);
 
       // Feedback háptico
@@ -1094,9 +1094,18 @@ export default function WorkoutPage() {
         };
       }
 
-      // Calcular si es la última serie del ejercicio
-      const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
-      const completedCount = actualReps.filter(
+      // Calcular si es la última serie del ejercicio usando una copia local
+      // del array de reps actualizado (setState es asincrónico, no podemos
+      // depender de workoutState.workoutData inmediatamente después de escribir).
+      const prevExerciseData = workoutState.getExerciseData(exerciseId);
+      const actualRepsLocal = Array.isArray(prevExerciseData.actualReps)
+        ? [...prevExerciseData.actualReps]
+        : [];
+      // Asegurar longitud suficiente
+      while (actualRepsLocal.length <= setIndex) actualRepsLocal.push(0);
+      actualRepsLocal[setIndex] = reps;
+
+      const completedCount = actualRepsLocal.filter(
         (r: number) => typeof r === "number" && r > 0,
       ).length;
       const isLastSetOfExercise = completedCount >= exercise.sets.length;
@@ -1144,8 +1153,8 @@ export default function WorkoutPage() {
         });
 
         if (isFromQuickMode) {
-          // Para quick mode, calcular el número de la siguiente serie
-          const nextIncompleteIndex = actualReps.findIndex(
+          // Para quick mode, calcular el número de la siguiente serie usando la copia local
+          const nextIncompleteIndex = actualRepsLocal.findIndex(
             (r, idx) => idx > setIndex && (!r || r === 0),
           );
           const nextSetNumber =
