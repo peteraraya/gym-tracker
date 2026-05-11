@@ -523,6 +523,18 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       logger.log(
         "[WorkoutContext] Active workout finished and cleared from storage",
       );
+
+      // Emitir marcador para coordinar otras ventanas/pestañas y listeners
+      try {
+        if (typeof window !== 'undefined') {
+          const ts = Date.now().toString();
+          localStorage.setItem('gym-active-workout-cleared', ts);
+          // Evento para listeners en la misma ventana
+          window.dispatchEvent(new CustomEvent('activeWorkout:cleared', { detail: ts }));
+        }
+      } catch (e) {
+        logger.warn('[WorkoutContext] Could not emit activeWorkout cleared marker', e);
+      }
     } catch (e) {
       logger.error("[WorkoutContext] Error limpiando active workout:", e);
     }
@@ -549,6 +561,17 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       logger.log(
         "[WorkoutContext] Active workout cancelled and cleared from storage",
       );
+
+      // Emitir marcador para coordinar otras ventanas/pestañas y listeners
+      try {
+        if (typeof window !== 'undefined') {
+          const ts = Date.now().toString();
+          localStorage.setItem('gym-active-workout-cleared', ts);
+          window.dispatchEvent(new CustomEvent('activeWorkout:cleared', { detail: ts }));
+        }
+      } catch (e) {
+        logger.warn('[WorkoutContext] Could not emit activeWorkout cleared marker (cancel)', e);
+      }
     } catch (e) {
       logger.error("[WorkoutContext] Error limpiando active workout:", e);
     }
@@ -581,9 +604,57 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       // Cuando la app vuelve a primer plano, recargar workout si es necesario
       logger.debug("[WorkoutContext] App resumed, checking workout state...");
 
-      // Esperar un poco para asegurar que clearActiveWorkout se completó
+      // Esperar un poco para asegurarnos de que otras pestañas hayan completado
+      // la operación de `clearActiveWorkout`. Escuchamos un evento custom
+      // o el evento `storage` con la clave `gym-active-workout-cleared`.
       setTimeout(async () => {
         try {
+          if (typeof window !== 'undefined') {
+            await new Promise<void>((resolve) => {
+              let settled = false;
+
+              const handleClearedEvent = () => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                resolve();
+              };
+
+              const storageHandler = (e: any) => {
+                try {
+                  if (!e) return;
+                  if (e.key === 'gym-active-workout-cleared') {
+                    if (!settled) {
+                      settled = true;
+                      cleanup();
+                      resolve();
+                    }
+                  }
+                } catch (_) {
+                  // ignore
+                }
+              };
+
+              const cleanup = () => {
+                try { window.removeEventListener('activeWorkout:cleared', handleClearedEvent); } catch {};
+                try { window.removeEventListener('storage', storageHandler); } catch {};
+              };
+
+              window.addEventListener('activeWorkout:cleared', handleClearedEvent);
+              window.addEventListener('storage', storageHandler);
+
+              // Fallback timeout para no bloquear la reanudación indefinidamente
+              setTimeout(() => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                resolve();
+              }, 1500);
+            });
+          }
+
+          // Continuar con las comprobaciones habituales
+        
           // Verificar si el workout fue cancelado o finalizado recientemente
           if (typeof window !== "undefined") {
             // Verificar sessionStorage (últimos 5 segundos)

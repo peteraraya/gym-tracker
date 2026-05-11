@@ -978,6 +978,17 @@ export default function PlanningPage() {
   // Semana actual del mesociclo activo
   const currentWeekPlan = planning.getCurrentWeekPlan();
 
+  // Al hidratar y si existe un mesociclo activo, seleccionar automáticamente
+  // el mesociclo activo y posicionar en la semana actual.
+  useEffect(() => {
+    if (!planning.hydrated) return;
+    if (planning.activeMesocycle && !selectedMesoId) {
+      setSelectedMesoId(planning.activeMesocycle.id);
+      const cw = planning.getCurrentWeekPlan();
+      setSelectedWeek(cw?.weekNumber ?? 1);
+    }
+  }, [planning.hydrated, planning.activeMesocycle?.id, planning.getCurrentWeekPlan]);
+
   return (
     <ProtectedRoute>
       <PageLayout>

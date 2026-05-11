@@ -205,10 +205,21 @@ export function usePlanning() {
   const setActiveMesocycle = useCallback((id: string | null) => {
     setData(prev => {
       const updated = { ...prev, activeMesocycleId: id };
-      // Si activamos uno, pasar los demás activos a 'paused'
+      // Si activamos uno, pasar los demás activos a 'paused' y fijar startDate al activarlo
       if (id) {
         updated.mesocycles = prev.mesocycles.map(m => {
-          if (m.id === id) return { ...m, status: 'active' as const, updatedAt: new Date().toISOString() };
+          if (m.id === id) {
+            // Si estamos cambiando estado a 'active' (no estaba ya activo), ajustar startDate
+            const nowIso = new Date().toISOString();
+            const wasActive = m.status === 'active';
+            return {
+              ...m,
+              status: 'active' as const,
+              // Al activar, asumimos que la planificación debe empezar desde el momento de activación
+              startDate: wasActive ? m.startDate : nowIso,
+              updatedAt: nowIso,
+            };
+          }
           if (m.status === 'active') return { ...m, status: 'paused' as const, updatedAt: new Date().toISOString() };
           return m;
         });
