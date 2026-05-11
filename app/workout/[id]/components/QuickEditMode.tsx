@@ -1345,33 +1345,35 @@ export function QuickEditMode({
                 <CardContent className="p-0">
                   {/* Filas de series — diseño de tarjeta, no tabla */}
                   <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {/* Cabecera compacta */}
-                    <div className="grid grid-cols-[32px_1fr_1fr_40px_40px_52px] gap-1 px-2 py-1 bg-gray-50 dark:bg-gray-900/50 text-[9px] font-semibold tracking-wide text-gray-500 dark:text-gray-400 items-center">
-                      <div className="text-center w-8">N°</div>
+                    {/* Cabecera compacta alineada con filas */}
+                    <div className="px-2 py-1.5 bg-gray-50 dark:bg-gray-900/50">
+                      <div className="grid grid-cols-[32px_80px_80px_32px_48px_24px] md:grid-cols-[32px_2fr_2fr_48px_56px_24px] gap-1 items-center h-11">
+                        <div className="flex justify-center">
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-gray-600 dark:text-gray-300">
+                            N°
+                          </div>
+                        </div>
 
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="text-[11px] font-bold">Rep</span>
-                      </div>
+                        <div className="flex items-center">
+                          <div className="mx-auto text-[10px] font-semibold text-gray-600 dark:text-gray-300">Reps</div>
+                        </div>
 
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="text-[11px] font-bold">Kg</span>
-                      </div>
+                        <div className="flex items-center">
+                          <div className="mx-auto text-[10px] font-semibold text-gray-600 dark:text-gray-300">Peso</div>
+                        </div>
 
-                      <div className="flex  gap-1">
-                        <span className="hidden sm:inline">Tipo</span>
-                        <span className="sm:hidden text-[11px]">T</span>
-                      </div>
+                        <div className="flex items-center justify-center">
+                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 hidden sm:block">Tipo</div>
+                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 sm:hidden">T</div>
+                        </div>
 
-                      <div className="flex items-center justify-center gap-1" title="Completar serie" aria-label="Completar serie">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
+                        <div className="flex items-center justify-center">
+                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300">✓</div>
+                        </div>
 
-                      <div className="flex items-center justify-center gap-1" title="Eliminar serie" aria-label="Eliminar serie">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <div className="flex items-center justify-center">
+                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300">✕</div>
+                        </div>
                       </div>
                     </div>
 
@@ -1468,7 +1470,8 @@ export function QuickEditMode({
                                 : "bg-white dark:bg-transparent"
                           }`}
                         >
-                          <div className="grid grid-cols-[32px_1fr_1fr_40px_40px_52px] gap-1 items-center flex-1">
+                          {/* Datos  */}
+                          <div className="grid grid-cols-[32px_80px_80px_32px_12px_24px] md:grid-cols-[32px_2fr_2fr_32px_18px_34px] gap-1 items-center flex-1">
                             {/* Número */}
                             <div className="flex justify-center">
                               <div
@@ -1483,7 +1486,7 @@ export function QuickEditMode({
                             </div>
 
                             {/* Reps */}
-                            <div className="relative">
+                            <div className="relative w-full">
                               <button
                                 ref={(el) => {
                                   setInputRefs.current[
