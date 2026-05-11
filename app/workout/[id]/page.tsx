@@ -127,6 +127,7 @@ export default function WorkoutPage() {
     loading: gymLoading,
     updateRoutine,
   } = useGym();
+  const [originalRoutine, setOriginalRoutine] = useState<any | null>(null);
   const {
     activeWorkout,
     startWorkout,
@@ -534,6 +535,14 @@ export default function WorkoutPage() {
         foundRoutine = getRoutineById(id);
       }
 
+      // Guardar una copia de la rutina original para detectar cambios
+      try {
+        const canonical = getRoutineById(id);
+        setOriginalRoutine(canonical ? JSON.parse(JSON.stringify(canonical)) : null);
+      } catch (e) {
+        setOriginalRoutine(null);
+      }
+
       if (!foundRoutine) {
         router.push("/routines");
         return;
@@ -912,6 +921,92 @@ export default function WorkoutPage() {
     }, 0);
     return () => clearTimeout(timer);
   }, [workoutState.currentExerciseIndex]);
+  
+  // Detectar si la rutina actual difiere de la original (cambios en sets/pesos/orden)
+  const hasRoutineChanges = useCallback((orig: any | null, curr: any | null) => {
+    if (!orig || !curr) return false;
+    const origEx = orig.exercises || [];
+    const currEx = curr.exercises || [];
+    if (origEx.length !== currEx.length) return true;
+
+    for (const ce of currEx) {
+      const oe = origEx.find((e: any) => e.id === ce.id);
+      if (!oe) return true; // ejercicio nuevo
+      if ((oe.sets || []).length !== (ce.sets || []).length) return true;
+      for (let i = 0; i < (ce.sets || []).length; i++) {
+        const os = oe.sets[i] || {};
+        const cs = ce.sets[i] || {};
+        if (Number(os.reps || 0) !== Number(cs.reps || 0)) return true;
+        if (Number(os.weight || 0) !== Number(cs.weight || 0)) return true;
+      }
+    }
+
+    return false;
+  }, []);
+
+  const handleFinish = useCallback(async () => {
+    try {
+      if (originalRoutine && routine && hasRoutineChanges(originalRoutine, routine)) {
+        const confirmed = await confirm({
+          title: "Actualizar rutina original",
+          message:
+            "Has modificado pesos/series durante el entrenamiento. ¿Deseas actualizar la rutina original con estos cambios?",
+          confirmText: "Sí, actualizar",
+          cancelText: "No, solo guardar sesión",
+        });
+
+        if (confirmed) {
+          try {
+            await updateRoutine(id, {
+              name: routine.name,
+              description: routine.description,
+              image: routine.image,
+              exercises: routine.exercises.map((ex: any) => ({
+                id: ex.id,
+                name: ex.name,
+                sets: ex.sets.map((s: any) => ({
+                  reps: s.reps,
+                  weight: s.weight || 0,
+                  type: s.type,
+                  notes: s.notes,
+                })),
+                notes: ex.notes,
+                equipment: ex.equipment,
+                technique: ex.technique,
+                recommendedSets: ex.recommendedSets,
+                recommendedReps: ex.recommendedReps,
+                restTime: ex.restTime,
+                restBetweenSets: ex.restBetweenSets,
+                useSmartRest: ex.useSmartRest,
+              })),
+              restBetweenSets: routine.restBetweenSets,
+              restBetweenExercises: routine.restBetweenExercises,
+            });
+            success("Rutina actualizada", 2000);
+          } catch (err) {
+            console.error("Error updating routine:", err);
+            error("No se pudo actualizar la rutina");
+          }
+        }
+      }
+
+      await completion.finishWorkout(workoutState.workoutData);
+    } catch (err) {
+      console.error("Error finishing workout:", err);
+      error("Error al finalizar el entrenamiento");
+    }
+  }, [
+    originalRoutine,
+    routine,
+    hasRoutineChanges,
+    confirm,
+    updateRoutine,
+    id,
+    success,
+    error,
+    completion,
+    workoutState,
+  ]);
 
   useEffect(() => {
     if (!timerHandlers.showTimer && pendingToast) {
@@ -2793,7 +2888,7 @@ export default function WorkoutPage() {
           onDurationChange={completion.setProposedDuration}
           sessionNotes={completion.sessionNotes}
           onNotesChange={completion.setSessionNotes}
-          onFinish={() => completion.finishWorkout(workoutState.workoutData)}
+          onFinish={handleFinish}
           isSaving={false}
         />
 
