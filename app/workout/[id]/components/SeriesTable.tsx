@@ -182,19 +182,10 @@ export function SeriesTable({
                             >
                               {doneWeight || set.weight || 0}
                             </button>
-                            {/* Hint cuando no hay peso */}
+                            {/* Hint cuando no hay peso (simplificado) */}
                             {!(typeof doneWeight === 'number' && doneWeight > 0) && (
                               <div className="mt-1 text-[11px] text-gray-500">
-                                {idx > 0 && (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) ? (
-                                  <button
-                                    onClick={() => onEditWeight(idx, (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) as number)}
-                                    className="text-blue-600 dark:text-blue-400 underline text-[11px]"
-                                  >
-                                    Usar anterior {(actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight)}kg
-                                  </button>
-                                ) : (
-                                  <span>Toca para editar el peso</span>
-                                )}
+                                <span>Toca para editar el peso</span>
                               </div>
                             )}
                           </div>

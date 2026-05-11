@@ -2359,13 +2359,24 @@ export default function WorkoutPage() {
         return;
       }
 
-      // Obtener la última serie como referencia
-      const lastSet = exercise.sets[exercise.sets.length - 1];
+      // Obtener la última serie real como referencia
+      // Preferir valores ya editados en workoutState (actualReps/actualWeights)
+      const lastIdx = exercise.sets.length - 1;
+      const lastRepsFromState = workoutState.workoutData.actualReps[exerciseId]?.[lastIdx];
+      const lastWeightFromState = workoutState.workoutData.actualWeights[exerciseId]?.[lastIdx];
 
-      // Crear nueva serie con los mismos valores que la última
+      const lastSet = exercise.sets[lastIdx];
+
+      // Crear nueva serie copiando valores previos (prefiere edits en sesión)
       const newSet = {
-        reps: lastSet.reps,
-        weight: lastSet.weight || 0,
+        reps:
+          typeof lastRepsFromState === 'number' && lastRepsFromState > 0
+            ? lastRepsFromState
+            : lastSet.reps,
+        weight:
+          typeof lastWeightFromState === 'number' && lastWeightFromState > 0
+            ? lastWeightFromState
+            : lastSet.weight || 0,
         restAfter: lastSet.restAfter || exercise.restBetweenSets || 90,
       };
 

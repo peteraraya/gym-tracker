@@ -593,6 +593,34 @@ export function QuickEditMode({
     ];
   }, [routine.exercises, pinnedExerciseId]);
 
+  // Elapsed timer local para encabezado compacto (desde el montaje)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  useEffect(() => {
+    const startTs = Date.now();
+    const id = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startTs) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const formatElapsed = (s: number) => {
+    const mm = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${mm}:${String(ss).padStart(2, "0")}`;
+  };
+
+  // Ejercicio actual: preferir el anclado, si no existe usar el primer incompleto
+  const currentExerciseId = useMemo(() => {
+    if (pinnedExerciseId) return pinnedExerciseId;
+    const skipped = workoutData.skippedExercises || [];
+    const found = routine.exercises.find((ex) => {
+      if (skipped.includes(ex.id)) return false;
+      const completed = workoutData.completedSets?.[ex.id] || 0;
+      return completed < ex.sets.length;
+    });
+    return found?.id ?? routine.exercises[0]?.id ?? null;
+  }, [pinnedExerciseId, routine.exercises, workoutData.completedSets, workoutData.skippedExercises]);
+
   return (
     <div className="space-y-3 pb-32">
       {/* Temporizador flotante */}
@@ -607,93 +635,151 @@ export function QuickEditMode({
         />
       )}
 
-      {/* Header mejorado - sticky y más visual */}
-      <div className="bg-linear-to-r from-blue-500 to-purple-600 text-white p-4 rounded-xl shadow-lg sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex-1">
-            <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
-              📝 Edición Rápida
+      {/* Header compacto - sticky */}
+      <div className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-b-xl shadow sticky top-0 z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-sm font-bold truncate flex items-center gap-2">
+              <span>📝</span>
+              <span>Edición Rápida</span>
             </h2>
-            <p className="text-xs opacity-90">
-              Toca cualquier valor para editarlo
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold leading-none">
-              {progressPercent}%
-            </div>
-            <div className="text-xs opacity-90 mt-1">
-              {completedSets}/{totalSets} series
-            </div>
-          </div>
-        </div>
-
-        {/* Switch para omitir descansos + Auto-advance */}
-        <div className="flex items-center justify-between gap-3 mt-3 p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-            <span className="text-sm font-medium">Omitir descansos</span>
+            <span className="text-xs opacity-90 hidden sm:inline">Toca para editar</span>
+            <span className="text-xs opacity-90 ml-2">{formatElapsed(elapsedSeconds)}</span>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSkipRestTimers(!skipRestTimers)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
-                skipRestTimers ? "bg-green-500" : "bg-white/30"
-              }`}
-              role="switch"
-              aria-checked={skipRestTimers}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  skipRestTimers ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
+            <div className="flex flex-col items-center px-2">
+              <div className="text-lg font-bold leading-none">{progressPercent}%</div>
+              <div className="text-[10px] opacity-90">{completedSets}/{totalSets}</div>
+            </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Avanzar auto</span>
-              <button
-                onClick={() => setAutoAdvance(!autoAdvance)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
-                  autoAdvance ? "bg-blue-500" : "bg-white/30"
-                }`}
-                role="switch"
-                aria-checked={autoAdvance}
-                title={
-                  autoAdvance
-                    ? "Avanzar automáticamente activado"
-                    : "Avanzar automáticamente desactivado"
-                }
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    autoAdvance ? "translate-x-6" : "translate-x-1"
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newVal = !skipRestTimers;
+                    setSkipRestTimers(newVal);
+                    try {
+                      showToast(
+                        newVal
+                          ? "Omitir descansos activado"
+                          : "Omitir descansos desactivado",
+                        "info",
+                        2200,
+                      );
+                    } catch {}
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
+                    skipRestTimers ? "bg-green-500" : "bg-white/30"
                   }`}
-                />
-              </button>
+                  role="switch"
+                  aria-checked={skipRestTimers}
+                  title={skipRestTimers ? "Omitir descansos: ON" : "Omitir descansos: OFF"}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${skipRestTimers ? "translate-x-6" : "translate-x-1"}`} />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showToast(
+                      "Omitir descansos: al activar, los timers no se iniciarán entre series.",
+                      "info",
+                      5200,
+                    );
+                  }}
+                  className="p-1 rounded-md hover:bg-white/10 ml-1"
+                  title="Qué hace: Omitir descansos"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newVal = !autoAdvance;
+                    setAutoAdvance(newVal);
+                    try {
+                      showToast(
+                        newVal ? "Avanzar automáticamente activado" : "Avanzar automáticamente desactivado",
+                        "info",
+                        2200,
+                      );
+                    } catch {}
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
+                    autoAdvance ? "bg-blue-500" : "bg-white/30"
+                  }`}
+                  role="switch"
+                  aria-checked={autoAdvance}
+                  title={autoAdvance ? "Avanzar auto: ON" : "Avanzar auto: OFF"}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoAdvance ? "translate-x-6" : "translate-x-1"}`} />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showToast(
+                      "Avanzar automáticamente: al activar, el foco avanzará a la siguiente serie tras completar.",
+                      "info",
+                      5200,
+                    );
+                  }}
+                  className="p-1 rounded-md hover:bg-white/10 ml-1"
+                  title="Qué hace: Avanzar automáticamente"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+              </div>
+
+              {onAddSet && currentExerciseId && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddSet(currentExerciseId);
+                  }}
+                  className="p-2 bg-white/10 hover:bg-white/20 rounded-md text-white text-sm font-semibold"
+                  title="Agregar serie"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              )}
+
+              {onFinishWorkout && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onFinishWorkout();
+                  }}
+                  disabled={completedSets === 0}
+                  className={`p-2 rounded-md ml-1 ${
+                    completedSets === 0
+                      ? "bg-gray-400/50 cursor-not-allowed"
+                      : "bg-white/10 hover:bg-white/20"
+                  }`}
+                  title="Finalizar entrenamiento"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Barra de progreso mejorada */}
-        <div className="w-full bg-white/20 rounded-full h-2 mt-3 overflow-hidden">
-          <div
-            className="bg-white rounded-full h-2 transition-all duration-500 ease-out shadow-lg"
-            style={{ width: `${progressPercent}%` }}
-          />
+        <div className="w-full bg-white/10 rounded-full h-1 mt-2 overflow-hidden">
+          <div className="bg-white h-1 transition-all" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
 
@@ -803,7 +889,7 @@ export function QuickEditMode({
             >
               {/* Header del ejercicio mejorado con más información */}
               <div
-                className={`border-b border-gray-200 dark:border-gray-700 ${
+                className={`border-b border-gray-200 dark:border-gray-700 shadow rounded ${
                   isCurrent
                     ? "bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30"
                     : isNext
@@ -1259,14 +1345,34 @@ export function QuickEditMode({
                 <CardContent className="p-0">
                   {/* Filas de series — diseño de tarjeta, no tabla */}
                   <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {/* Cabecera */}
-                    <div className="grid grid-cols-[32px_1fr_1fr_40px_40px_52px] gap-1 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/50 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                      <span className="text-center">#</span>
-                      <span className="text-center">Reps</span>
-                      <span className="text-center">Peso</span>
-                      <span className="text-center">Tipo</span>
-                      <span className="text-center">↻</span>
-                      <span className="text-center">✓</span>
+                    {/* Cabecera compacta */}
+                    <div className="grid grid-cols-[32px_1fr_1fr_40px_40px_52px] gap-1 px-2 py-1 bg-gray-50 dark:bg-gray-900/50 text-[9px] font-semibold tracking-wide text-gray-500 dark:text-gray-400 items-center">
+                      <div className="text-center w-8">N°</div>
+
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-[11px] font-bold">Rep</span>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-[11px] font-bold">Kg</span>
+                      </div>
+
+                      <div className="flex  gap-1">
+                        <span className="hidden sm:inline">Tipo</span>
+                        <span className="sm:hidden text-[11px]">T</span>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-1" title="Completar serie" aria-label="Completar serie">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-1" title="Eliminar serie" aria-label="Eliminar serie">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
                     </div>
 
                     {exercise.sets.map((set, setIdx) => {
@@ -1492,44 +1598,9 @@ export function QuickEditMode({
                               />
                             </div>
 
-                            {/* Copiar anterior */}
+                            {/* Placeholder para el espacio del control (se elimina "Copiar anterior") */}
                             <div className="flex justify-center">
-                              {canCopyPrevious &&
-                              previousReps &&
-                              previousWeight ? (
-                                <button
-                                  onClick={() => {
-                                    onEditReps(
-                                      exerciseId,
-                                      setIdx,
-                                      previousReps,
-                                    );
-                                    onEditWeight(
-                                      exerciseId,
-                                      setIdx,
-                                      previousWeight,
-                                    );
-                                  }}
-                                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 active:scale-90 touch-manipulation"
-                                  title={`Copiar anterior: ${previousReps}r × ${previousWeight}kg`}
-                                >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                    />
-                                  </svg>
-                                </button>
-                              ) : (
-                                <div className="w-8 h-8" />
-                              )}
+                              <div className="w-8 h-8" />
                             </div>
 
                             {/* Completar */}
