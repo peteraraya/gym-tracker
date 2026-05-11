@@ -547,64 +547,73 @@ export default function FreeWorkoutPage() {
             </p>
           </div>
 
-          {/* Panel de preconfiguración (solo cuando no hay ejercicios) */}
+          {/* Panel de preconfiguración (solo cuando no hay ejercicios) */} 
           {exercises.length === 0 && (
             <div className="mb-6">
               <Card>
+                <CardHeader className="pb-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm">Preconfiguración rápida</CardTitle>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Genera una rutina sugerida y agrégala a tu lista</p>
+                    </div>
+                  </div>
+                </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-4 sm:items-center sm:gap-6">
-                      <div className="flex-1">
-                        <label className="block text-xs text-gray-600 mb-1">Rutina sugerida</label>
-                        <select
-                          value={selectedSuggestionIndex}
-                          onChange={(e) => setSelectedSuggestionIndex(Number(e.target.value))}
-                          className="w-full p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
-                        >
-                          {suggestedRoutines.length === 0 ? (
-                            <option>Generando sugerencias...</option>
-                          ) : (
-                            suggestedRoutines.map((r: any, idx: number) => (
-                              <option key={r.id || idx} value={idx}>
-                                {r.name}
-                              </option>
-                            ))
-                          )}
-                        </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs text-gray-600 mb-1">Rutina sugerida</label>
+                      <select
+                        value={selectedSuggestionIndex}
+                        onChange={(e) => setSelectedSuggestionIndex(Number(e.target.value))}
+                        className="w-full p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+                      >
+                        {suggestedRoutines.length === 0 ? (
+                          <option>Generando sugerencias...</option>
+                        ) : (
+                          suggestedRoutines.map((r: any, idx: number) => (
+                            <option key={r.id || idx} value={idx}>
+                              {r.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+
+                      <div className="mt-3 flex items-center gap-3 flex-wrap">
+                        {(() => {
+                          const sel = suggestedRoutines[selectedSuggestionIndex];
+                          if (!sel) return <div className="text-xs text-gray-500">-</div>;
+                          try {
+                            const stats = getRoutineStats(sel.exercises || [], preRestBetweenSets, preRestBetweenExercises);
+                            return (
+                              <>
+                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-xs rounded">{stats.totalExercises} ejercicios</span>
+                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-xs rounded">{stats.totalSets} series</span>
+                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-xs rounded">{stats.estimatedDurationFormatted}</span>
+                              </>
+                            );
+                          } catch (err) {
+                            return <div className="text-xs text-gray-500">-</div>;
+                          }
+                        })()}
                       </div>
 
-                      <div className="w-36">
-                        <label className="block text-xs text-gray-600 mb-1">Descanso entre ejercicios</label>
+                      <div className="mt-3">
+                        <label className="block text-xs text-gray-600 mb-1">Descanso entre ejercicios (seg)</label>
                         <input
                           type="number"
                           min={0}
                           value={preRestBetweenExercises}
                           onChange={(e) => setPreRestBetweenExercises(Number(e.target.value || 120))}
-                          className="w-full p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+                          className="w-40 p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
                         />
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-700">
-                        {(() => {
-                          const sel = suggestedRoutines[selectedSuggestionIndex];
-                          if (!sel) return "-";
-                          try {
-                            const stats = getRoutineStats(sel.exercises || [], preRestBetweenSets, preRestBetweenExercises);
-                            return `${stats.totalExercises} ejercicios • ${stats.totalSets} series • ${stats.estimatedDurationFormatted}`;
-                          } catch (err) {
-                            return "-";
-                          }
-                        })()}
-                      </div>
-
-                      <div className="text-sm text-gray-500">Ajusta la configuración y revisa tu lista de ejercicios abajo antes de guardar la preconfiguración.</div>
-                    </div>
-
-                    <div className="flex justify-end items-center gap-3">
+                    <div className="flex flex-col items-end gap-2">
                       <Button
                         variant="secondary"
+                        className="w-full sm:w-auto"
                         onClick={() => {
                           const sel = suggestedRoutines[selectedSuggestionIndex];
                           if (!sel) {
@@ -628,13 +637,10 @@ export default function FreeWorkoutPage() {
                             recommendedWeight: Array.isArray(ex.sets) && ex.sets[0] ? ex.sets[0].weight : undefined,
                           }));
 
-                          // Añadir ejercicios directamente al listado (no mostrar pendiente en el card)
                           setExercises((prev) => {
                             const firstNewIndex = prev.length;
                             const next = [...prev, ...toApply];
-                            // establecer el primer ejercicio agregado como activo
                             setActiveExerciseIndex(firstNewIndex >= 0 ? firstNewIndex : 0);
-                            // scroll al ancla después de render
                             setTimeout(() => {
                               if (addExerciseAnchorRef.current) {
                                 addExerciseAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -649,8 +655,6 @@ export default function FreeWorkoutPage() {
                       >
                         Guardar preconfiguración
                       </Button>
-
-                      <div className="ml-4" />
                     </div>
                   </div>
                 </CardContent>
