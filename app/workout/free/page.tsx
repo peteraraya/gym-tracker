@@ -1170,6 +1170,7 @@ export default function FreeWorkoutPage() {
         isOpen={showExerciseSelector}
         onClose={() => setShowExerciseSelector(false)}
         title="Seleccionar ejercicios"
+        contentClassName="max-w-5xl w-full"
       >
         <ExerciseSelector
           onSelectExercises={handleAddExercises}

@@ -1117,6 +1117,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
         isOpen={isExerciseSelectorOpen}
         onClose={() => setIsExerciseSelectorOpen(false)}
         title={t("selectExercisesTitle")}
+        contentClassName="max-w-5xl w-full"
       >
         <ExerciseSelector
           onSelectExercises={handleSelectExercises}

@@ -103,30 +103,37 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
   const handleConfirmSelection = () => {
     if (selectedExercises.size === 0) return;
 
-    // Si estamos en búsqueda global, usar globalSearchResults
-    // Si estamos en un grupo muscular específico, usar filteredExercises y warmupExercises
-    const allAvailable = globalSearchResults.length > 0 
-      ? globalSearchResults 
-      : [...filteredExercises, ...warmupExercises];
-    
-    console.log('[ExerciseSelector] handleConfirmSelection:', {
-      globalSearchResultsLength: globalSearchResults.length,
-      allAvailableLength: allAvailable.length,
-      selectedExercisesSize: selectedExercises.size,
-      selectedExercisesIds: Array.from(selectedExercises)
-    });
-    
-    // Filtrar ejercicios seleccionados y limpiar propiedades extra (como 'type')
-    const exercises = allAvailable
-      .filter(ex => selectedExercises.has(ex.id))
-      .map(ex => {
-        // Crear una copia limpia sin la propiedad 'type'
-        const { type, ...cleanExercise } = ex as any;
-        return cleanExercise as ExerciseTemplate;
-      });
-    
-    console.log('[ExerciseSelector] Exercises to add:', exercises);
-    
+    // Construir lista completa de candidatos (entrenamiento, personalizados, calentamientos)
+    const mappedWarmups = getAllWarmups().map((w: WarmupExercise) => ({
+      ...w,
+      name: `🔥 ${w.name}`,
+      description: `${WARMUP_CATEGORY_LABELS[w.category].icon} ${WARMUP_CATEGORY_LABELS[w.category].es} • ${w.description || ''}`,
+      type: 'warmup' as const,
+    }));
+
+    const candidates: any[] = [
+      ...EXERCISE_DATABASE.map((e) => ({ ...e, type: 'training' as const })),
+      ...customExercises.map((e) => ({ ...e, type: 'custom' as const })),
+      ...mappedWarmups,
+    ];
+
+    const selectedIds = Array.from(selectedExercises);
+    const exercises = selectedIds
+      .map((id) => {
+        const found = candidates.find((c) => c.id === id);
+        if (!found) {
+          console.warn('[ExerciseSelector] Selected id not found in candidates:', id);
+          return null;
+        }
+        const { type, ...clean } = found as any;
+        return clean as ExerciseTemplate;
+      })
+      .filter(Boolean) as ExerciseTemplate[];
+
+    if (exercises.length === 0) return;
+
+    console.log('[ExerciseSelector] Exercises to add (global):', exercises.map((e) => e.id));
+
     onSelectExercises(exercises);
     setSelectedMuscle(null);
     setSearchTerm('');
@@ -172,25 +179,25 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
   const globalVirtualizer = useVirtualizer({
     count: globalSearchResults.length,
     getScrollElement: () => globalSearchParentRef.current,
-    estimateSize: () => 104,
+    estimateSize: () => 100,
     overscan: 3,
   });
 
   const exerciseListVirtualizer = useVirtualizer({
     count: currentExercises.length,
     getScrollElement: () => exerciseListParentRef.current,
-    estimateSize: () => 104,
+    estimateSize: () => 100,
     overscan: 3,
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-5xl w-[94vw] sm:w-[900px] lg:w-[1100px] mx-auto p-4 sm:p-6">
       {!selectedMuscle ? (
         <>
           <div className="text-center mb-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex-1"></div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Selecciona un grupo muscular
               </h3>
               <div className="flex-1 flex justify-end">
@@ -237,7 +244,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
 
           {/* Resultados de búsqueda global */}
           {globalSearchResults.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {globalSearchResults.length} resultado{globalSearchResults.length !== 1 ? 's' : ''} encontrado{globalSearchResults.length !== 1 ? 's' : ''}
@@ -251,7 +258,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
               
               <div
                 ref={globalSearchParentRef}
-                className="overflow-y-auto max-h-[500px]"
+                className="overflow-y-auto max-h-[480px]"
               >
                 <div
                   style={{ height: `${globalVirtualizer.getTotalSize()}px`, position: 'relative' }}
@@ -262,19 +269,20 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                     const isWarmup = exercise.type === 'warmup';
                     const muscleGroupName = MUSCLE_GROUPS.find(m => m.id === exercise.muscleGroup)?.name || exercise.muscleGroup;
                     return (
-                      <div
-                        key={exercise.id}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          transform: `translateY(${virtualRow.start}px)`,
-                          paddingBottom: '12px',
-                        }}
+                        <div
+                          key={`${(exercise as any).type || 'training'}-${exercise.id}-${virtualRow.index}`}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              transform: `translateY(${virtualRow.start}px)`,
+                              height: `${virtualRow.size}px`,
+                              boxSizing: 'border-box',
+                            }}
                       >
                         <div
-                          className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${
+                          className={`text-left p-3 border-2 rounded-lg transition-all cursor-pointer ${
                             isSelected
                               ? isWarmup
                                 ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 shadow-md'
@@ -283,7 +291,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                           }`}
                           onClick={() => handleExerciseToggle(exercise)}
                         >
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start justify-between gap-1">
                             <div className="flex items-start gap-3 flex-1">
                               <div className={`mt-1 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                                 isSelected
@@ -357,7 +365,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="hidden sm:flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button
                   variant="ghost"
                   onClick={() => {
@@ -395,7 +403,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
               </div>
 
               {/* Toggle de vista */}
-              <div className="flex justify-center gap-2 mb-4">
+              <div className="flex justify-center gap-2 mb-3">
                 <Button
                   variant={viewMode === 'grid' ? 'primary' : 'ghost'}
                   size="sm"
@@ -418,16 +426,16 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                   onMuscleClick={handleMuscleSelect}
                 />
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {MUSCLE_GROUPS.map((muscle) => {
                     const trainingCount = getExercisesByMuscleGroup(muscle.id).filter(ex => hasEquipment(ex.equipment)).length;
                     const totalTraining = getExercisesByMuscleGroup(muscle.id).length;
                     const warmupCount = getWarmupsByMuscleGroup(muscle.id).length;
                     return (
-                    <button
+                      <button
                       key={muscle.id}
                       onClick={() => handleMuscleSelect(muscle.id)}
-                      className="flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all group"
+                      className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all group"
                     >
                       <div className="mb-2 group-hover:scale-110 transition-transform">
                         <MuscleGroupIcon
@@ -570,18 +578,19 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
                   const isWarmupTab = exerciseTab === 'warmup';
                   return (
                     <div
-                      key={exercise.id}
+                      key={`${exerciseTab}-${exercise.id}-${virtualRow.index}`}
                       style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
                         width: '100%',
                         transform: `translateY(${virtualRow.start}px)`,
-                        paddingBottom: '12px',
+                        height: `${virtualRow.size}px`,
+                        boxSizing: 'border-box',
                       }}
                     >
                       <div
-                        className={`text-left p-4 border-2 rounded-lg transition-all cursor-pointer ${isSelected
+                        className={`text-left p-5 border-2 rounded-lg transition-all cursor-pointer ${isSelected
                           ? isWarmupTab
                             ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 dark:border-amber-400 shadow-md'
                             : 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-md'
@@ -664,7 +673,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="hidden sm:flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               variant="ghost"
               onClick={() => setSelectedMuscle(null)}
@@ -692,6 +701,14 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
         </div>
       )}
 
+      {showAddCustomModal && (
+        <AddCustomExerciseModal
+          onClose={() => setShowAddCustomModal(false)}
+          onExerciseAdded={handleExerciseAdded}
+          preselectedMuscleGroup={selectedMuscle || undefined}
+        />
+      )}
+
       {detailsExercise && (
         <ExerciseDetails
           exercise={detailsExercise}
@@ -699,12 +716,16 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = React.memo(({ o
         />
       )}
 
-      {showAddCustomModal && (
-        <AddCustomExerciseModal
-          onClose={() => setShowAddCustomModal(false)}
-          onExerciseAdded={handleExerciseAdded}
-          preselectedMuscleGroup={selectedMuscle || undefined}
-        />
+      {selectedExercises.size > 0 && (
+        <div className="flex z-50 sm:hidden">
+          <Button
+            variant="primary"
+            onClick={handleConfirmSelection}
+            className="px-4 py-3 shadow-xl text-base bg-gradient-to-r from-emerald-400 to-violet-500 text-white rounded-full w-full"
+          >
+            Agregar ({selectedExercises.size})
+          </Button>
+        </div>
       )}
     </div>
   );

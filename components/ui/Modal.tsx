@@ -10,6 +10,7 @@ interface ModalProps {
 	closeOnClickOutside?: boolean; // Por defecto true
 	closeOnEscape?: boolean; // Por defecto true
 	backdropClassName?: string;
+	contentClassName?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({ 
@@ -17,6 +18,7 @@ export const Modal: React.FC<ModalProps> = ({
 	onClose, 
 	title, 
 	children,
+	contentClassName,
 	closeOnClickOutside = true,
 	closeOnEscape = true,
 	backdropClassName,
@@ -47,7 +49,7 @@ export const Modal: React.FC<ModalProps> = ({
 				className={`fixed inset-0 ${backdropClassName ? backdropClassName : defaultBackdrop}`}
 				onClick={closeOnClickOutside ? onClose : undefined}
 			/>
-			<div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+			<div className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto ${contentClassName ?? 'max-w-2xl'}`}>
 				<div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
 					<h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 pr-2">{title}</h2>
 					<button
