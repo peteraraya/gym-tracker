@@ -319,8 +319,16 @@ function getExercisesForGroup(
     return false;
   });
 
-  // Seleccionar los primeros N ejercicios
-  const selected = filteredExercises.slice(0, count);
+  // Seleccionar los primeros N ejercicios (con fallback si el filtro por equipo
+  // deja pocos o ningún ejercicio disponible)
+  let selected = filteredExercises.slice(0, count);
+  if (selected.length < count) {
+    // Añadir ejercicios del pool completo (sin filtrar por equipo) hasta completar
+    const extras = availableExercises
+      .filter((ex) => !selected.includes(ex))
+      .slice(0, Math.max(0, count - selected.length));
+    selected = selected.concat(extras);
+  }
 
   // Convertir a formato Exercise con pesos recomendados
   return selected.map((ex, index) => {

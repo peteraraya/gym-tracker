@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useGym } from "@/context/GymContext";
 import { useToast, useConfirm } from "@/context/NotificationContext";
@@ -17,6 +17,8 @@ import { RestTimeSelector } from "@/components/RestTimeSelector";
 import { ExerciseSelector } from "@/components/ExerciseSelector";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { calculateRestBetweenSets, formatRestTime } from "@/lib/restCalculator";
+import { generateRoutine } from "@/lib/routineGenerator";
+import { getRoutineStats } from "@/lib/routineEstimation";
 import { EXERCISE_DATABASE, ExerciseTemplate } from "@/data/exercises";
 import { getExerciseRecommendations } from "@/lib/exerciseRecommendations";
 import type { UserProfile } from "@/types";
@@ -92,7 +94,7 @@ export default function FreeWorkoutPage() {
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [sessionNotes, setSessionNotes] = useState("");
   const [proposedDuration, setProposedDuration] = useState<number>(0); // seconds
-  const [workoutStartTime] = useState(() => Date.now());
+  const [workoutStartTime, setWorkoutStartTime] = useState<number | null>(null);
   const [totalPausedTime, setTotalPausedTime] = useState(0);
 
   // Estado para el perfil del usuario
@@ -167,6 +169,45 @@ export default function FreeWorkoutPage() {
   // Estados para UX mejorada (preparación y ejecución)
   const [showPreparation, setShowPreparation] = useState(false);
   const [isExecutingSet, setIsExecutingSet] = useState(false);
+
+  // --- Preconfiguración rápida (sugerencias + guardar/aplicar) ---
+  const [suggestedRoutines, setSuggestedRoutines] = useState<any[]>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const [pendingAppliedExercises, setPendingAppliedExercises] = useState<FreeExercise[] | null>(null);
+  const [pendingConfigName, setPendingConfigName] = useState<string | null>(null);
+  const [savedPreconfigDebug, setSavedPreconfigDebug] = useState<any | null>(null);
+  const [preRestBetweenSets, setPreRestBetweenSets] = useState<number>(60);
+  const [preRestBetweenExercises, setPreRestBetweenExercises] = useState<number>(120);
+  const addExerciseAnchorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const cfg = {
+          name: "Sugerida",
+          daysPerWeek: 1,
+          minutesPerSession: 30,
+          level: "intermedio",
+          equipment: [],
+          goal: ["general"],
+          focusAreas: [],
+        } as any;
+
+        const generated = await generateRoutine(cfg);
+        if (!mounted) return;
+        setSuggestedRoutines(generated || []);
+        setSelectedSuggestionIndex(0);
+      } catch (err) {
+        console.error("[FreeWorkout] generateRoutine error", err);
+        if (!mounted) return;
+        setSuggestedRoutines([]);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [userProfile]);
 
   const handleRemoveExercise = (index: number) => {
     setExercises((prev) => prev.filter((_, i) => i !== index));
@@ -349,7 +390,7 @@ export default function FreeWorkoutPage() {
       error("No hay series completadas para guardar");
       return;
     }
-    const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+    const duration = workoutStartTime ? Math.floor((Date.now() - workoutStartTime) / 1000) : 0;
     setProposedDuration(Math.max(duration, 60));
     setShowNotesModal(true);
   };
@@ -366,7 +407,9 @@ export default function FreeWorkoutPage() {
     const totalDuration =
       proposedDuration && proposedDuration > 0
         ? proposedDuration
-        : Math.floor((Date.now() - workoutStartTime) / 1000);
+        : workoutStartTime
+        ? Math.floor((Date.now() - workoutStartTime) / 1000)
+        : 0;
 
     const sessionExercises = exercises
       .filter((ex) => ex.completedSets.length > 0)
@@ -505,6 +548,174 @@ export default function FreeWorkoutPage() {
               series sobre la marcha.
             </p>
           </div>
+
+          {/* Panel de preconfiguración (solo cuando no hay ejercicios) */}
+          {exercises.length === 0 && (
+            <div className="mb-6">
+              <Card>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-4 sm:items-center sm:gap-6">
+                      <div className="flex-1">
+                        <label className="block text-xs text-gray-600 mb-1">Rutina sugerida</label>
+                        <select
+                          value={selectedSuggestionIndex}
+                          onChange={(e) => setSelectedSuggestionIndex(Number(e.target.value))}
+                          className="w-full p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+                        >
+                          {suggestedRoutines.length === 0 ? (
+                            <option>Generando sugerencias...</option>
+                          ) : (
+                            suggestedRoutines.map((r: any, idx: number) => (
+                              <option key={r.id || idx} value={idx}>
+                                {r.name}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                      </div>
+
+                      <div className="w-36">
+                        <label className="block text-xs text-gray-600 mb-1">Descanso entre ejercicios</label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={preRestBetweenExercises}
+                          onChange={(e) => setPreRestBetweenExercises(Number(e.target.value || 120))}
+                          className="w-full p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-700">
+                        {(() => {
+                          const sel = suggestedRoutines[selectedSuggestionIndex];
+                          if (!sel) return "-";
+                          try {
+                            const stats = getRoutineStats(sel.exercises || [], preRestBetweenSets, preRestBetweenExercises);
+                            return `${stats.totalExercises} ejercicios • ${stats.totalSets} series • ${stats.estimatedDurationFormatted}`;
+                          } catch (err) {
+                            return "-";
+                          }
+                        })()}
+                      </div>
+
+                      <div className="text-sm text-gray-500">Ajusta la configuración y revisa tu lista de ejercicios abajo antes de guardar la preconfiguración.</div>
+                    </div>
+
+                    <div className="flex justify-end items-center gap-3">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          const sel = suggestedRoutines[selectedSuggestionIndex];
+                          if (!sel) {
+                            error("No hay rutina seleccionada");
+                            return;
+                          }
+
+                          const rawExercises = sel.exercises || [];
+                          const flattened: any[] = Array.isArray(rawExercises)
+                            ? rawExercises.flatMap((e: any) => (Array.isArray(e) ? e : [e]))
+                            : [];
+
+                          const toApply = flattened.map((ex: any) => ({
+                            id: typeof crypto !== 'undefined' && (crypto as any).randomUUID ? (crypto as any).randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2,9)}`,
+                            name: ex.name,
+                            equipment: ex.equipment,
+                            completedSets: [],
+                            restBetweenSets: ex.restBetweenSets ?? preRestBetweenSets,
+                            recommendedSets: Array.isArray(ex.sets) ? ex.sets.length : undefined,
+                            recommendedReps: Array.isArray(ex.sets) && ex.sets[0] ? ex.sets[0].reps : undefined,
+                            recommendedWeight: Array.isArray(ex.sets) && ex.sets[0] ? ex.sets[0].weight : undefined,
+                          }));
+
+                          setSavedPreconfigDebug({ raw: (rawExercises as any).length ?? 0, flat: flattened.length, names: flattened.map((e: any) => e.name) });
+                          setPendingAppliedExercises([...toApply]);
+                          setPendingConfigName(sel.name || "Preconfiguración rápida");
+                          try { console.debug('[FreeWorkout] saved preconfig toApply:', toApply.map((x: any) => x.name)); } catch (err) {}
+                          success('Preconfiguración guardada (pendiente)');
+                        }}
+                      >
+                        Guardar preconfiguración
+                      </Button>
+
+                      {/* Debug visible */}
+                      <div className="mt-2 text-xs text-gray-500">
+                        {(() => {
+                          const selDebug = suggestedRoutines[selectedSuggestionIndex];
+                          const raw = selDebug?.exercises || [];
+                          const flat = Array.isArray(raw) ? raw.flatMap((e: any) => (Array.isArray(e) ? e : [e])) : [];
+                          return (
+                            <div>
+                              <div>DEBUG: raw={raw.length} • flattened={flat.length}</div>
+                              {flat.length > 0 && <div className="truncate">{flat.map((e: any) => e.name).join(', ')}</div>}
+                              {savedPreconfigDebug && <div className="mt-1 text-xs text-gray-400">Saved: raw={savedPreconfigDebug.raw} • flat={savedPreconfigDebug.flat} • {savedPreconfigDebug.names.join(', ')}</div>}
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {pendingAppliedExercises ? (
+                        <div className="mt-3 text-sm text-gray-700 dark:text-gray-200 flex items-center gap-3">
+                          <div className="flex-1">
+                            <strong>{pendingConfigName}</strong> — {pendingAppliedExercises.length} ejercicio{pendingAppliedExercises.length > 1 ? 's' : ''} listo{pendingAppliedExercises.length > 1 ? 's' : ''} para iniciar.
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                setPendingAppliedExercises(null);
+                                setPendingConfigName(null);
+                                setSavedPreconfigDebug(null);
+                                success('Preconfiguración cancelada');
+                              }}
+                            >
+                              Cancelar preconfiguración
+                            </Button>
+                            <Button
+                              variant="primary"
+                              onClick={() => {
+                                const toApply = pendingAppliedExercises!;
+                                setPendingAppliedExercises(null);
+                                setPendingConfigName(null);
+                                setSavedPreconfigDebug(null);
+                                try { console.debug('[FreeWorkout] applying preconfig - toApply count:', toApply.length, toApply.map((x: any) => x.name)); } catch (err) {}
+
+                                if (!workoutStartTime) setWorkoutStartTime(Date.now());
+
+                                setExercises((prev) => {
+                                  const next = [...prev, ...toApply];
+                                  const firstNewIndex = next.length - toApply.length;
+                                  setActiveExerciseIndex(firstNewIndex >= 0 ? firstNewIndex : 0);
+
+                                  try { console.debug('[FreeWorkout] next exercises length:', next.length, next.map((x) => x.name)); } catch (err) {}
+
+                                  setTimeout(() => {
+                                    if (addExerciseAnchorRef.current) {
+                                      addExerciseAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    } else if (typeof window !== 'undefined') {
+                                      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                                    }
+                                  }, 80);
+
+                                  return next;
+                                });
+
+                                success('Entrenamiento iniciado');
+                              }}
+                            >
+                              Empezar entrenamiento
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Configuración de descanso */}
           <Card className="mb-6">

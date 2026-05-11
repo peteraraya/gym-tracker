@@ -49,6 +49,8 @@ import type { UserProfile } from "@/types";
 import { getExerciseRecommendations } from '@/lib/exerciseRecommendations';
 import { getProfileLocally } from '@/lib/localProfile';
 import { useEquipment } from '@/context/EquipmentContext';
+import { generateRoutine } from '@/lib/routineGenerator';
+import { getRoutineStats } from '@/lib/routineEstimation';
 import {
   calculateNextRestTime,
   calculateExerciseRestTime,
@@ -175,6 +177,13 @@ export default function WorkoutPage() {
   } | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const equipment = useEquipment();
+  const [suggestedRoutines, setSuggestedRoutines] = useState<any[]>([]);
+  const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  const [preMinutesPerSession, setPreMinutesPerSession] = useState<number>(45);
+  const [preRestBetweenSets, setPreRestBetweenSets] = useState<number>(60);
+  const [preRestBetweenExercises, setPreRestBetweenExercises] = useState<number>(120);
+  const addExerciseAnchorRef = useRef<HTMLDivElement | null>(null);
   // ✅ Estados de récord personal eliminados - no se muestran durante el entrenamiento
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
     // Solo acceder a localStorage en el cliente
@@ -260,6 +269,58 @@ export default function WorkoutPage() {
       mounted = false;
     };
   }, [showExerciseInfo, selectedExerciseName]);
+
+  // Generar sugerencias de rutinas basadas en el perfil y equipamiento
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadSuggestions() {
+      setIsGeneratingSuggestions(true);
+      try {
+        const profile = userProfile ?? getProfileLocally();
+
+        const level = (profile?.fitnessLevel as any) || 'intermedio';
+        const days = profile?.weeklyWorkouts ?? 3;
+        const goals = profile?.fitnessGoal ? [profile.fitnessGoal] : ['general'];
+
+        const eqSet = Array.from(equipment?.selectedEquipment || []);
+        const mappedEquip: string[] = [];
+        if (eqSet.some((e) => /barra|barbell/i.test(e))) mappedEquip.push('barbell');
+        if (eqSet.some((e) => /mancuernas|dumbbell/i.test(e))) mappedEquip.push('dumbbells');
+        if (eqSet.some((e) => /máquina|machine/i.test(e))) mappedEquip.push('machines');
+        if (eqSet.some((e) => /polea|cable|cables/i.test(e))) mappedEquip.push('cables');
+
+        const generated = await generateRoutine({
+          name: profile?.fitnessGoal ? `${profile.fitnessGoal} - Sugerida` : 'Entrenamiento sugerido',
+          daysPerWeek: days,
+          minutesPerSession: preMinutesPerSession,
+          level: level as any,
+          equipment: mappedEquip,
+          goal: goals,
+          focusAreas: [],
+        });
+
+        if (!mounted) return;
+        setSuggestedRoutines(generated || []);
+        setSelectedSuggestionIndex(0);
+
+        if (generated && generated[0]) {
+          setPreRestBetweenSets(generated[0].restBetweenSets ?? 60);
+          setPreRestBetweenExercises(generated[0].restBetweenExercises ?? 120);
+        }
+      } catch (err) {
+        console.error('[Workout] Error generating suggestions', err);
+      } finally {
+        if (mounted) setIsGeneratingSuggestions(false);
+      }
+    }
+
+    loadSuggestions();
+
+    return () => {
+      mounted = false;
+    };
+  }, [userProfile, equipment, preMinutesPerSession]);
 
   // ✅ CRÍTICO #2 FIX: UN SOLO intervalo para actualizar elapsedTime
   // Consolidado - elimina el intervalo duplicado que estaba en línea ~650
@@ -2566,6 +2627,146 @@ export default function WorkoutPage() {
           </div>
         </div>
 
+        {/* Panel de preconfiguración: sólo para rutinas vacías (antes de añadir ejercicios) */}
+        {routine && Array.isArray(routine.exercises) && routine.exercises.length === 0 && (
+          <div className="mb-4">
+            <Card>
+              <CardContent>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Preconfiguración rápida</h3>
+                    <div className="text-sm text-gray-500">Sugerencias basadas en tu perfil</div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3 items-center">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Rutina sugerida</label>
+                      <select
+                        value={selectedSuggestionIndex}
+                        onChange={(e) => setSelectedSuggestionIndex(Number(e.target.value))}
+                        className="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
+                      >
+                        {isGeneratingSuggestions ? (
+                          <option>Cargando sugerencias...</option>
+                        ) : (
+                          suggestedRoutines.length > 0 ? (
+                            suggestedRoutines.map((r, idx) => (
+                              <option key={r.id || idx} value={idx}>{r.name}</option>
+                            ))
+                          ) : (
+                            <option>No hay sugerencias disponibles</option>
+                          )
+                        )}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Duración objetivo (min)</label>
+                      <input
+                        type="number"
+                        min={10}
+                        max={180}
+                        value={preMinutesPerSession}
+                        onChange={(e) => setPreMinutesPerSession(Number(e.target.value || 45))}
+                        className="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Descanso entre series (seg)</label>
+                      <input
+                        type="number"
+                        min={10}
+                        step={5}
+                        value={preRestBetweenSets}
+                        onChange={(e) => setPreRestBetweenSets(Number(e.target.value || 60))}
+                        className="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Descanso entre ejercicios (seg)</label>
+                      <input
+                        type="number"
+                        min={10}
+                        step={5}
+                        value={preRestBetweenExercises}
+                        onChange={(e) => setPreRestBetweenExercises(Number(e.target.value || 120))}
+                        className="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-700">
+                      {suggestedRoutines && suggestedRoutines[selectedSuggestionIndex] ? (
+                        (() => {
+                          const sel = suggestedRoutines[selectedSuggestionIndex];
+                          const stats = getRoutineStats(sel.exercises || [], preRestBetweenSets, preRestBetweenExercises);
+                          return (
+                            <div>
+                              <div className="font-medium">{sel.name}</div>
+                              <div className="text-xs text-gray-500">{stats.totalExercises} ejercicios • {stats.totalSets} series • {stats.estimatedDurationFormatted}</div>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <div className="text-xs text-gray-500">Ajusta la duración y descansos para ver la estimación</div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          // Scroll to add exercise area
+                          addExerciseAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }}
+                      >
+                        Agregar ejercicio
+                      </Button>
+
+                      <Button
+                        variant="primary"
+                        onClick={async () => {
+                          const sel = suggestedRoutines[selectedSuggestionIndex];
+                          if (!sel) {
+                            error('No hay una rutina seleccionada');
+                            return;
+                          }
+
+                          const adjusted = {
+                            ...sel,
+                            restBetweenSets: preRestBetweenSets,
+                            restBetweenExercises: preRestBetweenExercises,
+                            exercises: (sel.exercises || []).map((ex: any) => ({
+                              ...ex,
+                              restBetweenSets: ex.restBetweenSets ?? preRestBetweenSets,
+                            })),
+                          };
+
+                          try {
+                            setRoutine(adjusted);
+                            startWorkout(adjusted);
+                            success(`Iniciando: ${adjusted.name}`, 2000);
+                          } catch (err) {
+                            console.error('Error applying suggestion', err);
+                            error('No se pudo iniciar el entrenamiento');
+                          }
+                        }}
+                      >
+                        Aplicar y empezar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Toggle entre Modo Guiado y Edición Rápida */}
         <div className="mb-4 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
           <button
@@ -2830,9 +3031,10 @@ export default function WorkoutPage() {
               onMoveExercise={handleMoveExercise}
             />
 
-            <div className="mb-6">
+            <div className="mb-6" ref={addExerciseAnchorRef}>
               <AddExerciseButton onAddExercises={handleAddExercises} />
             </div>
+          
           </>
         )}
 
