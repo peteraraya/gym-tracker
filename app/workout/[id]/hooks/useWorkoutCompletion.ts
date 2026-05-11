@@ -7,7 +7,7 @@ interface UseWorkoutCompletionProps {
   totalPausedTime: number;
   sessions: any[];
   addSession: (session: any) => Promise<void>;
-  finishWorkoutContext: () => void;
+  finishWorkoutContext: () => Promise<void>;
   onSuccess: (message: string, duration?: number) => void;
   onError: (message: string) => void;
   router: any;
@@ -105,7 +105,7 @@ export function useWorkoutCompletion({
 
       // Guardar la sesión
       await addSession(newSession);
-      
+
       // ✨ Mostrar notificaciones de logros
       if (newAchievements.length > 0) {
         newAchievements.forEach(({ achievement }) => {
@@ -131,20 +131,44 @@ export function useWorkoutCompletion({
       if (newAchievements.length === 0) {
         onSuccess(motivationalMessage, 3000);
       }
-      
+
       // Haptic feedback al completar entrenamiento
       onWorkoutComplete?.();
-      
-      finishWorkoutContext();
+
+      // Esperar a que el activeWorkout se limpie correctamente antes de continuar
+      await finishWorkoutContext();
+
       onSuccess('Sesión guardada exitosamente');
-      
+
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       router.replace('/sessions');
       router.refresh();
     } catch (err) {
       console.error('Error saving session:', err);
-      onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
+
+      // Fallback: intentar guardar la sesión localmente para no perder datos
+      try {
+        const localSvc = await import('@/lib/storage/localStorage');
+        await localSvc.saveSession(newSession as any);
+        onSuccess('Sesión guardada localmente (sin conexión)', 4000);
+
+        // Asegurarnos de limpiar active workout aunque la subida fallara
+        try {
+          await finishWorkoutContext();
+        } catch (e) {
+          console.error('Error clearing active workout after local save fallback:', e);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+        router.replace('/sessions');
+        router.refresh();
+        return;
+      } catch (localErr) {
+        console.error('Error saving session locally as fallback:', localErr);
+        onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
+        return;
+      }
     }
   }, [
     routine, 
