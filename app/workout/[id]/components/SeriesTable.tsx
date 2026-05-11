@@ -69,8 +69,11 @@ export function SeriesTable({
   // ✅ State for mobile editing - one state for all sets
   const [mobileEditingField, setMobileEditingField] = useState<{setIndex: number, field: 'reps' | 'weight'} | null>(null);
 
-  // Calcular series completadas correctamente desde actualReps
-  const actualCompletedSets = actualReps.filter(r => typeof r === 'number' && r > 0).length;
+  // Mostrar series completadas basadas en el contador explícito `completedSets`.
+  // Como fallback, usar el cálculo por `actualReps` si `completedSets` no está disponible.
+  const actualCompletedSets = typeof completedSets === 'number'
+    ? completedSets
+    : actualReps.filter(r => typeof r === 'number' && r > 0).length;
 
   // Calculate correct rest time for each set using the same logic as the timer
   const getRestTimeForSet = (setIndex: number): number => {
@@ -112,11 +115,12 @@ export function SeriesTable({
         <div className="space-y-3">
           {/* Mobile set controls - shown above table */}
           <div className="sm:hidden space-y-2">
-            {exercise.sets.map((set, idx) => {
-              const setType = setTypes[idx] || 'normal';
-              const doneReps = actualReps[idx] ?? null;
-              const doneWeight = actualWeights[idx] ?? set.weight ?? '';
-              const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+              {exercise.sets.map((set, idx) => {
+                const setType = setTypes[idx] || 'normal';
+                const doneReps = actualReps[idx] ?? null;
+                const doneWeight = actualWeights[idx] ?? set.weight ?? '';
+                // Marcar completada solo si el índice está dentro del contador explícito
+                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
               
               // Skip completed sets in mobile view
               if (isCompleted) return null;
@@ -299,7 +303,8 @@ export function SeriesTable({
                 const doneReps = actualReps[idx] ?? null;
                 const doneWeight = actualWeights[idx] ?? set.weight ?? '';
                 const setType = setTypes[idx] || 'normal';
-                const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                // Marcar completada solo si el índice es menor que el contador explícito
+                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
                 const isCurrent = idx === currentSet - 1;
 
                 return (

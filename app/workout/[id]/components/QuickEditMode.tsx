@@ -187,10 +187,7 @@ export function QuickEditMode({
     const firstIncompleteExercise = routine.exercises.find((exercise) => {
       const exerciseId = exercise.id;
       if (skippedExercises.includes(exerciseId)) return false; // Saltar omitidos
-      const actualReps = workoutData.actualReps[exerciseId] || [];
-      const completedCount = actualReps.filter(
-        (r) => typeof r === "number" && r > 0,
-      ).length;
+      const completedCount = workoutData.completedSets?.[exerciseId] || 0;
       return completedCount < exercise.sets.length;
     });
 
@@ -555,8 +552,10 @@ export function QuickEditMode({
 
     // Solo contar series completadas de ejercicios activos (no omitidos)
     const completed = activeExercises.reduce((sum, ex) => {
+      // Preferir el contador explícito si existe
+      const explicit = workoutData.completedSets?.[ex.id];
+      if (typeof explicit === 'number') return sum + Math.min(explicit, ex.sets.length);
       const exerciseReps = workoutData.actualReps[ex.id] || [];
-      // Solo contar hasta el número de series que tiene el ejercicio actualmente
       const completedInExercise = exerciseReps
         .slice(0, ex.sets.length)
         .filter((r) => r > 0).length;
@@ -1276,11 +1275,9 @@ export function QuickEditMode({
                       const setType = setTypes[setIdx] || "normal";
 
                       const completedCount =
-                        workoutData.completedSets[exerciseId] || 0;
-                      // Usar contenido del array (reps > 0) en lugar de posición ordinal
-                      // para evitar marcar sets como completados cuando se completan fuera de orden
-                      const isCompleted =
-                        typeof doneReps === "number" && doneReps > 0;
+                        workoutData.completedSets?.[exerciseId] || 0;
+                      // Marcar completada solo si el índice es menor que el contador explícito
+                      const isCompleted = typeof completedCount === 'number' && setIdx < completedCount;
                       const togglingKey = `${exerciseId}:${setIdx}`;
                       const isToggling = Boolean(togglingKeys?.[togglingKey]);
 
