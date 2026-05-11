@@ -173,9 +173,7 @@ export default function FreeWorkoutPage() {
   // --- Preconfiguración rápida (sugerencias + guardar/aplicar) ---
   const [suggestedRoutines, setSuggestedRoutines] = useState<any[]>([]);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
-  const [pendingAppliedExercises, setPendingAppliedExercises] = useState<FreeExercise[] | null>(null);
-  const [pendingConfigName, setPendingConfigName] = useState<string | null>(null);
-  const [savedPreconfigDebug, setSavedPreconfigDebug] = useState<any | null>(null);
+  
   const [preRestBetweenSets, setPreRestBetweenSets] = useState<number>(60);
   const [preRestBetweenExercises, setPreRestBetweenExercises] = useState<number>(120);
   const addExerciseAnchorRef = useRef<HTMLDivElement | null>(null);
@@ -630,86 +628,29 @@ export default function FreeWorkoutPage() {
                             recommendedWeight: Array.isArray(ex.sets) && ex.sets[0] ? ex.sets[0].weight : undefined,
                           }));
 
-                          setSavedPreconfigDebug({ raw: (rawExercises as any).length ?? 0, flat: flattened.length, names: flattened.map((e: any) => e.name) });
-                          setPendingAppliedExercises([...toApply]);
-                          setPendingConfigName(sel.name || "Preconfiguración rápida");
-                          try { console.debug('[FreeWorkout] saved preconfig toApply:', toApply.map((x: any) => x.name)); } catch (err) {}
-                          success('Preconfiguración guardada (pendiente)');
+                          // Añadir ejercicios directamente al listado (no mostrar pendiente en el card)
+                          setExercises((prev) => {
+                            const firstNewIndex = prev.length;
+                            const next = [...prev, ...toApply];
+                            // establecer el primer ejercicio agregado como activo
+                            setActiveExerciseIndex(firstNewIndex >= 0 ? firstNewIndex : 0);
+                            // scroll al ancla después de render
+                            setTimeout(() => {
+                              if (addExerciseAnchorRef.current) {
+                                addExerciseAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              } else if (typeof window !== 'undefined') {
+                                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                              }
+                            }, 80);
+                            return next;
+                          });
+                          success('Preconfiguración agregada a la lista');
                         }}
                       >
                         Guardar preconfiguración
                       </Button>
 
-                      {/* Debug visible */}
-                      <div className="mt-2 text-xs text-gray-500">
-                        {(() => {
-                          const selDebug = suggestedRoutines[selectedSuggestionIndex];
-                          const raw = selDebug?.exercises || [];
-                          const flat = Array.isArray(raw) ? raw.flatMap((e: any) => (Array.isArray(e) ? e : [e])) : [];
-                          return (
-                            <div>
-                              <div>DEBUG: raw={raw.length} • flattened={flat.length}</div>
-                              {flat.length > 0 && <div className="truncate">{flat.map((e: any) => e.name).join(', ')}</div>}
-                              {savedPreconfigDebug && <div className="mt-1 text-xs text-gray-400">Saved: raw={savedPreconfigDebug.raw} • flat={savedPreconfigDebug.flat} • {savedPreconfigDebug.names.join(', ')}</div>}
-                            </div>
-                          );
-                        })()}
-                      </div>
-
-                      {pendingAppliedExercises ? (
-                        <div className="mt-3 text-sm text-gray-700 dark:text-gray-200 flex items-center gap-3">
-                          <div className="flex-1">
-                            <strong>{pendingConfigName}</strong> — {pendingAppliedExercises.length} ejercicio{pendingAppliedExercises.length > 1 ? 's' : ''} listo{pendingAppliedExercises.length > 1 ? 's' : ''} para iniciar.
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              onClick={() => {
-                                setPendingAppliedExercises(null);
-                                setPendingConfigName(null);
-                                setSavedPreconfigDebug(null);
-                                success('Preconfiguración cancelada');
-                              }}
-                            >
-                              Cancelar preconfiguración
-                            </Button>
-                            <Button
-                              variant="primary"
-                              onClick={() => {
-                                const toApply = pendingAppliedExercises!;
-                                setPendingAppliedExercises(null);
-                                setPendingConfigName(null);
-                                setSavedPreconfigDebug(null);
-                                try { console.debug('[FreeWorkout] applying preconfig - toApply count:', toApply.length, toApply.map((x: any) => x.name)); } catch (err) {}
-
-                                if (!workoutStartTime) setWorkoutStartTime(Date.now());
-
-                                setExercises((prev) => {
-                                  const next = [...prev, ...toApply];
-                                  const firstNewIndex = next.length - toApply.length;
-                                  setActiveExerciseIndex(firstNewIndex >= 0 ? firstNewIndex : 0);
-
-                                  try { console.debug('[FreeWorkout] next exercises length:', next.length, next.map((x) => x.name)); } catch (err) {}
-
-                                  setTimeout(() => {
-                                    if (addExerciseAnchorRef.current) {
-                                      addExerciseAnchorRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                    } else if (typeof window !== 'undefined') {
-                                      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                                    }
-                                  }, 80);
-
-                                  return next;
-                                });
-
-                                success('Entrenamiento iniciado');
-                              }}
-                            >
-                              Empezar entrenamiento
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null}
+                      <div className="ml-4" />
                     </div>
                   </div>
                 </CardContent>
@@ -1064,6 +1005,7 @@ export default function FreeWorkoutPage() {
 
           {/* Lista de ejercicios */}
           <div className="mb-6">
+            <div ref={addExerciseAnchorRef} />
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Ejercicios ({exercises.length})
