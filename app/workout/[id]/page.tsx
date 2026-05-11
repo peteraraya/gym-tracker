@@ -45,6 +45,10 @@ import {
 } from "@/components/SoundSettings";
 import type { ExerciseTemplate } from "@/data/exercises";
 import type { Exercise } from "@/types";
+import type { UserProfile } from "@/types";
+import { getExerciseRecommendations } from '@/lib/exerciseRecommendations';
+import { getProfileLocally } from '@/lib/localProfile';
+import { useEquipment } from '@/context/EquipmentContext';
 import {
   calculateNextRestTime,
   calculateExerciseRestTime,
@@ -169,6 +173,8 @@ export default function WorkoutPage() {
     message: string;
     duration: number;
   } | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const equipment = useEquipment();
   // ✅ Estados de récord personal eliminados - no se muestran durante el entrenamiento
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
     // Solo acceder a localStorage en el cliente
@@ -2030,21 +2036,48 @@ export default function WorkoutPage() {
 
       try {
         // Convertir los ejercicios seleccionados al formato de la rutina
-        const newExercises = exercises.map((ex) => ({
-          id: ex.id,
-          name: ex.name,
-          sets: Array.from({ length: ex.defaultSets || 3 }, () => ({
-            reps: ex.defaultReps || 10,
-            weight: 0,
+        const profile = userProfile ?? getProfileLocally();
+        const newExercises = exercises.map((ex) => {
+          const rec = getExerciseRecommendations(ex, profile ?? null);
+
+          // Ajuste por equipamiento del usuario (barra -> mancuernas)
+          let suggestedWeight = rec.weight;
+          try {
+            const eqStr = (ex.equipment || "").toLowerCase();
+            const hasBar = equipment.selectedEquipment.has('barra');
+            const hasDumb = equipment.selectedEquipment.has('mancuernas');
+            if ((eqStr.includes('barra') || eqStr.includes('barbell')) && !hasBar && hasDumb) {
+              suggestedWeight = Math.round((suggestedWeight / 2) / 2.5) * 2.5;
+            }
+          } catch (e) {
+            // ignore equipment mapping errors
+          }
+
+          const sets = Array.from({ length: rec.sets || (ex.defaultSets || 3) }).map(() => ({
+            reps: rec.reps || ex.defaultReps || 10,
+            weight: suggestedWeight || 0,
             type: "normal" as const,
-          })),
-          equipment: ex.equipment,
-          notes: ex.description,
-          restBetweenSets: ex.restTime
-            ? parseInt(String(ex.restTime))
-            : routine.restBetweenSets || 60,
-          useSmartRest: true,
-        }));
+          }));
+
+          let restBetween = routine.restBetweenSets || 60;
+          try {
+            const restMatch = (rec.restTime || '').match(/(\d+)/);
+            if (restMatch) {
+              restBetween = parseInt(restMatch[1]);
+              if ((rec.restTime || '').toLowerCase().includes('min')) restBetween = restBetween * 60;
+            }
+          } catch {}
+
+          return {
+            id: ex.id,
+            name: ex.name,
+            sets,
+            equipment: ex.equipment,
+            notes: ex.description,
+            restBetweenSets: restBetween,
+            useSmartRest: true,
+          };
+        });
 
         // Agregar los nuevos ejercicios a la rutina
         const updatedRoutine = {

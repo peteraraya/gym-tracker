@@ -73,10 +73,52 @@ export default function RoutinesPage() {
     setIsModalOpen(true);
   }, []);
 
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = useCallback(async () => {
+    // Si estamos editando una rutina existente, cerrar sin preguntar
+    if (editingRoutine) {
+      setIsModalOpen(false);
+      setEditingRoutine(null);
+      return;
+    }
+
+    // Comprobar si existe un borrador guardado
+    if (typeof window !== "undefined") {
+      try {
+        const draftStr = localStorage.getItem("gym-tracker-routine-draft");
+        if (draftStr) {
+          const draft = JSON.parse(draftStr || "null");
+          const hasData = draft && (draft.name || (Array.isArray(draft.exercises) && draft.exercises.length > 0));
+          if (hasData) {
+            const confirmed = await confirm({
+              title: "Borrador de rutina encontrado",
+              message:
+                "Tienes una rutina pendiente en edición. ¿Quieres continuar editándola?",
+              confirmText: "Continuar edición",
+              cancelText: "Descartar borrador",
+            });
+
+            if (confirmed) {
+              // Mantener modal abierto para que el usuario continúe
+              setIsModalOpen(true);
+              return;
+            }
+
+            // Usuario eligió descartar → eliminar borrador
+            try {
+              localStorage.removeItem("gym-tracker-routine-draft");
+            } catch (e) {
+              // ignorar errores de localStorage
+            }
+          }
+        }
+      } catch (err) {
+        // si algo falla al parsear, proceder a cerrar
+      }
+    }
+
     setIsModalOpen(false);
     setEditingRoutine(null);
-  }, []);
+  }, [confirm, editingRoutine]);
 
   const handleWizardComplete = async (data: any) => {
     try {
