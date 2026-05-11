@@ -88,8 +88,7 @@ export default function FreeWorkoutPage() {
   );
   const [currentReps, setCurrentReps] = useState<number | "">(10);
   const [currentWeight, setCurrentWeight] = useState<number | "">(0);
-  const [currentSetType, setCurrentSetType] =
-    useState<import("@/types").SetType>("normal");
+  const [currentSetType, setCurrentSetType] = useState<import("@/types").SetType>("normal");
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [sessionNotes, setSessionNotes] = useState("");
