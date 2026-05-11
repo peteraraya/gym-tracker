@@ -17,6 +17,8 @@ import { getExerciseByName } from "@/data/exercises";
 import { getRoutineStats } from "@/lib/routineEstimation";
 import { getExerciseRecommendations } from "@/lib/exerciseRecommendations";
 import logger from "@/lib/logger";
+import { getRecommendedWeight } from '@/lib/routineGenerator';
+import { useEquipment } from '@/context/EquipmentContext';
 import * as storageService from "@/lib/storage/storage";
 
 // storageService is available for future use (e.g. offline-draft persistence via the
@@ -201,6 +203,7 @@ export function useRoutineForm(
 
   // ── Perfil del usuario ─────────────────────────────────────────────────
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const equipment = useEquipment();
 
   // ── Traducciones ───────────────────────────────────────────────────────
   const t = useTranslations("routineForm");
@@ -878,20 +881,90 @@ export function useRoutineForm(
 
       try {
         if (routineId) {
+          // Ensure suggested weights are set according to profile and equipment before updating
+          const mappedLevel = userProfile
+            ? userProfile.fitnessLevel === 'beginner' ? 'principiante' : userProfile.fitnessLevel === 'intermediate' ? 'intermedio' : 'avanzado'
+            : 'intermedio';
+
+          const goalMap: Record<string, string> = {
+            muscle_gain: 'hypertrophy',
+            strength: 'strength',
+            weight_loss: 'weight_loss',
+            endurance: 'endurance',
+            general_fitness: 'general'
+          };
+
+          const mappedGoals = userProfile && userProfile.fitnessGoal ? [goalMap[userProfile.fitnessGoal] || 'general'] : [];
+
+          const exercisesWithWeights = exercisesWithIds.map((ex) => ({
+            ...ex,
+            sets: ex.sets.map((s) => {
+              if (s.weight && s.weight > 0) return s;
+              try {
+                const rec = getRecommendedWeight(ex.name, mappedLevel as any, mappedGoals as any);
+                // adjust for equipment: barbell -> dumbbells
+                const equipmentStr = (ex.equipment || '').toLowerCase();
+                let final = rec;
+                const hasBar = equipment.selectedEquipment.has('barra');
+                const hasDumb = equipment.selectedEquipment.has('mancuernas');
+                if ((equipmentStr.includes('barra') || equipmentStr.includes('barbell')) && !hasBar && hasDumb) {
+                  final = Math.round((rec / 2) / 2.5) * 2.5;
+                }
+                return { ...s, weight: final };
+              } catch {
+                return { ...s, weight: s.weight || 0 };
+              }
+            }),
+          }));
+
           await updateRoutine(routineId, {
             name,
             description,
             image,
-            exercises: exercisesWithIds,
+            exercises: exercisesWithWeights,
             restBetweenSets,
             restBetweenExercises,
           });
         } else {
+          const mappedLevel = userProfile
+            ? userProfile.fitnessLevel === 'beginner' ? 'principiante' : userProfile.fitnessLevel === 'intermediate' ? 'intermedio' : 'avanzado'
+            : 'intermedio';
+
+          const goalMap: Record<string, string> = {
+            muscle_gain: 'hypertrophy',
+            strength: 'strength',
+            weight_loss: 'weight_loss',
+            endurance: 'endurance',
+            general_fitness: 'general'
+          };
+
+          const mappedGoals = userProfile && userProfile.fitnessGoal ? [goalMap[userProfile.fitnessGoal] || 'general'] : [];
+
+          const exercisesWithWeights = exercisesWithIds.map((ex) => ({
+            ...ex,
+            sets: ex.sets.map((s) => {
+              if (s.weight && s.weight > 0) return s;
+              try {
+                const rec = getRecommendedWeight(ex.name, mappedLevel as any, mappedGoals as any);
+                const equipmentStr = (ex.equipment || '').toLowerCase();
+                let final = rec;
+                const hasBar = equipment.selectedEquipment.has('barra');
+                const hasDumb = equipment.selectedEquipment.has('mancuernas');
+                if ((equipmentStr.includes('barra') || equipmentStr.includes('barbell')) && !hasBar && hasDumb) {
+                  final = Math.round((rec / 2) / 2.5) * 2.5;
+                }
+                return { ...s, weight: final };
+              } catch {
+                return { ...s, weight: s.weight || 0 };
+              }
+            }),
+          }));
+
           await addRoutine({
             name,
             description,
             image,
-            exercises: exercisesWithIds,
+            exercises: exercisesWithWeights,
             restBetweenSets,
             restBetweenExercises,
           });

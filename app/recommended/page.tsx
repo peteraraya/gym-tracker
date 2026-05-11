@@ -6,6 +6,7 @@ import {
   RecommendedRoutine,
 } from "@/data/recommendedRoutines";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { getRecommendedWeight } from '@/lib/routineGenerator';
 import { Button } from "@/components/ui/Button";
 import { LoadingState } from "@/components/LoadingState";
 import { useGym } from "@/context/GymContext";
@@ -17,6 +18,7 @@ import {
   getRecommendationReason,
   type RoutineRecommendation,
 } from "@/lib/recommendations";
+import { useEquipment } from '@/context/EquipmentContext';
 import { formatRestTime } from "@/lib/formatTime";
 import Link from "next/link";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
@@ -38,6 +40,7 @@ export default function RecommendedRoutinesPage() {
   const [personalizedRecommendations, setPersonalizedRecommendations] =
     useState<RoutineRecommendation[]>([]);
 
+  const userHas = useEquipment();
   useEffect(() => {
     loadProfile();
   }, []);
@@ -123,11 +126,55 @@ export default function RecommendedRoutinesPage() {
         return base as Exercise;
       });
 
+      // If we have a user profile and equipment info, add suggested weights
+      const mappedLevel = userProfile
+        ? userProfile.fitnessLevel === 'beginner' ? 'principiante' : userProfile.fitnessLevel === 'intermediate' ? 'intermedio' : 'avanzado'
+        : 'intermedio';
+
+      const goalMap: Record<string, string> = {
+        muscle_gain: 'hypertrophy',
+        strength: 'strength',
+        weight_loss: 'weight_loss',
+        endurance: 'endurance',
+        general_fitness: 'general'
+      };
+
+      const mappedGoals = userProfile && userProfile.fitnessGoal ? [goalMap[userProfile.fitnessGoal] || 'general'] : [];
+
+      const withWeights = normalizedExercises.map((ex) => {
+        const setsWithWeights = ex.sets.map((s: any) => {
+          if (s.weight && s.weight > 0) return s;
+
+          // Compute recommended weight
+          try {
+            const rec = getRecommendedWeight(ex.name, mappedLevel as any, mappedGoals as any);
+
+            // Adjust for equipment if needed: if exercise expects a barbell but user only has dumbbells, split weight
+            const equipmentStr = (ex.equipment || '').toLowerCase();
+            let final = rec;
+            if (equipmentStr.includes('barra') || equipmentStr.includes('barbell')) {
+              // If user does not have barra but has mancuernas, divide by 2
+              const hasBar = userHas.selectedEquipment.has('barra');
+              const hasDumb = userHas.selectedEquipment.has('mancuernas');
+              if (!hasBar && hasDumb) {
+                final = Math.round((rec / 2) / 2.5) * 2.5;
+              }
+            }
+
+            return { ...s, weight: final };
+          } catch (err) {
+            return { ...s, weight: s.weight || 0 };
+          }
+        });
+
+        return { ...ex, sets: setsWithWeights };
+      });
+
       await addRoutine({
         name: routine.name,
         description: routine.description,
         image: routine.image,
-        exercises: normalizedExercises,
+        exercises: withWeights,
         restBetweenSets: routine.restBetweenSets,
         restBetweenExercises: routine.restBetweenExercises,
       });

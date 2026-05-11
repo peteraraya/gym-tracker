@@ -192,7 +192,7 @@ function getGoalParameters(goals: string[], level: DifficultyLevel) {
 /**
  * Calcula peso inicial recomendado según ejercicio, nivel y objetivo
  */
-function getRecommendedWeight(
+export function getRecommendedWeight(
   exerciseName: string,
   level: DifficultyLevel,
   goals: string[]
