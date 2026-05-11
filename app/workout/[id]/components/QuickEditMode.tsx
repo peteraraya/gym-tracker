@@ -167,6 +167,71 @@ export function QuickEditMode({
     }
   }, [editingCell]);
 
+  // Tipos de serie y metadatos para selector grande
+  const SET_TYPES: SetType[] = [
+    'normal',
+    'warmup',
+    'dropset',
+    'failure',
+    'amrap',
+    'rest-pause',
+    'cluster',
+  ];
+
+  const SET_TYPE_INFO: Record<SetType, { icon: string; label: string; description: string; color: string }> = {
+    normal: {
+      icon: '💪',
+      label: 'Normal',
+      description: 'Serie estándar de trabajo',
+      color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700',
+    },
+    warmup: {
+      icon: '🔥',
+      label: 'Calentamiento',
+      description: 'Serie de calentamiento con peso ligero',
+      color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700',
+    },
+    dropset: {
+      icon: '⬇️',
+      label: 'Drop Set',
+      description: 'Reducir peso y continuar sin descanso',
+      color: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700',
+    },
+    failure: {
+      icon: '🔴',
+      label: 'Al Fallo',
+      description: 'Serie hasta el fallo muscular',
+      color: 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700',
+    },
+    amrap: {
+      icon: '♾️',
+      label: 'AMRAP',
+      description: 'Máximas repeticiones posibles',
+      color: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700',
+    },
+    'rest-pause': {
+      icon: '⏸️',
+      label: 'Rest-Pause',
+      description: 'Pausas cortas dentro de la serie',
+      color: 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-700',
+    },
+    cluster: {
+      icon: '🔗',
+      label: 'Cluster',
+      description: 'Mini-series con descansos breves',
+      color: 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border border-pink-300 dark:border-pink-700',
+    },
+  };
+
+  // Estado para selector grande de tipo de serie
+  const [showSetTypeSelector, setShowSetTypeSelector] = useState(false);
+  const [setTypeTarget, setSetTypeTarget] = useState<{
+    exerciseId: string;
+    setIndex: number;
+    exerciseName?: string;
+    currentType: SetType;
+  } | null>(null);
+
   // Mantener el foco en el input de descanso cuando se abre el modal
   useEffect(() => {
     if (editingRestTime && restInputRef.current) {
@@ -1589,16 +1654,26 @@ export function QuickEditMode({
                               )}
                             </div>
 
-                            {/* Tipo */}
+                            {/* Tipo - abrir selector grande */}
                             <div className="flex justify-center">
-                              <SetTypeCycleButton
-                                value={setType as SetType}
-                                onChange={(type) =>
-                                  onEditSetType(exerciseId, setIdx, type)
-                                }
-                                size="sm"
-                                showLabel={false}
-                              />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSetTypeTarget({
+                                    exerciseId,
+                                    setIndex: setIdx,
+                                    exerciseName: exercise.name,
+                                    currentType: setType as SetType,
+                                  });
+                                  setShowSetTypeSelector(true);
+                                }}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                  (SET_TYPE_INFO as any)[setType]?.color || 'bg-gray-200'
+                                }`}
+                                title={`Tipo: ${(SET_TYPE_INFO as any)[setType]?.label || setType}`}
+                              >
+                                <span className="text-sm">{(SET_TYPE_INFO as any)[setType]?.icon ?? '•'}</span>
+                              </button>
                             </div>
 
                             {/* Placeholder para el espacio del control (se elimina "Copiar anterior") */}
@@ -2021,6 +2096,51 @@ export function QuickEditMode({
             : []
         }
       />
+
+      {/* Selector grande para tipo de serie */}
+      <BottomSheet
+        isOpen={showSetTypeSelector}
+        onClose={() => {
+          setShowSetTypeSelector(false);
+          setSetTypeTarget(null);
+        }}
+        title={setTypeTarget ? `${setTypeTarget.exerciseName} - Tipo de serie` : 'Tipo de serie'}
+        maxHeight="100vh"
+      >
+        {setTypeTarget && (
+          <div className="p-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Elige el tipo de la serie (ej: Al fallo si no pudiste completar la repetición).
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {SET_TYPES.map((t) => {
+                const info = SET_TYPE_INFO[t];
+                return (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      try {
+                        onEditSetType(setTypeTarget.exerciseId, setTypeTarget.setIndex, t as SetType);
+                        showToast(`Tipo seleccionado: ${info.label}`, 'success', 2000);
+                      } catch {}
+                      setShowSetTypeSelector(false);
+                      setSetTypeTarget(null);
+                    }}
+                    className={`w-full p-4 rounded-xl text-left flex items-center gap-3 transition-shadow hover:shadow-md ${info.color}`}
+                  >
+                    <div className="text-2xl">{info.icon}</div>
+                    <div>
+                      <div className="font-bold">{info.label}</div>
+                      <div className="text-sm opacity-80">{info.description}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </BottomSheet>
 
       {/* Modal de edición de tiempo de descanso */}
       <BottomSheet
