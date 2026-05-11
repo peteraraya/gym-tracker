@@ -110,7 +110,7 @@
       "cta": "Ir a mis rutinas"
     },
     "cta": {
-      "train": "Ia a Entrenar",
+      "train": "Ir a Entrenar",
       "create": "Crear rutina"
     }
   },
@@ -174,8 +174,14 @@
     "gluteos": "Glúteos",
     "hombros": "Hombros",
     "brazos": "Brazos",
-    "core": "Core/Abdomen",
-    "gemelos": "Gemelos"
+    "biceps": "Bíceps",
+    "triceps": "Tríceps",
+    "antebrazos": "Antebrazos",
+    "trapecio": "Trapecio",
+    "cuello": "Cuello",
+    "core": "Core",
+    "gemelos": "Gemelos",
+    "cardio": "Cardio"
   },
   "workout": {
     "exercise": "Ejercicio",
@@ -323,8 +329,8 @@
       "currentStreak": "Racha Actual",
       "currentStreakSubtitle": "Racha de entrenamiento",
       "days": "días",
-      "totalSets": "Sets Completados"
-      ,"totalSetsSubtitle": "Series completadas"
+      "totalSets": "Sets Completados",
+      "totalSetsSubtitle": "Series completadas"
     },
     "charts": {
       "volumeChartTitle": "Gráfica de Volumen",

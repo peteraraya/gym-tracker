@@ -1,25 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useGym } from '@/context/GymContext';
-import { calculateAchievements, calculateStreak, calculateTotalVolume } from '@/lib/achievements';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { 
-  Bug, 
-  Trophy, 
-  Flame, 
-  Weight, 
+import React, { useState } from "react";
+import { useGym } from "@/context/GymContext";
+import { calculateAchievements, calculateStreak } from "@/lib/achievements";
+import { calculateTotalVolume } from "@/lib/utils/dateUtils";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import {
+  Bug,
+  Trophy,
+  Flame,
+  Weight,
   Calendar,
   RefreshCw,
-  Plus
-} from 'lucide-react';
+  Plus,
+} from "lucide-react";
 
 export const AchievementDebugPanel: React.FC = () => {
   const { sessions, addSession } = useGym();
   const [isVisible, setIsVisible] = useState(false);
 
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== "development") {
     return null;
   }
 
@@ -27,41 +28,41 @@ export const AchievementDebugPanel: React.FC = () => {
   const streak = calculateStreak(sessions);
   const totalVolume = calculateTotalVolume(sessions);
 
-  const unlockedCount = achievements.filter(a => a.unlocked).length;
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const totalCount = achievements.length;
 
   // Función para crear una sesión de prueba
   const createTestSession = async () => {
     const testSession = {
-      routineId: 'test-routine',
-      routineName: 'Rutina de Prueba',
+      routineId: "test-routine",
+      routineName: "Rutina de Prueba",
       date: new Date(),
       exercises: [
         {
-          exerciseId: 'test-exercise-1',
-          exerciseName: 'Press de Banca',
+          exerciseId: "test-exercise-1",
+          exerciseName: "Press de Banca",
           completedSets: 3,
           actualReps: [10, 8, 6],
           actualWeight: [60, 65, 70],
         },
         {
-          exerciseId: 'test-exercise-2',
-          exerciseName: 'Sentadillas',
+          exerciseId: "test-exercise-2",
+          exerciseName: "Sentadillas",
           completedSets: 3,
           actualReps: [12, 10, 8],
           actualWeight: [80, 85, 90],
-        }
+        },
       ],
-      notes: 'Sesión de prueba para logros',
+      notes: "Sesión de prueba para logros",
       totalDuration: 3600, // 1 hora
       totalPausedTime: 300, // 5 minutos
     };
 
     try {
       await addSession(testSession);
-      console.log('[Debug] Test session created');
+      console.log("[Debug] Test session created");
     } catch (error) {
-      console.error('[Debug] Error creating test session:', error);
+      console.error("[Debug] Error creating test session:", error);
     }
   };
 
@@ -100,7 +101,7 @@ export const AchievementDebugPanel: React.FC = () => {
             </Button>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Estadísticas actuales */}
           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -109,9 +110,11 @@ export const AchievementDebugPanel: React.FC = () => {
                 <Calendar className="w-3 h-3 text-blue-600" />
                 <span className="font-medium">Sesiones</span>
               </div>
-              <div className="text-lg font-bold text-blue-600">{sessions.length}</div>
+              <div className="text-lg font-bold text-blue-600">
+                {sessions.length}
+              </div>
             </div>
-            
+
             <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
               <div className="flex items-center gap-1 mb-1">
                 <Weight className="w-3 h-3 text-purple-600" />
@@ -121,7 +124,7 @@ export const AchievementDebugPanel: React.FC = () => {
                 {Math.round(totalVolume)}kg
               </div>
             </div>
-            
+
             <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded">
               <div className="flex items-center gap-1 mb-1">
                 <Flame className="w-3 h-3 text-orange-600" />
@@ -131,7 +134,7 @@ export const AchievementDebugPanel: React.FC = () => {
                 {streak.current}d
               </div>
             </div>
-            
+
             <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
               <div className="flex items-center gap-1 mb-1">
                 <Trophy className="w-3 h-3 text-green-600" />
@@ -150,27 +153,31 @@ export const AchievementDebugPanel: React.FC = () => {
             </h4>
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {achievements
-                .filter(a => !a.unlocked)
-                .sort((a, b) => (b.progress / b.target) - (a.progress / a.target))
+                .filter((a) => !a.unlocked)
+                .sort((a, b) => b.progress / b.target - a.progress / a.target)
                 .slice(0, 3)
-                .map(achievement => {
-                  const progress = (achievement.progress / achievement.target) * 100;
+                .map((achievement) => {
+                  const progress =
+                    (achievement.progress / achievement.target) * 100;
                   return (
                     <div key={achievement.id} className="text-xs">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-medium truncate">{achievement.name}</span>
+                        <span className="font-medium truncate">
+                          {achievement.name}
+                        </span>
                         <span className="text-gray-500">
                           {Math.round(progress)}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
-                        <div 
+                        <div
                           className="bg-blue-600 h-1 rounded-full transition-all duration-300"
                           style={{ width: `${Math.min(progress, 100)}%` }}
                         />
                       </div>
                       <div className="text-gray-500 mt-1">
-                        {achievement.progress}/{achievement.target} {achievement.unit}
+                        {achievement.progress}/{achievement.target}{" "}
+                        {achievement.unit}
                       </div>
                     </div>
                   );
@@ -189,7 +196,7 @@ export const AchievementDebugPanel: React.FC = () => {
               <Plus className="w-3 h-3 mr-1" />
               Crear Sesión de Prueba
             </Button>
-            
+
             <Button
               onClick={() => window.location.reload()}
               variant="secondary"
@@ -204,7 +211,12 @@ export const AchievementDebugPanel: React.FC = () => {
           {/* Log de debug */}
           <div className="text-xs text-gray-500">
             <div>Última actualización: {new Date().toLocaleTimeString()}</div>
-            <div>Modo: {process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true' ? 'Database' : 'LocalStorage'}</div>
+            <div>
+              Modo:{" "}
+              {process.env.NEXT_PUBLIC_ENABLE_DATABASE === "true"
+                ? "Database"
+                : "LocalStorage"}
+            </div>
           </div>
         </CardContent>
       </Card>

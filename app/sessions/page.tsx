@@ -1,41 +1,41 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useGym } from '@/context/GymContext';
-import { useToast } from '@/context/ToastContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { ClientOnly } from '@/components/ClientOnly';
-import { SessionFilters } from '@/components/SessionFilters';
-import { SessionComparison } from '@/components/SessionComparison';
-import { EditSessionModal } from '@/components/EditSessionModal';
-import { Pagination } from '@/components/Pagination';
-import { usePagination } from '@/hooks/usePagination';
-import type { WorkoutSession, Routine } from '@/types';
-import * as storageService from '@/lib/storage/storage';
-import { useSessionStats } from '@/hooks/useSessionStats';
-import { useConfirm } from '@/context/ConfirmContext';
-import { useLocale } from '@/context/LocaleContext';
-import { Calendar } from '@/components/icons/lucide';
-import { PageHeader, PageLayout, PageContent } from '@/layouts';
-import { 
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useGym } from "@/context/GymContext";
+import { useToast } from "@/context/NotificationContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { ClientOnly } from "@/components/ClientOnly";
+import { SessionFilters } from "@/components/SessionFilters";
+import { SessionComparison } from "@/components/SessionComparison";
+import { EditSessionModal } from "@/components/EditSessionModal";
+import { Pagination } from "@/components/Pagination";
+import { usePagination } from "@/hooks/usePagination";
+import type { WorkoutSession, Routine } from "@/types";
+import * as storageService from "@/lib/storage/storage";
+import { useSessionStats } from "@/hooks/useSessionStats";
+import { useConfirm } from "@/context/NotificationContext";
+import { useLocale } from "@/context/LocaleContext";
+import { Calendar } from "@/components/icons/lucide";
+import { PageHeader, PageLayout, PageContent } from "@/layouts";
+import {
   EmptyStateCard,
   LoadingSpinner,
   SessionCard as SharedSessionCard,
-  StatBadge
-} from '@/components/shared';
+  StatBadge,
+} from "@/components/shared";
 
 const SESSIONS_PER_PAGE = 10;
 
 interface FilterState {
   searchTerm: string;
   selectedRoutine: string;
-  dateRange: 'all' | 'week' | 'month' | '3months';
+  dateRange: "all" | "week" | "month" | "3months";
 }
 
 const DEFAULT_FILTERS: FilterState = {
-  searchTerm: '',
-  selectedRoutine: 'all',
-  dateRange: 'all',
+  searchTerm: "",
+  selectedRoutine: "all",
+  dateRange: "all",
 };
 
 function applyFilters(
@@ -47,45 +47,67 @@ function applyFilters(
 
   if (filters.searchTerm) {
     const lowerSearch = filters.searchTerm.toLowerCase();
-    filtered = filtered.filter(session => {
-      const routineName = routines.find(r => r.id === session.routineId)?.name?.toLowerCase() || '';
-      const hasExercise = session.exercises?.some(ex =>
-        ex.exerciseName?.toLowerCase().includes(lowerSearch)
-      ) || false;
-      const hasNote = session.notes?.toLowerCase().includes(lowerSearch) || false;
+    filtered = filtered.filter((session) => {
+      const routineName =
+        routines.find((r) => r.id === session.routineId)?.name?.toLowerCase() ||
+        "";
+      const hasExercise =
+        session.exercises?.some((ex) =>
+          ex.exerciseName?.toLowerCase().includes(lowerSearch),
+        ) || false;
+      const hasNote =
+        session.notes?.toLowerCase().includes(lowerSearch) || false;
       return routineName.includes(lowerSearch) || hasExercise || hasNote;
     });
   }
 
-  if (filters.selectedRoutine !== 'all') {
-    filtered = filtered.filter(session => session.routineId === filters.selectedRoutine);
+  if (filters.selectedRoutine !== "all") {
+    filtered = filtered.filter(
+      (session) => session.routineId === filters.selectedRoutine,
+    );
   }
 
-  if (filters.dateRange !== 'all') {
+  if (filters.dateRange !== "all") {
     const now = new Date();
     let daysBack = 0;
     switch (filters.dateRange) {
-      case 'week': daysBack = 7; break;
-      case 'month': daysBack = 30; break;
-      case '3months': daysBack = 90; break;
+      case "week":
+        daysBack = 7;
+        break;
+      case "month":
+        daysBack = 30;
+        break;
+      case "3months":
+        daysBack = 90;
+        break;
     }
     const cutoffDate = new Date(now);
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-    filtered = filtered.filter(session => new Date(session.date) >= cutoffDate);
+    filtered = filtered.filter(
+      (session) => new Date(session.date) >= cutoffDate,
+    );
   }
 
   return filtered;
 }
 
 export default function SessionsPage() {
-  const { sessions: serverSessions, routines, loading, updateSession, deleteSession } = useGym();
+  const {
+    sessions: serverSessions,
+    routines,
+    loading,
+    updateSession,
+    deleteSession,
+  } = useGym();
   const { success, error: showError } = useToast();
   const { confirm } = useConfirm();
   const { t } = useLocale();
   const tS = useCallback((key: string) => t(`sessions.${key}`), [t]);
 
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
-  const [editingSession, setEditingSession] = useState<WorkoutSession | null>(null);
+  const [editingSession, setEditingSession] = useState<WorkoutSession | null>(
+    null,
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [hideDeletedRoutines, setHideDeletedRoutines] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -96,23 +118,28 @@ export default function SessionsPage() {
       try {
         const all = await storageService.getSessions();
         const map = new Map<string, WorkoutSession>();
-        const keyFor = (s: WorkoutSession) => s.id || `${s.date}-${s.routineId}`;
-        (all || []).forEach(s => map.set(keyFor(s), s));
+        const keyFor = (s: WorkoutSession) =>
+          s.id || `${s.date}-${s.routineId}`;
+        (all || []).forEach((s) => map.set(keyFor(s), s));
         if (mounted) setLocalSessions(Array.from(map.values()));
       } catch (err) {
-        console.warn('Error loading local sessions:', err);
+        console.warn("Error loading local sessions:", err);
       }
     })();
-    return () => { mounted = false };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const sessions = useMemo(() => {
     const serverById = new Map<string, WorkoutSession>();
-    serverSessions.forEach(s => { if (s.id) serverById.set(s.id, s); });
+    serverSessions.forEach((s) => {
+      if (s.id) serverById.set(s.id, s);
+    });
 
     const merged: WorkoutSession[] = [];
-    serverSessions.forEach(s => merged.push(s));
-    localSessions.forEach(s => {
+    serverSessions.forEach((s) => merged.push(s));
+    localSessions.forEach((s) => {
       if (s.id && serverById.has(s.id)) return;
       merged.push(s);
     });
@@ -128,7 +155,7 @@ export default function SessionsPage() {
 
   const displayedSessions = useMemo(() => {
     if (!hideDeletedRoutines) return sessions;
-    return sessions.filter(s => routines.some(r => r.id === s.routineId));
+    return sessions.filter((s) => routines.some((r) => r.id === s.routineId));
   }, [sessions, hideDeletedRoutines, routines]);
 
   const filteredSessions = useMemo(() => {
@@ -148,37 +175,41 @@ export default function SessionsPage() {
   const handleSaveSession = async (updatedSession: WorkoutSession) => {
     try {
       await updateSession(updatedSession);
-      success(tS('toast.updateSuccess'));
+      success(tS("toast.updateSuccess"));
       setIsEditModalOpen(false);
       setEditingSession(null);
     } catch (err) {
-      console.error('Error updating session:', err);
-      showError(tS('toast.updateError'));
+      console.error("Error updating session:", err);
+      showError(tS("toast.updateError"));
     }
   };
 
   const handleDeleteSession = async (session: WorkoutSession) => {
-    const routineName = routines.find(r => r.id === session.routineId)?.name ?? tS('routineDeleted');
-    const sessionDate = new Date(session.date).toLocaleDateString('es-ES', {
-      year: 'numeric', month: 'long', day: 'numeric',
+    const routineName =
+      routines.find((r) => r.id === session.routineId)?.name ??
+      tS("routineDeleted");
+    const sessionDate = new Date(session.date).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
 
     const confirmed = await confirm({
-      title: tS('confirmDelete.title'),
-      message: `${tS('confirmDelete.message')} "${routineName}" del ${sessionDate}${tS('confirmDelete.suffix')}`,
-      confirmText: tS('confirmDelete.confirmText'),
-      cancelText: tS('confirmDelete.cancelText'),
-      variant: 'danger',
+      title: tS("confirmDelete.title"),
+      message: `${tS("confirmDelete.message")} "${routineName}" del ${sessionDate}${tS("confirmDelete.suffix")}`,
+      confirmText: tS("confirmDelete.confirmText"),
+      cancelText: tS("confirmDelete.cancelText"),
+      variant: "danger",
     });
 
     if (!confirmed) return;
 
     try {
       await deleteSession(session.id);
-      success(tS('toast.deleteSuccess'));
+      success(tS("toast.deleteSuccess"));
     } catch (err) {
-      console.error('Error deleting session:', err);
-      showError(tS('toast.deleteError'));
+      console.error("Error deleting session:", err);
+      showError(tS("toast.deleteError"));
     }
   };
 
@@ -213,27 +244,44 @@ export default function SessionsPage() {
           {sessions.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
               <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-                <div className="text-sm text-white/80 font-medium">{tS('totalSessions')}</div>
-                <div className="text-2xl font-bold text-white mt-1">{sessions.length}</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-                <div className="text-sm text-white/80 font-medium">{tS('filtered')}</div>
-                <div className="text-2xl font-bold text-white mt-1">{filteredSessions.length}</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-                <div className="text-sm text-white/80 font-medium">{tS('uniqueRoutines')}</div>
+                <div className="text-sm text-white/80 font-medium">
+                  {tS("totalSessions")}
+                </div>
                 <div className="text-2xl font-bold text-white mt-1">
-                  {new Set(sessions.map(s => s.routineId)).size}
+                  {sessions.length}
                 </div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-                <div className="text-sm text-white/80 font-medium">{tS('thisMonth')}</div>
+                <div className="text-sm text-white/80 font-medium">
+                  {tS("filtered")}
+                </div>
                 <div className="text-2xl font-bold text-white mt-1">
-                  {sessions.filter(s => {
-                    const date = new Date(s.date);
-                    const now = new Date();
-                    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-                  }).length}
+                  {filteredSessions.length}
+                </div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
+                <div className="text-sm text-white/80 font-medium">
+                  {tS("uniqueRoutines")}
+                </div>
+                <div className="text-2xl font-bold text-white mt-1">
+                  {new Set(sessions.map((s) => s.routineId)).size}
+                </div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
+                <div className="text-sm text-white/80 font-medium">
+                  {tS("thisMonth")}
+                </div>
+                <div className="text-2xl font-bold text-white mt-1">
+                  {
+                    sessions.filter((s) => {
+                      const date = new Date(s.date);
+                      const now = new Date();
+                      return (
+                        date.getMonth() === now.getMonth() &&
+                        date.getFullYear() === now.getFullYear()
+                      );
+                    }).length
+                  }
                 </div>
               </div>
             </div>
@@ -251,7 +299,10 @@ export default function SessionsPage() {
               <span>Ocultar rutinas eliminadas</span>
             </label>
             {filteredSessions.length > 1 && (
-              <SessionComparison sessions={filteredSessions} routines={routines} />
+              <SessionComparison
+                sessions={filteredSessions}
+                routines={routines}
+              />
             )}
           </div>
         </PageHeader>
@@ -290,10 +341,13 @@ export default function SessionsPage() {
                   <>
                     <div className="space-y-3">
                       {pagination.currentPageItems.map((session) => {
-                        const routine = routines.find(r => r.id === session.routineId);
-                        const routineName = routine?.name ?? tS('routineDeleted');
+                        const routine = routines.find(
+                          (r) => r.id === session.routineId,
+                        );
+                        const routineName =
+                          routine?.name ?? tS("routineDeleted");
                         const isDeleted = !routine;
-                        
+
                         return (
                           <SharedSessionCard
                             key={session.id}
@@ -334,7 +388,10 @@ export default function SessionsPage() {
           <EditSessionModal
             session={editingSession}
             isOpen={isEditModalOpen}
-            onClose={() => { setIsEditModalOpen(false); setEditingSession(null); }}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setEditingSession(null);
+            }}
             onSave={handleSaveSession}
           />
         </PageContent>

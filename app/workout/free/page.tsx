@@ -1,47 +1,43 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useGym } from '@/context/GymContext';
-import { useToast } from '@/context/ToastContext';
-import { useConfirm } from '@/context/ConfirmContext';
-import { Button } from '@/components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Modal } from '@/components/ui/Modal';
-import { Timer } from '@/components/Timer';
-import { SetTimer } from '@/components/SetTimer';
-import { PreparationCountdown } from '@/components/PreparationCountdown';
-import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
-import { WeightSelector } from '@/components/WeightSelector';
-import { Input } from '@/components/ui/Input';
-import { RestTimeSelector } from '@/components/RestTimeSelector';
-import { ExerciseSelector } from '@/components/ExerciseSelector';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import {
-  calculateRestBetweenSets,
-  formatRestTime
-} from '@/lib/restCalculator';
-import { EXERCISE_DATABASE, ExerciseTemplate } from '@/data/exercises';
-import { getExerciseRecommendations } from '@/lib/exerciseRecommendations';
-import type { UserProfile } from '@/types';
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useGym } from "@/context/GymContext";
+import { useToast, useConfirm } from "@/context/NotificationContext";
+import { Button } from "@/components/ui/Button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
+import { Timer } from "@/components/Timer";
+import { SetTimer } from "@/components/SetTimer";
+import { PreparationCountdown } from "@/components/PreparationCountdown";
+import SetTypeSelector, { SetTypeBadge } from "@/components/SetTypeSelector";
+import { WeightSelector } from "@/components/WeightSelector";
+import { Input } from "@/components/ui/Input";
+import { RestTimeSelector } from "@/components/RestTimeSelector";
+import { ExerciseSelector } from "@/components/ExerciseSelector";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { calculateRestBetweenSets, formatRestTime } from "@/lib/restCalculator";
+import { EXERCISE_DATABASE, ExerciseTemplate } from "@/data/exercises";
+import { getExerciseRecommendations } from "@/lib/exerciseRecommendations";
+import type { UserProfile } from "@/types";
 import {
   Plus,
   Trash2,
   ChevronDown,
   ChevronUp,
   Dumbbell,
-  Zap
-} from 'lucide-react';
+  Zap,
+} from "lucide-react";
 
 interface FreeExercise {
   id: string;
   name: string;
   equipment?: string;
-  completedSets: { 
-    reps: number; 
-    weight: number; 
+  completedSets: {
+    reps: number;
+    weight: number;
     duration?: number;
-    type?: import('@/types').SetType;
+    type?: import("@/types").SetType;
     checked?: boolean; // Para trackear si está marcado o no
   }[];
   restBetweenSets?: number;
@@ -58,74 +54,87 @@ export default function FreeWorkoutPage() {
   const { confirm } = useConfirm();
 
   const [exercises, setExercises] = useState<FreeExercise[]>(() => {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === "undefined") return [];
     try {
-      const stored = localStorage.getItem('gym-tracker-free-workout');
+      const stored = localStorage.getItem("gym-tracker-free-workout");
       if (stored) {
         const parsed = JSON.parse(stored);
         return parsed.exercises || [];
       }
     } catch (e) {
-      console.error('Error restoring free workout:', e);
+      console.error("Error restoring free workout:", e);
     }
     return [];
   });
-  const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const stored = localStorage.getItem('gym-tracker-free-workout');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return parsed.activeExerciseIndex ?? null;
+  const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(
+    () => {
+      if (typeof window === "undefined") return null;
+      try {
+        const stored = localStorage.getItem("gym-tracker-free-workout");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          return parsed.activeExerciseIndex ?? null;
+        }
+      } catch {
+        /* ignore */
       }
-    } catch { /* ignore */ }
-    return null;
-  });
-  const [collapsedExercises, setCollapsedExercises] = useState<Set<number>>(() => new Set());
-  const [currentReps, setCurrentReps] = useState<number | ''>(10);
-  const [currentWeight, setCurrentWeight] = useState<number | ''>(0);
-  const [currentSetType, setCurrentSetType] = useState<import('@/types').SetType>('normal');
+      return null;
+    },
+  );
+  const [collapsedExercises, setCollapsedExercises] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [currentReps, setCurrentReps] = useState<number | "">(10);
+  const [currentWeight, setCurrentWeight] = useState<number | "">(0);
+  const [currentSetType, setCurrentSetType] =
+    useState<import("@/types").SetType>("normal");
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
-  const [sessionNotes, setSessionNotes] = useState('');
+  const [sessionNotes, setSessionNotes] = useState("");
   const [proposedDuration, setProposedDuration] = useState<number>(0); // seconds
   const [workoutStartTime] = useState(() => Date.now());
   const [totalPausedTime, setTotalPausedTime] = useState(0);
-  
+
   // Estado para el perfil del usuario
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  
+
   // Cargar perfil del usuario
   useEffect(() => {
     const loadProfile = async () => {
       try {
         // Verificar modo de almacenamiento
-        const { useLocalStorage } = await import('@/lib/storageConfig');
-        
+        const { useLocalStorage } = await import("@/lib/storageConfig");
+
         if (useLocalStorage()) {
           // Modo LOCAL: Cargar desde localStorage
-          if (typeof window !== 'undefined') {
-            const { getProfileLocally } = await import('@/lib/localProfile');
+          if (typeof window !== "undefined") {
+            const { getProfileLocally } = await import("@/lib/localProfile");
             const localProfile = getProfileLocally();
-            
+
             if (localProfile) {
-              console.log('[FreeWorkout] ✅ Loaded profile from localStorage:', localProfile);
+              console.log(
+                "[FreeWorkout] ✅ Loaded profile from localStorage:",
+                localProfile,
+              );
               setUserProfile(localProfile);
               return;
             }
           }
         } else {
           // Modo DATABASE: Cargar desde Supabase
-          console.log('[FreeWorkout] ☁️ Loading profile from Supabase...');
-          const response = await fetch('/api/profile');
+          console.log("[FreeWorkout] ☁️ Loading profile from Supabase...");
+          const response = await fetch("/api/profile");
           if (response.ok) {
             const profile = await response.json();
-            console.log('[FreeWorkout] ✅ Loaded profile from Supabase:', profile);
+            console.log(
+              "[FreeWorkout] ✅ Loaded profile from Supabase:",
+              profile,
+            );
             setUserProfile(profile);
           }
         }
       } catch (error) {
-        console.error('[FreeWorkout] ❌ Error loading profile:', error);
+        console.error("[FreeWorkout] ❌ Error loading profile:", error);
       }
     };
     loadProfile();
@@ -134,15 +143,17 @@ export default function FreeWorkoutPage() {
   // Timer state
   const [showTimer, setShowTimer] = useState(false);
   const [timerDuration, setTimerDuration] = useState(60);
-  const [timerTitle, setTimerTitle] = useState('');
-  const [actualRestTimes, setActualRestTimes] = useState<{[key: string]: number[]}>({});
+  const [timerTitle, setTimerTitle] = useState("");
+  const [actualRestTimes, setActualRestTimes] = useState<{
+    [key: string]: number[];
+  }>({});
 
   // Smart rest
   const [useSmartRest, setUseSmartRest] = useState(true);
   const [globalRestTime, setGlobalRestTime] = useState(() => {
-    if (typeof window === 'undefined') return 60;
+    if (typeof window === "undefined") return 60;
     try {
-      const stored = localStorage.getItem('gym-tracker-free-workout');
+      const stored = localStorage.getItem("gym-tracker-free-workout");
       if (stored) {
         const parsed = JSON.parse(stored);
         return parsed.globalRestTime ?? 60;
@@ -158,7 +169,7 @@ export default function FreeWorkoutPage() {
   const [isExecutingSet, setIsExecutingSet] = useState(false);
 
   const handleRemoveExercise = (index: number) => {
-    setExercises(prev => prev.filter((_, i) => i !== index));
+    setExercises((prev) => prev.filter((_, i) => i !== index));
     if (activeExerciseIndex === index) {
       setActiveExerciseIndex(null);
     } else if (activeExerciseIndex !== null && activeExerciseIndex > index) {
@@ -168,22 +179,25 @@ export default function FreeWorkoutPage() {
 
   // Añadir ejercicios seleccionados desde el selector
   const handleAddExercises = (templates: ExerciseTemplate[]) => {
-    const newItems: FreeExercise[] = templates.map(t => {
+    const newItems: FreeExercise[] = templates.map((t) => {
       // Obtener recomendaciones inteligentes
       const recommendations = getExerciseRecommendations(t, userProfile);
-      
+
       // Convertir tiempo de descanso a segundos
       let restSecs: number | undefined;
       const restTimeMatch = recommendations.restTime.match(/(\d+)/);
       if (restTimeMatch) {
         restSecs = parseInt(restTimeMatch[1], 10);
-        if (recommendations.restTime.toLowerCase().includes('min')) {
+        if (recommendations.restTime.toLowerCase().includes("min")) {
           restSecs = restSecs * 60;
         }
       }
-      
+
       return {
-        id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2,9)}`,
+        id:
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         name: t.name,
         equipment: t.equipment,
         completedSets: [],
@@ -191,34 +205,39 @@ export default function FreeWorkoutPage() {
         // Guardar recomendaciones para mostrar al usuario
         recommendedSets: recommendations.sets,
         recommendedReps: recommendations.reps,
-        recommendedWeight: recommendations.weight
+        recommendedWeight: recommendations.weight,
       };
     });
 
-    setExercises(prev => {
+    setExercises((prev) => {
       const next = [...prev, ...newItems];
       // Abrir el primer ejercicio agregado
       setActiveExerciseIndex(next.length - newItems.length);
       return next;
     });
-    
+
     // Mostrar mensaje informativo
     if (userProfile) {
-      success(`✨ ${templates.length} ejercicio${templates.length > 1 ? 's' : ''} configurado${templates.length > 1 ? 's' : ''} según tu perfil`);
+      success(
+        `✨ ${templates.length} ejercicio${templates.length > 1 ? "s" : ""} configurado${templates.length > 1 ? "s" : ""} según tu perfil`,
+      );
     }
-    
+
     setShowExerciseSelector(false);
   };
 
   // Persistir estado del entrenamiento libre en localStorage
   useEffect(() => {
     try {
-      if (typeof window === 'undefined') return;
-      localStorage.setItem('gym-tracker-free-workout', JSON.stringify({
-        exercises,
-        activeExerciseIndex,
-        globalRestTime
-      }));
+      if (typeof window === "undefined") return;
+      localStorage.setItem(
+        "gym-tracker-free-workout",
+        JSON.stringify({
+          exercises,
+          activeExerciseIndex,
+          globalRestTime,
+        }),
+      );
     } catch (e) {
       // ignore
     }
@@ -226,8 +245,8 @@ export default function FreeWorkoutPage() {
 
   const clearStorage = () => {
     try {
-      if (typeof window === 'undefined') return;
-      localStorage.removeItem('gym-tracker-free-workout');
+      if (typeof window === "undefined") return;
+      localStorage.removeItem("gym-tracker-free-workout");
     } catch (e) {}
   };
 
@@ -242,15 +261,15 @@ export default function FreeWorkoutPage() {
 
   const handleCompleteSet = () => {
     setIsExecutingSet(false);
-    
+
     if (activeExerciseIndex === null) return;
 
     const exercise = exercises[activeExerciseIndex];
     if (!exercise) return;
 
     // Add set (normalizar valores vacíos a 0)
-    const repsValue = typeof currentReps === 'number' ? currentReps : 0;
-    const weightValue = typeof currentWeight === 'number' ? currentWeight : 0;
+    const repsValue = typeof currentReps === "number" ? currentReps : 0;
+    const weightValue = typeof currentWeight === "number" ? currentWeight : 0;
 
     // Add set with type
     const newExercises = [...exercises];
@@ -258,18 +277,18 @@ export default function FreeWorkoutPage() {
       ...exercise,
       completedSets: [
         ...exercise.completedSets,
-        { 
-          reps: repsValue, 
+        {
+          reps: repsValue,
           weight: weightValue,
           type: currentSetType,
-          checked: true // Marcar como completada por defecto
-        }
-      ]
+          checked: true, // Marcar como completada por defecto
+        },
+      ],
     };
     setExercises(newExercises);
-    
+
     // Reset set type to normal for next set
-    setCurrentSetType('normal');
+    setCurrentSetType("normal");
 
     // Calculate rest time
     let restTime: number;
@@ -277,13 +296,13 @@ export default function FreeWorkoutPage() {
     if (exercise.restBetweenSets && exercise.restBetweenSets > 0) {
       restTime = exercise.restBetweenSets;
     } else if (useSmartRest) {
-      const template = EXERCISE_DATABASE.find(e => e.name === exercise.name);
+      const template = EXERCISE_DATABASE.find((e) => e.name === exercise.name);
       if (template) {
         const rec = calculateRestBetweenSets(
           template,
           exercise.completedSets.length + 1,
-          typeof currentReps === 'number' ? currentReps : undefined,
-          'intermediate'
+          typeof currentReps === "number" ? currentReps : undefined,
+          "intermediate",
         );
         restTime = rec.recommended;
       } else {
@@ -300,7 +319,7 @@ export default function FreeWorkoutPage() {
   };
 
   const handleSetTimerComplete = (duration: number, pausedTime: number) => {
-    setTotalPausedTime(prev => prev + pausedTime);
+    setTotalPausedTime((prev) => prev + pausedTime);
     handleCompleteSet();
   };
 
@@ -308,13 +327,13 @@ export default function FreeWorkoutPage() {
     if (activeExerciseIndex === null) return;
     const exercise = exercises[activeExerciseIndex];
     if (!exercise) return;
-    
+
     // Guardar el tiempo real de descanso para este ejercicio
     const newActualRestTimes = {
       ...actualRestTimes,
-      [exercise.id]: [...(actualRestTimes[exercise.id] || []), actualDuration]
+      [exercise.id]: [...(actualRestTimes[exercise.id] || []), actualDuration],
     };
-    
+
     setActualRestTimes(newActualRestTimes);
   };
 
@@ -323,8 +342,11 @@ export default function FreeWorkoutPage() {
   };
 
   const handleFinishWorkout = () => {
-    if (exercises.length === 0 || exercises.every(e => e.completedSets.length === 0)) {
-      error('No hay series completadas para guardar');
+    if (
+      exercises.length === 0 ||
+      exercises.every((e) => e.completedSets.length === 0)
+    ) {
+      error("No hay series completadas para guardar");
       return;
     }
     const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
@@ -335,75 +357,79 @@ export default function FreeWorkoutPage() {
   const finishCompleteWorkout = async () => {
     // Prevenir guardados duplicados
     if (showNotesModal === false) {
-      console.warn('[finishCompleteWorkout] Already processing, ignoring duplicate call');
+      console.warn(
+        "[finishCompleteWorkout] Already processing, ignoring duplicate call",
+      );
       return;
     }
 
-    const totalDuration = proposedDuration && proposedDuration > 0
-      ? proposedDuration
-      : Math.floor((Date.now() - workoutStartTime) / 1000);
+    const totalDuration =
+      proposedDuration && proposedDuration > 0
+        ? proposedDuration
+        : Math.floor((Date.now() - workoutStartTime) / 1000);
 
     const sessionExercises = exercises
-      .filter(ex => ex.completedSets.length > 0)
-      .map(ex => {
+      .filter((ex) => ex.completedSets.length > 0)
+      .map((ex) => {
         // Filtrar solo las series marcadas como checked
-        const checkedSets = ex.completedSets.filter(s => s.checked !== false);
+        const checkedSets = ex.completedSets.filter((s) => s.checked !== false);
         return {
           exerciseId: ex.id,
           exerciseName: ex.name,
           completedSets: checkedSets.length,
-          actualReps: checkedSets.map(s => s.reps),
-          actualWeight: checkedSets.map(s => s.weight),
-          setDurations: checkedSets.map(s => s.duration || 0),
+          actualReps: checkedSets.map((s) => s.reps),
+          actualWeight: checkedSets.map((s) => s.weight),
+          setDurations: checkedSets.map((s) => s.duration || 0),
           pauseDurations: [],
-          actualRestTimes: actualRestTimes[ex.id] || []
+          actualRestTimes: actualRestTimes[ex.id] || [],
         };
       })
-      .filter(ex => ex.completedSets > 0); // Eliminar ejercicios sin series marcadas
+      .filter((ex) => ex.completedSets > 0); // Eliminar ejercicios sin series marcadas
 
     try {
       await addSession({
-        routineId: 'free-training',
-        routineName: '🏋️ Entrenamiento Libre',
+        routineId: "free-training",
+        routineName: "🏋️ Entrenamiento Libre",
         date: new Date(),
         exercises: sessionExercises,
-        notes: sessionNotes.trim() || '',
+        notes: sessionNotes.trim() || "",
         totalDuration,
-        totalPausedTime
+        totalPausedTime,
       });
 
       clearStorage();
-      success('¡Sesión de entrenamiento libre guardada!');
-      
+      success("¡Sesión de entrenamiento libre guardada!");
+
       // Pequeña espera para asegurar que el estado se propague
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Usar replace en lugar de push para prevenir volver atrás
-      router.replace('/sessions');
+      router.replace("/sessions");
       router.refresh();
     } catch (err) {
-      console.error('Error saving free training session:', err);
-      error('Error al guardar la sesión');
+      console.error("Error saving free training session:", err);
+      error("Error al guardar la sesión");
     }
   };
 
   const handleCancelWorkout = async () => {
     const confirmed = await confirm({
-      title: 'Cancelar entrenamiento',
-      message: '¿Estás seguro? Se perderá todo el progreso del entrenamiento libre.',
-      confirmText: 'Sí, cancelar',
-      cancelText: 'Continuar',
-      variant: 'danger'
+      title: "Cancelar entrenamiento",
+      message:
+        "¿Estás seguro? Se perderá todo el progreso del entrenamiento libre.",
+      confirmText: "Sí, cancelar",
+      cancelText: "Continuar",
+      variant: "danger",
     });
 
     if (confirmed) {
       clearStorage();
-      router.replace('/routines');
+      router.replace("/routines");
     }
   };
 
   const toggleCollapse = (index: number) => {
-    setCollapsedExercises(prev => {
+    setCollapsedExercises((prev) => {
       const next = new Set(prev);
       if (next.has(index)) {
         next.delete(index);
@@ -414,18 +440,19 @@ export default function FreeWorkoutPage() {
     });
   };
 
-  const activeExercise = activeExerciseIndex !== null ? exercises[activeExerciseIndex] : null;
+  const activeExercise =
+    activeExerciseIndex !== null ? exercises[activeExerciseIndex] : null;
 
   // Ocultar navbar cuando se muestra el timer
   useEffect(() => {
     if (showTimer) {
-      document.body.classList.add('hide-navbar');
+      document.body.classList.add("hide-navbar");
     } else {
-      document.body.classList.remove('hide-navbar');
+      document.body.classList.remove("hide-navbar");
     }
 
     return () => {
-      document.body.classList.remove('hide-navbar');
+      document.body.classList.remove("hide-navbar");
     };
   }, [showTimer]);
 
@@ -444,7 +471,11 @@ export default function FreeWorkoutPage() {
               onActualDurationChange={handleActualRestDuration}
             />
             <div className="mt-6 text-center space-y-3">
-              <Button variant="ghost" onClick={handleTimerComplete} className="w-full">
+              <Button
+                variant="ghost"
+                onClick={handleTimerComplete}
+                className="w-full"
+              >
                 ⏭️ Saltar descanso
               </Button>
               <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -470,7 +501,8 @@ export default function FreeWorkoutPage() {
               Entrenamiento Libre
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Entrena sin rutina predefinida. Agrega ejercicios y registra series sobre la marcha.
+              Entrena sin rutina predefinida. Agrega ejercicios y registra
+              series sobre la marcha.
             </p>
           </div>
 
@@ -487,17 +519,23 @@ export default function FreeWorkoutPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">🧠 Inteligente</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    🧠 Inteligente
+                  </span>
                   <button
                     type="button"
                     onClick={() => setUseSmartRest(!useSmartRest)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      useSmartRest ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                      useSmartRest
+                        ? "bg-purple-600"
+                        : "bg-gray-300 dark:bg-gray-600"
                     }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      useSmartRest ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        useSmartRest ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
                   </button>
                 </div>
               </div>
@@ -510,7 +548,7 @@ export default function FreeWorkoutPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Dumbbell className="w-4 h-4 text-orange-500" />
-                  {activeExercise.name || 'Ejercicio sin nombre'}
+                  {activeExercise.name || "Ejercicio sin nombre"}
                 </CardTitle>
                 {activeExercise.equipment && (
                   <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -533,13 +571,20 @@ export default function FreeWorkoutPage() {
                     <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
                       {activeExercise.completedSets.length}
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">Series</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      Series
+                    </div>
                   </div>
                   <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                     <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                      {activeExercise.completedSets.reduce((sum, s) => sum + s.reps, 0)}
+                      {activeExercise.completedSets.reduce(
+                        (sum, s) => sum + s.reps,
+                        0,
+                      )}
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">Reps</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      Reps
+                    </div>
                   </div>
                 </div>
 
@@ -552,10 +597,10 @@ export default function FreeWorkoutPage() {
                     <input
                       type="number"
                       className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={currentReps === 0 ? '' : currentReps}
+                      value={currentReps === 0 ? "" : currentReps}
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (val === '') {
+                        if (val === "") {
                           setCurrentReps(0);
                         } else {
                           const num = parseInt(val);
@@ -571,14 +616,16 @@ export default function FreeWorkoutPage() {
                       Peso (kg)
                     </label>
                     <WeightSelector
-                      value={currentWeight === 0 ? '' : currentWeight}
-                      onChange={(weight) => setCurrentWeight(Math.max(0, weight))}
+                      value={currentWeight === 0 ? "" : currentWeight}
+                      onChange={(weight) =>
+                        setCurrentWeight(Math.max(0, weight))
+                      }
                       exerciseId={activeExercise.id}
                       placeholder="0"
                     />
                   </div>
                 </div>
-                
+
                 {/* Selector de tipo de serie - compacto */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -606,7 +653,12 @@ export default function FreeWorkoutPage() {
                   <Button
                     variant="primary"
                     onClick={handleStartSet}
-                    disabled={currentReps === 0 || currentReps === '' || currentWeight === 0 || currentWeight === ''}
+                    disabled={
+                      currentReps === 0 ||
+                      currentReps === "" ||
+                      currentWeight === 0 ||
+                      currentWeight === ""
+                    }
                     className="w-full text-base py-2.5 bg-blue-600 hover:bg-blue-700"
                   >
                     ▶️ Iniciar Serie {activeExercise.completedSets.length + 1}
@@ -624,7 +676,7 @@ export default function FreeWorkoutPage() {
                         Presiona el botón cuando termines
                       </p>
                     </div>
-                    
+
                     <Button
                       variant="primary"
                       onClick={handleCompleteSet}
@@ -639,10 +691,15 @@ export default function FreeWorkoutPage() {
                 {/* Sets history con edición - compacto */}
                 {activeExercise.completedSets.length > 0 && (
                   <div className="mt-2">
-                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Series completadas:</p>
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      Series completadas:
+                    </p>
                     <div className="space-y-1.5">
                       {activeExercise.completedSets.map((set, i) => (
-                        <div key={i} className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-300 dark:border-green-700">
+                        <div
+                          key={i}
+                          className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-300 dark:border-green-700"
+                        >
                           {/* Header con checkbox - compacto */}
                           <div className="flex items-center justify-between mb-1.5">
                             <div className="flex items-center gap-1.5">
@@ -653,18 +710,25 @@ export default function FreeWorkoutPage() {
                                 onChange={(e) => {
                                   const checked = e.target.checked;
                                   const newExercises = [...exercises];
-                                  const updatedSets = [...activeExercise.completedSets];
-                                  updatedSets[i] = { ...updatedSets[i], checked };
+                                  const updatedSets = [
+                                    ...activeExercise.completedSets,
+                                  ];
+                                  updatedSets[i] = {
+                                    ...updatedSets[i],
+                                    checked,
+                                  };
                                   newExercises[activeExerciseIndex!] = {
                                     ...activeExercise,
-                                    completedSets: updatedSets
+                                    completedSets: updatedSets,
                                   };
                                   setExercises(newExercises);
                                 }}
                                 className="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
                               />
-                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">#{i + 1}</span>
-                              {set.type && set.type !== 'normal' && (
+                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                #{i + 1}
+                              </span>
+                              {set.type && set.type !== "normal" && (
                                 <SetTypeBadge type={set.type} />
                               )}
                             </div>
@@ -675,7 +739,10 @@ export default function FreeWorkoutPage() {
                                 const newExercises = [...exercises];
                                 newExercises[activeExerciseIndex!] = {
                                   ...activeExercise,
-                                  completedSets: activeExercise.completedSets.filter((_, idx) => idx !== i)
+                                  completedSets:
+                                    activeExercise.completedSets.filter(
+                                      (_, idx) => idx !== i,
+                                    ),
                                 };
                                 setExercises(newExercises);
                               }}
@@ -684,86 +751,102 @@ export default function FreeWorkoutPage() {
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
-                          
+
                           {/* Inputs editables - compacto */}
-                            <div className="grid grid-cols-2 gap-1.5">
-                              <div>
-                                <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
-                                  Reps
-                                </label>
-                                <input
-                                  type="number"
-                                  className="w-full p-1.5 border rounded-md bg-white dark:bg-gray-700 text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  value={set.reps}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    const num = val === '' ? 0 : parseInt(val);
-                                    const newExercises = [...exercises];
-                                    const updatedSets = [...activeExercise.completedSets];
-                                    updatedSets[i] = { ...updatedSets[i], reps: isNaN(num) ? 0 : Math.max(0, num) };
-                                    newExercises[activeExerciseIndex!] = {
-                                      ...activeExercise,
-                                      completedSets: updatedSets
-                                    };
-                                    setExercises(newExercises);
-                                  }}
-                                  min="0"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
-                                  Peso (kg)
-                                </label>
-                                <WeightSelector
-                                  value={set.weight}
-                                  onChange={(weight) => {
-                                    const newExercises = [...exercises];
-                                    const updatedSets = [...activeExercise.completedSets];
-                                    updatedSets[i] = { ...updatedSets[i], weight: Math.max(0, weight) };
-                                    newExercises[activeExerciseIndex!] = {
-                                      ...activeExercise,
-                                      completedSets: updatedSets
-                                    };
-                                    setExercises(newExercises);
-                                  }}
-                                  exerciseId={activeExercise.id}
-                                  placeholder="0"
-                                  className="p-1.5 text-xs"
-                                />
-                              </div>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <div>
+                              <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
+                                Reps
+                              </label>
+                              <input
+                                type="number"
+                                className="w-full p-1.5 border rounded-md bg-white dark:bg-gray-700 text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value={set.reps}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const num = val === "" ? 0 : parseInt(val);
+                                  const newExercises = [...exercises];
+                                  const updatedSets = [
+                                    ...activeExercise.completedSets,
+                                  ];
+                                  updatedSets[i] = {
+                                    ...updatedSets[i],
+                                    reps: isNaN(num) ? 0 : Math.max(0, num),
+                                  };
+                                  newExercises[activeExerciseIndex!] = {
+                                    ...activeExercise,
+                                    completedSets: updatedSets,
+                                  };
+                                  setExercises(newExercises);
+                                }}
+                                min="0"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
+                                Peso (kg)
+                              </label>
+                              <WeightSelector
+                                value={set.weight}
+                                onChange={(weight) => {
+                                  const newExercises = [...exercises];
+                                  const updatedSets = [
+                                    ...activeExercise.completedSets,
+                                  ];
+                                  updatedSets[i] = {
+                                    ...updatedSets[i],
+                                    weight: Math.max(0, weight),
+                                  };
+                                  newExercises[activeExerciseIndex!] = {
+                                    ...activeExercise,
+                                    completedSets: updatedSets,
+                                  };
+                                  setExercises(newExercises);
+                                }}
+                                exerciseId={activeExercise.id}
+                                placeholder="0"
+                                className="p-1.5 text-xs"
+                              />
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Smart rest info - compacto */}
-                  {useSmartRest && (() => {
-                    const template = EXERCISE_DATABASE.find(e => e.name === activeExercise.name);
+                {/* Smart rest info - compacto */}
+                {useSmartRest &&
+                  (() => {
+                    const template = EXERCISE_DATABASE.find(
+                      (e) => e.name === activeExercise.name,
+                    );
                     if (template) {
                       const rec = calculateRestBetweenSets(
                         template,
                         activeExercise.completedSets.length + 1,
-                        typeof currentReps === 'number' ? currentReps : undefined,
-                        'intermediate'
+                        typeof currentReps === "number"
+                          ? currentReps
+                          : undefined,
+                        "intermediate",
                       );
                       return (
                         <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span>🧠</span>
                             <span className="text-sm font-semibold text-purple-900 dark:text-purple-100">
-                              Descanso sugerido: {formatRestTime(rec.recommended)}
+                              Descanso sugerido:{" "}
+                              {formatRestTime(rec.recommended)}
                             </span>
                           </div>
-                          <p className="text-xs text-purple-700 dark:text-purple-300">{rec.description}</p>
+                          <p className="text-xs text-purple-700 dark:text-purple-300">
+                            {rec.description}
+                          </p>
                         </div>
                       );
                     }
                     return null;
                   })()}
-
-              
               </CardContent>
             </Card>
           )}
@@ -775,7 +858,11 @@ export default function FreeWorkoutPage() {
                 Ejercicios ({exercises.length})
               </h2>
               <div className="flex gap-2">
-                <Button variant="primary" size="sm" onClick={() => setShowExerciseSelector(true)}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setShowExerciseSelector(true)}
+                >
                   <Plus className="w-4 h-4" />
                   Agregar
                 </Button>
@@ -788,7 +875,10 @@ export default function FreeWorkoutPage() {
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
                   Aún no has agregado ejercicios
                 </p>
-                <Button variant="primary" onClick={() => setShowExerciseSelector(true)}>
+                <Button
+                  variant="primary"
+                  onClick={() => setShowExerciseSelector(true)}
+                >
                   <Plus className="w-4 h-4" />
                   Agregar ejercicio
                 </Button>
@@ -804,8 +894,8 @@ export default function FreeWorkoutPage() {
                       key={exercise.id}
                       className={`p-3 rounded-lg border transition-all cursor-pointer ${
                         isActive
-                          ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-600'
-                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300'
+                          ? "border-orange-400 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-600"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300"
                       }`}
                       onClick={() => {
                         if (!isActive) setActiveExerciseIndex(index);
@@ -813,21 +903,37 @@ export default function FreeWorkoutPage() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className={`text-sm font-bold ${
-                            isActive ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500'
-                          }`}>
+                          <span
+                            className={`text-sm font-bold ${
+                              isActive
+                                ? "text-orange-600 dark:text-orange-400"
+                                : "text-gray-500"
+                            }`}
+                          >
                             {index + 1}
                           </span>
                           <div>
-                            <p className={`font-medium ${
-                              isActive ? 'text-orange-900 dark:text-orange-100' : 'text-gray-900 dark:text-gray-100'
-                            }`}>
-                              {exercise.name || 'Sin nombre'}
+                            <p
+                              className={`font-medium ${
+                                isActive
+                                  ? "text-orange-900 dark:text-orange-100"
+                                  : "text-gray-900 dark:text-gray-100"
+                              }`}
+                            >
+                              {exercise.name || "Sin nombre"}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               {exercise.completedSets.length} series completadas
                               {exercise.completedSets.length > 0 && (
-                                <> • {exercise.completedSets.reduce((s, set) => s + set.reps, 0)} reps totales</>
+                                <>
+                                  {" "}
+                                  •{" "}
+                                  {exercise.completedSets.reduce(
+                                    (s, set) => s + set.reps,
+                                    0,
+                                  )}{" "}
+                                  reps totales
+                                </>
                               )}
                             </p>
                           </div>
@@ -836,15 +942,25 @@ export default function FreeWorkoutPage() {
                           {exercise.completedSets.length > 0 && (
                             <button
                               type="button"
-                              onClick={(e) => { e.stopPropagation(); toggleCollapse(index); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleCollapse(index);
+                              }}
                               className="p-1 text-gray-400 hover:text-gray-600"
                             >
-                              {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                              {isCollapsed ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronUp className="w-4 h-4" />
+                              )}
                             </button>
                           )}
                           <button
                             type="button"
-                            onClick={(e) => { e.stopPropagation(); handleRemoveExercise(index); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveExercise(index);
+                            }}
                             className="p-1 text-red-400 hover:text-red-600"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -856,7 +972,10 @@ export default function FreeWorkoutPage() {
                       {!isCollapsed && exercise.completedSets.length > 0 && (
                         <div className="mt-2 pl-8 space-y-1.5">
                           {exercise.completedSets.map((set, i) => (
-                            <div key={i} className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-300 dark:border-green-700">
+                            <div
+                              key={i}
+                              className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-300 dark:border-green-700"
+                            >
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
                                   {/* Checkbox */}
@@ -868,15 +987,20 @@ export default function FreeWorkoutPage() {
                                         const newExercises = [...exercises];
                                         newExercises[index] = {
                                           ...exercise,
-                                          completedSets: exercise.completedSets.filter((_, idx) => idx !== i)
+                                          completedSets:
+                                            exercise.completedSets.filter(
+                                              (_, idx) => idx !== i,
+                                            ),
                                         };
                                         setExercises(newExercises);
                                       }
                                     }}
                                     className="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
                                   />
-                                  <span className="text-xs text-gray-600 dark:text-gray-400">Serie {i + 1}</span>
-                                  {set.type && set.type !== 'normal' && (
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                                    Serie {i + 1}
+                                  </span>
+                                  {set.type && set.type !== "normal" && (
                                     <SetTypeBadge type={set.type} />
                                   )}
                                 </div>
@@ -887,7 +1011,10 @@ export default function FreeWorkoutPage() {
                                     const newExercises = [...exercises];
                                     newExercises[index] = {
                                       ...exercise,
-                                      completedSets: exercise.completedSets.filter((_, idx) => idx !== i)
+                                      completedSets:
+                                        exercise.completedSets.filter(
+                                          (_, idx) => idx !== i,
+                                        ),
                                     };
                                     setExercises(newExercises);
                                   }}
@@ -896,7 +1023,7 @@ export default function FreeWorkoutPage() {
                                   <Trash2 className="w-3 h-3" />
                                 </button>
                               </div>
-                              
+
                               {/* Inputs editables */}
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
@@ -910,13 +1037,19 @@ export default function FreeWorkoutPage() {
                                     onChange={(e) => {
                                       e.stopPropagation();
                                       const val = e.target.value;
-                                      const num = val === '' ? 0 : parseInt(val);
+                                      const num =
+                                        val === "" ? 0 : parseInt(val);
                                       const newExercises = [...exercises];
-                                      const updatedSets = [...exercise.completedSets];
-                                      updatedSets[i] = { ...updatedSets[i], reps: isNaN(num) ? 0 : Math.max(0, num) };
+                                      const updatedSets = [
+                                        ...exercise.completedSets,
+                                      ];
+                                      updatedSets[i] = {
+                                        ...updatedSets[i],
+                                        reps: isNaN(num) ? 0 : Math.max(0, num),
+                                      };
                                       newExercises[index] = {
                                         ...exercise,
-                                        completedSets: updatedSets
+                                        completedSets: updatedSets,
                                       };
                                       setExercises(newExercises);
                                     }}
@@ -931,11 +1064,16 @@ export default function FreeWorkoutPage() {
                                     value={set.weight}
                                     onChange={(weight) => {
                                       const newExercises = [...exercises];
-                                      const updatedSets = [...exercise.completedSets];
-                                      updatedSets[i] = { ...updatedSets[i], weight };
+                                      const updatedSets = [
+                                        ...exercise.completedSets,
+                                      ];
+                                      updatedSets[i] = {
+                                        ...updatedSets[i],
+                                        weight,
+                                      };
                                       newExercises[index] = {
                                         ...exercise,
-                                        completedSets: updatedSets
+                                        completedSets: updatedSets,
                                       };
                                       setExercises(newExercises);
                                     }}
@@ -969,7 +1107,7 @@ export default function FreeWorkoutPage() {
               variant="primary"
               onClick={handleFinishWorkout}
               className="flex-1"
-              disabled={exercises.every(e => e.completedSets.length === 0)}
+              disabled={exercises.every((e) => e.completedSets.length === 0)}
             >
               ✅ Finalizar entrenamiento
             </Button>
@@ -1005,7 +1143,7 @@ export default function FreeWorkoutPage() {
             <Button
               variant="secondary"
               onClick={() => {
-                setSessionNotes('');
+                setSessionNotes("");
                 setShowNotesModal(false);
                 finishCompleteWorkout();
               }}

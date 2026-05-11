@@ -1,23 +1,22 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useTranslations } from '@/context/LocaleContext';
-import { useAuth } from '@/context/AuthContext';
-import React, { useState } from 'react';
-import { ActiveWorkoutBanner } from '@/components/ActiveWorkoutBanner';
-import { Button } from '@/components/ui/Button';
-import { 
-  Home, 
-  LayoutDashboard, 
-  ClipboardList, 
-  Target, 
-  TrendingUp, 
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "@/context/LocaleContext";
+import { useAuth } from "@/context/AuthContext";
+import React, { useState } from "react";
+import { ActiveWorkoutBanner } from "@/components/ActiveWorkoutBanner";
+import { Button } from "@/components/ui/Button";
+import {
+  Home,
+  LayoutDashboard,
+  ClipboardList,
+  Target,
+  TrendingUp,
   Calendar,
   Trophy,
   Lightbulb,
   Calculator,
-  Database,
   User,
   LogOut,
   Menu,
@@ -27,50 +26,50 @@ import {
   BookOpen,
   Sparkles,
   Settings,
-  BarChart3
-} from 'lucide-react';
+  BarChart3,
+} from "@/components/icons/lucide";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const t = useTranslations('nav');
+  const t = useTranslations("nav");
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (!pathname) return false;
     // Root must match exactly
-    if (path === '/') return pathname === '/';
+    if (path === "/") return pathname === "/";
     // Match exact path or any nested subpath (e.g. /routines -> /routines/create)
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   // Mobile items: mirror desktop order (main links first, then dashboard group)
   const mobileItems = [
-    { href: '/', icon: Home, label: t('home') },
-    { href: '/routines', icon: ClipboardList, label: t('routines') },
-    { href: '/exercises', icon: Lightbulb, label: t('exercises') },
-    { href: '/equipment', icon: Dumbbell, label: t('equipment') },
-    { href: '/planning', icon: BarChart3, label: t('planning') },
-    { href: '/recommended', icon: Target, label: t('recommended') },
-    { href: '/glossary', icon: BookOpen, label: t('glossary') },
-    { href: '/calculators', icon: Calculator, label: t('calculators') },
-    { href: '/settings', icon: Settings, label: t('settings') },
+    { href: "/", icon: Home, label: t("home") },
+    { href: "/routines", icon: ClipboardList, label: t("routines") },
+    { href: "/exercises", icon: Lightbulb, label: t("exercises") },
+    { href: "/equipment", icon: Dumbbell, label: t("equipment") },
+    { href: "/planning", icon: BarChart3, label: t("planning") },
+    { href: "/recommended", icon: Target, label: t("recommended") },
+    { href: "/glossary", icon: BookOpen, label: t("glossary") },
+    { href: "/calculators", icon: Calculator, label: t("calculators") },
+    { href: "/settings", icon: Settings, label: t("settings") },
     // Dashboard group items (same order as dropdown)
-    { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
-    { href: '/progress', icon: TrendingUp, label: t('progress') },
-    { href: '/achievements', icon: Trophy, label: t('achievements') },
-    { href: '/sessions', icon: Calendar, label: t('sessions') },
-    { href: '/ai-assistant', icon: Sparkles, label: t('aiAssistant') },
+    { href: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
+    { href: "/progress", icon: TrendingUp, label: t("progress") },
+    { href: "/achievements", icon: Trophy, label: t("achievements") },
+    { href: "/sessions", icon: Calendar, label: t("sessions") },
+    { href: "/ai-assistant", icon: Sparkles, label: t("aiAssistant") },
   ];
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/auth');
+    router.push("/auth");
   };
 
   // No mostrar navbar en la página de auth
-  if (pathname === '/auth') {
+  if (pathname === "/auth") {
     return null;
   }
 
@@ -83,31 +82,130 @@ export const Navbar: React.FC = () => {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1 flex-1 min-w-0">
               <div className="flex items-center space-x-1 flex-nowrap bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-1.5 min-w-0 overflow-x-auto">
-                <NavLink href="/" icon={Home} label={t('home')} isActive={isActive('/')} color="blue" />
-                <NavLink href="/routines" icon={ClipboardList} label={t('routines')} isActive={isActive('/routines')} color="blue" data-tour="routines" />
-                <NavLink href="/exercises" icon={Lightbulb} label={t('exercises')} isActive={isActive('/exercises')} color="blue" data-tour="exercises" />
-                <NavLink href="/equipment" icon={Dumbbell} label={t('equipment') || 'Equipamiento'} isActive={isActive('/equipment')} color="blue" />
-                <NavLink href="/planning" icon={BarChart3} label={t('planning')} isActive={isActive('/planning')} color="indigo" />
-                <NavLink href="/recommended" icon={Target} label={t('recommended')} isActive={isActive('/recommended')} color="emerald" data-tour="recommended" />
+                <NavLink
+                  href="/"
+                  icon={Home}
+                  label={t("home")}
+                  isActive={isActive("/")}
+                  color="blue"
+                />
+                <NavLink
+                  href="/routines"
+                  icon={ClipboardList}
+                  label={t("routines")}
+                  isActive={isActive("/routines")}
+                  color="blue"
+                  data-tour="routines"
+                />
+                <NavLink
+                  href="/exercises"
+                  icon={Lightbulb}
+                  label={t("exercises")}
+                  isActive={isActive("/exercises")}
+                  color="blue"
+                  data-tour="exercises"
+                />
+                <NavLink
+                  href="/equipment"
+                  icon={Dumbbell}
+                  label={t("equipment") || "Equipamiento"}
+                  isActive={isActive("/equipment")}
+                  color="blue"
+                />
+                <NavLink
+                  href="/planning"
+                  icon={BarChart3}
+                  label={t("planning")}
+                  isActive={isActive("/planning")}
+                  color="indigo"
+                />
+                <NavLink
+                  href="/recommended"
+                  icon={Target}
+                  label={t("recommended")}
+                  isActive={isActive("/recommended")}
+                  color="emerald"
+                  data-tour="recommended"
+                />
                 {/* <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" /> */}
-                <NavLink href="/glossary" icon={BookOpen} label={t('glossary')} isActive={isActive('/glossary')} color="indigo" data-tour="glossary" />
-                <NavLink href="/calculators" icon={Calculator} label={t('calculators')} isActive={isActive('/calculators')} color="teal" data-tour="calculators" />
-                <NavLink href="/settings" icon={Settings} label={t('settings')} isActive={isActive('/settings')} color="zinc" />
+                <NavLink
+                  href="/glossary"
+                  icon={BookOpen}
+                  label={t("glossary")}
+                  isActive={isActive("/glossary")}
+                  color="indigo"
+                  data-tour="glossary"
+                />
+                <NavLink
+                  href="/calculators"
+                  icon={Calculator}
+                  label={t("calculators")}
+                  isActive={isActive("/calculators")}
+                  color="teal"
+                  data-tour="calculators"
+                />
+                <NavLink
+                  href="/settings"
+                  icon={Settings}
+                  label={t("settings")}
+                  isActive={isActive("/settings")}
+                  color="zinc"
+                />
                 {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
-                {user && <NavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} color="blue" data-tour="profile" />}
+                {user && (
+                  <NavLink
+                    href="/profile"
+                    icon={User}
+                    label={t("profile")}
+                    isActive={isActive("/profile")}
+                    color="blue"
+                    data-tour="profile"
+                  />
+                )}
               </div>
               {/* Dropdown fuera del contenedor scrollable para evitar recortes */}
               <div className="ml-2">
                 <DropdownNav
-                  label={t('dashboard')}
+                  label={t("dashboard")}
                   icon={LayoutDashboard}
-                  parentActive={isActive('/dashboard') || isActive('/progress') || isActive('/achievements') || isActive('/sessions') || isActive('/ai-assistant')}
+                  parentActive={
+                    isActive("/dashboard") ||
+                    isActive("/progress") ||
+                    isActive("/achievements") ||
+                    isActive("/sessions") ||
+                    isActive("/ai-assistant")
+                  }
                   items={[
-                    { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard, dataTour: undefined },
-                    { href: '/progress', label: t('progress'), icon: TrendingUp, dataTour: 'progress' },
-                    { href: '/achievements', label: t('achievements'), icon: Trophy, dataTour: 'achievements' },
-                    { href: '/sessions', label: t('sessions'), icon: Calendar, dataTour: 'sessions' },
-                    { href: '/ai-assistant', label: t('aiAssistant'), icon: Sparkles, dataTour: 'ai-assistant' },
+                    {
+                      href: "/dashboard",
+                      label: t("dashboard"),
+                      icon: LayoutDashboard,
+                      dataTour: undefined,
+                    },
+                    {
+                      href: "/progress",
+                      label: t("progress"),
+                      icon: TrendingUp,
+                      dataTour: "progress",
+                    },
+                    {
+                      href: "/achievements",
+                      label: t("achievements"),
+                      icon: Trophy,
+                      dataTour: "achievements",
+                    },
+                    {
+                      href: "/sessions",
+                      label: t("sessions"),
+                      icon: Calendar,
+                      dataTour: "sessions",
+                    },
+                    {
+                      href: "/ai-assistant",
+                      label: t("aiAssistant"),
+                      icon: Sparkles,
+                      dataTour: "ai-assistant",
+                    },
                   ]}
                 />
               </div>
@@ -129,7 +227,11 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </button>
             </div>
           </div>
@@ -151,7 +253,13 @@ export const Navbar: React.FC = () => {
 
                 {/* Profile link shown only when user is authenticated */}
                 {user && (
-                  <MobileNavLink href="/profile" icon={User} label={t('profile')} isActive={isActive('/profile')} onClick={() => setMobileMenuOpen(false)} />
+                  <MobileNavLink
+                    href="/profile"
+                    icon={User}
+                    label={t("profile")}
+                    isActive={isActive("/profile")}
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
                 )}
               </div>
 
@@ -166,7 +274,7 @@ export const Navbar: React.FC = () => {
                   className="w-full mt-4"
                 >
                   <LogOut className="w-4 h-4" />
-                  {t('logout') || 'Cerrar sesión'}
+                  {t("logout") || "Cerrar sesión"}
                 </Button>
               )}
             </div>
@@ -184,18 +292,25 @@ interface NavLinkProps {
   label: string;
   isActive: boolean;
   color: string;
-  'data-tour'?: string;
+  "data-tour"?: string;
 }
 
-const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, color, 'data-tour': dataTour }) => {
+const NavLink: React.FC<NavLinkProps> = ({
+  href,
+  icon: Icon,
+  label,
+  isActive,
+  color,
+  "data-tour": dataTour,
+}) => {
   const colorClasses = {
-    blue: 'from-blue-600 to-blue-500 shadow-blue-500/30',
-    cyan: 'from-cyan-600 to-cyan-500 shadow-cyan-500/30',
-    purple: 'from-purple-600 to-purple-500 shadow-purple-500/30',
-    emerald: 'from-emerald-600 to-emerald-500 shadow-emerald-500/30',
-    indigo: 'from-indigo-600 to-indigo-500 shadow-indigo-500/30',
-    amber: 'from-amber-600 to-amber-500 shadow-amber-500/30',
-    teal: 'from-teal-600 to-teal-500 shadow-teal-500/30',
+    blue: "from-blue-600 to-blue-500 shadow-blue-500/30",
+    cyan: "from-cyan-600 to-cyan-500 shadow-cyan-500/30",
+    purple: "from-purple-600 to-purple-500 shadow-purple-500/30",
+    emerald: "from-emerald-600 to-emerald-500 shadow-emerald-500/30",
+    indigo: "from-indigo-600 to-indigo-500 shadow-indigo-500/30",
+    amber: "from-amber-600 to-amber-500 shadow-amber-500/30",
+    teal: "from-teal-600 to-teal-500 shadow-teal-500/30",
   };
 
   return (
@@ -205,7 +320,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href, icon: Icon, label, isActive, co
       className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
         isActive
           ? `bg-linear-to-r ${colorClasses[color as keyof typeof colorClasses]} text-white shadow-lg`
-          : 'text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50'
+          : "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
       }`}
     >
       <span className="flex items-center gap-2">
@@ -231,14 +346,21 @@ interface DropdownNavProps {
   parentActive: boolean;
 }
 
-const DropdownNav: React.FC<DropdownNavProps> = ({ label, icon: Icon, items, parentActive }) => {
+const DropdownNav: React.FC<DropdownNavProps> = ({
+  label,
+  icon: Icon,
+  items,
+  parentActive,
+}) => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const [selectedLabel, setSelectedLabel] = useState(label);
 
   React.useEffect(() => {
     if (!pathname) return;
-    const match = items.find((it) => it.href === pathname || pathname.startsWith(`${it.href}/`));
+    const match = items.find(
+      (it) => it.href === pathname || pathname.startsWith(`${it.href}/`),
+    );
     if (match) setSelectedLabel(match.label);
     else setSelectedLabel(label);
   }, [pathname, items, label]);
@@ -247,9 +369,12 @@ const DropdownNav: React.FC<DropdownNavProps> = ({ label, icon: Icon, items, par
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center gap-2 ${{
-          true: 'bg-linear-to-r from-cyan-600 to-cyan-500 text-white shadow-lg',
-        }[String(parentActive)] || 'text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50'}`}
+        className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+          {
+            true: "bg-linear-to-r from-cyan-600 to-cyan-500 text-white shadow-lg",
+          }[String(parentActive)] ||
+          "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
+        }`}
         aria-expanded={open}
       >
         <Icon className="w-4 h-4" />
@@ -288,15 +413,21 @@ interface MobileNavLinkProps {
   onClick: () => void;
 }
 
-const MobileNavLink: React.FC<MobileNavLinkProps> = ({ href, icon: Icon, label, isActive, onClick }) => {
+const MobileNavLink: React.FC<MobileNavLinkProps> = ({
+  href,
+  icon: Icon,
+  label,
+  isActive,
+  onClick,
+}) => {
   return (
     <Link
       href={href}
       onClick={onClick}
       className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
         isActive
-          ? 'bg-linear-to-br from-blue-600 to-purple-600 text-white shadow-lg'
-          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+          ? "bg-linear-to-br from-blue-600 to-purple-600 text-white shadow-lg"
+          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
       }`}
     >
       <Icon className="w-6 h-6 mb-1" />

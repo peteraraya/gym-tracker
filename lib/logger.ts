@@ -2,34 +2,34 @@
  * Sistema de logging condicional para desarrollo/producción
  */
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isTest = process.env.NODE_ENV === 'test';
+const isDevelopment = process.env.NODE_ENV === "development";
+const isTest = process.env.NODE_ENV === "test";
 
 type LogArgs = unknown[];
 
 export const logger = {
   log: (...args: LogArgs) => {
     if (isDevelopment || isTest) {
-      // console.log('[LOG]', ...args);
+      console.log("[LOG]", ...args);
     }
   },
 
   info: (...args: LogArgs) => {
     if (isDevelopment || isTest) {
-      console.info('[INFO]', ...args);
+      console.info("[INFO]", ...args);
     }
   },
 
   warn: (...args: LogArgs) => {
     if (isDevelopment || isTest) {
-      console.warn('[WARN]', ...args);
+      console.warn("[WARN]", ...args);
     }
   },
 
   error: (...args: LogArgs) => {
     // Siempre logear errores, incluso en producción
-    console.error('[ERROR]', ...args);
-    
+    console.error("[ERROR]", ...args);
+
     // En producción, podrías enviar a un servicio como Sentry
     if (!isDevelopment && !isTest) {
       // TODO: Integrar con servicio de error tracking
@@ -39,7 +39,7 @@ export const logger = {
 
   debug: (...args: LogArgs) => {
     if (isDevelopment) {
-      console.debug('[DEBUG]', ...args);
+      console.debug("[DEBUG]", ...args);
     }
   },
 
@@ -71,10 +71,21 @@ export const logger = {
     if (isDevelopment) {
       console.timeEnd(label);
     }
-  }
+  },
 };
 
 // Export individual functions for convenience
-export const { log, info, warn, error, debug, group, groupEnd, table, time, timeEnd } = logger;
+export const {
+  log,
+  info,
+  warn,
+  error,
+  debug,
+  group,
+  groupEnd,
+  table,
+  time,
+  timeEnd,
+} = logger;
 
 export default logger;

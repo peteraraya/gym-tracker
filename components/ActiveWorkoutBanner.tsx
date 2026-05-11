@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useWorkout } from '@/context/WorkoutContext';
-import { useConfirm } from '@/context/ConfirmContext';
-import { useRouter, usePathname } from 'next/navigation';
-import { Activity, X } from '@/components/icons/lucide';
+import { useWorkout } from "@/context/WorkoutContext";
+import { useConfirm } from "@/context/NotificationContext";
+import { useRouter, usePathname } from "next/navigation";
+import { Activity, X } from "@/components/icons/lucide";
 
 export function ActiveWorkoutBanner() {
   const { activeWorkout, cancelWorkout } = useWorkout();
@@ -15,53 +15,64 @@ export function ActiveWorkoutBanner() {
   if (!activeWorkout) return null;
 
   // No mostrar el banner si ya estamos en una página de workout
-  if (pathname?.startsWith('/workout')) return null;
+  if (pathname?.startsWith("/workout")) return null;
 
   const handleContinue = () => {
     // Determinar la ruta correcta según el tipo de entrenamiento
-    const targetRoute = activeWorkout.routineId === 'free-training' 
-      ? '/workout/free' 
-      : `/workout/${activeWorkout.routineId}`;
-    
+    const targetRoute =
+      activeWorkout.routineId === "free-training"
+        ? "/workout/free"
+        : `/workout/${activeWorkout.routineId}`;
+
     router.push(targetRoute);
   };
 
   const handleCancel = async () => {
     const confirmed = await confirm({
-      title: 'Cancelar entrenamiento',
-      message: '¿Cancelar entrenamiento activo? Se perderá todo el progreso.',
-      confirmText: 'Sí, cancelar',
-      cancelText: 'Continuar',
-      variant: 'danger'
+      title: "Cancelar entrenamiento",
+      message: "¿Cancelar entrenamiento activo? Se perderá todo el progreso.",
+      confirmText: "Sí, cancelar",
+      cancelText: "Continuar",
+      variant: "danger",
     });
-    
+
     if (confirmed) {
-      console.log('[ActiveWorkoutBanner] User confirmed cancellation');
-      
+      console.log("[ActiveWorkoutBanner] User confirmed cancellation");
+
       // Marcar la cancelación antes de llamar a cancelWorkout
       try {
         const timestamp = Date.now().toString();
-        localStorage.setItem('gym-tracker-cancelled', timestamp);
-        sessionStorage.setItem('workout_cancelled', timestamp);
-        localStorage.setItem('workout_cancelled_persistent', timestamp);
-        console.log('[ActiveWorkoutBanner] Set cancellation markers:', timestamp);
+        localStorage.setItem("gym-tracker-cancelled", timestamp);
+        sessionStorage.setItem("workout_cancelled", timestamp);
+        localStorage.setItem("workout_cancelled_persistent", timestamp);
+        console.log(
+          "[ActiveWorkoutBanner] Set cancellation markers:",
+          timestamp,
+        );
       } catch (e) {
-        console.error('[ActiveWorkoutBanner] Error setting cancellation markers:', e);
+        console.error(
+          "[ActiveWorkoutBanner] Error setting cancellation markers:",
+          e,
+        );
       }
-      
+
       // Remove possible modal/backdrop elements left in the DOM
       try {
-        document.querySelectorAll('.modal-backdrop, .modal-overlay, [data-backdrop]').forEach(el => el.remove());
+        document
+          .querySelectorAll(".modal-backdrop, .modal-overlay, [data-backdrop]")
+          .forEach((el) => el.remove());
       } catch (e) {}
-      
+
       // Cancelar el workout
       await cancelWorkout();
-      
-      console.log('[ActiveWorkoutBanner] Workout cancelled, redirecting to routines');
-      
+
+      console.log(
+        "[ActiveWorkoutBanner] Workout cancelled, redirecting to routines",
+      );
+
       // Redirigir después de un pequeño delay para asegurar que el estado se limpió
       setTimeout(() => {
-        router.replace('/routines');
+        router.replace("/routines");
       }, 100);
     }
   };
@@ -81,13 +92,15 @@ export function ActiveWorkoutBanner() {
                   {activeWorkout.routineName}
                 </p>
                 <p className="text-xs opacity-90 flex items-center gap-2">
-                  <span>Ejercicio {activeWorkout.currentExerciseIndex + 1}</span>
+                  <span>
+                    Ejercicio {activeWorkout.currentExerciseIndex + 1}
+                  </span>
                   <span>•</span>
                   <span>Serie {activeWorkout.currentSet}</span>
                 </p>
               </div>
             </div>
-            
+
             {/* Botones de acción - Más visibles y profesionales */}
             <div className="flex items-center gap-2 shrink-0">
               <button

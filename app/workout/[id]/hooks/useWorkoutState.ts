@@ -51,6 +51,7 @@ interface UseWorkoutStateReturn {
   
   // Acciones
   completeSet: (exerciseId: string, reps: number, weight: number) => void;
+  completeSetAt: (exerciseId: string, setIndex: number, reps: number, weight: number) => void;
   updateCompletedSets: (exerciseId: string, count: number) => void;
   updateActualReps: (exerciseId: string, reps: number[]) => void;
   updateActualWeights: (exerciseId: string, weights: number[]) => void;
@@ -157,6 +158,46 @@ export function useWorkoutState(
       return newData;
     });
   }, []);
+
+  /**
+   * Completa (o actualiza) una serie en un índice específico.
+   * Esto escribe las reps/peso en la posición `setIndex` en lugar de hacer append.
+   */
+  const completeSetAt = useCallback(
+    (exerciseId: string, setIndex: number, reps: number, weight: number) => {
+      setWorkoutData((prev) => {
+        const prevReps = [...(prev.actualReps[exerciseId] || [])];
+        const prevWeights = [...(prev.actualWeights[exerciseId] || [])];
+
+        // Asegurar longitud suficiente
+        while (prevReps.length <= setIndex) prevReps.push(0);
+        while (prevWeights.length <= setIndex) prevWeights.push(0);
+
+        prevReps[setIndex] = reps;
+        prevWeights[setIndex] = weight;
+
+        const completedCount = prevReps.filter((r) => typeof r === 'number' && r > 0).length;
+
+        const newData = {
+          ...prev,
+          actualReps: { ...prev.actualReps, [exerciseId]: prevReps },
+          actualWeights: { ...prev.actualWeights, [exerciseId]: prevWeights },
+          completedSets: { ...prev.completedSets, [exerciseId]: completedCount },
+          _lastUpdate: Date.now(),
+        };
+
+        if (!isInitializingRef.current && onDataChangeRef.current) {
+          queueMicrotask(() => {
+            console.log('[useWorkoutState] 💾 Saving after completeSetAt');
+            onDataChangeRef.current?.(newData);
+          });
+        }
+
+        return newData;
+      });
+    },
+    [],
+  );
 
   /**
    * Actualiza el número de series completadas
@@ -567,6 +608,7 @@ export function useWorkoutState(
 
     // Acciones
     completeSet,
+    completeSetAt,
     updateCompletedSets,
     updateActualReps,
     updateActualWeights,
@@ -591,6 +633,7 @@ export function useWorkoutState(
     currentWeight,
     sessionNotes,
     completeSet,
+    completeSetAt,
     updateCompletedSets,
     updateActualReps,
     updateActualWeights,

@@ -1,11 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { useToast } from '@/context/ToastContext';
-import { useConfirm } from '@/context/ConfirmContext';
-import { useGym } from '@/context/GymContext';
+import React, { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { useToast, useConfirm } from "@/context/NotificationContext";
+import { useGym } from "@/context/GymContext";
 import {
   isDevToolsEnabled,
   devClearAllSessions,
@@ -14,13 +13,13 @@ import {
   devClearPlans,
   devClearRecommendations,
   devClearAllData,
-  devGenerateTestData
-} from '@/lib/storage/storage';
+  devGenerateTestData,
+} from "@/lib/storage/storage";
 
 /**
  * Panel de herramientas de desarrollo
  * Solo visible cuando NEXT_PUBLIC_ENABLE_DEV_TOOLS=true
- * 
+ *
  * ⚠️ PELIGROSO: Permite eliminar todos los datos del usuario
  */
 export function DevTools() {
@@ -36,11 +35,12 @@ export function DevTools() {
 
   const handleClearSessions = async () => {
     const confirmed = await confirm({
-      title: '⚠️ Eliminar Todas las Sesiones',
-      message: 'Esta acción eliminará TODAS tus sesiones de entrenamiento. Esta acción es IRREVERSIBLE. ¿Estás seguro?',
-      confirmText: 'Sí, eliminar todo',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      title: "⚠️ Eliminar Todas las Sesiones",
+      message:
+        "Esta acción eliminará TODAS tus sesiones de entrenamiento. Esta acción es IRREVERSIBLE. ¿Estás seguro?",
+      confirmText: "Sí, eliminar todo",
+      cancelText: "Cancelar",
+      variant: "danger",
     });
 
     if (!confirmed) return;
@@ -48,7 +48,7 @@ export function DevTools() {
     setIsLoading(true);
     try {
       const result = await devClearAllSessions();
-      
+
       if (result.error) {
         showError(`Error: ${result.error}`);
       } else {
@@ -56,7 +56,7 @@ export function DevTools() {
         await refreshSessions();
       }
     } catch (err) {
-      showError('Error al eliminar sesiones');
+      showError("Error al eliminar sesiones");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -65,11 +65,12 @@ export function DevTools() {
 
   const handleClearRoutines = async () => {
     const confirmed = await confirm({
-      title: '⚠️ Eliminar Todas las Rutinas',
-      message: 'Esta acción eliminará TODAS tus rutinas. Esta acción es IRREVERSIBLE. ¿Estás seguro?',
-      confirmText: 'Sí, eliminar todo',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      title: "⚠️ Eliminar Todas las Rutinas",
+      message:
+        "Esta acción eliminará TODAS tus rutinas. Esta acción es IRREVERSIBLE. ¿Estás seguro?",
+      confirmText: "Sí, eliminar todo",
+      cancelText: "Cancelar",
+      variant: "danger",
     });
 
     if (!confirmed) return;
@@ -77,7 +78,7 @@ export function DevTools() {
     setIsLoading(true);
     try {
       const result = await devClearAllRoutines();
-      
+
       if (result.error) {
         showError(`Error: ${result.error}`);
       } else {
@@ -85,7 +86,7 @@ export function DevTools() {
         await refreshRoutines();
       }
     } catch (err) {
-      showError('Error al eliminar rutinas');
+      showError("Error al eliminar rutinas");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -94,11 +95,11 @@ export function DevTools() {
 
   const handleClearProfile = async () => {
     const confirmed = await confirm({
-      title: '⚠️ Limpiar Perfil',
-      message: 'Esta acción limpiará tu perfil de usuario. ¿Estás seguro?',
-      confirmText: 'Sí, limpiar',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      title: "⚠️ Limpiar Perfil",
+      message: "Esta acción limpiará tu perfil de usuario. ¿Estás seguro?",
+      confirmText: "Sí, limpiar",
+      cancelText: "Cancelar",
+      variant: "danger",
     });
 
     if (!confirmed) return;
@@ -106,14 +107,14 @@ export function DevTools() {
     setIsLoading(true);
     try {
       const result = await devClearProfile();
-      
+
       if (result.error) {
         showError(`Error: ${result.error}`);
       } else {
-        success('✅ Perfil limpiado');
+        success("✅ Perfil limpiado");
       }
     } catch (err) {
-      showError('Error al limpiar perfil');
+      showError("Error al limpiar perfil");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -122,11 +123,12 @@ export function DevTools() {
 
   const handleClearPlans = async () => {
     const confirmed = await confirm({
-      title: '⚠️ Limpiar Planes',
-      message: 'Esta acción limpiará tus planes semanales y mensuales. ¿Estás seguro?',
-      confirmText: 'Sí, limpiar',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      title: "⚠️ Limpiar Planes",
+      message:
+        "Esta acción limpiará tus planes semanales y mensuales. ¿Estás seguro?",
+      confirmText: "Sí, limpiar",
+      cancelText: "Cancelar",
+      variant: "danger",
     });
 
     if (!confirmed) return;
@@ -134,14 +136,14 @@ export function DevTools() {
     setIsLoading(true);
     try {
       const result = await devClearPlans();
-      
+
       if (result.error) {
         showError(`Error: ${result.error}`);
       } else {
-        success('✅ Planes limpiados');
+        success("✅ Planes limpiados");
       }
     } catch (err) {
-      showError('Error al limpiar planes');
+      showError("Error al limpiar planes");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -150,11 +152,12 @@ export function DevTools() {
 
   const handleClearRecommendations = async () => {
     const confirmed = await confirm({
-      title: '⚠️ Limpiar Recomendaciones',
-      message: 'Esta acción limpiará todas las recomendaciones de progresión. ¿Estás seguro?',
-      confirmText: 'Sí, limpiar',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      title: "⚠️ Limpiar Recomendaciones",
+      message:
+        "Esta acción limpiará todas las recomendaciones de progresión. ¿Estás seguro?",
+      confirmText: "Sí, limpiar",
+      cancelText: "Cancelar",
+      variant: "danger",
     });
 
     if (!confirmed) return;
@@ -162,14 +165,14 @@ export function DevTools() {
     setIsLoading(true);
     try {
       const result = await devClearRecommendations();
-      
+
       if (result.error) {
         showError(`Error: ${result.error}`);
       } else {
-        success('✅ Recomendaciones limpiadas');
+        success("✅ Recomendaciones limpiadas");
       }
     } catch (err) {
-      showError('Error al limpiar recomendaciones');
+      showError("Error al limpiar recomendaciones");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -178,22 +181,24 @@ export function DevTools() {
 
   const handleClearAllData = async () => {
     const confirmed = await confirm({
-      title: '🚨 ELIMINAR TODO',
-      message: 'Esta acción eliminará TODOS tus datos: sesiones, rutinas, perfil, planes y recomendaciones. Esta acción es COMPLETAMENTE IRREVERSIBLE. ¿Estás ABSOLUTAMENTE seguro?',
-      confirmText: 'SÍ, ELIMINAR TODO',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      title: "🚨 ELIMINAR TODO",
+      message:
+        "Esta acción eliminará TODOS tus datos: sesiones, rutinas, perfil, planes y recomendaciones. Esta acción es COMPLETAMENTE IRREVERSIBLE. ¿Estás ABSOLUTAMENTE seguro?",
+      confirmText: "SÍ, ELIMINAR TODO",
+      cancelText: "Cancelar",
+      variant: "danger",
     });
 
     if (!confirmed) return;
 
     // Segunda confirmación
     const doubleConfirmed = await confirm({
-      title: '🚨 ÚLTIMA ADVERTENCIA',
-      message: 'Esta es tu última oportunidad. Una vez eliminados, los datos NO se pueden recuperar. ¿Continuar?',
-      confirmText: 'ELIMINAR TODO AHORA',
-      cancelText: 'No, cancelar',
-      variant: 'danger'
+      title: "🚨 ÚLTIMA ADVERTENCIA",
+      message:
+        "Esta es tu última oportunidad. Una vez eliminados, los datos NO se pueden recuperar. ¿Continuar?",
+      confirmText: "ELIMINAR TODO AHORA",
+      cancelText: "No, cancelar",
+      variant: "danger",
     });
 
     if (!doubleConfirmed) return;
@@ -201,27 +206,27 @@ export function DevTools() {
     setIsLoading(true);
     try {
       const result = await devClearAllData();
-      
+
       if (result.errors.length > 0) {
-        showError(`Errores: ${result.errors.join(', ')}`);
+        showError(`Errores: ${result.errors.join(", ")}`);
       }
-      
+
       success(
         `✅ Datos eliminados: ${result.sessions} sesiones, ${result.routines} rutinas, ` +
-        `perfil: ${result.profile ? 'sí' : 'no'}, planes: ${result.plans ? 'sí' : 'no'}, ` +
-        `recomendaciones: ${result.recommendations ? 'sí' : 'no'}`,
-        8000
+          `perfil: ${result.profile ? "sí" : "no"}, planes: ${result.plans ? "sí" : "no"}, ` +
+          `recomendaciones: ${result.recommendations ? "sí" : "no"}`,
+        8000,
       );
-      
+
       await refreshRoutines();
       await refreshSessions();
-      
+
       // Recargar página después de 2 segundos
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (err) {
-      showError('Error al eliminar datos');
+      showError("Error al eliminar datos");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -232,16 +237,16 @@ export function DevTools() {
     setIsLoading(true);
     try {
       const result = await devGenerateTestData();
-      
+
       if (result.error) {
         showError(`Error: ${result.error}`);
       } else {
-        success('✅ Datos de prueba generados');
+        success("✅ Datos de prueba generados");
         await refreshRoutines();
         await refreshSessions();
       }
     } catch (err) {
-      showError('Error al generar datos de prueba');
+      showError("Error al generar datos de prueba");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -254,23 +259,28 @@ export function DevTools() {
         <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
           <span className="text-2xl">⚠️</span>
           Herramientas de Desarrollo
-          <span className="text-xs bg-red-600 text-white px-2 py-1 rounded">DEV ONLY</span>
+          <span className="text-xs bg-red-600 text-white px-2 py-1 rounded">
+            DEV ONLY
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="bg-yellow-100 dark:bg-yellow-900/30 border-2 border-yellow-500 dark:border-yellow-700 rounded-lg p-4">
           <p className="text-sm text-yellow-800 dark:text-yellow-200 font-semibold">
-            ⚠️ ADVERTENCIA: Estas herramientas son PELIGROSAS y pueden eliminar todos tus datos.
-            Solo están disponibles en modo desarrollo.
+            ⚠️ ADVERTENCIA: Estas herramientas son PELIGROSAS y pueden eliminar
+            todos tus datos. Solo están disponibles en modo desarrollo.
           </p>
           <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-2">
-            Para desactivar: Elimina o cambia NEXT_PUBLIC_ENABLE_DEV_TOOLS en .env.local
+            Para desactivar: Elimina o cambia NEXT_PUBLIC_ENABLE_DEV_TOOLS en
+            .env.local
           </p>
         </div>
 
         <div className="space-y-3">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Limpiar Datos Individuales</h3>
-          
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+            Limpiar Datos Individuales
+          </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Button
               variant="danger"
@@ -320,8 +330,10 @@ export function DevTools() {
         </div>
 
         <div className="border-t-2 border-red-300 dark:border-red-700 pt-4 space-y-3">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Acciones Globales</h3>
-          
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+            Acciones Globales
+          </h3>
+
           <Button
             variant="primary"
             onClick={handleGenerateTestData}
@@ -344,7 +356,9 @@ export function DevTools() {
         {isLoading && (
           <div className="text-center py-4">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Procesando...</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              Procesando...
+            </p>
           </div>
         )}
       </CardContent>

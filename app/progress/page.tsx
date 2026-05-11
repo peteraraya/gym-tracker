@@ -1,30 +1,28 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { useRoutines } from '@/context/GymContext';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { EXERCISE_DATABASE, type MuscleGroup } from '@/data/exercises';
-import { useValidSessions } from '@/hooks/useValidSessions';
-import { APP_CONFIG } from '@/config/app.config';
-import { StatsGrid, StatCard } from '@/components/StatsGrid';
-import { TrendingUp } from '@/components/icons/lucide';
-import { useLocale } from '@/context/LocaleContext';
-import { PageHeader, PageLayout, PageContent } from '@/layouts';
-import { 
-  LoadingSpinner,
-  EmptyStateCard
-} from '@/components/shared';
+import { useMemo } from "react";
 
-const MUSCLE_GROUPS = Object.keys(APP_CONFIG.muscleGroupColors) as MuscleGroup[];
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { EXERCISE_DATABASE, type MuscleGroup } from "@/data/exercises";
+import { useValidSessions } from "@/hooks/useValidSessions";
+import { APP_CONFIG } from "@/config/app.config";
+import { StatsGrid, StatCard } from "@/components/StatsGrid";
+import { TrendingUp } from "@/components/icons/lucide";
+import { useLocale, useTranslations } from "@/context/LocaleContext";
+import { PageHeader, PageLayout, PageContent } from "@/layouts";
+import { LoadingSpinner, EmptyStateCard } from "@/components/shared";
+
+const MUSCLE_GROUPS = Object.keys(
+  APP_CONFIG.muscleGroupColors,
+) as MuscleGroup[];
 const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
-const MUSCLE_LABELS = APP_CONFIG.muscleGroupLabels;
 
 export default function ProgressPage() {
-  const { routines } = useRoutines();
   const validSessions = useValidSessions();
   const loading = false;
   const { t } = useLocale();
+  const tMuscles = useTranslations("muscles");
 
   // Calcular volumen total por grupo muscular (series × reps × peso)
   const muscleGroupVolume = useMemo(() => {
@@ -41,7 +39,7 @@ export default function ProgressPage() {
       cuello: 0,
       core: 0,
       gemelos: 0,
-      cardio: 0
+      cardio: 0,
     };
 
     const count: Record<MuscleGroup, number> = {
@@ -57,33 +55,49 @@ export default function ProgressPage() {
       cuello: 0,
       core: 0,
       gemelos: 0,
-      cardio: 0
+      cardio: 0,
     };
 
-    validSessions.forEach(session => {
+    validSessions.forEach((session) => {
       if (!session.exercises || !Array.isArray(session.exercises)) return;
-      session.exercises.forEach(sessionExercise => {
+      session.exercises.forEach((sessionExercise) => {
         // Buscar el ejercicio en la base de datos usando exerciseId o exerciseName
-        let exercise = EXERCISE_DATABASE.find(ex => ex.id === sessionExercise.exerciseId);
-        
+        let exercise = EXERCISE_DATABASE.find(
+          (ex) => ex.id === sessionExercise.exerciseId,
+        );
+
         // Si no se encuentra por ID, intentar buscar por nombre
         if (!exercise && sessionExercise.exerciseName) {
-          exercise = EXERCISE_DATABASE.find(ex => 
-            ex.name.toLowerCase() === sessionExercise.exerciseName?.toLowerCase()
+          exercise = EXERCISE_DATABASE.find(
+            (ex) =>
+              ex.name.toLowerCase() ===
+              sessionExercise.exerciseName?.toLowerCase(),
           );
         }
-        
+
         if (!exercise) {
-          console.log('Ejercicio no encontrado:', sessionExercise.exerciseId, sessionExercise.exerciseName);
+          console.log(
+            "Ejercicio no encontrado:",
+            sessionExercise.exerciseId,
+            sessionExercise.exerciseName,
+          );
           return;
         }
 
         const muscleGroup = exercise.muscleGroup;
-        
+
         // Validar que los arrays existan antes de iterar
-        if (!sessionExercise.actualReps || !Array.isArray(sessionExercise.actualReps)) return;
-        if (!sessionExercise.actualWeight || !Array.isArray(sessionExercise.actualWeight)) return;
-        
+        if (
+          !sessionExercise.actualReps ||
+          !Array.isArray(sessionExercise.actualReps)
+        )
+          return;
+        if (
+          !sessionExercise.actualWeight ||
+          !Array.isArray(sessionExercise.actualWeight)
+        )
+          return;
+
         // Calcular volumen: suma de (reps × peso) para cada serie
         sessionExercise.actualReps.forEach((reps, index) => {
           const weight = sessionExercise.actualWeight[index] || 0;
@@ -102,28 +116,38 @@ export default function ProgressPage() {
 
   // Calcular el total para obtener porcentajes
   const totalVolume = useMemo(() => {
-    return Object.values(muscleGroupVolume.volume).reduce((acc, val) => acc + val, 0);
+    return Object.values(muscleGroupVolume.volume).reduce(
+      (acc, val) => acc + val,
+      0,
+    );
   }, [muscleGroupVolume.volume]);
 
   const totalSets = useMemo(() => {
-    return Object.values(muscleGroupVolume.count).reduce((acc, val) => acc + val, 0);
+    return Object.values(muscleGroupVolume.count).reduce(
+      (acc, val) => acc + val,
+      0,
+    );
   }, [muscleGroupVolume.count]);
 
   // Calcular porcentajes
   const muscleGroupPercentages = useMemo(() => {
-    const percentages: Record<MuscleGroup, number> = {} as Record<MuscleGroup, number>;
-    MUSCLE_GROUPS.forEach(group => {
-      percentages[group] = totalVolume > 0 
-        ? (muscleGroupVolume.volume[group] / totalVolume) * 100 
-        : 0;
+    const percentages: Record<MuscleGroup, number> = {} as Record<
+      MuscleGroup,
+      number
+    >;
+    MUSCLE_GROUPS.forEach((group) => {
+      percentages[group] =
+        totalVolume > 0
+          ? (muscleGroupVolume.volume[group] / totalVolume) * 100
+          : 0;
     });
     return percentages;
   }, [muscleGroupVolume.volume, totalVolume]);
 
   // Ordenar grupos musculares por volumen
   const sortedMuscleGroups = useMemo(() => {
-    return [...MUSCLE_GROUPS].sort((a, b) => 
-      muscleGroupVolume.volume[b] - muscleGroupVolume.volume[a]
+    return [...MUSCLE_GROUPS].sort(
+      (a, b) => muscleGroupVolume.volume[b] - muscleGroupVolume.volume[a],
     );
   }, [muscleGroupVolume.volume]);
 
@@ -136,13 +160,16 @@ export default function ProgressPage() {
       <ProtectedRoute>
         <PageLayout>
           <PageHeader
-            title={t('progress.title')}
-            subtitle={t('progress.subtitle')}
+            title={t("progress.title")}
+            subtitle={t("progress.subtitle")}
             icon={<TrendingUp className="w-7 h-7 text-white" />}
             gradient="from-orange-700 via-red-700 to-red-800"
           />
           <PageContent>
-            <LoadingSpinner size="lg" message="Cargando tus sesiones y rutinas" />
+            <LoadingSpinner
+              size="lg"
+              message="Cargando tus sesiones y rutinas"
+            />
           </PageContent>
         </PageLayout>
       </ProtectedRoute>
@@ -154,16 +181,16 @@ export default function ProgressPage() {
       <ProtectedRoute>
         <PageLayout>
           <PageHeader
-            title={t('progress.title')}
-            subtitle={t('progress.subtitle')}
+            title={t("progress.title")}
+            subtitle={t("progress.subtitle")}
             icon={<TrendingUp className="w-7 h-7 text-white" />}
             gradient="from-orange-700 via-red-700 to-red-800"
           />
           <PageContent>
             <EmptyStateCard
               icon="📊"
-              title={t('progress.noData')}
-              description={t('progress.noDataDesc')}
+              title={t("progress.noData")}
+              description={t("progress.noDataDesc")}
             />
           </PageContent>
         </PageLayout>
@@ -175,34 +202,34 @@ export default function ProgressPage() {
     <ProtectedRoute>
       <PageLayout>
         <PageHeader
-          title={t('progress.title')}
-          subtitle={t('progress.subtitle')}
+          title={t("progress.title")}
+          subtitle={t("progress.subtitle")}
           icon={<TrendingUp className="w-7 h-7 text-white" />}
           gradient="from-orange-700 via-red-700 to-red-800"
         />
 
         <PageContent>
-        {/* Estadísticas generales */}
-        <StatsGrid columns={3}>
-          <StatCard
-            title={t('progress.totalSessions')}
-            value={validSessions.length}
-            icon={<TrendingUp className="w-6 h-6" />}
-            color="blue"
-          />
-          <StatCard
-            title={t('progress.totalSets')}
-            value={totalSets}
-            icon={<TrendingUp className="w-6 h-6" />}
-            color="green"
-          />
-          <StatCard
-            title={t('progress.totalVolume')}
-            value={totalVolume.toLocaleString()}
-            icon={<TrendingUp className="w-6 h-6" />}
-            color="purple"
-          />
-        </StatsGrid>
+          {/* Estadísticas generales */}
+          <StatsGrid columns={3}>
+            <StatCard
+              title={t("progress.totalSessions")}
+              value={validSessions.length}
+              icon={<TrendingUp className="w-6 h-6" />}
+              color="blue"
+            />
+            <StatCard
+              title={t("progress.totalSets")}
+              value={totalSets}
+              icon={<TrendingUp className="w-6 h-6" />}
+              color="green"
+            />
+            <StatCard
+              title={t("progress.totalVolume")}
+              value={totalVolume.toLocaleString()}
+              icon={<TrendingUp className="w-6 h-6" />}
+              color="purple"
+            />
+          </StatsGrid>
 
           {/* Gráfica de barras por grupo muscular */}
           <Card className="mb-8">
@@ -217,16 +244,18 @@ export default function ProgressPage() {
                     No hay datos de volumen
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Completa sesiones con ejercicios que tengan peso registrado para ver el análisis por grupo muscular
+                    Completa sesiones con ejercicios que tengan peso registrado
+                    para ver el análisis por grupo muscular
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {sortedMuscleGroups.map(group => {
+                  {sortedMuscleGroups.map((group) => {
                     const volume = muscleGroupVolume.volume[group];
                     const sets = muscleGroupVolume.count[group];
                     const percentage = muscleGroupPercentages[group];
-                    const barWidth = maxVolume > 0 ? (volume / maxVolume) * 100 : 0;
+                    const barWidth =
+                      maxVolume > 0 ? (volume / maxVolume) * 100 : 0;
 
                     if (volume === 0) return null;
 
@@ -234,12 +263,12 @@ export default function ProgressPage() {
                       <div key={group}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <div 
+                            <div
                               className="w-4 h-4 rounded"
                               style={{ backgroundColor: MUSCLE_COLORS[group] }}
                             />
                             <span className="font-semibold text-gray-900 dark:text-gray-100">
-                              {MUSCLE_LABELS[group]}
+                              {tMuscles(group)}
                             </span>
                           </div>
                           <div className="flex items-center gap-4 text-sm">
@@ -259,7 +288,7 @@ export default function ProgressPage() {
                             className="h-full rounded-full transition-all duration-500 flex items-center justify-end px-3"
                             style={{
                               width: `${barWidth}%`,
-                              backgroundColor: MUSCLE_COLORS[group]
+                              backgroundColor: MUSCLE_COLORS[group],
                             }}
                           >
                             {barWidth > 20 && (
@@ -290,12 +319,13 @@ export default function ProgressPage() {
                     No hay datos de distribución
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Completa sesiones con ejercicios que tengan peso registrado para ver la distribución
+                    Completa sesiones con ejercicios que tengan peso registrado
+                    para ver la distribución
                   </p>
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {sortedMuscleGroups.map(group => {
+                  {sortedMuscleGroups.map((group) => {
                     const volume = muscleGroupVolume.volume[group];
                     const sets = muscleGroupVolume.count[group];
                     const percentage = muscleGroupPercentages[group];
@@ -306,21 +336,24 @@ export default function ProgressPage() {
                       <div
                         key={group}
                         className="p-4 rounded-lg border-2 transition-all hover:shadow-lg"
-                        style={{ 
+                        style={{
                           borderColor: MUSCLE_COLORS[group],
-                          backgroundColor: `${MUSCLE_COLORS[group]}10`
+                          backgroundColor: `${MUSCLE_COLORS[group]}10`,
                         }}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <div 
+                          <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: MUSCLE_COLORS[group] }}
                           />
                           <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                            {MUSCLE_LABELS[group]}
+                            {tMuscles(group)}
                           </span>
                         </div>
-                        <div className="text-2xl font-bold mb-1" style={{ color: MUSCLE_COLORS[group] }}>
+                        <div
+                          className="text-2xl font-bold mb-1"
+                          style={{ color: MUSCLE_COLORS[group] }}
+                        >
                           {percentage.toFixed(1)}%
                         </div>
                         <div className="text-xs text-gray-600 dark:text-gray-400">

@@ -1,6 +1,6 @@
 /**
  * Optimized Lucide React Icons
- * 
+ *
  * Named imports from main package for better compatibility
  */
 
@@ -12,7 +12,7 @@ export {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
-  
+
   // Stats & Charts
   Calendar,
   Award,
@@ -21,7 +21,7 @@ export {
   BarChart3,
   Activity,
   Target,
-  
+
   // Fitness
   Dumbbell,
   Flame,
@@ -29,7 +29,7 @@ export {
   Weight,
   Repeat,
   ListChecks,
-  
+
   // Actions
   Plus,
   Minus,
@@ -42,14 +42,14 @@ export {
   Bot,
   Send,
   Bell,
-  
+
   // Alerts
   CheckCircle,
   XCircle,
   AlertCircle,
   AlertTriangle,
   Info,
-  
+
   // Misc
   Settings,
   User,
@@ -79,6 +79,7 @@ export {
   ArrowLeft,
   RefreshCw,
   Zap,
+  Rocket,
   BookOpen,
   Link,
   Lightbulb,
@@ -89,5 +90,6 @@ export {
   Moon,
   Minimize2,
   Maximize2,
-  WifiOff
-} from 'lucide-react';
+  WifiOff,
+  Loader2,
+} from "lucide-react";

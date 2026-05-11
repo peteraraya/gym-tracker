@@ -2,8 +2,13 @@
  * Gestor de Logros - Sistema automático de detección y notificación de logros
  */
 
-import { WorkoutSession, Achievement } from '@/types';
-import { calculateAchievements, calculateStreak, calculateTotalVolume } from './achievements';
+import { WorkoutSession, Achievement } from "@/types";
+import { calculateAchievements, calculateStreak } from "./achievements";
+import {
+  calculateTotalVolume,
+  calculateSessionVolume,
+} from "./utils/dateUtils";
+import logger from "./logger";
 
 interface AchievementNotification {
   achievement: Achievement;
@@ -17,32 +22,37 @@ class AchievementManager {
    * Procesa una nueva sesión y detecta logros desbloqueados
    */
   processNewSession(
-    newSession: WorkoutSession, 
-    allSessions: WorkoutSession[]
+    newSession: WorkoutSession,
+    allSessions: WorkoutSession[],
   ): AchievementNotification[] {
-    console.log('[AchievementManager] Processing new session:', newSession.id);
-    
+    logger.log("[AchievementManager] Processing new session:", newSession.id);
+
     // Calcular logros actuales
     const currentAchievements = calculateAchievements(allSessions);
-    
+
     // Detectar nuevos logros desbloqueados
     const newlyUnlocked: AchievementNotification[] = [];
-    
-    currentAchievements.forEach(current => {
-      const previous = this.previousAchievements.find(p => p.id === current.id);
-      
+
+    currentAchievements.forEach((current) => {
+      const previous = this.previousAchievements.find(
+        (p) => p.id === current.id,
+      );
+
       if (current.unlocked && (!previous || !previous.unlocked)) {
-        console.log('[AchievementManager] New achievement unlocked:', current.name);
+        logger.log(
+          "[AchievementManager] New achievement unlocked:",
+          current.name,
+        );
         newlyUnlocked.push({
           achievement: current,
-          isNew: true
+          isNew: true,
         });
       }
     });
-    
+
     // Actualizar cache de logros previos
     this.previousAchievements = currentAchievements;
-    
+
     return newlyUnlocked;
   }
 
@@ -50,7 +60,11 @@ class AchievementManager {
    * Inicializa el manager con los logros actuales
    */
   initialize(sessions: WorkoutSession[]): void {
-    console.log('[AchievementManager] Initializing with', sessions.length, 'sessions');
+    logger.log(
+      "[AchievementManager] Initializing with",
+      sessions.length,
+      "sessions",
+    );
     this.previousAchievements = calculateAchievements(sessions);
   }
 
@@ -65,12 +79,12 @@ class AchievementManager {
   } {
     const streak = calculateStreak(sessions);
     const totalVolume = calculateTotalVolume(sessions);
-    
+
     return {
       totalSessions: sessions.length,
       totalVolume,
       currentStreak: streak.current,
-      longestStreak: streak.longest
+      longestStreak: streak.longest,
     };
   }
 
@@ -79,47 +93,42 @@ class AchievementManager {
    */
   checkPersonalRecords(
     newSession: WorkoutSession,
-    allSessions: WorkoutSession[]
+    allSessions: WorkoutSession[],
   ): {
     volumeRecord: boolean;
     durationRecord: boolean;
     setsRecord: boolean;
   } {
-    const sessionVolume = this.calculateSessionVolume(newSession);
+    const sessionVolume = calculateSessionVolume(newSession.exercises);
     const sessionDuration = newSession.totalDuration || 0;
-    const sessionSets = newSession.exercises.reduce((total, ex) => total + ex.completedSets, 0);
+    const sessionSets = newSession.exercises.reduce(
+      (total, ex) => total + ex.completedSets,
+      0,
+    );
 
     // Comparar con sesiones anteriores
-    const previousSessions = allSessions.filter(s => s.id !== newSession.id);
-    
-    const maxVolume = Math.max(0, ...previousSessions.map(s => this.calculateSessionVolume(s)));
-    const maxDuration = Math.max(0, ...previousSessions.map(s => s.totalDuration || 0));
-    const maxSets = Math.max(0, ...previousSessions.map(s => 
-      s.exercises.reduce((total, ex) => total + ex.completedSets, 0)
-    ));
+    const previousSessions = allSessions.filter((s) => s.id !== newSession.id);
+
+    const maxVolume = Math.max(
+      0,
+      ...previousSessions.map((s) => calculateSessionVolume(s.exercises)),
+    );
+    const maxDuration = Math.max(
+      0,
+      ...previousSessions.map((s) => s.totalDuration || 0),
+    );
+    const maxSets = Math.max(
+      0,
+      ...previousSessions.map((s) =>
+        s.exercises.reduce((total, ex) => total + ex.completedSets, 0),
+      ),
+    );
 
     return {
       volumeRecord: sessionVolume > maxVolume,
       durationRecord: sessionDuration > maxDuration,
-      setsRecord: sessionSets > maxSets
+      setsRecord: sessionSets > maxSets,
     };
-  }
-
-  /**
-   * Calcula el volumen de una sesión específica
-   */
-  private calculateSessionVolume(session: WorkoutSession): number {
-    return session.exercises.reduce((total, exercise) => {
-      const actualWeights = exercise.actualWeight || [];
-      const actualReps = exercise.actualReps || [];
-      
-      const exerciseVolume = actualWeights.reduce((setTotal, weight, index) => {
-        const reps = actualReps[index] || 0;
-        return setTotal + (weight * reps);
-      }, 0);
-      
-      return total + exerciseVolume;
-    }, 0);
   }
 
   /**
@@ -127,7 +136,7 @@ class AchievementManager {
    */
   generateMotivationalMessage(
     newAchievements: AchievementNotification[],
-    stats: ReturnType<typeof this.getQuickStats>
+    stats: ReturnType<typeof this.getQuickStats>,
   ): string {
     if (newAchievements.length > 0) {
       const achievement = newAchievements[0].achievement;
@@ -143,8 +152,8 @@ class AchievementManager {
     }
 
     const milestones = [5, 10, 25, 50, 100, 200];
-    const nextMilestone = milestones.find(m => m > stats.totalSessions);
-    
+    const nextMilestone = milestones.find((m) => m > stats.totalSessions);
+
     if (nextMilestone) {
       const remaining = nextMilestone - stats.totalSessions;
       return `💪 Entrenamiento #${stats.totalSessions} completado. Solo ${remaining} más para llegar a ${nextMilestone}!`;
@@ -158,15 +167,15 @@ class AchievementManager {
    */
   getNextAchievement(sessions: WorkoutSession[]): Achievement | null {
     const achievements = calculateAchievements(sessions);
-    const locked = achievements.filter(a => !a.unlocked);
-    
+    const locked = achievements.filter((a) => !a.unlocked);
+
     if (locked.length === 0) return null;
 
     // Encontrar el logro más cercano (mayor progreso relativo)
     return locked.reduce((closest, current) => {
       const currentProgress = current.progress / current.target;
       const closestProgress = closest.progress / closest.target;
-      
+
       return currentProgress > closestProgress ? current : closest;
     });
   }
@@ -178,17 +187,21 @@ export const achievementManager = new AchievementManager();
 // Hook para usar en componentes React
 export function useAchievementManager() {
   return {
-    processNewSession: (session: WorkoutSession, allSessions: WorkoutSession[]) =>
-      achievementManager.processNewSession(session, allSessions),
+    processNewSession: (
+      session: WorkoutSession,
+      allSessions: WorkoutSession[],
+    ) => achievementManager.processNewSession(session, allSessions),
     initialize: (sessions: WorkoutSession[]) =>
       achievementManager.initialize(sessions),
     getQuickStats: (sessions: WorkoutSession[]) =>
       achievementManager.getQuickStats(sessions),
-    checkPersonalRecords: (session: WorkoutSession, allSessions: WorkoutSession[]) =>
-      achievementManager.checkPersonalRecords(session, allSessions),
+    checkPersonalRecords: (
+      session: WorkoutSession,
+      allSessions: WorkoutSession[],
+    ) => achievementManager.checkPersonalRecords(session, allSessions),
     generateMotivationalMessage: (
       achievements: AchievementNotification[],
-      stats: ReturnType<typeof achievementManager.getQuickStats>
+      stats: ReturnType<typeof achievementManager.getQuickStats>,
     ) => achievementManager.generateMotivationalMessage(achievements, stats),
     getNextAchievement: (sessions: WorkoutSession[]) =>
       achievementManager.getNextAchievement(sessions),

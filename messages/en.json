@@ -1,5 +1,7 @@
 {
   "common": {
+    "selectRoutine": "Select a routine...",
+    "startWorkout": "Start Workout",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -86,9 +88,20 @@
     "getStartedDesc": "Create your first workout routine and start tracking your progress",
     "recentSessions": "Recent Sessions",
     "viewRoutines": "View Routines",
+    "recommendedRoutines": "Recommended Routines",
+    "recommendedRoutinesDesc": "Explore professional routines like Push Pull Legs, Upper/Lower and more",
+    "viewRecommended": "View recommended routines",
     "history": "History",
     "historyDesc": "Review your previous sessions and analyze your progress over time",
     "viewHistory": "View History",
+    "progress": "Progress",
+    "progressDesc": "Analyze your training volume by muscle group",
+    "viewProgress": "View Progress",
+    "exerciseGuide": "Exercise Guide",
+    "exerciseGuideDesc": "Learn proper technique with professional tips",
+    "exploreExercises": "Explore exercises",
+    "startJourney": "Start your fitness journey with a professional routine",
+    "exploreRecommended": "Explore recommended routines",
     "welcomeMessage": "Welcome! It looks like you don't have any routines yet",
     "createFirstRoutine": "Create my first routine",
     "haveRoutines": {
@@ -206,8 +219,14 @@
     "gluteos": "Glutes",
     "hombros": "Shoulders",
     "brazos": "Arms",
-    "core": "Core/Abs",
-    "gemelos": "Calves"
+    "biceps": "Biceps",
+    "triceps": "Triceps",
+    "antebrazos": "Forearms",
+    "trapecio": "Trapezius",
+    "cuello": "Neck",
+    "core": "Core",
+    "gemelos": "Calves",
+    "cardio": "Cardio"
   },
   "workout": {
     "exercise": "Exercise",
@@ -355,8 +374,8 @@
       "currentStreak": "Current Streak",
       "currentStreakSubtitle": "Training streak",
       "days": "days",
-      "totalSets": "Sets Completed"
-      ,"totalSetsSubtitle": "Sets completed"
+      "totalSets": "Sets Completed",
+      "totalSetsSubtitle": "Sets completed"
     },
     "charts": {
       "volumeChartTitle": "Volume Chart",
@@ -389,6 +408,9 @@
       "kg": "kg"
     },
     "volumeChart": {
+      "units": {
+        "kg": "kg"
+      },
       "title": "Training Volume",
       "lastWeek": "Last Week",
       "lastMonth": "Last Month",

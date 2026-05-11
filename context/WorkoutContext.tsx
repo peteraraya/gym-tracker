@@ -1,13 +1,23 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode, useRef } from 'react';
-import * as storageService from '@/lib/storage/storage';
-import type { ActiveWorkout } from '@/lib/storage/storage';
-import type { Routine } from '@/types';
-import { useAppLifecycle } from '@/hooks/useAppLifecycle';
-import { WorkoutStateSchema, validateDataWithLogging } from '@/lib/validation';
-import { saveQueue } from '@/lib/utils/saveQueue';
-import { saveBackup, attemptPartialRecovery } from '@/lib/utils/workoutBackup';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  ReactNode,
+  useRef,
+} from "react";
+import * as storageService from "@/lib/storage/storage";
+import type { ActiveWorkout } from "@/lib/storage/storage";
+import type { Routine } from "@/types";
+import { useAppLifecycle } from "@/hooks/useAppLifecycle";
+import { WorkoutStateSchema, validateDataWithLogging } from "@/lib/validation";
+import { saveQueue } from "@/lib/utils/saveQueue";
+import { saveBackup, attemptPartialRecovery } from "@/lib/utils/workoutBackup";
+import logger from "@/lib/logger";
 
 interface WorkoutState {
   routineId: string;
@@ -57,7 +67,7 @@ interface WorkoutContextType {
       setTypes?: { [key: string]: string[] };
       restOverrides?: { [key: string]: number };
       perSetRestOverrides?: { [key: string]: number[] };
-    }
+    },
   ) => void;
   updateModifiedRoutine: (routine: Routine) => Promise<void>;
   clearRestState: () => void;
@@ -76,38 +86,55 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   const activeWorkoutRef = useRef<WorkoutState | null>(null);
 
   // Normalizar datos validados a WorkoutState (convierte tipos robustamente)
-  const normalizeActiveWorkout = (data: any, routine?: Routine): WorkoutState => {
+  const normalizeActiveWorkout = (
+    data: any,
+    routine?: Routine,
+  ): WorkoutState => {
     // Manejar caso donde completedSets es un número (dato corrupto)
     let completedSets: { [key: string]: number } = {};
-    if (typeof data.completedSets === 'object' && data.completedSets !== null && !Array.isArray(data.completedSets)) {
+    if (
+      typeof data.completedSets === "object" &&
+      data.completedSets !== null &&
+      !Array.isArray(data.completedSets)
+    ) {
       const src = data.completedSets;
-      Object.keys(src).forEach(k => {
+      Object.keys(src).forEach((k) => {
         const v = (src as any)[k];
-        completedSets[String(k)] = typeof v === 'number' ? v : Number(v ?? 0);
+        completedSets[String(k)] = typeof v === "number" ? v : Number(v ?? 0);
       });
-    } else if (typeof data.completedSets === 'number') {
+    } else if (typeof data.completedSets === "number") {
       // Dato corrupto: completedSets es un número en lugar de un objeto
-      console.warn('[WorkoutContext] completedSets is a number, resetting to empty object');
+      console.warn(
+        "[WorkoutContext] completedSets is a number, resetting to empty object",
+      );
       completedSets = {};
     }
-    
+
     // ✅ Validar índices contra la rutina si está disponible
-    let exerciseIndex = typeof data.currentExerciseIndex === 'string' 
-      ? parseInt(data.currentExerciseIndex) || 0 
-      : Number(data.currentExerciseIndex ?? 0);
-    
-    let currentSet = typeof data.currentSet === 'string'
-      ? parseInt(data.currentSet) || 1
-      : Number(data.currentSet ?? 1);
-    
+    let exerciseIndex =
+      typeof data.currentExerciseIndex === "string"
+        ? parseInt(data.currentExerciseIndex) || 0
+        : Number(data.currentExerciseIndex ?? 0);
+
+    let currentSet =
+      typeof data.currentSet === "string"
+        ? parseInt(data.currentSet) || 1
+        : Number(data.currentSet ?? 1);
+
     if (routine?.exercises) {
       // Validar que exerciseIndex esté dentro del rango
-      exerciseIndex = Math.max(0, Math.min(exerciseIndex, routine.exercises.length - 1));
-      
+      exerciseIndex = Math.max(
+        0,
+        Math.min(exerciseIndex, routine.exercises.length - 1),
+      );
+
       // Validar que currentSet esté dentro del rango del ejercicio actual
       const currentExercise = routine.exercises[exerciseIndex];
       if (currentExercise?.sets) {
-        currentSet = Math.max(1, Math.min(currentSet, currentExercise.sets.length));
+        currentSet = Math.max(
+          1,
+          Math.min(currentSet, currentExercise.sets.length),
+        );
       }
     }
 
@@ -120,10 +147,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       actualReps: (() => {
         const out: { [key: string]: number[] } = {};
         const src = data.actualReps || {};
-        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
-          Object.keys(src).forEach(k => {
+        if (typeof src === "object" && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach((k) => {
             const arr = (src as any)[k];
-            out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+            out[String(k)] = Array.isArray(arr)
+              ? arr.map((n) => Number(n ?? 0))
+              : [];
           });
         }
         return out;
@@ -131,10 +160,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       actualWeights: (() => {
         const out: { [key: string]: number[] } = {};
         const src = data.actualWeights || {};
-        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
-          Object.keys(src).forEach(k => {
+        if (typeof src === "object" && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach((k) => {
             const arr = (src as any)[k];
-            out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+            out[String(k)] = Array.isArray(arr)
+              ? arr.map((n) => Number(n ?? 0))
+              : [];
           });
         }
         return out;
@@ -148,15 +179,19 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restTimerTitle: data.restTimerTitle,
       restTimerNextExercise: data.restTimerNextExercise,
       // Ejercicios omitidos en esta sesión
-      skippedExercises: Array.isArray(data.skippedExercises) ? data.skippedExercises : [],
+      skippedExercises: Array.isArray(data.skippedExercises)
+        ? data.skippedExercises
+        : [],
       // ✅ Campos adicionales para persistencia completa
       setTypes: (() => {
         const out: { [key: string]: string[] } = {};
         const src = data.setTypes || {};
-        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
-          Object.keys(src).forEach(k => {
+        if (typeof src === "object" && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach((k) => {
             const arr = (src as any)[k];
-            out[String(k)] = Array.isArray(arr) ? arr.map(s => String(s ?? '')) : [];
+            out[String(k)] = Array.isArray(arr)
+              ? arr.map((s) => String(s ?? ""))
+              : [];
           });
         }
         return out;
@@ -164,10 +199,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       restOverrides: (() => {
         const out: { [key: string]: number } = {};
         const src = data.restOverrides || {};
-        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
-          Object.keys(src).forEach(k => {
+        if (typeof src === "object" && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach((k) => {
             const v = (src as any)[k];
-            out[String(k)] = typeof v === 'number' ? v : Number(v ?? 0);
+            out[String(k)] = typeof v === "number" ? v : Number(v ?? 0);
           });
         }
         return out;
@@ -175,15 +210,20 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       perSetRestOverrides: (() => {
         const out: { [key: string]: number[] } = {};
         const src = data.perSetRestOverrides || {};
-        if (typeof src === 'object' && src !== null && !Array.isArray(src)) {
-          Object.keys(src).forEach(k => {
+        if (typeof src === "object" && src !== null && !Array.isArray(src)) {
+          Object.keys(src).forEach((k) => {
             const arr = (src as any)[k];
-            out[String(k)] = Array.isArray(arr) ? arr.map(n => Number(n ?? 0)) : [];
+            out[String(k)] = Array.isArray(arr)
+              ? arr.map((n) => Number(n ?? 0))
+              : [];
           });
         }
         return out;
       })(),
-      restTimerStartedAt: typeof data.restTimerStartedAt === 'number' ? data.restTimerStartedAt : undefined
+      restTimerStartedAt:
+        typeof data.restTimerStartedAt === "number"
+          ? data.restTimerStartedAt
+          : undefined,
     };
   };
 
@@ -199,63 +239,75 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       try {
         const stored = await storageService.getActiveWorkout();
         if (!mounted) return;
-        
+
         if (stored) {
           // ✅ Intentar normalizar primero, luego validar
           try {
             const normalized = normalizeActiveWorkout(stored);
-            
+
             // Validar el dato normalizado
             const validationResult = validateDataWithLogging(
               WorkoutStateSchema,
               normalized,
-              '[WorkoutContext] Loading active workout'
+              "[WorkoutContext] Loading active workout",
             );
 
             if (validationResult.success && validationResult.data) {
               setActiveWorkout(normalized);
             } else {
               // ✅ Guardar backup antes de limpiar
-              saveBackup(stored, 'validation_failed_on_load');
-              
+              saveBackup(stored, "validation_failed_on_load");
+
               // ✅ Intentar recuperación parcial
               const recovered = attemptPartialRecovery(stored);
               if (recovered) {
-                console.warn('[WorkoutContext] Partial recovery successful, using recovered data');
+                logger.warn(
+                  "[WorkoutContext] Partial recovery successful, using recovered data",
+                );
                 setActiveWorkout(recovered);
               } else {
                 // Datos corruptos incluso después de normalizar - limpiar
-                console.error('[WorkoutContext] Invalid workout state after normalization, clearing:', validationResult.error);
+                logger.error(
+                  "[WorkoutContext] Invalid workout state after normalization, clearing:",
+                  validationResult.error,
+                );
                 await storageService.clearActiveWorkout();
                 setActiveWorkout(null);
               }
             }
           } catch (normalizeError) {
             // ✅ Guardar backup antes de limpiar
-            saveBackup(stored, 'normalization_error_on_load');
-            
+            saveBackup(stored, "normalization_error_on_load");
+
             // ✅ Intentar recuperación parcial
             const recovered = attemptPartialRecovery(stored);
             if (recovered) {
-              console.warn('[WorkoutContext] Partial recovery successful after normalization error');
+              logger.warn(
+                "[WorkoutContext] Partial recovery successful after normalization error",
+              );
               setActiveWorkout(recovered);
             } else {
               // Error durante normalización - datos muy corruptos
-              console.error('[WorkoutContext] Error normalizing workout state, clearing:', normalizeError);
+              logger.error(
+                "[WorkoutContext] Error normalizing workout state, clearing:",
+                normalizeError,
+              );
               await storageService.clearActiveWorkout();
               setActiveWorkout(null);
             }
           }
         }
       } catch (e) {
-        console.error('[WorkoutContext] Error cargando active workout:', e);
+        logger.error("[WorkoutContext] Error cargando active workout:", e);
       } finally {
         if (mounted) {
           setIsLoadingActiveWorkout(false);
         }
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Persistir cambios del activeWorkout en storage unificado
@@ -267,10 +319,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     if (!activeWorkout) {
       return; // No hacer nada si no hay workout activo
     }
-    
+
     // ✅ Usar saveQueue para evitar race conditions
-    saveQueue.save(activeWorkout as unknown as ActiveWorkout).catch(e => {
-      console.error('[WorkoutContext] Error guardando active workout:', e);
+    saveQueue.save(activeWorkout as unknown as ActiveWorkout).catch((e) => {
+      logger.error("[WorkoutContext] Error guardando active workout:", e);
     });
   }, [activeWorkout, isLoadingActiveWorkout]);
 
@@ -283,114 +335,131 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       completedSets: {},
       actualReps: {},
       actualWeights: {},
-      startedAt: new Date()
+      startedAt: new Date(),
     };
     setActiveWorkout(newWorkout);
     // ✅ Usar saveQueue para persistir inmediatamente
-    saveQueue.save(newWorkout as unknown as ActiveWorkout).catch(e => {
-      console.error('[WorkoutContext] Error guardando workout en start:', e);
+    saveQueue.save(newWorkout as unknown as ActiveWorkout).catch((e) => {
+      console.error("[WorkoutContext] Error guardando workout en start:", e);
     });
   }, []);
-  const updateWorkoutProgress = useCallback((
-    exerciseIndex: number,
-    set: number,
-    completedSets: { [key: string]: number },
-    actualReps: { [key: string]: number[] },
-    actualWeights: { [key: string]: number[] },
-    restState?: {
-      isResting?: boolean;
-      restTimerDuration?: number;
-      restTimerTitle?: string;
-      restTimerNextExercise?: string;
-      restTimerStartedAt?: number;
-    },
-    totalPausedTime?: number,
-    additionalData?: {
-      setTypes?: { [key: string]: string[] };
-      restOverrides?: { [key: string]: number };
-      perSetRestOverrides?: { [key: string]: number[] };
-    }
-  ) => {
-    console.log('[WorkoutContext] updateWorkoutProgress called with:', {
-      exerciseIndex,
-      set,
-      completedSets,
-      actualReps,
-      actualWeights,
-      additionalData
-    });
-    
-    setActiveWorkout(prev => {
-      if (!prev) return null;
-      const newState: WorkoutState = {
-        ...prev,
-        currentExerciseIndex: exerciseIndex,
-        currentSet: set,
+  const updateWorkoutProgress = useCallback(
+    (
+      exerciseIndex: number,
+      set: number,
+      completedSets: { [key: string]: number },
+      actualReps: { [key: string]: number[] },
+      actualWeights: { [key: string]: number[] },
+      restState?: {
+        isResting?: boolean;
+        restTimerDuration?: number;
+        restTimerTitle?: string;
+        restTimerNextExercise?: string;
+        restTimerStartedAt?: number;
+      },
+      totalPausedTime?: number,
+      additionalData?: {
+        setTypes?: { [key: string]: string[] };
+        restOverrides?: { [key: string]: number };
+        perSetRestOverrides?: { [key: string]: number[] };
+      },
+    ) => {
+      logger.log("[WorkoutContext] updateWorkoutProgress called with:", {
+        exerciseIndex,
+        set,
         completedSets,
         actualReps,
         actualWeights,
-        // Persistir estado del timer de descanso
-        isResting: restState?.isResting ?? false,
-        restTimerRemaining: restState?.restTimerDuration, // ✅ Guardar tiempo restante
-        restTimerStartedAt: restState?.isResting ? (restState?.restTimerStartedAt ?? Date.now()) : undefined,
-        restTimerTitle: restState?.restTimerTitle,
-        restTimerNextExercise: restState?.restTimerNextExercise,
-        // Persistir tiempo pausado
-        totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
-        // ✅ Persistir campos adicionales
-        setTypes: additionalData?.setTypes ?? prev.setTypes,
-        restOverrides: additionalData?.restOverrides ?? prev.restOverrides,
-        perSetRestOverrides: additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides
-      };
-
-      // ✅ Usar saveQueue para guardar inmediatamente sin race conditions
-      saveQueue.save(newState as unknown as ActiveWorkout).catch(e => {
-        console.error('[WorkoutContext] Failed to persist active workout on update:', e);
+        additionalData,
       });
 
-      return newState;
-    });
-  }, []);
+      setActiveWorkout((prev) => {
+        if (!prev) return null;
+        const newState: WorkoutState = {
+          ...prev,
+          currentExerciseIndex: exerciseIndex,
+          currentSet: set,
+          completedSets,
+          actualReps,
+          actualWeights,
+          // Persistir estado del timer de descanso
+          isResting: restState?.isResting ?? false,
+          restTimerRemaining: restState?.restTimerDuration, // ✅ Guardar tiempo restante
+          restTimerStartedAt: restState?.isResting
+            ? (restState?.restTimerStartedAt ?? Date.now())
+            : undefined,
+          restTimerTitle: restState?.restTimerTitle,
+          restTimerNextExercise: restState?.restTimerNextExercise,
+          // Persistir tiempo pausado
+          totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
+          // ✅ Persistir campos adicionales
+          setTypes: additionalData?.setTypes ?? prev.setTypes,
+          restOverrides: additionalData?.restOverrides ?? prev.restOverrides,
+          perSetRestOverrides:
+            additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides,
+        };
+
+        // ✅ Usar saveQueue para guardar inmediatamente sin race conditions
+        saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
+          logger.error(
+            "[WorkoutContext] Failed to persist active workout on update:",
+            e,
+          );
+        });
+
+        return newState;
+      });
+    },
+    [],
+  );
 
   const clearRestState = useCallback(() => {
-    setActiveWorkout(prev => {
+    setActiveWorkout((prev) => {
       if (!prev) return null;
       const newState = {
         ...prev,
         isResting: false,
         restTimerRemaining: undefined,
         restTimerTitle: undefined,
-        restTimerNextExercise: undefined
+        restTimerNextExercise: undefined,
       };
       // ✅ Usar saveQueue
-      saveQueue.save(newState as unknown as ActiveWorkout).catch(e => {
-        console.warn('[Workout] Failed to persist active workout on clearRestState:', e);
+      saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
+        logger.warn(
+          "[Workout] Failed to persist active workout on clearRestState:",
+          e,
+        );
       });
       return newState;
     });
   }, []);
 
   const updateModifiedRoutine = useCallback(async (routine: Routine) => {
-    console.log('[WorkoutContext] updateModifiedRoutine called with', routine.exercises.map((ex: any) => `${ex.id}:${ex.sets.length}`).join('|'));
-    
+    logger.log(
+      "[WorkoutContext] updateModifiedRoutine called with",
+      routine.exercises
+        .map((ex: any) => `${ex.id}:${ex.sets.length}`)
+        .join("|"),
+    );
+
     // ✅ CRÍTICO: Guardar la rutina modificada en Supabase inmediatamente
     // Esto asegura que al recargar (F5) se mantenga la rutina correcta
     try {
       // Importar updateRoutine dinámicamente para evitar dependencias circulares
-      const { updateRoutine } = await import('@/lib/storage/storage');
-      
+      const { updateRoutine } = await import("@/lib/storage/storage");
+
       await updateRoutine(routine.id, {
         name: routine.name,
         description: routine.description,
         image: routine.image,
-        exercises: routine.exercises.map(ex => ({
+        exercises: routine.exercises.map((ex) => ({
           id: ex.id,
           name: ex.name,
-          sets: ex.sets.map(set => ({
+          sets: ex.sets.map((set) => ({
             reps: set.reps,
             weight: set.weight || 0,
             type: set.type,
-            notes: set.notes
+            notes: set.notes,
           })),
           notes: ex.notes,
           equipment: ex.equipment,
@@ -399,79 +468,89 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           recommendedReps: ex.recommendedReps,
           restTime: ex.restTime,
           restBetweenSets: ex.restBetweenSets,
-          useSmartRest: ex.useSmartRest
+          useSmartRest: ex.useSmartRest,
         })),
         restBetweenSets: routine.restBetweenSets,
-        restBetweenExercises: routine.restBetweenExercises
+        restBetweenExercises: routine.restBetweenExercises,
       });
-      
-      console.log('[WorkoutContext] Modified routine saved to Supabase');
-      
+
+      logger.log("[WorkoutContext] Modified routine saved to Supabase");
+
       // ✅ Solo actualizar estado local si Supabase tuvo éxito
-      setActiveWorkout(prev => {
+      setActiveWorkout((prev) => {
         if (!prev) return null;
         const newState = {
           ...prev,
-          modifiedRoutine: routine
+          modifiedRoutine: routine,
         };
         // ✅ Usar saveQueue para persistencia local
-        saveQueue.save(newState as unknown as ActiveWorkout).catch(e => {
-          console.warn('[Workout] Failed to persist modified routine to activeWorkout:', e);
+        saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
+          logger.warn(
+            "[Workout] Failed to persist modified routine to activeWorkout:",
+            e,
+          );
         });
         return newState;
       });
     } catch (error) {
-      console.error('[WorkoutContext] Error saving modified routine to Supabase:', error);
+      logger.error(
+        "[WorkoutContext] Error saving modified routine to Supabase:",
+        error,
+      );
       // ✅ Lanzar error para que el llamador sepa que falló
-      throw new Error('No se pudo guardar la rutina modificada');
+      throw new Error("No se pudo guardar la rutina modificada");
     }
   }, []);
 
   const finishWorkout = useCallback(async () => {
-    console.log('[WorkoutContext] finishWorkout called');
-    
+    logger.log("[WorkoutContext] finishWorkout called");
+
     // Marcar que el workout fue finalizado intencionalmente
     // Esto evita que onResume lo restaure
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const timestamp = Date.now().toString();
-      sessionStorage.setItem('workout_finished', timestamp);
-      localStorage.setItem('workout_finished_persistent', timestamp);
-      console.log('[WorkoutContext] Set finish markers:', timestamp);
+      sessionStorage.setItem("workout_finished", timestamp);
+      localStorage.setItem("workout_finished_persistent", timestamp);
+      logger.log("[WorkoutContext] Set finish markers:", timestamp);
     }
-    
+
     // Actualizar la ref inmediatamente para evitar restauración
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
-    
+
     try {
       await storageService.clearActiveWorkout();
-      console.log('[WorkoutContext] Active workout finished and cleared from storage');
+      logger.log(
+        "[WorkoutContext] Active workout finished and cleared from storage",
+      );
     } catch (e) {
-      console.error('[WorkoutContext] Error limpiando active workout:', e);
+      logger.error("[WorkoutContext] Error limpiando active workout:", e);
     }
   }, []);
 
   const cancelWorkout = useCallback(async () => {
-    console.log('[WorkoutContext] cancelWorkout called');
-    
+    logger.log("[WorkoutContext] cancelWorkout called");
+
     // Marcar que el workout fue cancelado intencionalmente
     // Esto evita que onResume lo restaure
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const timestamp = Date.now().toString();
-      sessionStorage.setItem('workout_cancelled', timestamp);
-      localStorage.setItem('workout_cancelled_persistent', timestamp);
-      console.log('[WorkoutContext] Set cancellation markers:', timestamp);
+      sessionStorage.setItem("workout_cancelled", timestamp);
+      localStorage.setItem("workout_cancelled_persistent", timestamp);
+      logger.log("[WorkoutContext] Set cancellation markers:", timestamp);
     }
-    
+
     // Actualizar la ref inmediatamente para evitar restauración
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
-    
+
     try {
       await storageService.clearActiveWorkout();
-      console.log('[WorkoutContext] Active workout cancelled and cleared from storage');
+      logger.log(
+        "[WorkoutContext] Active workout cancelled and cleared from storage",
+      );
     } catch (e) {
-      console.error('[WorkoutContext] Error limpiando active workout:', e);
+      logger.error("[WorkoutContext] Error limpiando active workout:", e);
     }
   }, []);
 
@@ -481,89 +560,100 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       // Cuando la app se pone en segundo plano, forzar guardado del workout
       const currentWorkout = activeWorkoutRef.current;
       if (currentWorkout) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('[WorkoutContext] App paused, persisting workout...');
-        }
+        logger.debug("[WorkoutContext] App paused, persisting workout...");
         // ✅ Usar saveQueue y esperar a que se complete
-        saveQueue.save(currentWorkout as unknown as ActiveWorkout)
+        saveQueue
+          .save(currentWorkout as unknown as ActiveWorkout)
           .then(() => {
-            if (process.env.NODE_ENV === 'development') {
-              console.debug('[WorkoutContext] Workout persisted successfully on pause');
-            }
+            logger.debug(
+              "[WorkoutContext] Workout persisted successfully on pause",
+            );
           })
-          .catch(e => {
-            console.error('[WorkoutContext] Error persisting workout on pause:', e);
+          .catch((e) => {
+            logger.error(
+              "[WorkoutContext] Error persisting workout on pause:",
+              e,
+            );
           });
       }
     }, []),
     onResume: useCallback(() => {
       // Cuando la app vuelve a primer plano, recargar workout si es necesario
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('[WorkoutContext] App resumed, checking workout state...');
-      }
-      
+      logger.debug("[WorkoutContext] App resumed, checking workout state...");
+
       // Esperar un poco para asegurar que clearActiveWorkout se completó
       setTimeout(async () => {
         try {
           // Verificar si el workout fue cancelado o finalizado recientemente
-          if (typeof window !== 'undefined') {
+          if (typeof window !== "undefined") {
             // Verificar sessionStorage (últimos 5 segundos)
-            const cancelledAt = sessionStorage.getItem('workout_cancelled');
-            const finishedAt = sessionStorage.getItem('workout_finished');
-            
+            const cancelledAt = sessionStorage.getItem("workout_cancelled");
+            const finishedAt = sessionStorage.getItem("workout_finished");
+
             // Verificar localStorage persistente (últimos 30 segundos)
-            const cancelledPersistent = localStorage.getItem('workout_cancelled_persistent');
-            const finishedPersistent = localStorage.getItem('workout_finished_persistent');
-            
+            const cancelledPersistent = localStorage.getItem(
+              "workout_cancelled_persistent",
+            );
+            const finishedPersistent = localStorage.getItem(
+              "workout_finished_persistent",
+            );
+
             if (cancelledAt || cancelledPersistent) {
               const timestamp = cancelledAt || cancelledPersistent;
-              const timeSinceCancelled = Date.now() - parseInt(timestamp || '0');
-              if (timeSinceCancelled < 30000) { // 30 segundos
-                console.log('[WorkoutContext] Workout was recently cancelled, skipping restore. Time since:', timeSinceCancelled);
-                sessionStorage.removeItem('workout_cancelled');
+              const timeSinceCancelled =
+                Date.now() - parseInt(timestamp || "0");
+              if (timeSinceCancelled < 30000) {
+                // 30 segundos
+                logger.log(
+                  "[WorkoutContext] Workout was recently cancelled, skipping restore. Time since:",
+                  timeSinceCancelled,
+                );
+                sessionStorage.removeItem("workout_cancelled");
                 if (timeSinceCancelled > 5000) {
                   // Limpiar el marcador persistente después de 5 segundos
-                  localStorage.removeItem('workout_cancelled_persistent');
+                  localStorage.removeItem("workout_cancelled_persistent");
                 }
                 return;
               }
-              sessionStorage.removeItem('workout_cancelled');
-              localStorage.removeItem('workout_cancelled_persistent');
+              sessionStorage.removeItem("workout_cancelled");
+              localStorage.removeItem("workout_cancelled_persistent");
             }
-            
+
             if (finishedAt || finishedPersistent) {
               const timestamp = finishedAt || finishedPersistent;
-              const timeSinceFinished = Date.now() - parseInt(timestamp || '0');
-              if (timeSinceFinished < 30000) { // 30 segundos
-                console.log('[WorkoutContext] Workout was recently finished, skipping restore. Time since:', timeSinceFinished);
-                sessionStorage.removeItem('workout_finished');
+              const timeSinceFinished = Date.now() - parseInt(timestamp || "0");
+              if (timeSinceFinished < 30000) {
+                // 30 segundos
+                logger.log(
+                  "[WorkoutContext] Workout was recently finished, skipping restore. Time since:",
+                  timeSinceFinished,
+                );
+                sessionStorage.removeItem("workout_finished");
                 if (timeSinceFinished > 5000) {
                   // Limpiar el marcador persistente después de 5 segundos
-                  localStorage.removeItem('workout_finished_persistent');
+                  localStorage.removeItem("workout_finished_persistent");
                 }
                 return;
               }
-              sessionStorage.removeItem('workout_finished');
-              localStorage.removeItem('workout_finished_persistent');
+              sessionStorage.removeItem("workout_finished");
+              localStorage.removeItem("workout_finished_persistent");
             }
           }
-          
+
           const stored = await storageService.getActiveWorkout();
           // Solo restaurar si hay datos en storage Y no hay workout en memoria
           if (stored && !activeWorkoutRef.current) {
-            if (process.env.NODE_ENV === 'development') {
-              console.debug('[WorkoutContext] Restoring workout from storage');
-            }
-            
+            logger.debug("[WorkoutContext] Restoring workout from storage");
+
             // ✅ Intentar normalizar primero, luego validar
             try {
               const normalized = normalizeActiveWorkout(stored);
-              
+
               // Validar el dato normalizado
               const validationResult = validateDataWithLogging(
                 WorkoutStateSchema,
                 normalized,
-                '[WorkoutContext] Restoring workout on resume'
+                "[WorkoutContext] Restoring workout on resume",
               );
 
               if (validationResult.success && validationResult.data) {
@@ -571,46 +661,59 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
                 activeWorkoutRef.current = normalized;
               } else {
                 // ✅ Guardar backup antes de limpiar
-                saveBackup(stored, 'validation_failed_on_resume');
-                
+                saveBackup(stored, "validation_failed_on_resume");
+
                 // ✅ Intentar recuperación parcial
                 const recovered = attemptPartialRecovery(stored);
                 if (recovered) {
-                  console.warn('[WorkoutContext] Partial recovery successful on resume');
+                  logger.warn(
+                    "[WorkoutContext] Partial recovery successful on resume",
+                  );
                   setActiveWorkout(recovered);
                   activeWorkoutRef.current = recovered;
                 } else {
                   // Datos corruptos incluso después de normalizar - limpiar
-                  console.error('[WorkoutContext] Invalid workout state on resume after normalization, clearing:', validationResult.error);
+                  logger.error(
+                    "[WorkoutContext] Invalid workout state on resume after normalization, clearing:",
+                    validationResult.error,
+                  );
                   await storageService.clearActiveWorkout();
                 }
               }
             } catch (normalizeError) {
               // ✅ Guardar backup antes de limpiar
-              saveBackup(stored, 'normalization_error_on_resume');
-              
+              saveBackup(stored, "normalization_error_on_resume");
+
               // ✅ Intentar recuperación parcial
               const recovered = attemptPartialRecovery(stored);
               if (recovered) {
-                console.warn('[WorkoutContext] Partial recovery successful after normalization error on resume');
+                logger.warn(
+                  "[WorkoutContext] Partial recovery successful after normalization error on resume",
+                );
                 setActiveWorkout(recovered);
                 activeWorkoutRef.current = recovered;
               } else {
                 // Error durante normalización - datos muy corruptos
-                console.error('[WorkoutContext] Error normalizing workout state on resume, clearing:', normalizeError);
+                logger.error(
+                  "[WorkoutContext] Error normalizing workout state on resume, clearing:",
+                  normalizeError,
+                );
                 await storageService.clearActiveWorkout();
               }
             }
           }
         } catch (e) {
-          console.error('[WorkoutContext] Error restoring workout on resume:', e);
+          logger.error(
+            "[WorkoutContext] Error restoring workout on resume:",
+            e,
+          );
         }
       }, 100); // Pequeño delay para asegurar que clearActiveWorkout se completó
-    }, [])
+    }, []),
   });
 
   const skipExercise = useCallback((exerciseId: string) => {
-    setActiveWorkout(prev => {
+    setActiveWorkout((prev) => {
       if (!prev) return null;
       const skippedExercises = prev.skippedExercises || [];
       if (skippedExercises.includes(exerciseId)) {
@@ -618,56 +721,67 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       }
       const newState = {
         ...prev,
-        skippedExercises: [...skippedExercises, exerciseId]
+        skippedExercises: [...skippedExercises, exerciseId],
       };
       // ✅ Usar saveQueue
-      saveQueue.save(newState as unknown as ActiveWorkout).catch(e => {
-        console.warn('[Workout] Failed to persist skipped exercise:', e);
+      saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
+        console.warn("[Workout] Failed to persist skipped exercise:", e);
       });
       return newState;
     });
   }, []);
 
   const unskipExercise = useCallback((exerciseId: string) => {
-    setActiveWorkout(prev => {
+    setActiveWorkout((prev) => {
       if (!prev) return null;
       const skippedExercises = prev.skippedExercises || [];
       const newState = {
         ...prev,
-        skippedExercises: skippedExercises.filter(id => id !== exerciseId)
+        skippedExercises: skippedExercises.filter((id) => id !== exerciseId),
       };
       // ✅ Usar saveQueue
-      saveQueue.save(newState as unknown as ActiveWorkout).catch(e => {
-        console.warn('[Workout] Failed to persist unskipped exercise:', e);
+      saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
+        console.warn("[Workout] Failed to persist unskipped exercise:", e);
       });
       return newState;
     });
   }, []);
 
-  const value = useMemo(() => ({
-    activeWorkout,
-    startWorkout,
-    updateWorkoutProgress,
-    updateModifiedRoutine,
-    clearRestState,
-    finishWorkout,
-    cancelWorkout,
-    isWorkoutActive: activeWorkout !== null,
-    skipExercise,
-    unskipExercise
-  }), [activeWorkout, startWorkout, updateWorkoutProgress, updateModifiedRoutine, clearRestState, finishWorkout, cancelWorkout, skipExercise, unskipExercise]);
+  const value = useMemo(
+    () => ({
+      activeWorkout,
+      startWorkout,
+      updateWorkoutProgress,
+      updateModifiedRoutine,
+      clearRestState,
+      finishWorkout,
+      cancelWorkout,
+      isWorkoutActive: activeWorkout !== null,
+      skipExercise,
+      unskipExercise,
+    }),
+    [
+      activeWorkout,
+      startWorkout,
+      updateWorkoutProgress,
+      updateModifiedRoutine,
+      clearRestState,
+      finishWorkout,
+      cancelWorkout,
+      skipExercise,
+      unskipExercise,
+    ],
+  );
 
   return (
-    <WorkoutContext.Provider value={value}>
-      {children}
-    </WorkoutContext.Provider>
+    <WorkoutContext.Provider value={value}>{children}</WorkoutContext.Provider>
   );
 }
 
 export function useWorkout() {
   const context = useContext(WorkoutContext);
   if (context === undefined) {
-    throw new Error('useWorkout must be used within a WorkoutProvider');
+    throw new Error("useWorkout must be used within a WorkoutProvider");
   }
   return context;
 }
