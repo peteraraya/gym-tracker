@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "@/context/LocaleContext";
@@ -30,11 +30,15 @@ export default function Home() {
   const router = useRouter();
   const [selectedRoutineId, setSelectedRoutineId] = useState("");
 
-  const totalExercises = routines.reduce(
-    (acc, r) => acc + r.exercises.length,
-    0,
-  );
-  const recentSessions = sessions.slice(0, 3);
+  const totalExercises = useMemo(() => {
+    if (!Array.isArray(routines)) return 0;
+    return routines.reduce((acc, r) => acc + (r?.exercises?.length || 0), 0);
+  }, [routines]);
+
+  const recentSessions = useMemo(() => {
+    if (!Array.isArray(sessions)) return [];
+    return sessions.slice(0, 3);
+  }, [sessions]);
 
   return (
     <ProtectedRoute>
@@ -72,7 +76,12 @@ export default function Home() {
 
                 {routines.length > 0 && (
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <label htmlFor="routine-select" className="sr-only">
+                      {tCommon("selectRoutine") || "Selecciona una rutina"}
+                    </label>
                     <select
+                      id="routine-select"
+                      aria-label={tCommon("selectRoutine") || "Selecciona una rutina"}
                       value={selectedRoutineId}
                       onChange={(e) => setSelectedRoutineId(e.target.value)}
                       className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 font-medium"
@@ -382,7 +391,7 @@ export default function Home() {
                           {session.routineName || "Entrenamiento"}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {new Date(session.date).toLocaleDateString()}
+                          {session.date ? new Date(session.date).toLocaleDateString(undefined) : ""}
                         </p>
                       </CardContent>
                     </Card>
