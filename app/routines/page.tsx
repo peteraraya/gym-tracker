@@ -468,6 +468,8 @@ export default function RoutinesPage() {
             isOpen={isModalOpen}
             onClose={handleCloseModal}
             title={editingRoutine ? t("modal.editTitle") : t("modal.newTitle")}
+            hideHeader={true}
+            suppressCloseOverlay={true}
             closeOnClickOutside={false}
             closeOnEscape={false}
           >
