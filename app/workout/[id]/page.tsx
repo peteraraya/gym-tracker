@@ -792,8 +792,9 @@ export default function WorkoutPage() {
   // ✅ CRÍTICO #7 FIX: Dividir useEffect gigante en efectos específicos
 
   // Efecto 1: Sincronizar currentSet cuando se completan todas las series en modo guiado
+  // ⚠️ NO modificar currentSet cuando el timer está activo: el timer complete lo hace y esto generaría un doble avance
   useEffect(() => {
-    if (!isQuickEditMode && currentExercise && isInitialized) {
+    if (!isQuickEditMode && currentExercise && isInitialized && !timerHandlers.showTimer) {
       const exerciseId = currentExercise.id;
       const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
       const completedCount = actualReps.filter(
@@ -835,14 +836,16 @@ export default function WorkoutPage() {
     isQuickEditMode,
     currentExercise?.id,
     isInitialized,
+    timerHandlers.showTimer,
     workoutState.currentSet,
     workoutState.workoutData.actualReps,
     workoutState.workoutData.actualWeights,
   ]);
 
   // Efecto 2: Manejar completación de ejercicio en modo guiado
+  // ⚠️ NO avanzar al siguiente ejercicio cuando el timer está activo: el timer complete lo hace y esto generaría un doble avance
   useEffect(() => {
-    if (!isQuickEditMode && currentExercise && isInitialized && routine) {
+    if (!isQuickEditMode && currentExercise && isInitialized && routine && !timerHandlers.showTimer) {
       const exerciseId = currentExercise.id;
       const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
       const completedCount = actualReps.filter(
@@ -890,6 +893,7 @@ export default function WorkoutPage() {
     workoutState.workoutData.actualReps,
     workoutStartTime,
     totalPausedTime,
+    timerHandlers.showTimer,
     completion.showNotesModal,
   ]);
 
@@ -1353,7 +1357,8 @@ export default function WorkoutPage() {
           timerHandlers.startTimer(result.restTime, result.restTitle);
         } else {
           // Sin timer: avanzar directamente a la siguiente serie
-          const newSet = workoutState.currentSet + 1;
+          // Usar setNumber (el índice explícito pasado al handler) para evitar valor stale del closure
+          const newSet = setNumber + 1;
           workoutState.setCurrentSet(newSet);
           const nextSetData = currentExercise.sets[newSet - 1];
           if (nextSetData) {
