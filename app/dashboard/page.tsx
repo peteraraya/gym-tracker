@@ -58,6 +58,24 @@ export default function DashboardPage() {
 
   const { routines } = useGym();
   const validSessions = useValidSessions();
+  const exerciseNameById = useMemo(
+    () =>
+      new Map(
+        EXERCISE_DATABASE.map((exercise) => [exercise.id, exercise.name]),
+      ),
+    [],
+  );
+  const routineExerciseNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    routines.forEach((routine) => {
+      routine.exercises.forEach((exercise) => {
+        if (!map.has(exercise.id)) {
+          map.set(exercise.id, exercise.name);
+        }
+      });
+    });
+    return map;
+  }, [routines]);
 
   const handlePeriodChange = useCallback((newPeriod: "week" | "month") => {
     setPeriod(newPeriod);
@@ -66,10 +84,11 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     try {
       // Verificar modo de almacenamiento
-      // eslint-disable-next-line react-hooks/rules-of-hooks -- useLocalStorage es una utilidad, no un hook de React
-      const { useLocalStorage } = await import("@/lib/storageConfig");
+      const { useLocalStorage: shouldUseLocalStorage } = await import(
+        "@/lib/storageConfig"
+      );
 
-      if (useLocalStorage()) {
+      if (shouldUseLocalStorage()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== "undefined") {
           const { getProfileLocally } = await import("@/lib/localProfile");
@@ -145,28 +164,10 @@ export default function DashboardPage() {
             // Intentar usar el nombre guardado primero
             let exerciseName = ex.exerciseName;
 
-            // Si no hay nombre guardado, buscar usando el exerciseId
             if (!exerciseName) {
-              // Buscar en las rutinas
-              for (const routine of routines) {
-                const exercise = routine.exercises.find(
-                  (e) => e.id === ex.exerciseId,
-                );
-                if (exercise) {
-                  exerciseName = exercise.name;
-                  break;
-                }
-              }
-
-              // Si no se encontró en rutinas, buscar en EXERCISE_DATABASE
-              if (!exerciseName) {
-                const exerciseTemplate = EXERCISE_DATABASE.find(
-                  (e) => e.id === ex.exerciseId,
-                );
-                if (exerciseTemplate) {
-                  exerciseName = exerciseTemplate.name;
-                }
-              }
+              exerciseName =
+                routineExerciseNameById.get(ex.exerciseId) ||
+                exerciseNameById.get(ex.exerciseId);
             }
 
             // Si aún no tenemos nombre, usar un fallback descriptivo
@@ -185,7 +186,7 @@ export default function DashboardPage() {
         return entries.sort((a, b) => b[1] - a[1])[0][0];
       })(),
     };
-  }, [validSessions, routines, t]);
+  }, [validSessions, routineExerciseNameById, exerciseNameById, t]);
 
   const volumeTrend =
     stats.lastMonthVolume > 0

@@ -1,8 +1,8 @@
 /**
- * Hook genérico para filtrado y paginación de datos
- * 
- * Centraliza la lógica de filtrado + paginación que estaba duplicada
- * en múltiples componentes (exercises, sessions, etc.)
+ * Hook generico para filtrado y paginacion de datos
+ *
+ * Centraliza la logica de filtrado + paginacion que estaba duplicada
+ * en multiples componentes (exercises, sessions, etc.)
  */
 
 import { useState, useMemo } from 'react';
@@ -28,37 +28,29 @@ export function useFilteredData<T>(
   options: UseFilteredDataOptions = {}
 ): UseFilteredDataResult<T> {
   const { itemsPerPage = 10 } = options;
-  const [currentPage, setCurrentPageState] = useState(1);
+  const [requestedPage, setRequestedPage] = useState(1);
 
-  // Wrapper para setCurrentPage que acepta número o función
-  const setCurrentPage = (page: number | ((prev: number) => number)) => {
-    if (typeof page === 'function') {
-      setCurrentPageState(page);
-    } else {
-      setCurrentPageState(page);
-    }
-  };
-
-  // Filtrar datos
   const filtered = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
     return items.filter(item => filterFn(item, searchLower));
   }, [items, searchTerm, filterFn]);
 
-  // Paginar datos
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const currentPage =
+    totalPages > 0 && requestedPage > totalPages ? 1 : requestedPage;
+
+  const setCurrentPage = (page: number | ((prev: number) => number)) => {
+    if (typeof page === 'function') {
+      setRequestedPage(page(currentPage));
+    } else {
+      setRequestedPage(page);
+    }
+  };
+
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filtered.slice(start, start + itemsPerPage);
   }, [filtered, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-
-  // Reset a página 1 si el filtrado reduce los resultados
-  useMemo(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPageState(1);
-    }
-  }, [totalPages, currentPage]);
 
   return {
     data: paginated,

@@ -317,14 +317,14 @@ export default function RoutinesPage() {
 
   // Filtrado optimizado con useMemo
   const filteredRoutines = useMemo(() => {
-    if (!searchFilter.trim()) return routines;
-    const query = searchFilter.toLowerCase();
+    if (!debouncedSearchFilter.trim()) return routines;
+    const query = debouncedSearchFilter.toLowerCase();
     return routines.filter(
       (r) =>
         (r.name || "").toLowerCase().includes(query) ||
         (r.description || "").toLowerCase().includes(query),
     );
-  }, [routines, searchFilter]);
+  }, [routines, debouncedSearchFilter]);
 
   return (
     <ProtectedRoute>

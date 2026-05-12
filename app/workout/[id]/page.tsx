@@ -1257,7 +1257,7 @@ export default function WorkoutPage() {
   // ✅ CRÍTICO #8 FIX: Reemplazar lock manual con estado
   const [isCompletingSet, setIsCompletingSet] = useState(false);
 
-  const handleCompleteSet = useCallback(async () => {
+  const handleCompleteSet = useCallback(async (targetSetNumber?: number) => {
     if (!currentExercise || !routine) return;
 
     // Prevenir doble-completación
@@ -1267,7 +1267,11 @@ export default function WorkoutPage() {
 
     try {
       const exerciseId = currentExercise.id;
-      const setIndex = workoutState.currentSet - 1;
+      const setNumber =
+        typeof targetSetNumber === "number"
+          ? targetSetNumber
+          : workoutState.currentSet;
+      const setIndex = setNumber - 1;
 
       // Verificar si esta serie ya está completada
       const existingReps =
@@ -2899,7 +2903,7 @@ export default function WorkoutPage() {
               ) : (
                 <Button
                   variant="primary"
-                  onClick={handleCompleteSet}
+                  onClick={() => handleCompleteSet(workoutState.currentSet)}
                   disabled={
                     workoutState.currentReps === "" ||
                     workoutState.currentWeight === ""
@@ -2924,7 +2928,7 @@ export default function WorkoutPage() {
               )}
             </div>
 
-            <ExerciseCard
+              <ExerciseCard
               exercise={currentExercise}
               exerciseIndex={workoutState.currentExerciseIndex}
               currentSet={workoutState.currentSet}
@@ -2935,7 +2939,7 @@ export default function WorkoutPage() {
               currentWeight={workoutState.currentWeight}
               onRepsChange={workoutState.setCurrentReps}
               onWeightChange={workoutState.setCurrentWeight}
-              onCompleteSet={handleCompleteSet}
+              onCompleteSet={() => handleCompleteSet(workoutState.currentSet)}
               onShowInfo={() => {
                 // Asegurarnos de pasar el nombre del ejercicio antes de abrir el panel
                 if (currentExercise && currentExercise.name)

@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import GlobalUI from '@/components/GlobalUI';
 import Onboarding from '@/components/Onboarding';
 import { ReactQueryProvider } from "@/components/ReactQueryProvider";
+import DisableZoom from "@/components/DisableZoom";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,12 +39,11 @@ export const metadata: Metadata = {
 
 export function generateViewport() {
   return {
-    viewport: {
-      width: "device-width",
-      initialScale: 1,
-      maximumScale: 1,
-      userScalable: false,
-    },
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    minimumScale: 1,
+    userScalable: false,
     themeColor: "#3b82f6",
   };
 }
@@ -61,7 +61,6 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" href="/icons/icon-192x192.png" sizes="192x192" type="image/png" />
         <link rel="icon" href="/icons/icon-512x512.png" sizes="512x512" type="image/png" />
-        <meta name="viewport" content="width=device-width, user-scalable=no" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -95,6 +94,7 @@ export default function RootLayout({
             <ThemeProvider>
               <Providers>
                 <OnboardingProvider>
+                  <DisableZoom />
                   <ClientOnly>
                     <ServiceWorkerRegistration />
                     <PWAInstaller />

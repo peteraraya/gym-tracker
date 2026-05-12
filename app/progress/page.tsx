@@ -23,6 +23,20 @@ export default function ProgressPage() {
   const loading = false;
   const { t } = useLocale();
   const tMuscles = useTranslations("muscles");
+  const exerciseById = useMemo(
+    () => new Map(EXERCISE_DATABASE.map((exercise) => [exercise.id, exercise])),
+    [],
+  );
+  const exerciseByName = useMemo(
+    () =>
+      new Map(
+        EXERCISE_DATABASE.map((exercise) => [
+          exercise.name.toLowerCase(),
+          exercise,
+        ]),
+      ),
+    [],
+  );
 
   // Calcular volumen total por grupo muscular (series × reps × peso)
   const muscleGroupVolume = useMemo(() => {
@@ -62,16 +76,12 @@ export default function ProgressPage() {
       if (!session.exercises || !Array.isArray(session.exercises)) return;
       session.exercises.forEach((sessionExercise) => {
         // Buscar el ejercicio en la base de datos usando exerciseId o exerciseName
-        let exercise = EXERCISE_DATABASE.find(
-          (ex) => ex.id === sessionExercise.exerciseId,
-        );
+        let exercise = exerciseById.get(sessionExercise.exerciseId);
 
         // Si no se encuentra por ID, intentar buscar por nombre
         if (!exercise && sessionExercise.exerciseName) {
-          exercise = EXERCISE_DATABASE.find(
-            (ex) =>
-              ex.name.toLowerCase() ===
-              sessionExercise.exerciseName?.toLowerCase(),
+          exercise = exerciseByName.get(
+            sessionExercise.exerciseName.toLowerCase(),
           );
         }
 
@@ -112,7 +122,7 @@ export default function ProgressPage() {
     // console.log('Series por grupo muscular:', count);
 
     return { volume, count };
-  }, [validSessions]);
+  }, [validSessions, exerciseById, exerciseByName]);
 
   // Calcular el total para obtener porcentajes
   const totalVolume = useMemo(() => {

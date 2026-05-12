@@ -107,7 +107,7 @@ export function ExerciseCard({
     intervalRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - setStartTime) / 1000);
       setElapsedTime(elapsed);
-    }, 100); // Actualizar cada 100ms para mayor precisión visual
+    }, 1000);
 
     return () => {
       if (intervalRef.current) {

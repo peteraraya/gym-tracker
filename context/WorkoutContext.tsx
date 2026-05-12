@@ -338,10 +338,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       startedAt: new Date(),
     };
     setActiveWorkout(newWorkout);
-    // ✅ Usar saveQueue para persistir inmediatamente
-    saveQueue.save(newWorkout as unknown as ActiveWorkout).catch((e) => {
-      console.error("[WorkoutContext] Error guardando workout en start:", e);
-    });
   }, []);
   const updateWorkoutProgress = useCallback(
     (
@@ -399,14 +395,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides,
         };
 
-        // ✅ Usar saveQueue para guardar inmediatamente sin race conditions
-        saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
-          logger.error(
-            "[WorkoutContext] Failed to persist active workout on update:",
-            e,
-          );
-        });
-
         return newState;
       });
     },
@@ -423,13 +411,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         restTimerTitle: undefined,
         restTimerNextExercise: undefined,
       };
-      // ✅ Usar saveQueue
-      saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
-        logger.warn(
-          "[Workout] Failed to persist active workout on clearRestState:",
-          e,
-        );
-      });
       return newState;
     });
   }, []);
@@ -483,13 +464,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           ...prev,
           modifiedRoutine: routine,
         };
-        // ✅ Usar saveQueue para persistencia local
-        saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
-          logger.warn(
-            "[Workout] Failed to persist modified routine to activeWorkout:",
-            e,
-          );
-        });
         return newState;
       });
     } catch (error) {
@@ -794,10 +768,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         ...prev,
         skippedExercises: [...skippedExercises, exerciseId],
       };
-      // ✅ Usar saveQueue
-      saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
-        console.warn("[Workout] Failed to persist skipped exercise:", e);
-      });
       return newState;
     });
   }, []);
@@ -810,10 +780,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         ...prev,
         skippedExercises: skippedExercises.filter((id) => id !== exerciseId),
       };
-      // ✅ Usar saveQueue
-      saveQueue.save(newState as unknown as ActiveWorkout).catch((e) => {
-        console.warn("[Workout] Failed to persist unskipped exercise:", e);
-      });
       return newState;
     });
   }, []);

@@ -21,123 +21,96 @@ export function VirtualList<T>({
   ariaLabel = 'Lista virtualizada',
 }: VirtualListProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
-  const [hasError, setHasError] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
-  
-  try {
-    const virtualizer = useVirtualizer({
-      count: items.length,
-      getScrollElement: () => parentRef.current,
-      estimateSize: () => estimateSize,
-      overscan,
-    });
 
-    // Keyboard navigation
-    useEffect(() => {
-      if (!enableKeyboardNav || !parentRef.current) return;
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => estimateSize,
+    overscan,
+  });
 
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (items.length === 0) return;
+  useEffect(() => {
+    if (!enableKeyboardNav || !parentRef.current) return;
 
-        switch (e.key) {
-          case 'ArrowDown':
-            e.preventDefault();
-            setFocusedIndex(prev => {
-              const next = prev < items.length - 1 ? prev + 1 : prev;
-              virtualizer.scrollToIndex(next, { align: 'auto' });
-              return next;
-            });
-            break;
-          case 'ArrowUp':
-            e.preventDefault();
-            setFocusedIndex(prev => {
-              const next = prev > 0 ? prev - 1 : 0;
-              virtualizer.scrollToIndex(next, { align: 'auto' });
-              return next;
-            });
-            break;
-          case 'Home':
-            e.preventDefault();
-            setFocusedIndex(0);
-            virtualizer.scrollToIndex(0, { align: 'start' });
-            break;
-          case 'End':
-            e.preventDefault();
-            setFocusedIndex(items.length - 1);
-            virtualizer.scrollToIndex(items.length - 1, { align: 'end' });
-            break;
-        }
-      };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (items.length === 0) return;
 
-      const element = parentRef.current;
-      element.addEventListener('keydown', handleKeyDown);
-      return () => element.removeEventListener('keydown', handleKeyDown);
-    }, [enableKeyboardNav, items.length, virtualizer]);
-    
-    // Fallback to non-virtualized rendering if error occurred
-    if (hasError) {
-      return (
-        <div className={className}>
-          {items.map((item, index) => (
-            <div key={index}>{renderItem(item, index)}</div>
-          ))}
-        </div>
-      );
-    }
-    
-    return (
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setFocusedIndex(prev => {
+            const next = prev < items.length - 1 ? prev + 1 : prev;
+            virtualizer.scrollToIndex(next, { align: 'auto' });
+            return next;
+          });
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setFocusedIndex(prev => {
+            const next = prev > 0 ? prev - 1 : 0;
+            virtualizer.scrollToIndex(next, { align: 'auto' });
+            return next;
+          });
+          break;
+        case 'Home':
+          e.preventDefault();
+          setFocusedIndex(0);
+          virtualizer.scrollToIndex(0, { align: 'start' });
+          break;
+        case 'End':
+          e.preventDefault();
+          setFocusedIndex(items.length - 1);
+          virtualizer.scrollToIndex(items.length - 1, { align: 'end' });
+          break;
+      }
+    };
+
+    const element = parentRef.current;
+    element.addEventListener('keydown', handleKeyDown);
+    return () => element.removeEventListener('keydown', handleKeyDown);
+  }, [enableKeyboardNav, items.length, virtualizer]);
+
+  return (
+    <div
+      ref={parentRef}
+      className={className}
+      style={{
+        height: '100%',
+        overflow: 'auto',
+      }}
+      role="list"
+      aria-label={ariaLabel}
+      tabIndex={enableKeyboardNav ? 0 : undefined}
+    >
       <div
-        ref={parentRef}
-        className={className}
         style={{
-          height: '100%',
-          overflow: 'auto',
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
         }}
-        role="list"
-        aria-label={ariaLabel}
-        tabIndex={enableKeyboardNav ? 0 : undefined}
       >
-        <div
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
-        >
-          {virtualizer.getVirtualItems().map((virtualItem) => (
-            <div
-              key={virtualItem.key}
-              data-index={virtualItem.index}
-              ref={virtualizer.measureElement}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
-              role="listitem"
-              aria-setsize={items.length}
-              aria-posinset={virtualItem.index + 1}
-              data-focused={enableKeyboardNav && focusedIndex === virtualItem.index ? 'true' : undefined}
-            >
-              {renderItem(items[virtualItem.index], virtualItem.index)}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  } catch (error) {
-    console.error('[VirtualList] Error:', error);
-    setHasError(true);
-    
-    // Fallback to non-virtualized rendering
-    return (
-      <div className={className}>
-        {items.map((item, index) => (
-          <div key={index}>{renderItem(item, index)}</div>
+        {virtualizer.getVirtualItems().map((virtualItem) => (
+          <div
+            key={virtualItem.key}
+            data-index={virtualItem.index}
+            ref={virtualizer.measureElement}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              transform: `translateY(${virtualItem.start}px)`,
+            }}
+            role="listitem"
+            aria-setsize={items.length}
+            aria-posinset={virtualItem.index + 1}
+            data-focused={enableKeyboardNav && focusedIndex === virtualItem.index ? 'true' : undefined}
+          >
+            {renderItem(items[virtualItem.index], virtualItem.index)}
+          </div>
         ))}
       </div>
-    );
-  }
+    </div>
+  );
 }

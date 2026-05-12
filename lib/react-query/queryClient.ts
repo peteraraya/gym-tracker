@@ -14,9 +14,11 @@ export const queryClient = new QueryClient({
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       
       // Refetch configuration
-      refetchOnWindowFocus: true,
+      // Keep workout/PWA flows stable when the app regains focus after lock screen
+      // or app switching. Mutations still invalidate queries explicitly.
+      refetchOnWindowFocus: false,
       refetchOnReconnect: true,
-      refetchOnMount: true,
+      refetchOnMount: false,
       
       // Network mode - offline first
       networkMode: 'offlineFirst',
