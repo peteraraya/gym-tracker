@@ -858,13 +858,8 @@ export default function WorkoutPage() {
           workoutState.currentExerciseIndex >= routine.exercises.length - 1;
 
         if (isLastExercise) {
-          // Último ejercicio completado - abrir modal de finalización
-          if (!completion.showNotesModal) {
-            const duration = Math.floor(
-              (Date.now() - workoutStartTime - totalPausedTime) / 1000,
-            );
-            completion.openCompletionModal(duration);
-          }
+          // Último ejercicio completado - no abrir modal automáticamente.
+          // El modal solo se abre cuando el usuario pulsa explícitamente "Completar".
         } else {
           // Avanzar al siguiente ejercicio
           setTimeout(() => {
@@ -1408,10 +1403,8 @@ export default function WorkoutPage() {
       workoutState.currentExerciseIndex >= routine.exercises.length - 1;
 
     if (isLastSet && isLastExercise) {
-      const duration = Math.floor(
-        (Date.now() - workoutStartTime - totalPausedTime) / 1000,
-      );
-      completion.openCompletionModal(duration);
+      // Último set del último ejercicio tras el descanso.
+      // No abrir modal automáticamente; el usuario debe pulsar "Completar" explícitamente.
     } else if (isLastSet && !isLastExercise) {
       const nextIndex = workoutState.currentExerciseIndex + 1;
       if (routine.exercises[nextIndex]) {
@@ -1952,8 +1945,8 @@ export default function WorkoutPage() {
             workoutState.currentExerciseIndex >= routine.exercises.length - 1;
 
           if (isLastExercise) {
-            const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
-            completion.openCompletionModal(duration);
+            // No abrir modal automáticamente al completar sets via quick-toggle.
+            // El usuario debe pulsar el botón de finalizar explícitamente.
           } else {
             const nextExercise =
               routine.exercises[workoutState.currentExerciseIndex + 1];
