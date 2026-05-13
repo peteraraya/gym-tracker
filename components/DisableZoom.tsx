@@ -30,6 +30,12 @@ export function DisableZoom() {
       }
     };
 
+    const preventPinchZoom = (event: TouchEvent) => {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    };
+
     const previousTouchAction = document.documentElement.style.touchAction;
     document.documentElement.style.touchAction = "manipulation";
 
@@ -44,6 +50,13 @@ export function DisableZoom() {
     document.addEventListener("gestureend", preventZoom as EventListener, {
       passive: false,
     });
+    // Bloquear pinch-to-zoom táctil (iOS y Android)
+    document.addEventListener("touchstart", preventPinchZoom as EventListener, {
+      passive: false,
+    });
+    document.addEventListener("touchmove", preventPinchZoom as EventListener, {
+      passive: false,
+    });
 
     return () => {
       document.documentElement.style.touchAction = previousTouchAction;
@@ -52,6 +65,8 @@ export function DisableZoom() {
       document.removeEventListener("gesturestart", preventZoom as EventListener);
       document.removeEventListener("gesturechange", preventZoom as EventListener);
       document.removeEventListener("gestureend", preventZoom as EventListener);
+      document.removeEventListener("touchstart", preventPinchZoom as EventListener);
+      document.removeEventListener("touchmove", preventPinchZoom as EventListener);
     };
   }, []);
 
