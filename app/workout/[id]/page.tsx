@@ -2421,12 +2421,15 @@ export default function WorkoutPage() {
             );
           }
         } else {
-          // Desmarcar - limpiar solo este índice
-          newReps[setIndex] = 0;
-          newWeights[setIndex] = 0;
+          // Desmarcar - solo quitar la completación, preservar el peso editado
+          newReps[setIndex] = 0; // Zerear reps para que no cuente como completado
+          // newWeights[setIndex] se conserva (el usuario puede haberlo editado a propósito)
 
           workoutState.updateActualReps(exerciseId, newReps);
-          workoutState.updateActualWeights(exerciseId, newWeights);
+          // Solo actualizar pesos si hay algo que cambiar (preservar ediciones)
+          if (newWeights[setIndex] !== currentWeights[setIndex]) {
+            workoutState.updateActualWeights(exerciseId, newWeights);
+          }
 
           const completedCount = calculateCompletedSets(newReps);
           workoutState.updateCompletedSets(exerciseId, completedCount);
