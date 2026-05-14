@@ -200,6 +200,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ejercicio de aislamiento que mantiene tensión constante en los pectorales',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-seated-cable-fly-front.gif',
     technique: [
       'Siéntate en un banco entre dos poleas ajustadas a la altura del pecho',
       'Agarra las manijas con los brazos extendidos a los lados',
@@ -218,6 +219,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Enfoca el trabajo en el pecho superior con tensión constante',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-incline-cable-fly-front.gif',
     technique: [
       'Ajusta las poleas en posición baja',
       'Inclínate ligeramente hacia adelante',
@@ -236,6 +238,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Trabaja el pecho inferior con tensión constante',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-low-cable-fly-front.gif',
     technique: [
       'Ajusta las poleas en posición alta',
       'Inclínate ligeramente hacia adelante',
@@ -254,6 +257,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Variante del press que mantiene tensión constante',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-cable-press-front.gif',
     technique: [
       'Colócate de espaldas a las poleas',
       'Agarra las manijas a la altura del pecho',
@@ -272,6 +276,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Desarrolla el pecho superior con mayor rango de movimiento',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-incline-dumbbell-press-front.gif',
     technique: [
       'Ajusta el banco a 30-45 grados',
       'Sostén las mancuernas a los lados del pecho',
@@ -290,6 +295,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Enfoca el trabajo en el pecho inferior',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-decline-dumbbell-press-front.gif',
     technique: [
       'Ajusta el banco a 15-30 grados de decline',
       'Asegura los pies en los soportes',
@@ -308,6 +314,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Variante del press que permite mayor rango de movimiento',
     defaultSets: 4,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-dumbbell-press-front.gif',
     technique: [
       'Acuéstate en banco plano con mancuernas',
       'Comienza con las mancuernas a los lados del pecho',
@@ -326,6 +333,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Press inclinado con tensión constante para pecho superior',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-incline-cable-press-front.gif',
     technique: [
       'Ajusta las poleas en posición baja',
       'Colócate de espaldas a las poleas',
@@ -344,6 +352,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ejercicio compuesto que enfatiza el pecho inferior',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-chest-dips-front.gif',
     technique: [
       'Agarra las barras paralelas e inclínate hacia adelante',
       'Baja el cuerpo doblando los codos',
@@ -362,6 +371,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ejercicio de contracción isométrica para pecho interno',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-svend-press-front.gif',
     technique: [
       'Sostén un disco o dos discos juntos frente al pecho',
       'Aprieta fuertemente los discos entre tus manos',
@@ -580,6 +590,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Enfoca el trabajo en la espalda superior y media',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-wide-grip-cable-row-back.gif',
     technique: [
       'Usa una barra ancha en polea baja',
       'Mantén el pecho elevado y espalda recta',
@@ -598,6 +609,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Permite trabajar cada lado independientemente corrigiendo desbalances',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-one-arm-cable-row-back.gif',
     technique: [
       'Usa una manija en polea baja',
       'Mantén el core activado para estabilidad',
@@ -616,6 +628,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Excelente para aislar los dorsales con tensión constante',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-pullover-back.gif',
     technique: [
       'Usa una barra recta en polea alta',
       'Inclínate ligeramente hacia adelante',
@@ -634,6 +647,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Variante que enfatiza la parte baja de los dorsales y bíceps',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-reverse-grip-lat-pulldown-back.gif',
     technique: [
       'Agarre con palmas hacia ti, ancho de hombros',
       'Tira de la barra hacia el pecho superior',
@@ -652,6 +666,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Enfoca el trabajo en el grosor de la espalda',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-close-grip-lat-pulldown-back.gif',
     technique: [
       'Usa un agarre en V o agarre cerrado',
       'Tira hacia el pecho superior',
@@ -670,6 +685,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Variante explosiva del remo con barra desde el suelo',
     defaultSets: 4,
     defaultReps: 8,
+    image: URL_STORAGE + 'male-pendlay-row-back.gif',
     technique: [
       'Torso paralelo al suelo',
       'La barra toca el suelo entre repeticiones',
@@ -688,6 +704,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Remo unilateral con barra que permite gran estiramiento',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-meadows-row-back.gif',
     technique: [
       'Coloca la barra en esquina o landmine',
       'Posición de pie, inclinado hacia adelante',
@@ -706,6 +723,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Remo en banco elevado que elimina el impulso del cuerpo',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-seal-row-back.gif',
     technique: [
       'Acuéstate boca abajo en banco elevado',
       'Deja que los brazos cuelguen perpendiculares al suelo',
@@ -724,6 +742,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Enfoca el trabajo en la espalda superior y trapecios medios',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-high-row-back.gif',
     technique: [
       'Ajusta la polea en posición alta',
       'Tira hacia la cara/cuello',
@@ -742,6 +761,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Peso muerto parcial que enfoca la espalda superior y trapecios',
     defaultSets: 4,
     defaultReps: 6,
+    image: URL_STORAGE + 'male-rack-pulls-back.gif',
     technique: [
       'Coloca la barra en el rack a altura de rodillas',
       'Ejecuta la parte superior del peso muerto',
@@ -1051,6 +1071,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Variante dinámica de zancadas que mejora equilibrio y coordinación',
     defaultSets: 3,
     defaultReps: 20,
+    image: URL_STORAGE + 'male-walking-lunges-front.gif',
     technique: [
       'Da un paso largo hacia adelante',
       'Baja hasta que ambas rodillas formen 90 grados',
@@ -1069,6 +1090,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Enfatiza los aductores y glúteos con stance amplio',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-sumo-squat-front.gif',
     technique: [
       'Stance muy amplio, pies apuntando hacia afuera 45 grados',
       'Sostén una mancuerna con ambas manos entre las piernas',
@@ -1087,6 +1109,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ejercicio avanzado para isquiotibiales con control excéntrico',
     defaultSets: 3,
     defaultReps: 6,
+    image: URL_STORAGE + 'male-nordic-curl-front.gif',
     technique: [
       'Arrodíllate con los tobillos asegurados',
       'Mantén el cuerpo recto desde rodillas hasta cabeza',
@@ -1105,6 +1128,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ejercicio isométrico que desarrolla resistencia en cuádriceps',
     defaultSets: 3,
     defaultReps: 1,
+    image: URL_STORAGE + 'male-wall-sit-front.gif',
     technique: [
       'Apoya la espalda contra una pared',
       'Deslízate hacia abajo hasta que muslos estén paralelos al suelo',
@@ -2698,6 +2722,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 4,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-squat-front.gif',
     technique: [
       'Polea baja con cuerda o barra',
       'Stance amplio con pies apuntando hacia afuera',
@@ -2715,6 +2740,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 4,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-romanian-deadlift-glutes-front.gif',
     technique: [
       'Polea baja, de frente a la máquina',
       'Rodillas ligeramente flexionadas',
@@ -2732,6 +2758,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-single-leg-rdl-front.gif',
     technique: [
       'Polea baja, equilibrio en una pierna',
       'Empuja la cadera hacia atrás mientras inclinas el torso',
@@ -2749,6 +2776,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-reverse-lunge-glutes-front.gif',
     technique: [
       'Polea baja, agarra con una mano',
       'Da un paso hacia atrás en zancada',
@@ -2766,6 +2794,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-hip-abduction-standing-front.gif',
     technique: [
       'Correa en tobillo, de lado a la máquina',
       'Levanta la pierna hacia el lado',
@@ -2783,6 +2812,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-lateral-lunge-front.gif',
     technique: [
       'Da un paso amplio hacia el lado',
       'Baja doblando la pierna lateral, otra pierna recta',
@@ -2800,6 +2830,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-curtsy-lunge-dumbbell-front.gif',
     technique: [
       'Cruza una pierna detrás de la otra en diagonal',
       'Baja como haciendo una reverencia',
@@ -2817,6 +2848,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-good-morning-barbell-side.gif',
     technique: [
       'Barra en la espalda alta como sentadilla',
       'Rodillas ligeramente flexionadas',
@@ -2834,6 +2866,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Kettlebell',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-kettlebell-swing-front.gif',
     technique: [
       'Balancea la kettlebell entre las piernas',
       'Empuja explosivamente las caderas hacia adelante',
@@ -3256,6 +3289,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Permite enfocarse en cada bíceps independientemente',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-single-arm-cable-curl-front.gif',
     technique: [
       'Usa una manija en polea baja',
       'De pie de lado a la máquina',
@@ -3274,6 +3308,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Elimina el impulso del cuerpo para aislamiento total',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-seated-cable-curl-front.gif',
     technique: [
       'Siéntate en banco frente a polea baja',
       'Elimina completamente el impulso del cuerpo',
@@ -3292,6 +3327,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ejercicio compuesto que trabaja intensamente los bíceps',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-chin-up-biceps-back.gif',
     technique: [
       'Agarre supino (palmas hacia ti), ancho de hombros',
       'Tira hasta que la barbilla supere la barra',
@@ -3472,6 +3508,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Mayor rango de movimiento que skull crushers tradicionales',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-lying-tricep-extension-front.gif',
     technique: [
       'Acuéstate en banco frente a polea baja',
       'Agarra la barra con brazos extendidos hacia arriba',
@@ -3490,6 +3527,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Ajusta el ángulo para enfatizar diferentes cabezas del tríceps',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-incline-cable-tricep-extension-front.gif',
     technique: [
       'Siéntate en banco inclinado frente a polea baja',
       'Agarra la cuerda con ambas manos detrás de la cabeza',
@@ -3508,6 +3546,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Híbrido entre pushdown y kickback con gran contracción',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-high-cross-tricep-extension-front.gif',
     technique: [
       'Coloca ambas poleas en posición alta',
       'Agarra el cable derecho con mano izquierda y viceversa',
@@ -3526,6 +3565,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     description: 'Aislamiento total del tríceps con tensión constante',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-concentration-tricep-extension-front.gif',
     technique: [
       'Siéntate en banco, agarra manija de polea baja',
       'Apoya el codo en la parte interna del muslo',
@@ -4602,6 +4642,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-squat-hold-calf-raise-front.gif',
     technique: [
       'Mantén una posición de sentadilla (muslos paralelos al suelo)',
       'Eleva los talones mientras mantienes la posición de sentadilla',
@@ -5196,11 +5237,11 @@ export const getExerciseByName = (name: string): ExerciseTemplate | undefined =>
   );
 };
 
-// Fallback: asegurar que todos los ejercicios tengan una imagen válida
-const DEFAULT_PLACEHOLDER_IMAGE = '/images/not-available.svg';
+// Fallback: asegurar que todos los ejercicios tengan una imagen válida.
+// Si falta `image`, se genera por convención: `male-<id>-front.gif`.
 EXERCISE_DATABASE.forEach(ex => {
   if (!ex.image) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (ex as any).image = DEFAULT_PLACEHOLDER_IMAGE;
+    (ex as any).image = URL_STORAGE + `male-${ex.id}-front.gif`;
   }
 });

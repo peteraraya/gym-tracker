@@ -278,6 +278,7 @@ export const antebrazosExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-wrist-curl-front.gif',
     technique: [
       'Polea baja con barra recta',
       'Antebrazos apoyados o brazos extendidos',
@@ -295,6 +296,7 @@ export const antebrazosExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-reverse-wrist-curl-front.gif',
     technique: [
       'Polea baja con barra, agarre prono',
       'Extiende las muñecas hacia arriba',
@@ -312,6 +314,7 @@ export const antebrazosExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-ulnar-deviation-front.gif',
     technique: [
       'Polea baja, manija en una mano',
       'Mueve la muñeca llevando el meñique hacia el antebrazo',
@@ -329,6 +332,7 @@ export const antebrazosExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-zottman-curl-front.gif',
     technique: [
       'Polea baja, curl con palmas arriba',
       'Rota las muñecas arriba (palmas abajo)',
@@ -346,6 +350,7 @@ export const antebrazosExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 1,
+    image: URL_STORAGE + 'male-cable-static-hold-front.gif',
     technique: [
       'Polea baja con cuerda o barra',
       'Sostén el peso con brazos extendidos',

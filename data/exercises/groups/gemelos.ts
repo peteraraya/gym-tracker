@@ -350,6 +350,7 @@ export const gemelosExercises: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-squat-hold-calf-raise-front.gif',
     technique: [
       'Mantén una posición de sentadilla (muslos paralelos al suelo)',
       'Eleva los talones mientras mantienes la posición de sentadilla',

@@ -198,6 +198,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-neck-retraction-front.gif',
     technique: [
       'De pie o sentado, mira al frente',
       'Lleva la barbilla hacia atrás (doble mentón)',
@@ -216,6 +217,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-supine-neck-flexion-front.gif',
     technique: [
       'Acostado boca arriba sin almohada',
       'Levanta solo la cabeza del suelo',
@@ -234,6 +236,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Banda elástica',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-neck-circles-front.gif',
     technique: [
       'Banda alrededor de la cabeza',
       'Haz círculos lentos y controlados',
@@ -252,6 +255,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Disco',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-plate-loaded-neck-extension-front.gif',
     technique: [
       'Acostado boca abajo en banco, disco en la nuca',
       'Sostén el disco con las manos',
@@ -270,6 +274,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 1,
+    image: URL_STORAGE + 'male-wrestlers-bridge-front.gif',
     technique: [
       'Posición de puente apoyado en cabeza y pies',
       'Balancea adelante y atrás',
@@ -288,6 +293,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 1,
+    image: URL_STORAGE + 'male-front-neck-bridge-front.gif',
     technique: [
       'Posición de plancha apoyado en la frente',
       'Mantén el cuerpo recto',
@@ -306,6 +312,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Arnés de cuello',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-neck-shrugs-front.gif',
     technique: [
       'De pie con arnés de cuello y peso',
       'Encoge los hombros hacia las orejas',
@@ -324,6 +331,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-neck-extension-front.gif',
     technique: [
       'Arnés conectado a polea baja',
       'De espaldas a la máquina',
@@ -342,6 +350,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-neck-flexion-front.gif',
     technique: [
       'Arnés conectado a polea alta',
       'De frente a la máquina',
@@ -360,6 +369,7 @@ export const cuelExercises: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 1,
+    image: URL_STORAGE + 'male-neck-plank-front.gif',
     technique: [
       'Posición de plancha con frente apoyada en toalla',
       'Mantén el cuerpo recto',

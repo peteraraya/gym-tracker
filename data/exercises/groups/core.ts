@@ -278,6 +278,7 @@ export const coreExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-reverse-crunch-front.gif',
     technique: [
       'Acuéstate con correa en tobillos conectada a polea baja',
       'Lleva las rodillas hacia el pecho elevando las caderas',
@@ -295,6 +296,7 @@ export const coreExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-sit-up-front.gif',
     technique: [
       'Acuéstate con cuerda de polea baja sobre el pecho',
       'Haz sit-up completo contra la resistencia',
@@ -312,6 +314,7 @@ export const coreExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-side-plank-cable-row-front.gif',
     technique: [
       'Plancha lateral, mano libre agarra manija de polea',
       'Haz remo mientras mantienes la plancha',
@@ -329,6 +332,7 @@ export const coreExercises: ExerciseTemplate[] = [
     equipment: 'Balón de estabilidad',
     defaultSets: 3,
     defaultReps: 20,
+    image: URL_STORAGE + 'male-stability-ball-russian-twist-front.gif',
     technique: [
       'Espalda apoyada en balón, pies firmes en el suelo',
       'Gira el torso de lado a lado',
@@ -346,6 +350,7 @@ export const coreExercises: ExerciseTemplate[] = [
     equipment: 'Peso corporal',
     defaultSets: 3,
     defaultReps: 45,
+    image: URL_STORAGE + 'male-hollow-body-hold-front.gif',
     technique: [
       'Acuéstate boca arriba, eleva hombros y piernas del suelo',
       'Brazos extendidos sobre la cabeza',

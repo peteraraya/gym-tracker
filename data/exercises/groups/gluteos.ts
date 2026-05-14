@@ -212,6 +212,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 4,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-squat-front.gif',
     technique: [
       'Polea baja con cuerda o barra',
       'Stance amplio con pies apuntando hacia afuera',
@@ -229,6 +230,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 4,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-romanian-deadlift-front.gif',
     technique: [
       'Polea baja, de frente a la máquina',
       'Rodillas ligeramente flexionadas',
@@ -246,6 +248,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-single-leg-rdl-front.gif',
     technique: [
       'Polea baja, equilibrio en una pierna',
       'Empuja la cadera hacia atrás mientras inclinas el torso',
@@ -263,6 +266,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-reverse-lunge-front.gif',
     technique: [
       'Polea baja, agarra con una mano',
       'Da un paso hacia atrás en zancada',
@@ -280,6 +284,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-hip-abduction-front.gif',
     technique: [
       'Correa en tobillo, de lado a la máquina',
       'Levanta la pierna hacia el lado',
@@ -297,6 +302,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-lateral-lunge-front.gif',
     technique: [
       'Da un paso amplio hacia el lado',
       'Baja doblando la pierna lateral, otra pierna recta',
@@ -314,6 +320,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-curtsy-lunge-front.gif',
     technique: [
       'Cruza una pierna detrás de la otra en diagonal',
       'Baja como haciendo una reverencia',
@@ -331,6 +338,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-good-morning-front.gif',
     technique: [
       'Barra en la espalda alta como sentadilla',
       'Rodillas ligeramente flexionadas',
@@ -348,6 +356,7 @@ export const exercises: ExerciseTemplate[] = [
     equipment: 'Kettlebell',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-kettlebell-swing-front.gif',
     technique: [
       'Balancea la kettlebell entre las piernas',
       'Empuja explosivamente las caderas hacia adelante',

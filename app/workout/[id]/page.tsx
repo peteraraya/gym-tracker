@@ -65,14 +65,14 @@ import {
   type RecordComparison,
 } from "@/lib/personalRecords";
 
-// ✅ CRÍTICO #1 FIX: Utility para debounce
+// ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
-): (...args: Parameters<T>) => void {
+): ((...args: Parameters<T>) => void) & { cancel: () => void } {
   let timeout: NodeJS.Timeout | null = null;
 
-  return function executedFunction(...args: Parameters<T>) {
+  const executedFunction = function(...args: Parameters<T>) {
     const later = () => {
       timeout = null;
       func(...args);
@@ -83,6 +83,15 @@ function debounce<T extends (...args: any[]) => any>(
     }
     timeout = setTimeout(later, wait);
   };
+
+  executedFunction.cancel = function() {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+
+  return executedFunction;
 }
 
 // Lazy load componentes pesados que no se usan inmediatamente
@@ -447,6 +456,23 @@ export default function WorkoutPage() {
   const handleTimerCompleteRef = useRef(() => {});
   const timerHandlers = useWorkoutTimer(() => handleTimerCompleteRef.current());
 
+  // ✅ Ref para timerHandlers (evita recrear debouncedSave en cada render)
+  const timerHandlersRef = useRef(timerHandlers);
+  useEffect(() => {
+    timerHandlersRef.current = timerHandlers;
+  }, [timerHandlers]);
+
+  // ✅ Refs para currentExerciseIndex y currentSet (evitan que debouncedSave se
+  // recree al completar series, lo que cancelaría timers de persistencia legítimos)
+  const currentExerciseIndexRef = useRef(workoutState.currentExerciseIndex);
+  const currentSetRef = useRef(workoutState.currentSet);
+  useEffect(() => {
+    currentExerciseIndexRef.current = workoutState.currentExerciseIndex;
+  }, [workoutState.currentExerciseIndex]);
+  useEffect(() => {
+    currentSetRef.current = workoutState.currentSet;
+  }, [workoutState.currentSet]);
+
   // ✅ CRÍTICO #1 FIX: Debounced save para evitar guardados excesivos
   const debouncedSave = useMemo(
     () =>
@@ -460,18 +486,19 @@ export default function WorkoutPage() {
 
         console.log("[Workout] 💾 Saving workout data (debounced):", data);
 
+        const th = timerHandlersRef.current;
         updateWorkoutProgress(
-          workoutState.currentExerciseIndex,
-          workoutState.currentSet,
+          currentExerciseIndexRef.current,
+          currentSetRef.current,
           data.completedSets,
           data.actualReps,
           data.actualWeights,
-          timerHandlers.showTimer
+          th.showTimer
             ? {
                 isResting: true,
-                restTimerDuration: timerHandlers.timerDuration,
-                restTimerTitle: timerHandlers.timerTitle,
-                restTimerNextExercise: timerHandlers.nextExerciseName,
+                restTimerDuration: th.timerDuration,
+                restTimerTitle: th.timerTitle,
+                restTimerNextExercise: th.nextExerciseName,
                 restTimerStartedAt: Date.now(),
               }
             : undefined,
@@ -488,11 +515,19 @@ export default function WorkoutPage() {
       isInitialized,
       updateWorkoutProgress,
       totalPausedTime,
-      timerHandlers,
-      workoutState.currentExerciseIndex,
-      workoutState.currentSet,
+      // currentExerciseIndex y currentSet eliminados de deps — se leen via refs
+      // para evitar que debouncedSave se recree (y cancele timers de persistencia)
+      // al completar una serie en modo rápido
+      // timerHandlers eliminado de deps — se lee via timerHandlersRef para evitar recreaciones en cada render
     ],
   );
+
+  // ✅ Cancelar timer pendiente cuando debouncedSave es recreado (evita guardar datos obsoletos)
+  useEffect(() => {
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
 
   // ✅ Crear el callback de guardado usando useCallback
   const handleWorkoutDataChange = useCallback(
@@ -1424,7 +1459,11 @@ export default function WorkoutPage() {
         setExecution.startSet();
       }
     } else if (!isLastSet) {
-      const newSet = workoutState.currentSet + 1;
+      // ✅ FIX: usar completedCount + 1 en lugar de currentSet + 1.
+      // En modo Quick, handleQuickToggleSetComplete ya avanzó currentSet
+      // al próximo incompleto, así que currentSet + 1 sobrepassaría por uno.
+      // completedCount + 1 siempre apunta a la siguiente serie sin importar el modo.
+      const newSet = completedCount + 1;
       workoutState.setCurrentSet(newSet);
       const nextSetData = currentExercise.sets[newSet - 1];
       if (nextSetData) {
@@ -2017,12 +2056,24 @@ export default function WorkoutPage() {
     const exerciseId = currentExercise.id;
 
     // Obtener la última serie como referencia
-    const lastSet = currentExercise.sets[currentExercise.sets.length - 1];
+    const lastIdx = currentExercise.sets.length - 1;
+    const lastSet = currentExercise.sets[lastIdx];
+
+    // Preferir valores ya editados en la sesión (workoutState), y usar los
+    // de la rutina como fallback
+    const lastRepsFromState = workoutState.workoutData.actualReps[exerciseId]?.[lastIdx];
+    const lastWeightFromState = workoutState.workoutData.actualWeights[exerciseId]?.[lastIdx];
 
     // Crear nueva serie con los mismos valores que la última
     const newSet = {
-      reps: lastSet.reps,
-      weight: lastSet.weight || 0,
+      reps:
+        typeof lastRepsFromState === 'number' && lastRepsFromState > 0
+          ? lastRepsFromState
+          : lastSet.reps,
+      weight:
+        typeof lastWeightFromState === 'number' && lastWeightFromState >= 0
+          ? lastWeightFromState
+          : lastSet.weight || 0,
       restAfter: lastSet.restAfter || currentExercise.restBetweenSets || 90,
     };
 
@@ -2064,6 +2115,7 @@ export default function WorkoutPage() {
   }, [
     currentExercise,
     routine,
+    workoutState,
     id,
     updateRoutine,
     updateModifiedRoutine,
@@ -2520,7 +2572,7 @@ export default function WorkoutPage() {
         setRoutine(routine);
       }
     },
-    [routine, id, updateRoutine, updateModifiedRoutine, success, error],
+    [routine, workoutState, id, updateRoutine, updateModifiedRoutine, success, error],
   );
 
   // ==================== RENDER ====================

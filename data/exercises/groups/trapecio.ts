@@ -227,6 +227,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-y-raise-front.gif',
     technique: [
       'Poleas bajas, una manija en cada mano',
       'Eleva los brazos formando una "Y"',
@@ -244,6 +245,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-reverse-fly-trap-front.gif',
     technique: [
       'Poleas a altura del pecho, cruza los cables',
       'Abre los brazos hacia los lados',
@@ -261,6 +263,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 12,
+    image: URL_STORAGE + 'male-prone-y-raise-front.gif',
     technique: [
       'Acostado boca abajo en banco inclinado',
       'Eleva los brazos formando una "Y"',
@@ -278,6 +281,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 10,
+    image: URL_STORAGE + 'male-dumbbell-high-pull-front.gif',
     technique: [
       'Mancuernas frente a ti, movimiento explosivo',
       'Tira hacia arriba con codos altos',
@@ -295,6 +299,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Máquina Smith',
     defaultSets: 4,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-smith-machine-shrug-front.gif',
     technique: [
       'Barra en la Smith a la altura de los muslos',
       'Eleva los hombros hacia las orejas',
@@ -312,6 +317,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Poleas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-single-arm-cable-shrug-front.gif',
     technique: [
       'Polea baja, una manija en una mano',
       'Encoge el hombro hacia la oreja',
@@ -329,6 +335,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Mancuernas',
     defaultSets: 3,
     defaultReps: 15,
+    image: URL_STORAGE + 'male-kelso-shrugs-front.gif',
     technique: [
       'Acostado boca abajo en banco inclinado alto',
       'Mancuernas colgando, encoge hacia las orejas',
@@ -346,6 +353,7 @@ export const trapecioExercises: ExerciseTemplate[] = [
     equipment: 'Barra',
     defaultSets: 4,
     defaultReps: 8,
+    image: URL_STORAGE + 'male-power-shrugs-front.gif',
     technique: [
       'Peso muerto explosivo con encogimiento al final',
       'Movimiento dinámico desde las caderas',
