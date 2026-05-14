@@ -351,7 +351,7 @@ export default function WorkoutPage() {
 
   // ==================== COMPUTED VALUES ====================
   // ✅ CRÍTICO #4 FIX: Memoizar exercises con routine.id para evitar re-renders
-  const exercises = useMemo(() => routine?.exercises || [], [routine?.id]);
+  const exercises = useMemo(() => routine?.exercises || [], [routine?.exercises]);
 
   const currentExercise = useMemo(() => {
     if (!exercises.length) return null;
@@ -1478,11 +1478,8 @@ export default function WorkoutPage() {
     currentExercise,
     routine,
     workoutState,
-    workoutStartTime,
-    totalPausedTime,
     clearRestState,
     timerHandlers,
-    completion,
     haptic,
     setExecution,
   ]);
@@ -1711,9 +1708,6 @@ export default function WorkoutPage() {
 
       setRoutine(updatedRoutine);
 
-      // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-      updateModifiedRoutine(updatedRoutine);
-
       // Limpiar datos de la serie eliminada
       const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
       const currentWeights =
@@ -1742,6 +1736,8 @@ export default function WorkoutPage() {
 
       // Persistir la rutina actualizada
       try {
+        // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
+        updateModifiedRoutine(updatedRoutine);
         await updateRoutine(id, updatedRoutine);
         success("Serie eliminada", 2000);
       } catch (err) {
@@ -1791,7 +1787,6 @@ export default function WorkoutPage() {
       const updatedRoutine = { ...routine, exercises: updatedExercises };
 
       setRoutine(updatedRoutine);
-      updateModifiedRoutine(updatedRoutine);
 
       // Limpiar datos del ejercicio eliminado
       const exerciseId = exerciseToDelete.id;
@@ -1839,6 +1834,8 @@ export default function WorkoutPage() {
 
       // Persistir la rutina actualizada
       try {
+        // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
+        updateModifiedRoutine(updatedRoutine);
         await updateRoutine(id, updatedRoutine);
         success(`Ejercicio "${exerciseToDelete.name}" eliminado`, 2000);
       } catch (err) {
@@ -1889,9 +1886,6 @@ export default function WorkoutPage() {
 
       setRoutine(updatedRoutine);
 
-      // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-      updateModifiedRoutine(updatedRoutine);
-
       // Limpiar datos de la serie eliminada
       const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
       const currentWeights =
@@ -1915,6 +1909,8 @@ export default function WorkoutPage() {
 
       // Persistir la rutina actualizada
       try {
+        // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
+        updateModifiedRoutine(updatedRoutine);
         await updateRoutine(id, updatedRoutine);
         success("Serie eliminada", 2000);
       } catch (err) {
@@ -2031,7 +2027,6 @@ export default function WorkoutPage() {
       currentExercise,
       routine,
       workoutState,
-      workoutStartTime,
       useSmartRest,
       timerHandlers,
       completion,
@@ -2226,6 +2221,8 @@ export default function WorkoutPage() {
             `${exercises.length} ejercicio${exercises.length > 1 ? "s" : ""} agregado${exercises.length > 1 ? "s" : ""} a la rutina`,
             3000,
           );
+          // Actualizar originalRoutine para que no aparezca el prompt de guardar cambios
+          setOriginalRoutine(JSON.parse(JSON.stringify(updatedRoutine)));
         } catch (err) {
           console.error("Error adding exercises:", err);
           error("Error al agregar ejercicios");
@@ -2246,6 +2243,7 @@ export default function WorkoutPage() {
       workoutState,
       updateWorkoutProgress,
       totalPausedTime,
+      setOriginalRoutine,
     ],
   );
 
@@ -2302,7 +2300,7 @@ export default function WorkoutPage() {
         workoutState.workoutData.completedSets[exerciseId],
       );
     },
-    [workoutState, routine?.exercises],
+    [workoutState],
   );
 
   const handleQuickEditSetType = useCallback(
@@ -2413,7 +2411,7 @@ export default function WorkoutPage() {
           }
 
           // Manejar temporizador usando el resultado de la función consolidada
-          if (result.nextAction && result.nextAction !== "none" && !skipRestTimers) {
+          if (result.nextAction && result.nextAction !== "none" && result.nextAction !== "finish-workout" && !skipRestTimers) {
             timerHandlers.startTimer(
               result.restTime || 0,
               result.restTitle,
@@ -2426,10 +2424,7 @@ export default function WorkoutPage() {
           // newWeights[setIndex] se conserva (el usuario puede haberlo editado a propósito)
 
           workoutState.updateActualReps(exerciseId, newReps);
-          // Solo actualizar pesos si hay algo que cambiar (preservar ediciones)
-          if (newWeights[setIndex] !== currentWeights[setIndex]) {
-            workoutState.updateActualWeights(exerciseId, newWeights);
-          }
+          // newWeights no se modifica intencionalmente para preservar ediciones del usuario
 
           const completedCount = calculateCompletedSets(newReps);
           workoutState.updateCompletedSets(exerciseId, completedCount);
@@ -2534,7 +2529,7 @@ export default function WorkoutPage() {
             ? lastRepsFromState
             : lastSet.reps,
         weight:
-          typeof lastWeightFromState === 'number' && lastWeightFromState > 0
+          typeof lastWeightFromState === 'number' && lastWeightFromState >= 0
             ? lastWeightFromState
             : lastSet.weight || 0,
         restAfter: lastSet.restAfter || exercise.restBetweenSets || 90,
@@ -3254,15 +3249,6 @@ export default function WorkoutPage() {
             onComplete={handleCompleteSet}
             onCancel={() => {
               setExecution.cancelSetExecution();
-              if (
-                routine &&
-                workoutState.currentExerciseIndex < routine.exercises.length - 1
-              ) {
-                workoutState.setCurrentExerciseIndex(
-                  workoutState.currentExerciseIndex + 1,
-                );
-                workoutState.setCurrentSet(1);
-              }
             }}
           />
         </Suspense>
