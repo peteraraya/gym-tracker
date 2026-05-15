@@ -28,6 +28,7 @@ export interface ExerciseTemplate {
   restTime?: string; // Ej: "60-90 segundos"
 }
 const URL_STORAGE = 'https://hplrrjqgzefkdevbporx.supabase.co/storage/v1/object/public/routine-images/'
+import { BURNFIT_MISSING } from './exercises_burnfit_missing';
 export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   // PECHO
   {
@@ -5199,6 +5200,109 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   }
 ];
 
+// Anexar ejercicios faltantes importados desde Burnfit
+// function translateBurnfitName(enName: string, id?: string): string {
+//   const name = enName || '';
+//   // Sufijos por equipment detectado (mejor que aparecer como texto entre paréntesis)
+//   let equipSuffix = '';
+//   if (/barbell/i.test(name)) equipSuffix = ' (Barra)';
+//   else if (/dumbbell/i.test(name)) equipSuffix = ' (Mancuernas)';
+//   else if (/kettlebell/i.test(name)) equipSuffix = ' (Kettlebell)';
+//   else if (/machine/i.test(name)) equipSuffix = ' (Máquina)';
+//   else if (/weighted/i.test(name)) equipSuffix = ' (Lastradas)';
+
+//   // Frases comunes con traducción preferente (revisar/añadir si hace falta)
+//   const phraseMap: Array<[RegExp, string]> = [
+//     [/barbell bench press/i, 'Press de Banca (Barra)'],
+//     [/incline bench press/i, 'Press Inclinado'],
+//     [/decline bench press/i, 'Press Declinado'],
+//     [/bench press/i, 'Press de Banca'],
+//     [/dumbbell fly/i, 'Aperturas con Mancuernas'],
+//     [/lat pull down/i, 'Jalón al Pecho'],
+//     [/lat pulldown/i, 'Jalón al Pecho'],
+//     [/pull up/i, 'Dominadas'],
+//     [/chin up/i, 'Dominadas (supinado)'],
+//     [/push up/i, 'Flexiones'],
+//     [/deadlift/i, 'Peso Muerto'],
+//     [/squat/i, 'Sentadilla'],
+//     [/lunge/i, 'Zancada'],
+//     [/row/i, 'Remo'],
+//     [/shoulder press/i, 'Press de Hombros'],
+//     [/bicep curl/i, 'Curl de Bíceps'],
+//     [/tricep extension/i, 'Extensión de Tríceps'],
+//     [/leg raise/i, 'Elevación de Piernas'],
+//     [/sit up/i, 'Sit Up'],
+//     [/crunch/i, 'Crunch'],
+//     [/burpee/i, 'Burpee'],
+//     [/box jump/i, 'Salto al Cajón'],
+//     [/plank/i, 'Plancha'],
+//     [/toes to bar/i, 'Pies a la Barra'],
+//     [/hang(ing)? knee raise/i, 'Elevación de Rodillas Colgado']
+//   ];
+//   for (const [re, tx] of phraseMap) if (re.test(name)) return tx;
+
+//   // Fallback por tokens (divide y mapea palabras individuales)
+//   const tokenMap: Record<string, string> = {
+//     barbell: 'Barra',
+//     dumbbell: 'Mancuernas',
+//     kettlebell: 'Kettlebell',
+//     machine: 'Máquina',
+//     bodyweight: 'Peso corporal',
+//     weighted: 'Lastradas',
+//     back: 'Trasera',
+//     front: 'Frontal',
+//     incline: 'Inclinado',
+//     decline: 'Declinado',
+//     reverse: 'Reverse',
+//     stiff: 'Stiff',
+//     single: 'Single',
+//     one: 'One',
+//     arm: 'Brazo',
+//     leg: 'Pierna',
+//     shrug: 'Encogimiento',
+//     press: 'Press',
+//     fly: 'Aperturas',
+//     squat: 'Sentadilla',
+//     deadlift: 'Peso Muerto',
+//     lunge: 'Zancada',
+//     row: 'Remo',
+//     pull: 'Jalón',
+//     push: 'Empuje',
+//     curl: 'Curl',
+//     extension: 'Extensión',
+//     calf: 'Gemelos',
+//     raise: 'Elevación',
+//     crunch: 'Crunch',
+//     plank: 'Plancha',
+//     burpee: 'Burpee',
+//     mobility: 'Movilidad'
+//   };
+
+//   const cleaned = name.replace(/[^\w\s]/g, ' ').trim();
+//   const parts = cleaned.split(/\s+/).filter(Boolean);
+//   const translatedParts = parts.map(p => {
+//     const low = p.toLowerCase();
+//     if (tokenMap[low]) return tokenMap[low];
+//     return p.charAt(0).toUpperCase() + p.slice(1);
+//   });
+//   let result = translatedParts.join(' ');
+//   if (equipSuffix) result = result + equipSuffix;
+//   return result.charAt(0).toUpperCase() + result.slice(1);
+// }
+
+// const normalizedMissing = BURNFIT_MISSING.map((e) => ({
+//   ...e,
+//   name: translateBurnfitName(e.name, e.id),
+//   image: URL_STORAGE + `${e.id}.gif`
+// }));
+
+// EXERCISE_DATABASE.push(...normalizedMissing); // Opcional: añadir ejercicios faltantes de Burnfit a la base de datos principal
+
+// Normalizar `image` para toda la base de datos al patrón solicitado
+// EXERCISE_DATABASE.forEach((ex) => {
+//   ex.image = URL_STORAGE + `${ex.id}.gif`;
+// });
+
 export const MUSCLE_GROUPS: { id: MuscleGroup; name: string }[] = [
   { id: 'pecho', name: 'Pecho' },
   { id: 'espalda', name: 'Espalda' },
@@ -5242,6 +5346,6 @@ export const getExerciseByName = (name: string): ExerciseTemplate | undefined =>
 EXERCISE_DATABASE.forEach(ex => {
   if (!ex.image) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (ex as any).image = URL_STORAGE + `male-${ex.id}-front.gif`;
+    (ex as any).image = URL_STORAGE + `male-${ex.id}.gif`;
   }
 });

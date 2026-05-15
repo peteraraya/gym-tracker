@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   MUSCLE_GROUPS,
+  EXERCISE_DATABASE,
   getExercisesByMuscleGroup,
   MuscleGroup,
   ExerciseTemplate,
@@ -56,6 +57,10 @@ export default function ExercisesPage() {
   const [warmupCategoryFilter, setWarmupCategoryFilter] = useState<
     "all" | WarmupCategory
   >("all");
+  const [selectedMuscleFilters, setSelectedMuscleFilters] = useState<
+    Set<MuscleGroup>
+  >(new Set());
+  const [globalPage, setGlobalPage] = useState(1);
 
   // Cachear ejercicios del músculo seleccionado para evitar llamadas repetidas
   const muscleExercises = useMemo(() => {
@@ -105,9 +110,71 @@ export default function ExercisesPage() {
   const totalCount =
     exerciseTab === "training" ? muscleExercises.length : muscleWarmups.length;
 
+  // Global search mode: activo cuando hay texto o filtros de grupo y no hay grupo seleccionado
+  const isGlobalMode =
+    !selectedMuscle &&
+    (searchTerm.trim() !== "" || selectedMuscleFilters.size > 0);
+
+  const globalResults = useMemo(() => {
+    if (selectedMuscle) return [];
+    let results = EXERCISE_DATABASE as ExerciseTemplate[];
+    if (selectedMuscleFilters.size > 0) {
+      results = results.filter((ex) => selectedMuscleFilters.has(ex.muscleGroup));
+    }
+    if (searchTerm.trim()) {
+      const term = searchTerm.trim().toLowerCase();
+      results = results.filter(
+        (ex) =>
+          ex.name.toLowerCase().includes(term) ||
+          ex.muscleGroup.toLowerCase().includes(term) ||
+          (ex.equipment && ex.equipment.toLowerCase().includes(term)),
+      );
+    }
+    if (selectedEquipment.size > 0) {
+      results = results.filter((ex) => hasEquipment(ex.equipment));
+    }
+    // Ordenar según orden de MUSCLE_GROUPS
+    const muscleOrder = new Map(MUSCLE_GROUPS.map((m, i) => [m.id, i]));
+    return [...results].sort(
+      (a, b) => (muscleOrder.get(a.muscleGroup) ?? 99) - (muscleOrder.get(b.muscleGroup) ?? 99),
+    );
+  }, [selectedMuscle, selectedMuscleFilters, searchTerm, selectedEquipment, hasEquipment]);
+
+  // Paginación del modo global — por grupos completos
+  const allGroupedResults = useMemo(() => {
+    const groups: { muscleId: MuscleGroup; muscleName: string; exercises: ExerciseTemplate[] }[] = [];
+    for (const muscle of MUSCLE_GROUPS) {
+      const exs = globalResults.filter((ex) => ex.muscleGroup === muscle.id);
+      if (exs.length > 0) groups.push({ muscleId: muscle.id, muscleName: muscle.name, exercises: exs });
+    }
+    return groups;
+  }, [globalResults]);
+
+  const GROUPS_PER_PAGE = 3;
+  const totalGlobalPages = Math.max(1, Math.ceil(allGroupedResults.length / GROUPS_PER_PAGE));
+  const paginatedGroupedResults = useMemo(
+    () => allGroupedResults.slice((globalPage - 1) * GROUPS_PER_PAGE, globalPage * GROUPS_PER_PAGE),
+    [allGroupedResults, globalPage],
+  );
+  const paginatedExercisesCount = paginatedGroupedResults.reduce((acc, g) => acc + g.exercises.length, 0);
+
+  // Resetear página cuando cambian los filtros
+  useEffect(() => {
+    setGlobalPage(1);
+  }, [searchTerm, selectedMuscleFilters]);
+
   // Handlers optimizados
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+  };
+
+  const toggleMuscleFilter = (muscleId: MuscleGroup) => {
+    setSelectedMuscleFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(muscleId)) next.delete(muscleId);
+      else next.add(muscleId);
+      return next;
+    });
   };
 
   const handleTabChange = (tab: "training" | "warmup") => {
@@ -124,6 +191,7 @@ export default function ExercisesPage() {
     setExerciseTab("training");
     setSearchTerm("");
     setWarmupCategoryFilter("all");
+    setSelectedMuscleFilters(new Set());
   };
 
   const handleBackToMuscles = () => {
@@ -131,6 +199,7 @@ export default function ExercisesPage() {
     setSearchTerm("");
     setExerciseTab("training");
     setWarmupCategoryFilter("all");
+    setSelectedMuscleFilters(new Set());
   };
 
   const handleEquipmentSelect = () => {
@@ -201,88 +270,250 @@ export default function ExercisesPage() {
           {/* Rest of the content remains the same... */}
           {!selectedMuscle ? (
             <>
-              <div className="mb-6">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  Selecciona un grupo muscular
-                </h2>
-
-                {/* Buscador */}
+              {/* Buscador global + filtros por grupo */}
+              <div className="mb-6 space-y-3">
                 <SearchInput
                   value={searchTerm}
-                  onChange={setSearchTerm}
-                  placeholder="Buscar grupo muscular..."
-                  className="mb-6"
+                  onChange={handleSearchChange}
+                  placeholder="Buscar ejercicio por nombre, grupo o equipamiento..."
                 />
-              </div>
-
-              {/* Grid de grupos musculares */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {MUSCLE_GROUPS.filter((muscle) =>
-                  muscle.name.toLowerCase().includes(searchTerm.toLowerCase()),
-                ).map((muscle) => {
-                  const exercisesForMuscle = getExercisesByMuscleGroup(
-                    muscle.id,
-                  );
-                  const total = exercisesForMuscle.length;
-                  const available = exercisesForMuscle.filter((ex) =>
-                    hasEquipment(ex.equipment),
-                  ).length;
-                  const warmupCount = getWarmupsByMuscleGroup(muscle.id).length;
-                  return (
-                    <button
-                      key={muscle.id}
-                      onClick={() => handleMuscleSelect(muscle.id)}
-                      className="group relative flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
-                      aria-label={`Seleccionar grupo ${muscle.name}, ${total} ejercicios`}
-                    >
-                      <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                      <div className="relative z-10 mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <MuscleGroupIcon
-                          muscleGroup={muscle.id}
-                          size={56}
-                          className="text-blue-500 dark:text-blue-400"
-                        />
-                      </div>
-                      <span className="relative z-10 text-base font-bold text-gray-900 dark:text-gray-100 text-center mb-2">
+                <div className="flex flex-wrap gap-2">
+                  {MUSCLE_GROUPS.map((muscle) => {
+                    const checked = selectedMuscleFilters.has(muscle.id);
+                    return (
+                      <button
+                        key={muscle.id}
+                        onClick={() => toggleMuscleFilter(muscle.id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all ${
+                          checked
+                            ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500"
+                        }`}
+                      >
+                        <MuscleGroupIcon muscleGroup={muscle.id} size={13} />
                         {muscle.name}
-                      </span>
-
-                      <div className="relative z-10 flex flex-col items-center gap-1.5">
-                        {selectedEquipment.size > 0 ? (
-                          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium px-2.5 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
-                            {available}/{total} disponibles
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium px-2.5 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
-                            {total} ejercicio{total !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {warmupCount > 0 && (
-                          <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">
-                            🔥 {warmupCount} calentamiento
-                            {warmupCount !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                      </div>
+                      </button>
+                    );
+                  })}
+                  {selectedMuscleFilters.size > 0 && (
+                    <button
+                      onClick={() => setSelectedMuscleFilters(new Set())}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-100 transition-all"
+                    >
+                      ✕ Limpiar filtros
                     </button>
-                  );
-                })}
+                  )}
+                </div>
               </div>
 
-              {/* No results */}
-              {searchTerm &&
-                MUSCLE_GROUPS.filter((muscle) =>
-                  muscle.name.toLowerCase().includes(searchTerm.toLowerCase()),
-                ).length === 0 && (
-                  <EmptyStateCard
-                    icon="🔍"
-                    title="No se encontraron grupos"
-                    description="Intenta con otro término"
-                    actionLabel="Limpiar búsqueda"
-                    onAction={() => setSearchTerm("")}
-                  />
-                )}
+              {/* Vista global de búsqueda */}
+              {isGlobalMode ? (
+                <>
+                  {/* Contador + grupos seleccionados */}
+                  <div className="mb-4 space-y-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">
+                        {allGroupedResults.length}
+                      </span>{" "}
+                      grupo{allGroupedResults.length !== 1 ? "s" : ""}
+                      {" · "}
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">
+                        {globalResults.length}
+                      </span>{" "}
+                      ejercicio{globalResults.length !== 1 ? "s" : ""}
+                      {totalGlobalPages > 1 && (
+                        <span className="ml-2 text-gray-400">
+                          · pág. {globalPage}/{totalGlobalPages}
+                        </span>
+                      )}
+                    </p>
+                    {selectedMuscleFilters.size > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {MUSCLE_GROUPS.filter((m) => selectedMuscleFilters.has(m.id)).map((m) => {
+                          const count = allGroupedResults.find((g) => g.muscleId === m.id)?.exercises.length ?? 0;
+                          return (
+                            <span
+                              key={m.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                            >
+                              <MuscleGroupIcon muscleGroup={m.id} size={13} />
+                              {m.name}
+                              {count > 0 && (
+                                <span className="ml-0.5 text-blue-500 dark:text-blue-400">
+                                  {count}
+                                </span>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {globalResults.length > 0 ? (
+                    <>
+                      {/* Resultados agrupados por músculo */}
+                      <div className="space-y-6">
+                        {paginatedGroupedResults.map(({ muscleId, muscleName, exercises }) => (
+                          <div key={muscleId}>
+                            {/* Cabecera del grupo */}
+                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                              <MuscleGroupIcon muscleGroup={muscleId} size={22} />
+                              <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
+                                {muscleName}
+                              </h3>
+                              <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+                                {exercises.length}
+                              </span>
+                            </div>
+                            {/* Ejercicios del grupo */}
+                            <div className="space-y-3">
+                              {exercises.map((exercise, idx) => (
+                                <ExerciseListItem
+                                  key={`${muscleId}-${exercise.id}-${idx}`}
+                                  exercise={exercise}
+                                  onViewDetails={setSelectedExercise}
+                                  isWarmup={false}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Paginación */}
+                      {totalGlobalPages > 1 && (
+                        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                          <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            {paginatedGroupedResults.length} grupo{paginatedGroupedResults.length !== 1 ? "s" : ""}{" "}
+                            ({paginatedExercisesCount} ejercicio{paginatedExercisesCount !== 1 ? "s" : ""})
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setGlobalPage((p) => Math.max(1, p - 1))}
+                              disabled={globalPage === 1}
+                              className="px-4 py-2 rounded-xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-medium text-sm"
+                            >
+                              ← Anterior
+                            </button>
+                            {Array.from({ length: totalGlobalPages }, (_, i) => i + 1)
+                              .filter(
+                                (p) =>
+                                  p === 1 ||
+                                  p === totalGlobalPages ||
+                                  Math.abs(p - globalPage) <= 1,
+                              )
+                              .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                                if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1)
+                                  acc.push("...");
+                                acc.push(p);
+                                return acc;
+                              }, [])
+                              .map((p, idx) =>
+                                p === "..." ? (
+                                  <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
+                                    …
+                                  </span>
+                                ) : (
+                                  <button
+                                    key={p}
+                                    onClick={() => setGlobalPage(p as number)}
+                                    className={`w-9 h-9 rounded-xl font-semibold transition-all text-sm ${
+                                      globalPage === p
+                                        ? "bg-blue-600 text-white shadow-md"
+                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    }`}
+                                  >
+                                    {p}
+                                  </button>
+                                ),
+                              )}
+                            <button
+                              onClick={() =>
+                                setGlobalPage((p) => Math.min(totalGlobalPages, p + 1))
+                              }
+                              disabled={globalPage === totalGlobalPages}
+                              className="px-4 py-2 rounded-xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all font-medium text-sm"
+                            >
+                              Siguiente →
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <EmptyStateCard
+                      icon="🔍"
+                      title="No se encontraron ejercicios"
+                      description="Intenta con otro término o selecciona otros grupos"
+                      actionLabel="Limpiar búsqueda"
+                      onAction={() => {
+                        setSearchTerm("");
+                        setSelectedMuscleFilters(new Set());
+                      }}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    Selecciona un grupo muscular
+                  </h2>
+
+                  {/* Grid de grupos musculares */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {MUSCLE_GROUPS.map((muscle) => {
+                      const exercisesForMuscle = getExercisesByMuscleGroup(
+                        muscle.id,
+                      );
+                      const total = exercisesForMuscle.length;
+                      const available = exercisesForMuscle.filter((ex) =>
+                        hasEquipment(ex.equipment),
+                      ).length;
+                      const warmupCount = getWarmupsByMuscleGroup(muscle.id).length;
+                      return (
+                        <button
+                          key={muscle.id}
+                          onClick={() => handleMuscleSelect(muscle.id)}
+                          className="group relative flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
+                          aria-label={`Seleccionar grupo ${muscle.name}, ${total} ejercicios`}
+                        >
+                          <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                          <div className="relative z-10 mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <MuscleGroupIcon
+                              muscleGroup={muscle.id}
+                              size={56}
+                              className="text-blue-500 dark:text-blue-400"
+                            />
+                          </div>
+                          <span className="relative z-10 text-base font-bold text-gray-900 dark:text-gray-100 text-center mb-2">
+                            {muscle.name}
+                          </span>
+
+                          <div className="relative z-10 flex flex-col items-center gap-1.5">
+                            {selectedEquipment.size > 0 ? (
+                              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium px-2.5 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+                                {available}/{total} disponibles
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium px-2.5 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+                                {total} ejercicio{total !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                            {warmupCount > 0 && (
+                              <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">
+                                🔥 {warmupCount} calentamiento
+                                {warmupCount !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <>

@@ -36,6 +36,7 @@ function ExerciseImage({ exercise }: { exercise: ExerciseTemplate }) {
         src={exercise.image}
         alt={exercise.name}
         fill
+        unoptimized
         className="object-cover hover:scale-105 transition-transform duration-300"
         sizes="(max-width: 640px) 100vw, 160px"
         onError={() => setFailed(true)}
