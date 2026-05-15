@@ -2080,18 +2080,20 @@ export function QuickEditMode({
         historicalWeights={
           editingCell?.field === "weight"
             ? (() => {
+                const exerciseId = editingCell.exerciseId;
                 const exercise = routine.exercises.find(
-                  (ex) => ex.id === editingCell?.exerciseId,
+                  (ex) => ex.id === exerciseId,
                 );
-                return (
-                  exercise?.sets
-                    .map((s) => s.weight)
-                    .filter(
-                      (w, i, arr): w is number =>
-                        !!w && w > 0 && arr.indexOf(w) === i,
-                    )
-                    .sort((a, b) => b - a) ?? []
-                );
+                const actualWeights =
+                  workoutData.actualWeights[exerciseId] ?? [];
+                const plannedWeights =
+                  exercise?.sets.map((s) => s.weight ?? 0) ?? [];
+                return [...actualWeights, ...plannedWeights]
+                  .filter(
+                    (w): w is number => typeof w === "number" && w > 0,
+                  )
+                  .filter((w, i, arr) => arr.indexOf(w) === i)
+                  .sort((a, b) => b - a);
               })()
             : []
         }

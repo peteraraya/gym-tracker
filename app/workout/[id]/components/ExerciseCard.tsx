@@ -33,6 +33,8 @@ interface ExerciseCardProps {
   quickSwitcher?: React.ReactNode;
   // ✅ Personal record for this exercise
   personalRecord?: { maxWeight: number; reps: number; date: Date } | null;
+  // Pesos ya usados en esta sesión para sugerencias
+  actualWeights?: number[];
 }
 
 /**
@@ -63,6 +65,7 @@ export function ExerciseCard({
   setStartTime,
   quickSwitcher,
   personalRecord,
+  actualWeights = [],
 }: ExerciseCardProps) {
   const { success } = useToast();
   const totalSets = exercise.sets.length;
@@ -433,12 +436,13 @@ export function ExerciseCard({
         field="weight"
         currentValue={currentWeight}
         onSave={(value) => onWeightChange(value)}
-        historicalWeights={exercise.sets
-          .map((s) => s.weight)
-          .filter(
-            (w, i, arr): w is number =>
-              typeof w === "number" && w > 0 && arr.indexOf(w) === i,
-          )
+        historicalWeights={[
+          ...actualWeights,
+          ...exercise.sets
+            .map((s) => s.weight ?? 0)
+            .filter((w): w is number => typeof w === "number" && w > 0),
+        ]
+          .filter((w, i, arr) => arr.indexOf(w) === i)
           .sort((a, b) => b - a)}
       />
     </Card>

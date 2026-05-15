@@ -176,7 +176,12 @@ export function useWorkoutState(
         prevReps[setIndex] = reps;
         prevWeights[setIndex] = weight;
 
-        const completedCount = prevReps.filter((r) => typeof r === 'number' && r > 0).length;
+        // Usar el conteo previo como base y sólo incrementar hasta setIndex+1.
+        // Esto evita que reps pre-editadas de series futuras inflen el contador.
+        const completedCount = Math.max(
+          prev.completedSets[exerciseId] ?? 0,
+          setIndex + 1,
+        );
 
         const newData = {
           ...prev,

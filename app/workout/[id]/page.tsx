@@ -1963,8 +1963,11 @@ export default function WorkoutPage() {
         workoutState.updateActualReps(exerciseId, newActualReps);
         workoutState.updateActualWeights(exerciseId, newActualWeights);
 
-        // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
-        const newCompletedCount = calculateCompletedSets(newActualReps);
+        // Incrementar explícitamente hasta setIndex+1; no contar reps pre-editadas futuras.
+        const newCompletedCount = Math.max(
+          workoutState.workoutData.completedSets[exerciseId] ?? 0,
+          setIndex + 1,
+        );
         workoutState.updateCompletedSets(exerciseId, newCompletedCount);
 
         const nextIncompleteSet = currentExercise.sets.findIndex(
@@ -2014,8 +2017,9 @@ export default function WorkoutPage() {
         // Dejar actualWeights sin cambios evita que el UI pierda el peso mostrado.
         workoutState.updateActualReps(exerciseId, newActualReps);
 
-        // ✅ FASE 2 - Problema #6: Usar función centralizada para calcular completedSets
-        const newCompletedCount = calculateCompletedSets(newActualReps);
+        // Decrementar explícitamente sin contar reps pre-editadas de otras series.
+        const prevCount = workoutState.workoutData.completedSets[exerciseId] ?? 0;
+        const newCompletedCount = Math.min(prevCount, setIndex);
         workoutState.updateCompletedSets(exerciseId, newCompletedCount);
 
         if (setIndex + 1 < workoutState.currentSet) {
@@ -2426,7 +2430,11 @@ export default function WorkoutPage() {
           workoutState.updateActualReps(exerciseId, newReps);
           // newWeights no se modifica intencionalmente para preservar ediciones del usuario
 
-          const completedCount = calculateCompletedSets(newReps);
+          // Decrementar explícitamente desde el conteo actual, sin contar reps
+          // pre-editadas de otras series (que no fueron marcadas como completadas).
+          const prevCompletedCount =
+            workoutState.workoutData.completedSets[exerciseId] ?? 0;
+          const completedCount = Math.min(prevCompletedCount, setIndex);
           workoutState.updateCompletedSets(exerciseId, completedCount);
 
           // Si estamos en el ejercicio actual, actualizar también currentSet
@@ -3002,6 +3010,9 @@ export default function WorkoutPage() {
               lastSetData={lastSetData}
               onRepeatPrevious={handleRepeatPrevious}
               setStartTime={setExecution.setStartTime}
+              actualWeights={
+                workoutState.workoutData.actualWeights[currentExercise.id] || []
+              }
               quickSwitcher={
                 <QuickExerciseSwitcher
                   routine={routine}
