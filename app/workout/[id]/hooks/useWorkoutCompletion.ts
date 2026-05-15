@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAchievementManager } from '@/lib/achievements/achievementManager';
+import type { CompleteSplashStats } from '@/components/features/workout/WorkoutCompleteSplash';
 
 interface UseWorkoutCompletionProps {
   routine: any;
@@ -32,6 +33,8 @@ export function useWorkoutCompletion({
   const [proposedDuration, setProposedDuration] = useState<number>(0);
   const [sessionNotes, setSessionNotes] = useState('');
   const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
+  const [completeSplash, setCompleteSplash] = useState<CompleteSplashStats | null>(null);
+  const [pendingNavigate, setPendingNavigate] = useState(false);
   
   // ✨ Usar el nuevo sistema de logros
   const achievementManager = useAchievementManager();
@@ -142,8 +145,15 @@ export function useWorkoutCompletion({
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      router.replace('/sessions');
-      router.refresh();
+      // Mostrar splash de completación antes de navegar
+      setCompleteSplash({
+        routineName: routine.name || 'Entrenamiento',
+        exerciseCount: sessionExercises.length,
+        totalSets: sessionExercises.reduce((sum: number, ex: any) => sum + ex.completedSets, 0),
+        totalVolume: Math.round(totalVolume),
+        durationSeconds: totalDuration,
+      });
+      setPendingNavigate(true);
     } catch (err) {
       console.error('Error saving session:', err);
 
@@ -161,8 +171,14 @@ export function useWorkoutCompletion({
         }
 
         await new Promise(resolve => setTimeout(resolve, 100));
-        router.replace('/sessions');
-        router.refresh();
+        setCompleteSplash({
+          routineName: routine?.name || 'Entrenamiento',
+          exerciseCount: 0,
+          totalSets: 0,
+          totalVolume: 0,
+          durationSeconds: 0,
+        });
+        setPendingNavigate(true);
         return;
       } catch (localErr) {
         console.error('Error saving session locally as fallback:', localErr);
@@ -196,6 +212,14 @@ export function useWorkoutCompletion({
     sessionNotes,
     setSessionNotes,
     openCompletionModal,
-    finishWorkout
+    finishWorkout,
+    completeSplash,
+    onCompleteSplashDone: useCallback(() => {
+      setCompleteSplash(null);
+      if (pendingNavigate) {
+        router.replace('/sessions');
+        router.refresh();
+      }
+    }, [pendingNavigate, router]),
   };
 }

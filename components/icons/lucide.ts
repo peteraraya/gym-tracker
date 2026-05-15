@@ -7,6 +7,7 @@
 export {
   // Navigation & UI
   Menu,
+  Grid3x3,
   X,
   ChevronDown,
   ChevronUp,

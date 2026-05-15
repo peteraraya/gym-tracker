@@ -4,6 +4,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
+import { BottomNavBar } from '@/components/layout/BottomNavBar';
 import FloatingCreateRoutine from '@/components/features/routines/FloatingCreateRoutine';
 import dynamic from 'next/dynamic';
 
@@ -22,6 +23,7 @@ export const GlobalUI: React.FC = () => {
   return (
     <>
       <Navbar />
+      <BottomNavBar />
       <FloatingCreateRoutine />
       <FloatingAIAssistant />
     </>

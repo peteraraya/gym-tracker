@@ -65,6 +65,7 @@ import {
   type RecordComparison,
 } from "@/lib/exercises/personalRecords";
 import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSplash";
+import { WorkoutCompleteSplash } from "@/components/features/workout/WorkoutCompleteSplash";
 
 // ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
 function debounce<T extends (...args: any[]) => any>(
@@ -3289,6 +3290,16 @@ export default function WorkoutPage() {
                 )
               }
               onComplete={() => setShowStartSplash(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Splash animado de finalización de entrenamiento */}
+        <AnimatePresence>
+          {completion.completeSplash && (
+            <WorkoutCompleteSplash
+              {...completion.completeSplash}
+              onComplete={completion.onCompleteSplashDone}
             />
           )}
         </AnimatePresence>

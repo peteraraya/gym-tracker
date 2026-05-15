@@ -101,7 +101,7 @@ export default function RootLayout({
                     <GlobalUI />
                     <Onboarding />
                   </ClientOnly>
-                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-16 lg:pb-0">
                     {children}
                   </main>
                 </OnboardingProvider>

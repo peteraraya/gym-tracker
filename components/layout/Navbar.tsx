@@ -221,19 +221,8 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Mobile menu button */}
-            <div className="flex items-center space-x-2 lg:hidden">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
-              </button>
-            </div>
+            {/* Mobile menu button — oculto: navegación reemplazada por BottomNavBar */}
+            <div className="flex items-center space-x-2 lg:hidden" style={{ display: 'none' }} />
           </div>
 
           {/* Mobile Navigation */}
