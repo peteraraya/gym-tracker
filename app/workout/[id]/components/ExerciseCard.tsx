@@ -3,12 +3,12 @@
 import React, { useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { WeightSuggestionBanner } from "@/components/WeightSuggestionBanner";
-import { EditValueModal } from "@/components/EditValueModal";
+import { WeightSuggestionBanner } from "@/components/features/workout/WeightSuggestionBanner";
+import { EditValueModal } from "@/components/shared/EditValueModal";
 import { useToast } from "@/context/NotificationContext";
-import { formatRestTime } from "@/lib/formatTime";
+import { formatRestTime } from "@/lib/utils/formatTime";
 import type { Exercise } from "@/types";
-import type { WeightSuggestion } from "@/lib/weightSuggestions";
+import type { WeightSuggestion } from "@/lib/data/weightSuggestions";
 
 interface ExerciseCardProps {
   exercise: Exercise;

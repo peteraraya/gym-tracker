@@ -1,6 +1,6 @@
 import type { Exercise, Routine } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
-import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/restCalculator';
+import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/workout/restCalculator';
 
 /**
  * Calcula el tiempo de descanso para la siguiente serie

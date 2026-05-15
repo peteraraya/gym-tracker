@@ -8,7 +8,7 @@ import { useGym } from "@/context/GymContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import {
   ClipboardList,
   Dumbbell,

@@ -11,10 +11,10 @@ import React, {
 import { Routine, WorkoutSession } from "@/types";
 import { useAuth } from "./AuthContext";
 import * as storageService from "@/lib/storage/storage";
-import { recommendForSession } from "@/lib/progression";
+import { recommendForSession } from "@/lib/workout/progression";
 import { useRoutines as useRoutinesQuery } from "@/hooks/queries/useRoutines";
 import { useSessions as useSessionsQuery } from "@/hooks/queries/useSessions";
-import { achievementManager } from "@/lib/achievementManager"; // ✨ Importar el gestor de logros
+import { achievementManager } from "@/lib/achievements/achievementManager"; // ✨ Importar el gestor de logros
 import logger from "@/lib/logger";
 
 interface RoutinesContextType {

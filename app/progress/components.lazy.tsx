@@ -14,12 +14,12 @@ const ChartSkeleton = () => (
 );
 
 // Lazy loaded visualization components
-export const ActivityHeatmap = dynamic(() => import('@/components/ActivityHeatmap').then(mod => ({ default: mod.ActivityHeatmap })), {
+export const ActivityHeatmap = dynamic(() => import('@/components/features/progress/ActivityHeatmap').then(mod => ({ default: mod.ActivityHeatmap })), {
   loading: () => <ChartSkeleton />,
   ssr: false
 });
 
-export const ProgressCharts = dynamic(() => import('@/components/ProgressCharts').then(mod => ({ default: mod.ProgressCharts })), {
+export const ProgressCharts = dynamic(() => import('@/components/features/progress/ProgressCharts').then(mod => ({ default: mod.ProgressCharts })), {
   loading: () => <ChartSkeleton />,
   ssr: false
 });

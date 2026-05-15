@@ -6,10 +6,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { RestSettings } from '@/components/RestSettings';
-import { ThemeSettings } from '@/components/ThemeSettings';
-import RestartOnboardingButton from '@/components/RestartOnboardingButton';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import { RestSettings } from '@/components/features/workout/RestSettings';
+import { ThemeSettings } from '@/components/features/settings/ThemeSettings';
+import RestartOnboardingButton from '@/components/features/onboarding/RestartOnboardingButton';
 import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
 import { usePageData } from '@/hooks/usePageData';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
@@ -50,7 +50,7 @@ export default function ProfilePage() {
       if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== 'undefined') {
-          const { getProfileLocally } = await import('@/lib/localProfile');
+          const { getProfileLocally } = await import('@/lib/user/localProfile');
           const localProfile = getProfileLocally();
           
           if (localProfile) {
@@ -114,7 +114,7 @@ export default function ProfilePage() {
       if (isLocalStorageMode()) {
         // Modo LOCAL: Guardar en localStorage
         if (typeof window !== 'undefined') {
-          const { saveProfileLocally } = await import('@/lib/localProfile');
+          const { saveProfileLocally } = await import('@/lib/user/localProfile');
           saveProfileLocally(profileData);
           console.log('[Profile] ✅ Saved to localStorage');
           setProfileMessage('✓ Perfil guardado localmente correctamente');

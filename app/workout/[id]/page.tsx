@@ -17,10 +17,10 @@ import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
-import { Timer } from "@/components/Timer";
+import { Timer } from "@/components/features/workout/Timer";
 import { motion, AnimatePresence } from "framer-motion";
-import { MinimizedTimer } from "@/components/MinimizedTimer";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import * as storageService from "@/lib/storage/storage";
 import { useWorkoutState } from "./hooks/useWorkoutState";
 import { useWorkoutTimer } from "./hooks/useWorkoutTimer";
@@ -37,33 +37,33 @@ import { QuickExerciseSwitcher } from "./components/QuickExerciseSwitcher";
 import { AddExerciseButton } from "./components/AddExerciseButton";
 import { QuickEditMode as QuickEditModeBase } from "./components/QuickEditMode";
 import { FinishWorkoutModal } from "./components/FinishWorkoutModal";
-import { EditValueModal } from "@/components/EditValueModal";
-import SetsReference from "@/components/SetsReference";
+import { EditValueModal } from "@/components/shared/EditValueModal";
+import SetsReference from "@/components/features/workout/SetsReference";
 import {
   SoundSettings,
   useSoundSettingsModal,
-} from "@/components/SoundSettings";
+} from "@/components/features/settings/SoundSettings";
 import type { ExerciseTemplate } from "@/data/exercises";
 import type { Exercise } from "@/types";
 import type { UserProfile } from "@/types";
-import { getExerciseRecommendations } from '@/lib/exerciseRecommendations';
-import { getProfileLocally } from '@/lib/localProfile';
+import { getExerciseRecommendations } from '@/lib/exercises/exerciseRecommendations';
+import { getProfileLocally } from '@/lib/user/localProfile';
 import { useEquipment } from '@/context/EquipmentContext';
-import { generateRoutine } from '@/lib/routineGenerator';
-import { getRoutineStats } from '@/lib/routineEstimation';
+import { generateRoutine } from '@/lib/routines/routineGenerator';
+import { getRoutineStats } from '@/lib/routines/routineEstimation';
 import {
   calculateNextRestTime,
   calculateExerciseRestTime,
   calculateSmartRestTime,
   applySmartRestToAllSets,
 } from "./services/restCalculationService";
-import { LoadingState } from "@/components/LoadingState";
+import { LoadingState } from "@/components/shared/LoadingState";
 import {
   getPersonalRecord,
   compareWithRecord,
   type PersonalRecord,
   type RecordComparison,
-} from "@/lib/personalRecords";
+} from "@/lib/exercises/personalRecords";
 
 // ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
 function debounce<T extends (...args: any[]) => any>(
@@ -99,12 +99,12 @@ const SeriesTable = lazy(() =>
   import("./components/SeriesTable").then((m) => ({ default: m.SeriesTable })),
 );
 const ExerciseInfoPanel = lazy(() =>
-  import("@/components/ExerciseInfoPanel").then((m) => ({
+  import("@/components/features/exercises/ExerciseInfoPanel").then((m) => ({
     default: m.ExerciseInfoPanel,
   })),
 );
 const SetExecutionModal = lazy(() =>
-  import("@/components/SetExecutionModal").then((m) => ({
+  import("@/components/features/workout/SetExecutionModal").then((m) => ({
     default: m.SetExecutionModal,
   })),
 );

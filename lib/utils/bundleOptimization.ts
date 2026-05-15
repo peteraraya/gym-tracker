@@ -25,7 +25,7 @@ export const loadProfilePage = () => import('@/app/profile/page');
 // 4. Conditional loading basado en features
 export const loadAIFeatures = () => {
   if (process.env.NEXT_PUBLIC_AI_ENABLED === 'true') {
-    return import('@/components/AIAssistant');
+    return import('@/components/features/ai/AIAssistant');
   }
   return Promise.resolve({ default: () => null });
 };
@@ -34,7 +34,7 @@ export const loadAdvancedCharts = () => {
   // Solo cargar si el usuario tiene datos suficientes
   const hasEnoughData = localStorage.getItem('gym_sessions_count');
   if (hasEnoughData && parseInt(hasEnoughData) > 5) {
-    return import('@/components/AdvancedCharts');
+    return import('@/components/features/progress/AdvancedCharts');
   }
   return Promise.resolve({ default: () => null });
 };

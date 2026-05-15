@@ -3,8 +3,8 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import SetTypeCycleButton from "@/components/SetTypeCycleButton";
-import { EditValueModal } from "@/components/EditValueModal";
+import SetTypeCycleButton from "@/components/features/workout/SetTypeCycleButton";
+import { EditValueModal } from "@/components/shared/EditValueModal";
 import { FloatingRestTimer } from "./FloatingRestTimer";
 import { AddExerciseButton } from "./AddExerciseButton";
 import { useConfirm } from "@/context/NotificationContext";

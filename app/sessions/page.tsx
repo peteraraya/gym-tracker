@@ -3,12 +3,12 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useGym } from "@/context/GymContext";
 import { useToast } from "@/context/NotificationContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { ClientOnly } from "@/components/ClientOnly";
-import { SessionFilters } from "@/components/SessionFilters";
-import { SessionComparison } from "@/components/SessionComparison";
-import { EditSessionModal } from "@/components/EditSessionModal";
-import { Pagination } from "@/components/Pagination";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { ClientOnly } from "@/components/shared/ClientOnly";
+import { SessionFilters } from "@/components/features/sessions/SessionFilters";
+import { SessionComparison } from "@/components/features/sessions/SessionComparison";
+import { EditSessionModal } from "@/components/features/sessions/EditSessionModal";
+import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/hooks/usePagination";
 import type { WorkoutSession, Routine } from "@/types";
 import * as storageService from "@/lib/storage/storage";

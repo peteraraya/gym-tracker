@@ -1,19 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import OneRMCalculator from '@/components/OneRMCalculator';
-import PlateCalculator from '@/components/PlateCalculator';
-import UnitConverter from '@/components/UnitConverter';
-import TdeeCalculator from '@/components/TdeeCalculator';
-import PercentageRMCalculator from '@/components/PercentageRMCalculator';
-import VolumeCalculator from '@/components/VolumeCalculator';
-import RestTimeCalculator from '@/components/RestTimeCalculator';
-import BMICalculator from '@/components/BMICalculator';
-import CaloriesBurnedCalculator from '@/components/CaloriesBurnedCalculator';
-import ProgressionCalculator from '@/components/ProgressionCalculator';
-import WilksCalculator from '@/components/WilksCalculator';
-import TempoCalculator from '@/components/TempoCalculator';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import OneRMCalculator from '@/components/features/calculators/OneRMCalculator';
+import PlateCalculator from '@/components/features/calculators/PlateCalculator';
+import UnitConverter from '@/components/features/calculators/UnitConverter';
+import TdeeCalculator from '@/components/features/calculators/TdeeCalculator';
+import PercentageRMCalculator from '@/components/features/calculators/PercentageRMCalculator';
+import VolumeCalculator from '@/components/features/calculators/VolumeCalculator';
+import RestTimeCalculator from '@/components/features/calculators/RestTimeCalculator';
+import BMICalculator from '@/components/features/calculators/BMICalculator';
+import CaloriesBurnedCalculator from '@/components/features/calculators/CaloriesBurnedCalculator';
+import ProgressionCalculator from '@/components/features/progress/ProgressionCalculator';
+import WilksCalculator from '@/components/features/calculators/WilksCalculator';
+import TempoCalculator from '@/components/features/calculators/TempoCalculator';
 import { Button } from '@/components/ui/Button';
 import { 
   Calculator, 

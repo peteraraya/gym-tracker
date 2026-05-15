@@ -3,8 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Database, Shield, Download, Upload, Info } from '@/components/icons/lucide';
-import ExportData from '@/components/ExportData';
-import ImportData from '@/components/ImportData';
+import ExportData from '@/components/features/data/ExportData';
+import ImportData from '@/components/features/data/ImportData';
 import { useGym } from '@/context/GymContext';
 import type { WorkoutSession, UserProfile } from '@/types';
 import * as storageService from '@/lib/storage/storage';

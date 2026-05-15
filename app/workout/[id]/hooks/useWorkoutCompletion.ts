@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useAchievementManager } from '@/lib/achievementManager';
+import { useAchievementManager } from '@/lib/achievements/achievementManager';
 
 interface UseWorkoutCompletionProps {
   routine: any;

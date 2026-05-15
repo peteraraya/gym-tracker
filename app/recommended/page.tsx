@@ -6,20 +6,20 @@ import {
   RecommendedRoutine,
 } from "@/data/recommendedRoutines";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { getRecommendedWeight } from '@/lib/routineGenerator';
+import { getRecommendedWeight } from '@/lib/routines/routineGenerator';
 import { Button } from "@/components/ui/Button";
-import { LoadingState } from "@/components/LoadingState";
+import { LoadingState } from "@/components/shared/LoadingState";
 import { useGym } from "@/context/GymContext";
 import { useToast } from "@/context/NotificationContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { Exercise, UserProfile } from "@/types";
 import {
   getRecommendedRoutines,
   getRecommendationReason,
   type RoutineRecommendation,
-} from "@/lib/recommendations";
+} from "@/lib/exercises/recommendations";
 import { useEquipment } from '@/context/EquipmentContext';
-import { formatRestTime } from "@/lib/formatTime";
+import { formatRestTime } from "@/lib/utils/formatTime";
 import Link from "next/link";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { EmptyStateCard } from "@/components/shared";
@@ -53,7 +53,7 @@ export default function RecommendedRoutinesPage() {
       if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== "undefined") {
-          const { getProfileLocally } = await import("@/lib/localProfile");
+          const { getProfileLocally } = await import("@/lib/user/localProfile");
           const localProfile = getProfileLocally();
 
           if (localProfile) {

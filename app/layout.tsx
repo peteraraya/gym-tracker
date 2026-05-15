@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
+import { Providers } from "@/components/layout/Providers";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { OnboardingProvider } from "@/context/OnboardingContext";
-import { ClientOnly } from "@/components/ClientOnly";
-import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
-import { PWAInstaller } from "@/components/PWAInstaller";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import GlobalUI from '@/components/GlobalUI';
-import Onboarding from '@/components/Onboarding';
-import { ReactQueryProvider } from "@/components/ReactQueryProvider";
-import DisableZoom from "@/components/DisableZoom";
+import { ClientOnly } from "@/components/shared/ClientOnly";
+import { ServiceWorkerRegistration } from "@/components/layout/ServiceWorkerRegistration";
+import { PWAInstaller } from "@/components/layout/PWAInstaller";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import GlobalUI from '@/components/layout/GlobalUI';
+import Onboarding from '@/components/features/onboarding/Onboarding';
+import { ReactQueryProvider } from "@/components/layout/ReactQueryProvider";
+import DisableZoom from "@/components/layout/DisableZoom";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

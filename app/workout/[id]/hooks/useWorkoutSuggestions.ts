@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
+import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workout/workoutSuggestions';
 import { calculateNextRestTime } from '../utils/workoutCalculations';
 import type { Exercise, Routine } from '@/types';
 import type { WorkoutSession } from '../types/workout.types';

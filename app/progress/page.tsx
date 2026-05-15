@@ -3,11 +3,11 @@
 import { useMemo } from "react";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { EXERCISE_DATABASE, type MuscleGroup } from "@/data/exercises";
 import { useValidSessions } from "@/hooks/useValidSessions";
 import { APP_CONFIG } from "@/config/app.config";
-import { StatsGrid, StatCard } from "@/components/StatsGrid";
+import { StatsGrid, StatCard } from "@/components/shared/StatsGrid";
 import { TrendingUp } from "@/components/icons/lucide";
 import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";

@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import AchievementsGrid from "@/components/AchievementsGrid";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import AchievementsGrid from "@/components/features/achievements/AchievementsGrid";
 import { Button } from "@/components/ui/Button";
 import { useGym } from "@/context/GymContext"; // ✨ Usar el contexto existente
 import type { WorkoutSession } from "@/types";
-import { calculateAchievements, calculateStreak } from "@/lib/achievements";
+import { calculateAchievements, calculateStreak } from "@/lib/achievements/achievements";
 import { calculateTotalVolume } from "@/lib/utils/dateUtils";
 import {
   Trophy,
@@ -25,7 +25,7 @@ import {
   StatBadge,
   StatsGrid,
 } from "@/components/shared";
-import { AchievementDebugPanel } from "@/components/AchievementDebugPanel"; // ✨ Panel de debug
+import { AchievementDebugPanel } from "@/components/features/achievements/AchievementDebugPanel"; // ✨ Panel de debug
 
 export default function AchievementsPage() {
   const router = useRouter();

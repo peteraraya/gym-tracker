@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { ExerciseSelector } from '@/components/ExerciseSelector';
+import { ExerciseSelector } from '@/components/features/exercises/ExerciseSelector';
 import { ExerciseTemplate } from '@/data/exercises';
 
 interface AddExerciseButtonProps {

@@ -2,7 +2,7 @@ import {
   estimate1RM,
   recommendWeightIncrease,
   recommendForSession,
-} from '@/lib/progression'
+} from '@/lib/workout/progression'
 import { createMockSession } from '@/__tests__/helpers/mockData'
 
 describe('Progression Library', () => {

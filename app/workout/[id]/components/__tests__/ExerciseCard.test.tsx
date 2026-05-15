@@ -4,7 +4,7 @@ import { ExerciseCard } from '../ExerciseCard';
 import type { Exercise } from '@/types';
 
 // Mock del componente WeightSelector
-vi.mock('@/components/WeightSelector', () => ({
+vi.mock('@/components/features/workout/WeightSelector', () => ({
   WeightSelector: ({ value, onChange }: any) => (
     <input
       type="number"

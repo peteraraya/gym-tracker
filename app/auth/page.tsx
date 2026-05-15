@@ -15,9 +15,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { AppLogo } from "@/components/AppLogo";
+import { AppLogo } from "@/components/layout/AppLogo";
 import { useLocale } from "@/context/LocaleContext";
-import PasswordRequirements from "@/components/PasswordRequirements";
+import PasswordRequirements from "@/components/features/auth/PasswordRequirements";
 
 interface AuthErrorLike {
   message?: string;

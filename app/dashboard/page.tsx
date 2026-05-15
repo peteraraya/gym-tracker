@@ -6,14 +6,14 @@ import { useTranslations } from "@/context/LocaleContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
-import AchievementBadge from "@/components/AchievementBadge";
+import AchievementBadge from "@/components/features/achievements/AchievementBadge";
 import type { UserProfile } from "@/types";
 import { EXERCISE_DATABASE } from "@/data/exercises";
 import {
   calculateAchievements,
   getRecentAchievements,
   calculateStreak,
-} from "@/lib/achievements";
+} from "@/lib/achievements/achievements";
 import {
   calculateTotalVolume,
   calculateTotalSets,
@@ -31,10 +31,10 @@ import {
 } from "@/components/icons/lucide";
 import { useGym } from "@/context/GymContext";
 import { useValidSessions } from "@/hooks/useValidSessions";
-import { LoadingState } from "@/components/LoadingState";
+import { LoadingState } from "@/components/shared/LoadingState";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { StatsGrid, EmptyStateCard } from "@/components/shared";
-import { StatCard } from "@/components/StatsGrid";
+import { StatCard } from "@/components/shared/StatsGrid";
 
 // Lazy loaded components
 import {
@@ -46,7 +46,7 @@ import {
   StrengthProgression,
   ProgressDashboard,
 } from "./components.lazy";
-import { LazyErrorBoundary } from "@/components/LazyErrorBoundary";
+import { LazyErrorBoundary } from "@/components/shared/LazyErrorBoundary";
 import logger from "@/lib/logger";
 
 export default function DashboardPage() {
@@ -91,7 +91,7 @@ export default function DashboardPage() {
       if (shouldUseLocalStorage()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== "undefined") {
-          const { getProfileLocally } = await import("@/lib/localProfile");
+          const { getProfileLocally } = await import("@/lib/user/localProfile");
           const localProfile = getProfileLocally();
 
           if (localProfile) {

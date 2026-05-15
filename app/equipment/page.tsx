@@ -5,7 +5,7 @@ import { EQUIPMENT_LIST, EQUIPMENT_CATEGORIES, Equipment } from '@/data/equipmen
 import { useEquipment } from '@/context/EquipmentContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
 import { 
   StatBadge,

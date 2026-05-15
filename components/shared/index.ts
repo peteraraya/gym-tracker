@@ -1,22 +1,24 @@
-// Componentes compartidos y reutilizables
+/**
+ * Barrel de componentes compartidos.
+ * Importa desde aquí para acceder a cualquier componente reutilizable sin
+ * preocuparte de su ubicación física dentro de components/.
+ */
 
-// Fase 1: Componentes Básicos
-export { RoutineCard } from '../RoutineCard';
-export { StatBadge } from '../StatBadge';
-export { EmptyStateCard } from '../EmptyStateCard';
-export { ActionButton } from '../ActionButton';
+// ─── Componentes base (en shared/) ─────────────────────────────────────────
+export { StatBadge } from './StatBadge';
+export { EmptyStateCard } from './EmptyStateCard';
+export { ActionButton } from './ActionButton';
+export { SearchInput } from './SearchInput';
+export { LoadingSpinner, InlineSpinner } from './LoadingSpinner';
+export { FilterBar, SearchBar, FilterButtons } from './FilterBar';
+export { PageSection, PageSectionCard } from './PageSection';
+export { GridLayout, CardGrid, StatsGrid } from './GridLayout';
 
-// Fase 2: Componentes de Lista
-export { ExerciseListItem } from '../ExerciseListItem';
-export { SessionCard } from '../SessionCard';
-export { AchievementCard } from '../AchievementCard';
+// ─── Componentes de dominio (re-exports para facilitar imports) ────────────
+export { RoutineCard } from '../features/routines/RoutineCard';
+export { ExerciseListItem } from '../features/exercises/ExerciseListItem';
+export { SessionCard } from '../features/sessions/SessionCard';
+export { AchievementCard } from '../features/achievements/AchievementCard';
 
-// Fase 3: Componentes de UI
-export { SearchInput } from '../SearchInput';
-export { LoadingSpinner, InlineSpinner } from '../LoadingSpinner';
-export { FilterBar, SearchBar, FilterButtons } from '../FilterBar';
-export { PageSection, PageSectionCard } from '../PageSection';
-export { GridLayout, CardGrid, StatsGrid } from '../GridLayout';
-
-// Re-export tipos
-export type { FilterOption } from '../FilterBar';
+// ─── Tipos ─────────────────────────────────────────────────────────────────
+export type { FilterOption } from './FilterBar';

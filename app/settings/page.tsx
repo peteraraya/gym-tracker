@@ -1,12 +1,12 @@
 'use client';
 
 import { Settings } from '@/components/icons/lucide';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { ThemeSettings } from '@/components/ThemeSettings';
-import { SoundSettingsContent } from '@/components/SoundSettings';
-import { PushNotificationTester } from '@/components/PushNotificationTester';
-import { DevTools } from '@/components/DevTools';
-import { PageLayout } from '@/components/PageLayout';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import { ThemeSettings } from '@/components/features/settings/ThemeSettings';
+import { SoundSettingsContent } from '@/components/features/settings/SoundSettings';
+import { PushNotificationTester } from '@/components/shared/PushNotificationTester';
+import { DevTools } from '@/components/shared/DevTools';
+import { PageLayout } from '@/components/layout/PageLayout';
 
 export default function SettingsPage() {
   return (

@@ -14,10 +14,10 @@ import { useToast } from "@/context/NotificationContext";
 import { useConfirm } from "@/context/NotificationContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { getExerciseByName } from "@/data/exercises";
-import { getRoutineStats } from "@/lib/routineEstimation";
-import { getExerciseRecommendations } from "@/lib/exerciseRecommendations";
+import { getRoutineStats } from "@/lib/routines/routineEstimation";
+import { getExerciseRecommendations } from "@/lib/exercises/exerciseRecommendations";
 import logger from "@/lib/logger";
-import { getRecommendedWeight } from '@/lib/routineGenerator';
+import { getRecommendedWeight } from '@/lib/routines/routineGenerator';
 import { useEquipment } from '@/context/EquipmentContext';
 import * as storageService from "@/lib/storage/storage";
 
@@ -217,7 +217,7 @@ export function useRoutineForm(
 
         if (isLocalStorageMode()) {
           if (typeof window !== "undefined") {
-            const { getProfileLocally } = await import("@/lib/localProfile");
+            const { getProfileLocally } = await import("@/lib/user/localProfile");
             const localProfile = getProfileLocally();
             if (localProfile) {
               logger.log(

@@ -1,6 +1,6 @@
 import { render, screen } from '@/__tests__/helpers/testUtils'
 import { within } from '@testing-library/dom'
-import { SessionFilters } from '@/components/SessionFilters'
+import { SessionFilters } from '@/components/features/sessions/SessionFilters'
 import userEvent from '@testing-library/user-event'
 import { createMockSession, createMockRoutine } from '@/__tests__/helpers/mockData'
 

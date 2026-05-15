@@ -7,20 +7,20 @@ import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
-import { Timer } from "@/components/Timer";
-import { SetTimer } from "@/components/SetTimer";
-import { PreparationCountdown } from "@/components/PreparationCountdown";
-import SetTypeSelector, { SetTypeBadge } from "@/components/SetTypeSelector";
-import { WeightSelector } from "@/components/WeightSelector";
+import { Timer } from "@/components/features/workout/Timer";
+import { SetTimer } from "@/components/features/workout/SetTimer";
+import { PreparationCountdown } from "@/components/features/workout/PreparationCountdown";
+import SetTypeSelector, { SetTypeBadge } from "@/components/features/workout/SetTypeSelector";
+import { WeightSelector } from "@/components/features/workout/WeightSelector";
 import { Input } from "@/components/ui/Input";
-import { RestTimeSelector } from "@/components/RestTimeSelector";
-import { ExerciseSelector } from "@/components/ExerciseSelector";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { calculateRestBetweenSets, formatRestTime } from "@/lib/restCalculator";
-import { generateRoutine } from "@/lib/routineGenerator";
-import { getRoutineStats } from "@/lib/routineEstimation";
+import { RestTimeSelector } from "@/components/features/workout/RestTimeSelector";
+import { ExerciseSelector } from "@/components/features/exercises/ExerciseSelector";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { calculateRestBetweenSets, formatRestTime } from "@/lib/workout/restCalculator";
+import { generateRoutine } from "@/lib/routines/routineGenerator";
+import { getRoutineStats } from "@/lib/routines/routineEstimation";
 import { EXERCISE_DATABASE, ExerciseTemplate } from "@/data/exercises";
-import { getExerciseRecommendations } from "@/lib/exerciseRecommendations";
+import { getExerciseRecommendations } from "@/lib/exercises/exerciseRecommendations";
 import type { UserProfile } from "@/types";
 import {
   Plus,
@@ -109,7 +109,7 @@ export default function FreeWorkoutPage() {
         if (isLocalStorageMode()) {
           // Modo LOCAL: Cargar desde localStorage
           if (typeof window !== "undefined") {
-            const { getProfileLocally } = await import("@/lib/localProfile");
+            const { getProfileLocally } = await import("@/lib/user/localProfile");
             const localProfile = getProfileLocally();
 
             if (localProfile) {

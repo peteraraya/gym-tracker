@@ -10,11 +10,11 @@ import { useWorkout } from "@/context/WorkoutContext";
 import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { RoutineForm } from "@/components/RoutineForm";
-import RoutineWizard from "@/components/RoutineWizard";
-import WeeklyPlanner from "@/components/WeeklyPlanner";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { generateRoutine } from "@/lib/routineGenerator";
+import { RoutineForm } from "@/components/features/routines/RoutineForm";
+import RoutineWizard from "@/components/features/routines/RoutineWizard";
+import WeeklyPlanner from "@/components/features/planning/WeeklyPlanner";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { generateRoutine } from "@/lib/routines/routineGenerator";
 import {
   Plus,
   ClipboardList,

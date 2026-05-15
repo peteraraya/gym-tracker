@@ -42,7 +42,7 @@ jest.mock('@/context/GymContext', () => ({
   }),
 }))
 
-jest.mock('@/components/ProtectedRoute', () => {
+jest.mock('@/components/layout/ProtectedRoute', () => {
   return function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <>{children}</>
   }

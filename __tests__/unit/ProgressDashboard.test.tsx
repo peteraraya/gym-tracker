@@ -1,5 +1,5 @@
 import { render, screen } from '@/__tests__/helpers/testUtils'
-import { ProgressDashboard } from '@/components/ProgressDashboard'
+import { ProgressDashboard } from '@/components/features/progress/ProgressDashboard'
 import { createMultipleSessions } from '@/__tests__/helpers/mockData'
 
 describe('ProgressDashboard Component - Unit Tests', () => {

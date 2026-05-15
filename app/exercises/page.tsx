@@ -16,15 +16,15 @@ import {
 } from "@/data/warmupExercises";
 import { useToast } from "@/context/NotificationContext";
 import { EQUIPMENT_LIST } from "@/data/equipment";
-import { ExerciseDetails } from "@/components/ExerciseDetails";
-import { ExerciseIcon } from "@/components/ExerciseIcon";
+import { ExerciseDetails } from "@/components/features/exercises/ExerciseDetails";
+import { ExerciseIcon } from "@/components/features/exercises/ExerciseIcon";
 import { MuscleGroupIcon } from "@/components/icons/MuscleGroupIcons";
 import { useEquipment } from "@/context/EquipmentContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { Button } from "@/components/ui/Button";
 import { APP_CONFIG } from "@/config/app.config";
 import { useFilteredData } from "@/hooks/useFilteredData";
-import { VirtualList } from "@/components/VirtualList";
+import { VirtualList } from "@/components/shared/VirtualList";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
   SearchInput,
