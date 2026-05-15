@@ -1,0 +1,3442 @@
+import type { ExerciseTemplate } from './exercises';
+
+export const BURNFIT_MISSING: ExerciseTemplate[] = [
+  {
+    id: 'back-squat',
+    name: "Back Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'back-squat.gif'
+  },
+  {
+    id: 'conventional-deadlift',
+    name: "Conventional Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'conventional-deadlift.gif'
+  },
+  {
+    id: 'barbell-bench-press',
+    name: "Barbell Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-bench-press.gif'
+  },
+  {
+    id: 'barbell-incline-bench-press',
+    name: "Barbell Incline Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-incline-bench-press.gif'
+  },
+  {
+    id: 'dumbbell-fly',
+    name: "Dumbbell Fly",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-fly.gif'
+  },
+  {
+    id: 'lat-pull-down',
+    name: "Lat Pull Down",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lat-pull-down.gif'
+  },
+  {
+    id: 'dumbbell-shoulder-press',
+    name: "Dumbbell Shoulder Press",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-shoulder-press.gif'
+  },
+  {
+    id: 'dumbbell-lateral-raise',
+    name: "Dumbbell Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-lateral-raise.gif'
+  },
+  {
+    id: 'dumbbell-front-raise',
+    name: "Dumbbell Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-front-raise.gif'
+  },
+  {
+    id: 'dumbbell-shrug',
+    name: "Dumbbell Shrug",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-shrug.gif'
+  },
+  {
+    id: 'barbell-bicep-curl',
+    name: "Barbell Bicep Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-bicep-curl.gif'
+  },
+  {
+    id: 'dumbbell-bicep-curl',
+    name: "Dumbbell Bicep Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-bicep-curl.gif'
+  },
+  {
+    id: 'dumbbell-tricep-extension',
+    name: "Dumbbell Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-tricep-extension.gif'
+  },
+  {
+    id: 'dumbbell-kickback',
+    name: "Dumbbell Kickback",
+    muscleGroup: 'gluteos',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-kickback.gif'
+  },
+  {
+    id: 'dumbbell-wrist-curl',
+    name: "Dumbbell Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-wrist-curl.gif'
+  },
+  {
+    id: 'clean',
+    name: "Clean",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'clean.gif'
+  },
+  {
+    id: 'clean-jerk',
+    name: "Clean & Jerk",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'clean-jerk.gif'
+  },
+  {
+    id: 'jerk',
+    name: "Jerk",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'jerk.gif'
+  },
+  {
+    id: 'snatch',
+    name: "Snatch",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'snatch.gif'
+  },
+  {
+    id: 'barbell-overhead-squat',
+    name: "Barbell Overhead Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-overhead-squat.gif'
+  },
+  {
+    id: 'sit-up',
+    name: "Sit Up",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'sit-up.gif'
+  },
+  {
+    id: 'leg-raise',
+    name: "Leg Raise",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'leg-raise.gif'
+  },
+  {
+    id: 'burpee',
+    name: "Burpee",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+    defaultSets: 1,
+    defaultReps: 1,
+    image: 'burpee.gif'
+  },
+  {
+    id: 'thruster',
+    name: "Thruster",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'thruster.gif'
+  },
+  {
+    id: 'bentover-dumbbell-lateral-raise',
+    name: "Bentover Dumbbell Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bentover-dumbbell-lateral-raise.gif'
+  },
+  {
+    id: 'handstand-push-ups',
+    name: "Handstand Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'handstand-push-ups.gif'
+  },
+  {
+    id: 'air-squat',
+    name: "Air Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'air-squat.gif'
+  },
+  {
+    id: 'treadmill',
+    name: "Treadmill",
+    muscleGroup: 'cardio',
+    equipment: "Trotadora",
+    defaultSets: 1,
+    defaultReps: 1,
+    image: 'treadmill.gif'
+  },
+  {
+    id: 'cycle',
+    name: "Cycle",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+    defaultSets: 1,
+    defaultReps: 1,
+    image: 'cycle.gif'
+  },
+  {
+    id: 'jump-squat',
+    name: "Jump Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'jump-squat.gif'
+  },
+  {
+    id: 'weighted-pull-up',
+    name: "Weighted Pull Up",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-pull-up.gif'
+  },
+  {
+    id: 'hindu-push-ups',
+    name: "Hindu Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'hindu-push-ups.gif'
+  },
+  {
+    id: 'handstand',
+    name: "Handstand",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'handstand.gif'
+  },
+  {
+    id: 'v-up',
+    name: "V Up",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'v-up.gif'
+  },
+  {
+    id: 'pull-up',
+    name: "Pull Up",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'pull-up.gif'
+  },
+  {
+    id: 'seated-row-machine',
+    name: "Seated Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-row-machine.gif'
+  },
+  {
+    id: 'weighted-dips',
+    name: "Weighted Dips",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-dips.gif'
+  },
+  {
+    id: 'archer-push-ups',
+    name: "Archer Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'archer-push-ups.gif'
+  },
+  {
+    id: 'dips',
+    name: "Dips",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dips.gif'
+  },
+  {
+    id: 'mountain-climber',
+    name: "Mountain Climber",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'mountain-climber.gif'
+  },
+  {
+    id: 'weighted-step-up',
+    name: "Weighted Step Up",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-step-up.gif'
+  },
+  {
+    id: 'lunge',
+    name: "Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lunge.gif'
+  },
+  {
+    id: 'chin-up',
+    name: "Chin Up",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'chin-up.gif'
+  },
+  {
+    id: 'cable-push-down',
+    name: "Cable Push Down",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-push-down.gif'
+  },
+  {
+    id: 'step-up',
+    name: "Step Up",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'step-up.gif'
+  },
+  {
+    id: 'zercher-squat',
+    name: "Zercher Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'zercher-squat.gif'
+  },
+  {
+    id: 'hip-adduction-machine',
+    name: "Hip Adduction Machine",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'hip-adduction-machine.gif'
+  },
+  {
+    id: 'standing-calf-raise',
+    name: "Standing Calf Raise",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'standing-calf-raise.gif'
+  },
+  {
+    id: 'good-morning',
+    name: "Good Morning",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'good-morning.gif'
+  },
+  {
+    id: 'barbell-bulgarian-split-squat',
+    name: "Barbell Bulgarian Split Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-bulgarian-split-squat.gif'
+  },
+  {
+    id: 'dumbbell-bulgarian-split-squat',
+    name: "Dumbbell Bulgarian Split Squat",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-bulgarian-split-squat.gif'
+  },
+  {
+    id: 'dumbbell-split-squat',
+    name: "Dumbbell Split Squat",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-split-squat.gif'
+  },
+  {
+    id: 'bodyweight-split-squat',
+    name: "Bodyweight Split Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'bodyweight-split-squat.gif'
+  },
+  {
+    id: 'dumbbell-goblet-squat',
+    name: "Dumbbell Goblet Squat",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-goblet-squat.gif'
+  },
+  {
+    id: 'kettlebell-goblet-squat',
+    name: "Kettlebell Goblet Squat",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'kettlebell-goblet-squat.gif'
+  },
+  {
+    id: 'dumbbell-lunge',
+    name: "Dumbbell Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-lunge.gif'
+  },
+  {
+    id: 'barbell-hip-thrust',
+    name: "Barbell Hip Thrust",
+    muscleGroup: 'gluteos',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-hip-thrust.gif'
+  },
+  {
+    id: 'incline-dumbbell-fly',
+    name: "Incline Dumbbell Fly",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'incline-dumbbell-fly.gif'
+  },
+  {
+    id: 'weighted-push-ups',
+    name: "Weighted Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-push-ups.gif'
+  },
+  {
+    id: 'close-grip-push-ups',
+    name: "Close Grip Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'close-grip-push-ups.gif'
+  },
+  {
+    id: 'incline-dumbbell-bench-press',
+    name: "Incline Dumbbell Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'incline-dumbbell-bench-press.gif'
+  },
+  {
+    id: 'pec-deck-fly-machine',
+    name: "Pec Deck Fly Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'pec-deck-fly-machine.gif'
+  },
+  {
+    id: 'incline-bench-press-machine',
+    name: "Incline Bench Press Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'incline-bench-press-machine.gif'
+  },
+  {
+    id: 'weighted-chin-up',
+    name: "Weighted Chin Up",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-chin-up.gif'
+  },
+  {
+    id: 'barbell-incline-row',
+    name: "Barbell Incline Row",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-incline-row.gif'
+  },
+  {
+    id: 'dumbbell-incline-row',
+    name: "Dumbbell Incline Row",
+    muscleGroup: 'espalda',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-incline-row.gif'
+  },
+  {
+    id: 'one-arm-dumbbell-row',
+    name: "One Arm Dumbbell Row",
+    muscleGroup: 'espalda',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-dumbbell-row.gif'
+  },
+  {
+    id: 'barbell-pullover',
+    name: "Barbell Pullover",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-pullover.gif'
+  },
+  {
+    id: 'weight-hyperextension',
+    name: "Weight Hyperextension",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weight-hyperextension.gif'
+  },
+  {
+    id: 'back-extension',
+    name: "Back Extension",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'back-extension.gif'
+  },
+  {
+    id: 'arnold-dumbbell-press',
+    name: "Arnold Dumbbell Press",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'arnold-dumbbell-press.gif'
+  },
+  {
+    id: 'shoulder-press-machine',
+    name: "Shoulder Press Machine",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'shoulder-press-machine.gif'
+  },
+  {
+    id: 'barbell-shrug',
+    name: "Barbell Shrug",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-shrug.gif'
+  },
+  {
+    id: 'face-pull',
+    name: "Face Pull",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'face-pull.gif'
+  },
+  {
+    id: 'cable-reverse-fly',
+    name: "Cable Reverse Fly",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-reverse-fly.gif'
+  },
+  {
+    id: 'barbell-upright-row',
+    name: "Barbell Upright Row",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-upright-row.gif'
+  },
+  {
+    id: 'dumbbell-upright-row',
+    name: "Dumbbell Upright Row",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-upright-row.gif'
+  },
+  {
+    id: 'ez-bar-upright-row',
+    name: "Ez Bar Upright Row",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-upright-row.gif'
+  },
+  {
+    id: 'dumbbell-hammer-curl',
+    name: "Dumbbell Hammer Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-hammer-curl.gif'
+  },
+  {
+    id: 'close-grip-bench-press',
+    name: "Close Grip Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'close-grip-bench-press.gif'
+  },
+  {
+    id: 'seated-dumbbell-tricep-extension',
+    name: "Seated Dumbbell Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-dumbbell-tricep-extension.gif'
+  },
+  {
+    id: 'cable-tricep-extension',
+    name: "Cable Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-tricep-extension.gif'
+  },
+  {
+    id: 'ez-bar-wrist-curl',
+    name: "Ez Bar Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-wrist-curl.gif'
+  },
+  {
+    id: 'skull-crusher',
+    name: "Skull Crusher",
+    muscleGroup: 'triceps',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'skull-crusher.gif'
+  },
+  {
+    id: 'lying-tricep-extension',
+    name: "Lying Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lying-tricep-extension.gif'
+  },
+  {
+    id: 'crunch',
+    name: "Crunch",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'crunch.gif'
+  },
+  {
+    id: 'heel-touch',
+    name: "Heel Touch",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'heel-touch.gif'
+  },
+  {
+    id: 'hollow-rock',
+    name: "Hollow Rock",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'hollow-rock.gif'
+  },
+  {
+    id: 'hollow-position',
+    name: "Hollow Position",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'hollow-position.gif'
+  },
+  {
+    id: 'dumbbell-side-bend',
+    name: "Dumbbell Side Bend",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-side-bend.gif'
+  },
+  {
+    id: 'abs-roll-out',
+    name: "Abs Roll Out",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'abs-roll-out.gif'
+  },
+  {
+    id: 'air-bicycle-abs',
+    name: "Air Bicycle Abs",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'air-bicycle-abs.gif'
+  },
+  {
+    id: 'toes-to-bar',
+    name: "Toes To Bar",
+    muscleGroup: 'core',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'toes-to-bar.gif'
+  },
+  {
+    id: 'push-press',
+    name: "Push Press",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'push-press.gif'
+  },
+  {
+    id: 'wallball-shot',
+    name: "Wallball Shot",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'wallball-shot.gif'
+  },
+  {
+    id: 'box-jump',
+    name: "Box Jump",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'box-jump.gif'
+  },
+  {
+    id: 'jumping-jack',
+    name: "Jumping Jack",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'jumping-jack.gif'
+  },
+  {
+    id: 'v-squat',
+    name: "V Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'v-squat.gif'
+  },
+  {
+    id: 'reverse-v-squat',
+    name: "Reverse V Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'reverse-v-squat.gif'
+  },
+  {
+    id: 't-bar-row-machine',
+    name: "T Bar Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 't-bar-row-machine.gif'
+  },
+  {
+    id: 'dumbbell-preacher-curl',
+    name: "Dumbbell Preacher Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-preacher-curl.gif'
+  },
+  {
+    id: 'barbell-preacher-curl',
+    name: "Barbell Preacher Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-preacher-curl.gif'
+  },
+  {
+    id: 'ez-bar-preacher-curl',
+    name: "Ez Bar Preacher Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-preacher-curl.gif'
+  },
+  {
+    id: 'preacher-curl-machine',
+    name: "Preacher Curl Machine",
+    muscleGroup: 'biceps',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'preacher-curl-machine.gif'
+  },
+  {
+    id: 'reverse-pec-deck-fly-machine',
+    name: "Reverse Pec Deck Fly Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'reverse-pec-deck-fly-machine.gif'
+  },
+  {
+    id: 'hip-abduction-machine',
+    name: "Hip Abduction Machine",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'hip-abduction-machine.gif'
+  },
+  {
+    id: 'smith-machine-overhead-press',
+    name: "Smith Machine Overhead Press",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-overhead-press.gif'
+  },
+  {
+    id: 'glute-kickback-machine',
+    name: "Glute Kickback Machine",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'glute-kickback-machine.gif'
+  },
+  {
+    id: 'kettlebell-snatch',
+    name: "Kettlebell Snatch",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'kettlebell-snatch.gif'
+  },
+  {
+    id: 'bar-muscle-up',
+    name: "Bar Muscle Up",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bar-muscle-up.gif'
+  },
+  {
+    id: 'seated-dips-machine',
+    name: "Seated Dips Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-dips-machine.gif'
+  },
+  {
+    id: 'arm-curl-machine',
+    name: "Arm Curl Machine",
+    muscleGroup: 'biceps',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'arm-curl-machine.gif'
+  },
+  {
+    id: 'high-knee-skip',
+    name: "High Knee Skip",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'high-knee-skip.gif'
+  },
+  {
+    id: 'smith-machine-squat',
+    name: "Smith Machine Squat",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-squat.gif'
+  },
+  {
+    id: 'hack-squat-machine',
+    name: "Hack Squat Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'hack-squat-machine.gif'
+  },
+  {
+    id: 'mag-grip-lat-pulldown',
+    name: "Mag Grip Lat Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'mag-grip-lat-pulldown.gif'
+  },
+  {
+    id: 'abdominal-crunch-machine',
+    name: "Abdominal Crunch Machine",
+    muscleGroup: 'core',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'abdominal-crunch-machine.gif'
+  },
+  {
+    id: 'paused-back-squat',
+    name: "Paused Back Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'paused-back-squat.gif'
+  },
+  {
+    id: 'smith-machine-split-squat',
+    name: "Smith Machine Split Squat",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-split-squat.gif'
+  },
+  {
+    id: 'smith-machine-row',
+    name: "Smith Machine Row",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'smith-machine-row.gif'
+  },
+  {
+    id: 'low-pulley-cable-fly',
+    name: "Low Pulley Cable Fly",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'low-pulley-cable-fly.gif'
+  },
+  {
+    id: 'cable-straight-arm-pulldown',
+    name: "Cable Straight Arm Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-straight-arm-pulldown.gif'
+  },
+  {
+    id: 'paused-barbell-row',
+    name: "Paused Barbell Row",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'paused-barbell-row.gif'
+  },
+  {
+    id: 'paused-sumo-deadlift',
+    name: "Paused Sumo Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'paused-sumo-deadlift.gif'
+  },
+  {
+    id: 'lateral-raise-machine',
+    name: "Lateral Raise Machine",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lateral-raise-machine.gif'
+  },
+  {
+    id: 'climbing-stairs',
+    name: "Climbing Stairs",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'climbing-stairs.gif'
+  },
+  {
+    id: 'smith-machine-deadlift',
+    name: "Smith Machine Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-deadlift.gif'
+  },
+  {
+    id: 'paused-deadlift',
+    name: "Paused Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'paused-deadlift.gif'
+  },
+  {
+    id: 'parallel-grip-lat-pulldown',
+    name: "Parallel Grip Lat Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'parallel-grip-lat-pulldown.gif'
+  },
+  {
+    id: 'jumping-rope',
+    name: "Jumping Rope",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'jumping-rope.gif'
+  },
+  {
+    id: 'smith-machine-bench-press',
+    name: "Smith Machine Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-bench-press.gif'
+  },
+  {
+    id: 'cable-hammer-curl',
+    name: "Cable Hammer Curl",
+    muscleGroup: 'biceps',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-hammer-curl.gif'
+  },
+  {
+    id: 'spoto-bench-press',
+    name: "Spoto Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'spoto-bench-press.gif'
+  },
+  {
+    id: 'underhand-lat-pulldown',
+    name: "Underhand Lat Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'underhand-lat-pulldown.gif'
+  },
+  {
+    id: 'smith-machine-shrug',
+    name: "Smith Machine Shrug",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'smith-machine-shrug.gif'
+  },
+  {
+    id: 'trap-bar-deadlift',
+    name: "Trap Bar Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'trap-bar-deadlift.gif'
+  },
+  {
+    id: 'cable-overhead-tricep-extension',
+    name: "Cable Overhead Tricep Extension",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-overhead-tricep-extension.gif'
+  },
+  {
+    id: 'dumbbell-snatch',
+    name: "Dumbbell Snatch",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-snatch.gif'
+  },
+  {
+    id: 'hammer-bench-press',
+    name: "Hammer Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'hammer-bench-press.gif'
+  },
+  {
+    id: 'ring-muscle-up',
+    name: "Ring Muscle Up",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ring-muscle-up.gif'
+  },
+  {
+    id: 'double-under',
+    name: "Double Under",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+    defaultSets: 1,
+    defaultReps: 1,
+    image: 'double-under.gif'
+  },
+  {
+    id: 'seated-calf-raise-machine',
+    name: "Seated Calf Raise Machine",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-calf-raise-machine.gif'
+  },
+  {
+    id: 'smith-machine-incline-bench-press',
+    name: "Smith Machine Incline Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-incline-bench-press.gif'
+  },
+  {
+    id: 'floor-seated-cable-row',
+    name: "Floor Seated Cable Row",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'floor-seated-cable-row.gif'
+  },
+  {
+    id: 'barbell-lunge',
+    name: "Barbell Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-lunge.gif'
+  },
+  {
+    id: 'dumbbell-sumo-squat',
+    name: "Dumbbell Sumo Squat",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-sumo-squat.gif'
+  },
+  {
+    id: 'pike-push-ups',
+    name: "Pike Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'pike-push-ups.gif'
+  },
+  {
+    id: 'assisted-pull-up-machine',
+    name: "Assisted Pull Up Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'assisted-pull-up-machine.gif'
+  },
+  {
+    id: 'barbell-lateral-lunge',
+    name: "Barbell Lateral Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-lateral-lunge.gif'
+  },
+  {
+    id: 'decline-dumbbell-fly',
+    name: "Decline Dumbbell Fly",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'decline-dumbbell-fly.gif'
+  },
+  {
+    id: 'weighted-hanging-knee-raise',
+    name: "Weighted Hanging Knee Raise",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-hanging-knee-raise.gif'
+  },
+  {
+    id: 'assisted-dip-machine',
+    name: "Assisted Dip Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'assisted-dip-machine.gif'
+  },
+  {
+    id: 'barbell-split-squat',
+    name: "Barbell Split Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-split-squat.gif'
+  },
+  {
+    id: 'dumbbell-squat',
+    name: "Dumbbell Squat",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-squat.gif'
+  },
+  {
+    id: 'barbell-box-squat',
+    name: "Barbell Box Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-box-squat.gif'
+  },
+  {
+    id: 'snatch-balance',
+    name: "Snatch Balance",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'snatch-balance.gif'
+  },
+  {
+    id: 'dumbbell-burpee',
+    name: "Dumbbell Burpee",
+    muscleGroup: 'cardio',
+    equipment: "Mancuernas",
+    defaultSets: 1,
+    defaultReps: 1,
+    image: 'dumbbell-burpee.gif'
+  },
+  {
+    id: 'shoulder-tap',
+    name: "Shoulder Tap",
+    muscleGroup: 'hombros',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'shoulder-tap.gif'
+  },
+  {
+    id: 'barbell-floor-chest-press',
+    name: "Barbell Floor Chest Press",
+    muscleGroup: 'pecho',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-floor-chest-press.gif'
+  },
+  {
+    id: 'barbell-standing-calf-raise',
+    name: "Barbell Standing Calf Raise",
+    muscleGroup: 'gemelos',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-standing-calf-raise.gif'
+  },
+  {
+    id: 'dumbbell-leg-curl',
+    name: "Dumbbell Leg Curl",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-leg-curl.gif'
+  },
+  {
+    id: 'barbell-decline-bench-press',
+    name: "Barbell Decline Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-decline-bench-press.gif'
+  },
+  {
+    id: 'battling-ropes',
+    name: "Battling Ropes",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'battling-ropes.gif'
+  },
+  {
+    id: 'dumbbell-thruster',
+    name: "Dumbbell Thruster",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-thruster.gif'
+  },
+  {
+    id: 'ez-bar-front-raise',
+    name: "Ez Bar Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-front-raise.gif'
+  },
+  {
+    id: 'stiff-leg-deadlift',
+    name: "Stiff Leg Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'stiff-leg-deadlift.gif'
+  },
+  {
+    id: 'seated-dumbbell-rear-lateral-raise',
+    name: "Seated Dumbbell Rear Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-dumbbell-rear-lateral-raise.gif'
+  },
+  {
+    id: 'barbell-front-rack-lunge',
+    name: "Barbell Front Rack Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-front-rack-lunge.gif'
+  },
+  {
+    id: 'bodyweight-overhead-squat',
+    name: "Bodyweight Overhead Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'bodyweight-overhead-squat.gif'
+  },
+  {
+    id: 'inchworm',
+    name: "Inchworm",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'inchworm.gif'
+  },
+  {
+    id: 'barbell-front-raise',
+    name: "Barbell Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-front-raise.gif'
+  },
+  {
+    id: 'barbell-hack-squat',
+    name: "Barbell Hack Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-hack-squat.gif'
+  },
+  {
+    id: 'barbell-jump-squat',
+    name: "Barbell Jump Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-jump-squat.gif'
+  },
+  {
+    id: 'clap-push-ups',
+    name: "Clap Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'clap-push-ups.gif'
+  },
+  {
+    id: 'incline-push-ups',
+    name: "Incline Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'incline-push-ups.gif'
+  },
+  {
+    id: 'sumo-deadlift-high-pull',
+    name: "Sumo Deadlift High Pull",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'sumo-deadlift-high-pull.gif'
+  },
+  {
+    id: 'lateral-wide-pull-down',
+    name: "Lateral Wide Pull Down",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lateral-wide-pull-down.gif'
+  },
+  {
+    id: 'clean-high-pull',
+    name: "Clean High Pull",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'clean-high-pull.gif'
+  },
+  {
+    id: 'hang-clean',
+    name: "Hang Clean",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'hang-clean.gif'
+  },
+  {
+    id: 'kettlebell-sumo-high-pull',
+    name: "Kettlebell Sumo High Pull",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'kettlebell-sumo-high-pull.gif'
+  },
+  {
+    id: 'snatch-high-pull',
+    name: "Snatch High Pull",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'snatch-high-pull.gif'
+  },
+  {
+    id: 'hang-snatch',
+    name: "Hang Snatch",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'hang-snatch.gif'
+  },
+  {
+    id: 'bodyweight-calf-raise',
+    name: "Bodyweight Calf Raise",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bodyweight-calf-raise.gif'
+  },
+  {
+    id: 'stepmill-machine',
+    name: "Stepmill Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'stepmill-machine.gif'
+  },
+  {
+    id: 'pistol-box-squat',
+    name: "Pistol Box Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'pistol-box-squat.gif'
+  },
+  {
+    id: 'reverse-crunch',
+    name: "Reverse Crunch",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'reverse-crunch.gif'
+  },
+  {
+    id: 'reverse-barbell-curl',
+    name: "Reverse Barbell Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'reverse-barbell-curl.gif'
+  },
+  {
+    id: 'pilates-jackknife',
+    name: "Pilates Jackknife",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'pilates-jackknife.gif'
+  },
+  {
+    id: 'lying-hip-abduction',
+    name: "Lying Hip Abduction",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lying-hip-abduction.gif'
+  },
+  {
+    id: 'decline-dumbbell-bench-press',
+    name: "Decline Dumbbell Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'decline-dumbbell-bench-press.gif'
+  },
+  {
+    id: 'rkc-plank',
+    name: "Rkc Plank",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'rkc-plank.gif'
+  },
+  {
+    id: 'reverse-barbell-wrist-curl',
+    name: "Reverse Barbell Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'reverse-barbell-wrist-curl.gif'
+  },
+  {
+    id: 'seated-leg-curl',
+    name: "Seated Leg Curl",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-leg-curl.gif'
+  },
+  {
+    id: 'side-lying-clam',
+    name: "Side Lying Clam",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'side-lying-clam.gif'
+  },
+  {
+    id: 'reverse-dumbbell-wrist-curl',
+    name: "Reverse Dumbbell Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'reverse-dumbbell-wrist-curl.gif'
+  },
+  {
+    id: 'decline-chest-press-machine',
+    name: "Decline Chest Press Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'decline-chest-press-machine.gif'
+  },
+  {
+    id: 'single-leg-glute-bridge',
+    name: "Single Leg Glute Bridge",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'single-leg-glute-bridge.gif'
+  },
+  {
+    id: 'dumbbell-romanian-deadlift',
+    name: "Dumbbell Romanian Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-romanian-deadlift.gif'
+  },
+  {
+    id: '45-degree-side-bend',
+    name: "45 Degree Side Bend",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: '45-degree-side-bend.gif'
+  },
+  {
+    id: 'underhand-barbell-row',
+    name: "Underhand Barbell Row",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'underhand-barbell-row.gif'
+  },
+  {
+    id: 'lying-barbell-row',
+    name: "Lying Barbell Row",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lying-barbell-row.gif'
+  },
+  {
+    id: 'incline-dumbbell-twist-press',
+    name: "Incline Dumbbell Twist Press",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'incline-dumbbell-twist-press.gif'
+  },
+  {
+    id: 'standing-cable-fly',
+    name: "Standing Cable Fly",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'standing-cable-fly.gif'
+  },
+  {
+    id: 'bodyweight-single-leg-deadlift',
+    name: "Bodyweight Single Leg Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'bodyweight-single-leg-deadlift.gif'
+  },
+  {
+    id: 'barbell-single-leg-deadlift',
+    name: "Barbell Single Leg Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-single-leg-deadlift.gif'
+  },
+  {
+    id: 'kettlebell-deadlift',
+    name: "Kettlebell Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'kettlebell-deadlift.gif'
+  },
+  {
+    id: 'kettlebell-sumo-deadlift',
+    name: "Kettlebell Sumo Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'kettlebell-sumo-deadlift.gif'
+  },
+  {
+    id: 'dumbbell-sumo-deadlift',
+    name: "Dumbbell Sumo Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-sumo-deadlift.gif'
+  },
+  {
+    id: 'dumbbell-stiff-leg-deadlift',
+    name: "Dumbbell Stiff Leg Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-stiff-leg-deadlift.gif'
+  },
+  {
+    id: 'dumbbell-lateral-lunge',
+    name: "Dumbbell Lateral Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-lateral-lunge.gif'
+  },
+  {
+    id: 'kettlebell-lateral-lunge',
+    name: "Kettlebell Lateral Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'kettlebell-lateral-lunge.gif'
+  },
+  {
+    id: 'bodyweight-lateral-lunge',
+    name: "Bodyweight Lateral Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bodyweight-lateral-lunge.gif'
+  },
+  {
+    id: 'single-leg-leg-extension',
+    name: "Single Leg Leg Extension",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'single-leg-leg-extension.gif'
+  },
+  {
+    id: 'single-leg-leg-curl',
+    name: "Single Leg Leg Curl",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'single-leg-leg-curl.gif'
+  },
+  {
+    id: 'single-leg-leg-press',
+    name: "Single Leg Leg Press",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'single-leg-leg-press.gif'
+  },
+  {
+    id: 'horizontal-leg-press',
+    name: "Horizontal Leg Press",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'horizontal-leg-press.gif'
+  },
+  {
+    id: 'single-leg-horizontal-leg-press',
+    name: "Single Leg Horizontal Leg Press",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'single-leg-horizontal-leg-press.gif'
+  },
+  {
+    id: 'seated-single-leg-leg-curl',
+    name: "Seated Single Leg Leg Curl",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-single-leg-leg-curl.gif'
+  },
+  {
+    id: 'nordic-hamstring-curl',
+    name: "Nordic Hamstring Curl",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'nordic-hamstring-curl.gif'
+  },
+  {
+    id: 'barbell-sumo-squat',
+    name: "Barbell Sumo Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-sumo-squat.gif'
+  },
+  {
+    id: 'kettlebell-sumo-squat',
+    name: "Kettlebell Sumo Squat",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'kettlebell-sumo-squat.gif'
+  },
+  {
+    id: 'sumo-air-squat',
+    name: "Sumo Air Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'sumo-air-squat.gif'
+  },
+  {
+    id: 'pistol-squat',
+    name: "Pistol Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'pistol-squat.gif'
+  },
+  {
+    id: 'seated-barbell-shoulder-press',
+    name: "Seated Barbell Shoulder Press",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'seated-barbell-shoulder-press.gif'
+  },
+  {
+    id: 'seated-dumbbell-shoulder-press',
+    name: "Seated Dumbbell Shoulder Press",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'seated-dumbbell-shoulder-press.gif'
+  },
+  {
+    id: 'plate-shoulder-press',
+    name: "Plate Shoulder Press",
+    muscleGroup: 'hombros',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'plate-shoulder-press.gif'
+  },
+  {
+    id: 'tricep-extension-machine',
+    name: "Tricep Extension Machine",
+    muscleGroup: 'triceps',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'tricep-extension-machine.gif'
+  },
+  {
+    id: 'behind-neck-pulldown',
+    name: "Behind Neck Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'behind-neck-pulldown.gif'
+  },
+  {
+    id: 'one-arm-cable-pulldown',
+    name: "One Arm Cable Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-cable-pulldown.gif'
+  },
+  {
+    id: 'one-arm-lateral-wide-pulldown',
+    name: "One Arm Lateral Wide Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-lateral-wide-pulldown.gif'
+  },
+  {
+    id: 'y-raise',
+    name: "Y Raise",
+    muscleGroup: 'hombros',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'y-raise.gif'
+  },
+  {
+    id: 'low-row-machine',
+    name: "Low Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'low-row-machine.gif'
+  },
+  {
+    id: 'one-arm-low-row-machine',
+    name: "One Arm Low Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-low-row-machine.gif'
+  },
+  {
+    id: 'high-row-machine',
+    name: "High Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'high-row-machine.gif'
+  },
+  {
+    id: 'underhand-high-row-machine',
+    name: "Underhand High Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'underhand-high-row-machine.gif'
+  },
+  {
+    id: 'one-arm-high-row-machine',
+    name: "One Arm High Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-high-row-machine.gif'
+  },
+  {
+    id: 'shrug-machine',
+    name: "Shrug Machine",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'shrug-machine.gif'
+  },
+  {
+    id: 'cable-shrug',
+    name: "Cable Shrug",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-shrug.gif'
+  },
+  {
+    id: 'donkey-kick',
+    name: "Donkey Kick",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'donkey-kick.gif'
+  },
+  {
+    id: 'cable-donkey-kick',
+    name: "Cable Donkey Kick",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-donkey-kick.gif'
+  },
+  {
+    id: 'cable-side-bend',
+    name: "Cable Side Bend",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-side-bend.gif'
+  },
+  {
+    id: 'weighted-decline-crunch',
+    name: "Weighted Decline Crunch",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-decline-crunch.gif'
+  },
+  {
+    id: 'decline-reverse-crunch',
+    name: "Decline Reverse Crunch",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'decline-reverse-crunch.gif'
+  },
+  {
+    id: 'decline-sit-up',
+    name: "Decline Sit Up",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'decline-sit-up.gif'
+  },
+  {
+    id: 'weighted-decline-sit-up',
+    name: "Weighted Decline Sit Up",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-decline-sit-up.gif'
+  },
+  {
+    id: 'side-crunch',
+    name: "Side Crunch",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'side-crunch.gif'
+  },
+  {
+    id: 'deficit-deadlift',
+    name: "Deficit Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'deficit-deadlift.gif'
+  },
+  {
+    id: 'turkish-get-up',
+    name: "Turkish Get Up",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'turkish-get-up.gif'
+  },
+  {
+    id: 'lunge-twist',
+    name: "Lunge Twist",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lunge-twist.gif'
+  },
+  {
+    id: 'kettlebell-lunge-twist',
+    name: "Kettlebell Lunge Twist",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'kettlebell-lunge-twist.gif'
+  },
+  {
+    id: 'incline-chest-press-machine',
+    name: "Incline Chest Press Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'incline-chest-press-machine.gif'
+  },
+  {
+    id: 'cable-twist',
+    name: "Cable Twist",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-twist.gif'
+  },
+  {
+    id: 'elliptical-machine',
+    name: "Elliptical Machine",
+    muscleGroup: 'cardio',
+    equipment: "Máquina",
+    defaultSets: 1,
+    defaultReps: 1,
+    image: 'elliptical-machine.gif'
+  },
+  {
+    id: 'cable-internal-rotation',
+    name: "Cable Internal Rotation",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-internal-rotation.gif'
+  },
+  {
+    id: 'cable-external-rotation',
+    name: "Cable External Rotation",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-external-rotation.gif'
+  },
+  {
+    id: 'one-arm-cable-lateral-raise',
+    name: "One Arm Cable Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-cable-lateral-raise.gif'
+  },
+  {
+    id: 'one-arm-cable-seated-row',
+    name: "One Arm Cable Seated Row",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-cable-seated-row.gif'
+  },
+  {
+    id: 'dumbbell-squeeze-press',
+    name: "Dumbbell Squeeze Press",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-squeeze-press.gif'
+  },
+  {
+    id: 'one-arm-landmine-press',
+    name: "One Arm Landmine Press",
+    muscleGroup: 'hombros',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'one-arm-landmine-press.gif'
+  },
+  {
+    id: 'monster-glute-machine',
+    name: "Monster Glute Machine",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'monster-glute-machine.gif'
+  },
+  {
+    id: 'abdominal-hip-thrust',
+    name: "Abdominal Hip Thrust",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'abdominal-hip-thrust.gif'
+  },
+  {
+    id: 'weighted-abdominal-hip-thrust',
+    name: "Weighted Abdominal Hip Thrust",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'weighted-abdominal-hip-thrust.gif'
+  },
+  {
+    id: 'walking',
+    name: "Walking",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'walking.gif'
+  },
+  {
+    id: 'running',
+    name: "Running",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'running.gif'
+  },
+  {
+    id: 'bentover-cable-lateral-raise',
+    name: "Bentover Cable Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bentover-cable-lateral-raise.gif'
+  },
+  {
+    id: 'one-arm-dumbbell-lateral-raise',
+    name: "One Arm Dumbbell Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-dumbbell-lateral-raise.gif'
+  },
+  {
+    id: 'hand-gripper-exercise',
+    name: "Hand Gripper Exercise",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'hand-gripper-exercise.gif'
+  },
+  {
+    id: 'torso-rotation-machine',
+    name: "Torso Rotation Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'torso-rotation-machine.gif'
+  },
+  {
+    id: 'rack-pull',
+    name: "Rack Pull",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'rack-pull.gif'
+  },
+  {
+    id: 'smith-machine-rack-pull',
+    name: "Smith Machine Rack Pull",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'smith-machine-rack-pull.gif'
+  },
+  {
+    id: 'standing-multi-flight-machine',
+    name: "Standing Multi Flight Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'standing-multi-flight-machine.gif'
+  },
+  {
+    id: 'dumbbell-incline-rear-lateral-raise',
+    name: "Dumbbell Incline Rear Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-incline-rear-lateral-raise.gif'
+  },
+  {
+    id: 'kettlebell-shoulder-press',
+    name: "Kettlebell Shoulder Press",
+    muscleGroup: 'hombros',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'kettlebell-shoulder-press.gif'
+  },
+  {
+    id: 'one-arm-kettlebell-shoulder-press',
+    name: "One Arm Kettlebell Shoulder Press",
+    muscleGroup: 'hombros',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'one-arm-kettlebell-shoulder-press.gif'
+  },
+  {
+    id: 'one-arm-dumbbell-incline-lateral-raise',
+    name: "One Arm Dumbbell Incline Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-dumbbell-incline-lateral-raise.gif'
+  },
+  {
+    id: 'incline-dumbbell-shoulder-press',
+    name: "Incline Dumbbell Shoulder Press",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'incline-dumbbell-shoulder-press.gif'
+  },
+  {
+    id: 'pendulum-squat-machine',
+    name: "Pendulum Squat Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'pendulum-squat-machine.gif'
+  },
+  {
+    id: 'bentover-lateral-raise-machine',
+    name: "Bentover Lateral Raise Machine",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bentover-lateral-raise-machine.gif'
+  },
+  {
+    id: 'cable-rope-push-down',
+    name: "Cable Rope Push Down",
+    muscleGroup: 'piernas',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-rope-push-down.gif'
+  },
+  {
+    id: 'linear-hack-squat-machine',
+    name: "Linear Hack Squat Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'linear-hack-squat-machine.gif'
+  },
+  {
+    id: 'standing-shoulder-press-machine',
+    name: "Standing Shoulder Press Machine",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'standing-shoulder-press-machine.gif'
+  },
+  {
+    id: 'dumbbell-standing-calf-raise',
+    name: "Dumbbell Standing Calf Raise",
+    muscleGroup: 'gemelos',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-standing-calf-raise.gif'
+  },
+  {
+    id: 'middle-row-machine',
+    name: "Middle Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'middle-row-machine.gif'
+  },
+  {
+    id: 'seated-knee-up',
+    name: "Seated Knee Up",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-knee-up.gif'
+  },
+  {
+    id: 'side-lying-rear-delt-raise',
+    name: "Side Lying Rear Delt Raise",
+    muscleGroup: 'hombros',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'side-lying-rear-delt-raise.gif'
+  },
+  {
+    id: 'side-lying-lateral-raise',
+    name: "Side Lying Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'side-lying-lateral-raise.gif'
+  },
+  {
+    id: 'back-extension-machine',
+    name: "Back Extension Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'back-extension-machine.gif'
+  },
+  {
+    id: 'barbell-backward-lunge',
+    name: "Barbell Backward Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-backward-lunge.gif'
+  },
+  {
+    id: 'kettlebell-backward-lunge',
+    name: "Kettlebell Backward Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'kettlebell-backward-lunge.gif'
+  },
+  {
+    id: 'bodyweight-backwar-lunge',
+    name: "Bodyweight Backwar Lunge",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bodyweight-backwar-lunge.gif'
+  },
+  {
+    id: 'bench-press-machine',
+    name: "Bench Press Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'bench-press-machine.gif'
+  },
+  {
+    id: 'barbell-jm-press',
+    name: "Barbell Jm Press",
+    muscleGroup: 'triceps',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'barbell-jm-press.gif'
+  },
+  {
+    id: 'smith-machine-jm-press',
+    name: "Smith Machine Jm Press",
+    muscleGroup: 'triceps',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-jm-press.gif'
+  },
+  {
+    id: 'standing-hamstring-curl-machine',
+    name: "Standing Hamstring Curl Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'standing-hamstring-curl-machine.gif'
+  },
+  {
+    id: 'glute-ham-raise',
+    name: "Glute Ham Raise",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'glute-ham-raise.gif'
+  },
+  {
+    id: 'incline-barbell-front-raise',
+    name: "Incline Barbell Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'incline-barbell-front-raise.gif'
+  },
+  {
+    id: 'incline-ez-bar-front-raise',
+    name: "Incline Ez Bar Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'incline-ez-bar-front-raise.gif'
+  },
+  {
+    id: 'incline-dumbbell-front-raise',
+    name: "Incline Dumbbell Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'incline-dumbbell-front-raise.gif'
+  },
+  {
+    id: 'barbell-incline-front-raise',
+    name: "Barbell Incline Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-incline-front-raise.gif'
+  },
+  {
+    id: 'ez-bar-incline-front-raise',
+    name: "Ez Bar Incline Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-incline-front-raise.gif'
+  },
+  {
+    id: 'dumbbell-incline-front-raise',
+    name: "Dumbbell Incline Front Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-incline-front-raise.gif'
+  },
+  {
+    id: 'ez-bar-reverse-curl',
+    name: "Ez Bar Reverse Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-reverse-curl.gif'
+  },
+  {
+    id: 'plate-front-raise-with-rotation',
+    name: "Plate Front Raise With Rotation",
+    muscleGroup: 'hombros',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'plate-front-raise-with-rotation.gif'
+  },
+  {
+    id: 'decline-push-ups',
+    name: "Decline Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'decline-push-ups.gif'
+  },
+  {
+    id: 'reverse-grip-push-ups',
+    name: "Reverse Grip Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'reverse-grip-push-ups.gif'
+  },
+  {
+    id: 'parallel-grip-pull-up',
+    name: "Parallel Grip Pull Up",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'parallel-grip-pull-up.gif'
+  },
+  {
+    id: 'parallel-grip-weighted-pull-up',
+    name: "Parallel Grip Weighted Pull Up",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'parallel-grip-weighted-pull-up.gif'
+  },
+  {
+    id: 'ez-bar-tricep-extension',
+    name: "Ez Bar Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-tricep-extension.gif'
+  },
+  {
+    id: 'seated-dumbbell-lateral-raise',
+    name: "Seated Dumbbell Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-dumbbell-lateral-raise.gif'
+  },
+  {
+    id: 'close-grip-smith-machine-bench-press',
+    name: "Close Grip Smith Machine Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'close-grip-smith-machine-bench-press.gif'
+  },
+  {
+    id: 'ez-bar-behind-back-wrist-curl',
+    name: "Ez Bar Behind Back Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-behind-back-wrist-curl.gif'
+  },
+  {
+    id: 'one-arm-dumbbell-wrist-curl',
+    name: "One Arm Dumbbell Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-dumbbell-wrist-curl.gif'
+  },
+  {
+    id: 'one-arm-cable-fly',
+    name: "One Arm Cable Fly",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-cable-fly.gif'
+  },
+  {
+    id: 'cable-bench-press',
+    name: "Cable Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'cable-bench-press.gif'
+  },
+  {
+    id: 'one-arm-push-ups',
+    name: "One Arm Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-push-ups.gif'
+  },
+  {
+    id: 'one-arm-pull-up',
+    name: "One Arm Pull Up",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-pull-up.gif'
+  },
+  {
+    id: 'stand-to-stand-bridge',
+    name: "Stand To Stand Bridge",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'stand-to-stand-bridge.gif'
+  },
+  {
+    id: 'full-back-bridge',
+    name: "Full Back Bridge",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'full-back-bridge.gif'
+  },
+  {
+    id: 'smith-machine-bulgarian-split-squat',
+    name: "Smith Machine Bulgarian Split Squat",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-bulgarian-split-squat.gif'
+  },
+  {
+    id: 'alternating-dumbbell-bench-press',
+    name: "Alternating Dumbbell Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'alternating-dumbbell-bench-press.gif'
+  },
+  {
+    id: 'belt-squat-machine',
+    name: "Belt Squat Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'belt-squat-machine.gif'
+  },
+  {
+    id: 'safety-bar-squat',
+    name: "Safety Bar Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'safety-bar-squat.gif'
+  },
+  {
+    id: 'incline-dumbbell-pull-over',
+    name: "Incline Dumbbell Pull Over",
+    muscleGroup: 'espalda',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'incline-dumbbell-pull-over.gif'
+  },
+  {
+    id: 'dumbbell-lying-tricep-extension',
+    name: "Dumbbell Lying Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-lying-tricep-extension.gif'
+  },
+  {
+    id: 'ez-bar-lying-tricep-extension',
+    name: "Ez Bar Lying Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ez-bar-lying-tricep-extension.gif'
+  },
+  {
+    id: 'feet-up-bench-press',
+    name: "Feet Up Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'feet-up-bench-press.gif'
+  },
+  {
+    id: 'ab-coaster-machine',
+    name: "Ab Coaster Machine",
+    muscleGroup: 'core',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'ab-coaster-machine.gif'
+  },
+  {
+    id: 'one-arm-cable-lat-pulldown',
+    name: "One Arm Cable Lat Pulldown",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-cable-lat-pulldown.gif'
+  },
+  {
+    id: 'reverse-grip-bench-press',
+    name: "Reverse Grip Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'reverse-grip-bench-press.gif'
+  },
+  {
+    id: 'incline-dumbbell-hammer-curl',
+    name: "Incline Dumbbell Hammer Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'incline-dumbbell-hammer-curl.gif'
+  },
+  {
+    id: 'lying-cable-pull-over',
+    name: "Lying Cable Pull Over",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'lying-cable-pull-over.gif'
+  },
+  {
+    id: 'smith-machine-upright-row',
+    name: "Smith Machine Upright Row",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'smith-machine-upright-row.gif'
+  },
+  {
+    id: 'smith-machine-hip-thrust',
+    name: "Smith Machine Hip Thrust",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'smith-machine-hip-thrust.gif'
+  },
+  {
+    id: 'smith-machine-behind-neck-press',
+    name: "Smith Machine Behind Neck Press",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'smith-machine-behind-neck-press.gif'
+  },
+  {
+    id: 'pause-bench-press',
+    name: "Pause Bench Press",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'pause-bench-press.gif'
+  },
+  {
+    id: 'standing-lateral-raise-machine',
+    name: "Standing Lateral Raise Machine",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'standing-lateral-raise-machine.gif'
+  },
+  {
+    id: 'dumbbell-skull-crusher',
+    name: "Dumbbell Skull Crusher",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-skull-crusher.gif'
+  },
+  {
+    id: 'seated-barbell-tricep-extension',
+    name: "Seated Barbell Tricep Extension",
+    muscleGroup: 'triceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-barbell-tricep-extension.gif'
+  },
+  {
+    id: 'donkey-calf-raise',
+    name: "Donkey Calf Raise",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'donkey-calf-raise.gif'
+  },
+  {
+    id: 'standing-cable-row',
+    name: "Standing Cable Row",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'standing-cable-row.gif'
+  },
+  {
+    id: 'trap-bar-row',
+    name: "Trap Bar Row",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'trap-bar-row.gif'
+  },
+  {
+    id: 'trap-bar-squat',
+    name: "Trap Bar Squat",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'trap-bar-squat.gif'
+  },
+  {
+    id: 'trap-bar-overhead-press',
+    name: "Trap Bar Overhead Press",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'trap-bar-overhead-press.gif'
+  },
+  {
+    id: 'bicep-curl-machine',
+    name: "Bicep Curl Machine",
+    muscleGroup: 'biceps',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bicep-curl-machine.gif'
+  },
+  {
+    id: 'chest-fly-machine',
+    name: "Chest Fly Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'chest-fly-machine.gif'
+  },
+  {
+    id: 'dy-row-machine',
+    name: "Dy Row Machine",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dy-row-machine.gif'
+  },
+  {
+    id: 'dumbbell-front-squat',
+    name: "Dumbbell Front Squat",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'dumbbell-front-squat.gif'
+  },
+  {
+    id: 'plank-twist',
+    name: "Plank Twist",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'plank-twist.gif'
+  },
+  {
+    id: 'behind-back-wrist-curl',
+    name: "Behind Back Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'behind-back-wrist-curl.gif'
+  },
+  {
+    id: 'tricep-press-machine',
+    name: "Tricep Press Machine",
+    muscleGroup: 'triceps',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'tricep-press-machine.gif'
+  },
+  {
+    id: 'inner-chest-press-machine',
+    name: "Inner Chest Press Machine",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'inner-chest-press-machine.gif'
+  },
+  {
+    id: 'knee-push-ups',
+    name: "Knee Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'knee-push-ups.gif'
+  },
+  {
+    id: 'one-arm-kettlebell-row',
+    name: "One Arm Kettlebell Row",
+    muscleGroup: 'espalda',
+    equipment: "Kettlebell",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-kettlebell-row.gif'
+  },
+  {
+    id: 'high-pulley-cable-row',
+    name: "High Pulley Cable Row",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'high-pulley-cable-row.gif'
+  },
+  {
+    id: 'bosu-single-leg-deadlift',
+    name: "Bosu Single Leg Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'bosu-single-leg-deadlift.gif'
+  },
+  {
+    id: 'bosu-dumbbell-single-leg-deadlift',
+    name: "Bosu Dumbbell Single Leg Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'bosu-dumbbell-single-leg-deadlift.gif'
+  },
+  {
+    id: 'leverage-squat-machine',
+    name: "Leverage Squat Machine",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'leverage-squat-machine.gif'
+  },
+  {
+    id: 'fire-hydrant',
+    name: "Fire Hydrant",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'fire-hydrant.gif'
+  },
+  {
+    id: 'wide-air-squat',
+    name: "Wide Air Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'wide-air-squat.gif'
+  },
+  {
+    id: 'one-arm-dumbbell-curl',
+    name: "One Arm Dumbbell Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-dumbbell-curl.gif'
+  },
+  {
+    id: 'one-arm-dumbbell-hammer-curl',
+    name: "One Arm Dumbbell Hammer Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-dumbbell-hammer-curl.gif'
+  },
+  {
+    id: 'yoga',
+    name: "Yoga",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'yoga.gif'
+  },
+  {
+    id: 'reverse-ez-bar-wrist-curl',
+    name: "Reverse Ez Bar Wrist Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'reverse-ez-bar-wrist-curl.gif'
+  },
+  {
+    id: 'pseudo-planche-push-ups',
+    name: "Pseudo Planche Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'pseudo-planche-push-ups.gif'
+  },
+  {
+    id: 'standing-hip-abduction',
+    name: "Standing Hip Abduction",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'standing-hip-abduction.gif'
+  },
+  {
+    id: 'one-arm-face-pull',
+    name: "One Arm Face Pull",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-face-pull.gif'
+  },
+  {
+    id: 'rotary-calf-machine',
+    name: "Rotary Calf Machine",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'rotary-calf-machine.gif'
+  },
+  {
+    id: 'ski-ergometer',
+    name: "Ski Ergometer",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+    defaultSets: 1,
+    defaultReps: 1,
+    image: 'ski-ergometer.gif'
+  },
+  {
+    id: 'kick-boxing',
+    name: "Kick Boxing",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'kick-boxing.gif'
+  },
+  {
+    id: 'barbell-incline-rear-delt-row',
+    name: "Barbell Incline Rear Delt Row",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'barbell-incline-rear-delt-row.gif'
+  },
+  {
+    id: 'high-pulley-one-arm-cable-row',
+    name: "High Pulley One Arm Cable Row",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'high-pulley-one-arm-cable-row.gif'
+  },
+  {
+    id: 'low-pulley-one-arm-cable-row',
+    name: "Low Pulley One Arm Cable Row",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'low-pulley-one-arm-cable-row.gif'
+  },
+  {
+    id: 'kettlebell-single-leg-deadlift',
+    name: "Kettlebell Single Leg Deadlift",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 4,
+    defaultReps: 8,
+    image: 'kettlebell-single-leg-deadlift.gif'
+  },
+  {
+    id: 'mike-tyson-push-ups',
+    name: "Mike Tyson Push Ups",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'mike-tyson-push-ups.gif'
+  },
+  {
+    id: 'one-arm-kettlebell-swing',
+    name: "One Arm Kettlebell Swing",
+    muscleGroup: 'piernas',
+    equipment: "Kettlebell",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'one-arm-kettlebell-swing.gif'
+  },
+  {
+    id: 'low-pulley-cable-rope-row',
+    name: "Low Pulley Cable Rope Row",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'low-pulley-cable-rope-row.gif'
+  },
+  {
+    id: 'seated-cable-rear-lateral-raise',
+    name: "Seated Cable Rear Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'seated-cable-rear-lateral-raise.gif'
+  },
+  {
+    id: 'cable-rear-lateral-raise',
+    name: "Cable Rear Lateral Raise",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'cable-rear-lateral-raise.gif'
+  },
+  {
+    id: 'bird-dog',
+    name: "Bird Dog",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'bird-dog.gif'
+  },
+  {
+    id: 'dumbbell-wrist-supination',
+    name: "Dumbbell Wrist Supination",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-wrist-supination.gif'
+  },
+  {
+    id: 'dumbbell-wrist-radial-flexion',
+    name: "Dumbbell Wrist Radial Flexion",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'dumbbell-wrist-radial-flexion.gif'
+  },
+  {
+    id: 'chest-supported-t-bar-row',
+    name: "Chest Supported T Bar Row",
+    muscleGroup: 'pecho',
+    equipment: "Barra",
+    defaultSets: 3,
+    defaultReps: 12,
+    image: 'chest-supported-t-bar-row.gif'
+  },
+];
