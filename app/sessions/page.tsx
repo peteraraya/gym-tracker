@@ -9,7 +9,7 @@ import { SessionFilters } from "@/components/features/sessions/SessionFilters";
 import { SessionComparison } from "@/components/features/sessions/SessionComparison";
 import { EditSessionModal } from "@/components/features/sessions/EditSessionModal";
 import { Pagination } from "@/components/shared/Pagination";
-import { usePagination } from "@/hooks/usePagination";
+import { usePagination } from "@/hooks/ui/usePagination";
 import type { WorkoutSession, Routine } from "@/types";
 import * as storageService from "@/lib/storage/storage";
 import { useSessionStats } from "@/hooks/useSessionStats";

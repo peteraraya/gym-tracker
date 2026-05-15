@@ -23,7 +23,7 @@ import { useEquipment } from "@/context/EquipmentContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { Button } from "@/components/ui/Button";
 import { APP_CONFIG } from "@/config/app.config";
-import { useFilteredData } from "@/hooks/useFilteredData";
+import { useFilteredData } from "@/hooks/ui/useFilteredData";
 import { VirtualList } from "@/components/shared/VirtualList";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
