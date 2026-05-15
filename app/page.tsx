@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "@/context/LocaleContext";
 import { useGym } from "@/context/GymContext";
+import { useWorkout } from "@/context/WorkoutContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -25,6 +26,7 @@ import {
 
 export default function Home() {
   const { routines, sessions, loading } = useGym();
+  const { activeWorkout } = useWorkout();
   const t = useTranslations("home");
   const tCommon = useTranslations("common");
   const router = useRouter();
@@ -99,14 +101,21 @@ export default function Home() {
                     <Button
                       variant="primary"
                       size="lg"
-                      className="bg-green-500 hover:bg-green-600 border-0 font-bold"
+                      className={activeWorkout ? "bg-green-500 hover:bg-green-600 border-0 font-bold" : "bg-green-500 hover:bg-green-600 border-0 font-bold"}
                       onClick={() => {
+                        // Si hay un entrenamiento activo, navegar directamente sin reiniciar
+                        if (activeWorkout) {
+                          router.push(`/workout/${activeWorkout.routineId}`);
+                          return;
+                        }
                         const id = selectedRoutineId || routines[0]?.id;
                         if (id) router.push(`/workout/${id}`);
                       }}
                     >
                       <Activity className="w-5 h-5" />
-                      {tCommon("startWorkout") || "Iniciar Entrenamiento"}
+                      {activeWorkout
+                        ? tCommon("continueWorkout") || "Continuar Entrenamiento"
+                        : tCommon("startWorkout") || "Iniciar Entrenamiento"}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </div>

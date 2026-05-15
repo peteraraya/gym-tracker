@@ -213,9 +213,9 @@ export function useRoutineForm(
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const { useLocalStorage } = await import("@/lib/storageConfig");
+        const { isLocalStorageMode } = await import("@/lib/storageConfig");
 
-        if (useLocalStorage()) {
+        if (isLocalStorageMode()) {
           if (typeof window !== "undefined") {
             const { getProfileLocally } = await import("@/lib/localProfile");
             const localProfile = getProfileLocally();

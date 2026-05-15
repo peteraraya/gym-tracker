@@ -45,9 +45,9 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       // Verificar modo de almacenamiento
-      const { useLocalStorage } = await import('@/lib/storageConfig');
+      const { isLocalStorageMode } = await import('@/lib/storageConfig');
       
-      if (useLocalStorage()) {
+      if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== 'undefined') {
           const { getProfileLocally } = await import('@/lib/localProfile');
@@ -109,9 +109,9 @@ export default function ProfilePage() {
       };
 
       // Verificar modo de almacenamiento
-      const { useLocalStorage } = await import('@/lib/storageConfig');
+      const { isLocalStorageMode } = await import('@/lib/storageConfig');
       
-      if (useLocalStorage()) {
+      if (isLocalStorageMode()) {
         // Modo LOCAL: Guardar en localStorage
         if (typeof window !== 'undefined') {
           const { saveProfileLocally } = await import('@/lib/localProfile');

@@ -84,7 +84,7 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     try {
       // Verificar modo de almacenamiento
-      const { useLocalStorage: shouldUseLocalStorage } = await import(
+      const { isLocalStorageMode: shouldUseLocalStorage } = await import(
         "@/lib/storageConfig"
       );
 

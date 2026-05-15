@@ -2,6 +2,7 @@
   "common": {
     "selectRoutine": "Selecciona una rutina...",
     "startWorkout": "Iniciar Entrenamiento",
+    "continueWorkout": "Continuar Entrenamiento",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",

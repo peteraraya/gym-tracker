@@ -81,7 +81,7 @@ export default function WeeklyPlanner({
 }) {
   const router = useRouter();
   const { routines, loading: routinesLoading } = useRoutines();
-  const { startWorkout } = useWorkout();
+  const { startWorkout, activeWorkout } = useWorkout();
   const { confirm } = useConfirm();
   const { info } = useToast();
 
@@ -330,6 +330,11 @@ export default function WeeklyPlanner({
   };
 
   const handleStartRoutine = (routineId: string) => {
+    // Si ya hay un entrenamiento activo para esta misma rutina, solo navegar
+    if (activeWorkout?.routineId === routineId) {
+      router.push(`/workout/${routineId}`);
+      return;
+    }
     const routine = routines.find((r) => r.id === routineId);
     if (routine) {
       startWorkout(routine);
@@ -803,16 +808,34 @@ export default function WeeklyPlanner({
                                           )}
                                         </div>
 
-                                        {/* Botón Iniciar */}
-                                        <button
-                                          onClick={() =>
-                                            handleStartRoutine(routine.id)
-                                          }
-                                          className="w-full py-2.5 bg-white text-blue-600 hover:bg-blue-50 rounded-lg font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg"
-                                        >
-                                          <Play className="w-4 h-4" />
-                                          <span>Iniciar Entrenamiento</span>
-                                        </button>
+                                        {/* Botón Iniciar / Continuar */}
+                                        {activeWorkout?.routineId === routine.id ? (
+                                          <button
+                                            onClick={() => router.push(`/workout/${routine.id}`)}
+                                            className="w-full py-2.5 bg-green-400 text-white hover:bg-green-300 rounded-lg font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg"
+                                          >
+                                            <Play className="w-4 h-4" />
+                                            <span>Continuar Entrenamiento</span>
+                                          </button>
+                                        ) : activeWorkout ? (
+                                          <button
+                                            disabled
+                                            className="w-full py-2.5 bg-white/50 text-blue-400 rounded-lg font-semibold flex items-center justify-center gap-2 cursor-not-allowed opacity-60"
+                                          >
+                                            <Play className="w-4 h-4" />
+                                            <span>Entrenamiento en curso</span>
+                                          </button>
+                                        ) : (
+                                          <button
+                                            onClick={() =>
+                                              handleStartRoutine(routine.id)
+                                            }
+                                            className="w-full py-2.5 bg-white text-blue-600 hover:bg-blue-50 rounded-lg font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg"
+                                          >
+                                            <Play className="w-4 h-4" />
+                                            <span>Iniciar Entrenamiento</span>
+                                          </button>
+                                        )}
                                       </div>
                                     </div>
                                   </div>

@@ -142,9 +142,13 @@ function MuscleGroupRow({
   const [editingValue, setEditingValue] = useState<string>(
     String(target.targetSets ?? ""),
   );
-  useEffect(() => {
+  // Patrón "setState durante render" (recomendado React) para sincronizar
+  // editingValue cuando el valor externo cambia sin usar un effect.
+  const [lastTargetSets, setLastTargetSets] = useState(target.targetSets);
+  if (lastTargetSets !== target.targetSets) {
+    setLastTargetSets(target.targetSets);
     setEditingValue(String(target.targetSets ?? ""));
-  }, [target.targetSets]);
+  }
 
   const onInputChange = (val: string) => {
     if (/^\d*$/.test(val)) setEditingValue(val);
@@ -376,12 +380,12 @@ function CreateMesocycleModal({
   const [preset, setPreset] = useState<"none" | PlanningGoal>("none");
   const [presetManuallyChanged, setPresetManuallyChanged] = useState(false);
 
-  useEffect(() => {
-    // Autoselecciona la plantilla según el objetivo si el usuario no la cambió manualmente
-    if (!presetManuallyChanged) {
-      setPreset(goal);
-    }
-  }, [goal, presetManuallyChanged]);
+  // Patrón "setState durante render": sincronizar preset con goal sin useEffect
+  const [lastGoal, setLastGoal] = useState(goal);
+  if (lastGoal !== goal && !presetManuallyChanged) {
+    setLastGoal(goal);
+    setPreset(goal);
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
@@ -980,6 +984,8 @@ export default function PlanningPage() {
 
   // Al hidratar y si existe un mesociclo activo, seleccionar automáticamente
   // el mesociclo activo y posicionar en la semana actual.
+  // Inicialización post-hidratación: sin riesgo de loop (selectedMesoId se asigna solo si es null)
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!planning.hydrated) return;
     if (planning.activeMesocycle && !selectedMesoId) {
@@ -988,6 +994,7 @@ export default function PlanningPage() {
       setSelectedWeek(cw?.weekNumber ?? 1);
     }
   }, [planning.hydrated, planning.activeMesocycle?.id, planning.getCurrentWeekPlan]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <ProtectedRoute>
@@ -1775,7 +1782,7 @@ export default function PlanningPage() {
                   </li>
                   <li>
                     <strong>Validación y sincronización:</strong> asigna rutinas
-                    en la Agenda y usa "Sincronizar con Planificador"; la app
+                    en la Agenda y usa &quot;Sincronizar con Planificador&quot;; la app
                     validará si faltan rutinas y mostrará feedback.
                   </li>
                   <li>

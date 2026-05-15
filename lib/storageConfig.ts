@@ -15,7 +15,7 @@ export function isDatabaseEnabled(): boolean {
  * Verifica si se debe usar almacenamiento local
  * @returns true si la base de datos está deshabilitada
  */
-export function useLocalStorage(): boolean {
+export function isLocalStorageMode(): boolean {
   return !isDatabaseEnabled();
 }
 

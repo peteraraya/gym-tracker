@@ -158,14 +158,10 @@ export default function ExercisesPage() {
   );
   const paginatedExercisesCount = paginatedGroupedResults.reduce((acc, g) => acc + g.exercises.length, 0);
 
-  // Resetear página cuando cambian los filtros
-  useEffect(() => {
-    setGlobalPage(1);
-  }, [searchTerm, selectedMuscleFilters]);
-
   // Handlers optimizados
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    setGlobalPage(1);
   };
 
   const toggleMuscleFilter = (muscleId: MuscleGroup) => {
@@ -175,6 +171,7 @@ export default function ExercisesPage() {
       else next.add(muscleId);
       return next;
     });
+    setGlobalPage(1);
   };
 
   const handleTabChange = (tab: "training" | "warmup") => {

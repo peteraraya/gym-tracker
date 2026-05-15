@@ -295,7 +295,10 @@ export default function RoutinesPage() {
         const routine = routines.find((r) => r.id === routineId);
         if (routine) {
           setStartingWorkoutId(routineId);
-          startWorkout(routine);
+          // Si ya es la rutina activa, solo navegar (no reiniciar el entrenamiento)
+          if (activeWorkout?.routineId !== routineId) {
+            startWorkout(routine);
+          }
           router.push(`/workout/${routineId}`);
         }
       } catch (e) {

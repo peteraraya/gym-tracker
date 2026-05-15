@@ -104,9 +104,9 @@ export default function FreeWorkoutPage() {
     const loadProfile = async () => {
       try {
         // Verificar modo de almacenamiento
-        const { useLocalStorage } = await import("@/lib/storageConfig");
+        const { isLocalStorageMode } = await import("@/lib/storageConfig");
 
-        if (useLocalStorage()) {
+        if (isLocalStorageMode()) {
           // Modo LOCAL: Cargar desde localStorage
           if (typeof window !== "undefined") {
             const { getProfileLocally } = await import("@/lib/localProfile");

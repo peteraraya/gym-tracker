@@ -89,11 +89,14 @@ export function usePlanning() {
   const [hydrated, setHydrated] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Hidratación: cargar desde localStorage solo en cliente
+  // Hidratación: cargar desde localStorage solo en cliente.
+  // React 18+ batchea ambos setState en un único re-render, sin riesgo de loop.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setData(loadFromStorage());
     setHydrated(true);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /** Aplica plantilla/preset por objetivo a todo el mesociclo (actualiza targets) */
   const applyPresetToMesocycle = useCallback((mesocycleId: string, preset: PlanningGoal | 'balanced' | 'none') => {

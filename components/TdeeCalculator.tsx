@@ -67,9 +67,9 @@ useEffect(() => {
   const loadProfile = async () => {
     try {
       // Verificar modo de almacenamiento
-      const { useLocalStorage } = await import('@/lib/storageConfig');
+      const { isLocalStorageMode } = await import('@/lib/storageConfig');
       
-      if (useLocalStorage()) {
+      if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== 'undefined') {
           const { getProfileLocally } = await import('@/lib/localProfile');
@@ -199,9 +199,9 @@ useEffect(() => {
         // Intentar enviar al backend (guardado automático remoto) solo si la base de datos está habilitada
         (async () => {
           try {
-            const { useLocalStorage } = await import('@/lib/storageConfig');
+            const { isLocalStorageMode } = await import('@/lib/storageConfig');
             
-            if (!useLocalStorage()) {
+            if (!isLocalStorageMode()) {
               // Modo DATABASE: Guardar en Supabase
               console.log('[TdeeCalculator] ☁️ Auto-saving to Supabase...');
               const res = await fetch('/api/profile', {

@@ -209,8 +209,8 @@ export const Timer: React.FC<TimerProps> = ({
         nextExercise: nextExerciseName,
         routineName: title
       });
-      // Resetear la bandera para no reiniciar continuamente
-      setHasAdjusted(false);
+      // Resetear la bandera de forma asíncrona para evitar setState sincrónico en effect
+      setTimeout(() => setHasAdjusted(false), 0);
     }
   }, [hasAdjusted]);
 
