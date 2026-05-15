@@ -94,6 +94,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       startedAt: new Date(),
     };
     setActiveWorkout(newWorkout);
+    // Señal para que la workout page muestre el splash de inicio (válida 8s)
+    try { sessionStorage.setItem('workout_splash_ts', Date.now().toString()); } catch {}
   }, [setActiveWorkout]);
 
   const updateWorkoutProgress = useCallback(

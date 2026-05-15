@@ -64,6 +64,7 @@ import {
   type PersonalRecord,
   type RecordComparison,
 } from "@/lib/exercises/personalRecords";
+import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSplash";
 
 // ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
 function debounce<T extends (...args: any[]) => any>(
@@ -160,6 +161,8 @@ export default function WorkoutPage() {
   // ==================== STATE ====================
   const [routine, setRoutine] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  // Splash animado al iniciar un nuevo entrenamiento (no al restaurar uno guardado)
+  const [showStartSplash, setShowStartSplash] = useState(false);
 
   // Modo de edición: true = Edición Rápida (defecto), false = Modo Guiado
   const [isQuickEditMode, setIsQuickEditMode] = useState(true);
@@ -750,6 +753,15 @@ export default function WorkoutPage() {
       if (mounted) {
         setIsInitialized(true);
         console.log("[Init] Initialization complete");
+        // Mostrar splash si startWorkout fue llamado hace menos de 8s
+        // (cubre navegación desde rutinas, planificador, asistente IA, etc.)
+        try {
+          const ts = sessionStorage.getItem('workout_splash_ts');
+          if (ts && Date.now() - parseInt(ts) < 8000) {
+            setShowStartSplash(true);
+            sessionStorage.removeItem('workout_splash_ts');
+          }
+        } catch {}
       }
     };
 
@@ -3263,6 +3275,23 @@ export default function WorkoutPage() {
             }}
           />
         </Suspense>
+
+        {/* Splash animado de inicio de entrenamiento (solo en entrenos nuevos) */}
+        <AnimatePresence>
+          {showStartSplash && routine && (
+            <WorkoutStartSplash
+              routineName={routine.name || "Entrenamiento"}
+              exerciseCount={routine.exercises?.length || 0}
+              totalSets={
+                (routine.exercises || []).reduce(
+                  (sum: number, ex: any) => sum + (ex.sets?.length || 0),
+                  0,
+                )
+              }
+              onComplete={() => setShowStartSplash(false)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </ProtectedRoute>
   );
