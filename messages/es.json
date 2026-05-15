@@ -135,6 +135,7 @@
     "weight": "Peso (kg)",
     "notes": "Notas (opcional)",
     "exerciseName": "Nombre del ejercicio",
+    "exerciseNameRequired": "El nombre del ejercicio es requerido",
     "createRoutineBtn": "Crear Rutina",
     "updateRoutineBtn": "Actualizar Rutina",
     "imageLabel": "Imagen (opcional)",

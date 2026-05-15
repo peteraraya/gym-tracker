@@ -1,6 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  GripVertical,
+  ChevronDown,
+  Pencil,
+  Trash2,
+  Plus,
+  X,
+  Camera,
+  Dumbbell,
+  AlertTriangle,
+  Copy,
+  Timer,
+} from "lucide-react";
 import { useRoutineForm } from "@/hooks/useRoutineForm";
 import { Input, TextArea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -87,15 +100,48 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
     getExerciseByName,
   } = useRoutineForm(routineId, onClose);
 
+  // Shake en el input de nombre cuando falla validación
+  const [shakeNameInput, setShakeNameInput] = useState(false);
+
+  // Trackea qué ejercicios tienen el input de nombre activo
+  const [editingNameIndexes, setEditingNameIndexes] = useState<Set<number>>(
+    new Set(),
+  );
+  const nameInputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
+
+  const startEditingName = (index: number) => {
+    setEditingNameIndexes((prev) => new Set(prev).add(index));
+  };
+  const stopEditingName = (index: number, name: string) => {
+    if (name) {
+      setEditingNameIndexes((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
+  };
+
+  // Auto-focus cuando se activa la edición del nombre
+  useEffect(() => {
+    editingNameIndexes.forEach((index) => {
+      const input = nameInputRefs.current.get(index);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
+  }, [editingNameIndexes]);
+
   return (
     <div className="min-h-[600px] flex flex-col">
-      {/* Assistant-like header */}
-      <div className="bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg p-4 sm:p-6 sticky top-0 z-10">
+      {/* Header: título + botones — scrollea con el contenido */}
+      <div className="bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
         <div className="flex items-center justify-between">
           <div className="min-w-0 flex-1 pr-2">
-              <h2 className="text-lg sm:text-2xl font-bold text-white mb-1">
-                {routineId ? t("editRoutine") : t("newRoutine")}
-              </h2>
+            <h2 className="text-lg sm:text-2xl font-bold text-white mb-0.5">
+              {routineId ? t("editRoutine") : t("newRoutine")}
+            </h2>
             <p className="text-blue-100 text-sm">
               {currentStep === "basic" ? "Paso 1 de 3: Información" : currentStep === "exercises" ? "Paso 2 de 3: Ejercicios" : "Paso 3 de 3: Revisar"}
             </p>
@@ -118,18 +164,17 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Progress bar */}
-        <div className="mt-3 sm:mt-4">
-          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+      {/* Barra de progreso + pasos — sticky, compacta */}
+      <div className="bg-linear-to-r from-blue-600 to-indigo-600 px-4 sm:px-6 pb-4 sticky top-0 z-10 shadow-md">
+        <div className="pt-2">
+          <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-3">
             <div
               className="h-full bg-white transition-all duration-300"
               style={{ width: `${(currentStep === 'basic' ? 1 : currentStep === 'exercises' ? 2 : 3) / 3 * 100}%` }}
             />
           </div>
-        </div>
-
-        <div className="mt-4">
           <StepIndicator
             currentStep={currentStep}
             canProceedToExercises={canProceedToExercises}
@@ -152,12 +197,15 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
               </p>
             </div>
 
+            <div className="scroll-mt-20">
             <Input
+              id="routine-name-input"
               label={`${t("routineName")} *`}
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
                 if (showBasicErrors) setShowBasicErrors(false);
+                if (shakeNameInput) setShakeNameInput(false);
               }}
               onBlur={() =>
                 setTouchedFields((prev) => new Set(prev).add("routine-name"))
@@ -170,8 +218,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
               }
               placeholder={t("routineNamePlaceholder")}
               required
-              className="text-base sm:text-lg font-semibold"
+              className={`text-base sm:text-lg font-semibold transition-all ${
+                shakeNameInput ? "animate-shake" : ""
+              }`}
             />
+            </div>
 
             <TextArea
               label={t("description")}
@@ -198,7 +249,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                     onClick={handleRemoveImage}
                     className="absolute top-3 right-3 bg-red-600 text-white p-2.5 rounded-full hover:bg-red-700 transition-all shadow-lg opacity-0 group-hover:opacity-100 active:scale-95"
                   >
-                    <span className="text-lg">✕</span>
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
@@ -214,7 +265,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                     htmlFor="image-upload"
                     className="cursor-pointer flex flex-col items-center"
                   >
-                    <span className="text-5xl sm:text-6xl mb-3">📷</span>
+                    <Camera className="w-12 h-12 sm:w-14 sm:h-14 mb-3 text-gray-400 dark:text-gray-500" />
                     <span className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">
                       {t("imageUploadClick")}
                     </span>
@@ -255,6 +306,15 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                 onClick={() => {
                   if (!canProceedToExercises) {
                     setShowBasicErrors(true);
+                    setTouchedFields((prev) => new Set(prev).add("routine-name"));
+                    // Focus + shake en el input
+                    const input = document.getElementById("routine-name-input") as HTMLInputElement | null;
+                    if (input) {
+                      input.scrollIntoView({ behavior: "smooth", block: "center" });
+                      input.focus();
+                    }
+                    setShakeNameInput(true);
+                    setTimeout(() => setShakeNameInput(false), 600);
                   } else {
                     setCurrentStep("exercises");
                   }
@@ -283,7 +343,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
             {exercises.length > 0 && (
               <div className="bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">⏱️</span>
+                  <Timer className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0" />
                   <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">
                     Duración Estimada
                   </h4>
@@ -350,7 +410,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                     onClick={handleAddExercise}
                     className="flex-1 sm:flex-none"
                   >
-                    ➕ {t("fromLibrary")}
+                    <Plus className="w-4 h-4" /> {t("fromLibrary")}
                   </Button>
                   <Button
                     type="button"
@@ -359,14 +419,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                     onClick={handleAddCustomExercise}
                     className="flex-1 sm:flex-none"
                   >
-                    ✏️ {t("manual")}
+                    <Pencil className="w-4 h-4" /> {t("manual")}
                   </Button>
                 </div>
               </div>
 
               {exercises.length === 0 && (
                 <div className="text-center py-12 sm:py-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
-                  <div className="text-6xl sm:text-7xl mb-4">🏋️</div>
+                  <Dumbbell className="w-14 h-14 sm:w-16 sm:h-16 mb-4 text-gray-400 dark:text-gray-500 mx-auto" />
                   <p className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {t("noExercises")}
                   </p>
@@ -447,13 +507,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                           className="shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                           onMouseDown={(e) => e.stopPropagation()}
                         >
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
-                          </svg>
+                          <GripVertical className="w-5 h-5" />
                         </div>
 
                         {/* Número */}
@@ -471,8 +525,8 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                             {validationErrors.some(
                               (err) => err.exerciseIndex === exerciseIndex,
                             ) && (
-                              <span className="shrink-0 px-2 py-0.5 text-xs font-semibold bg-amber-500 text-white rounded-full animate-pulse">
-                                ⚠️ Completar
+                              <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 text-xs font-semibold bg-amber-500 text-white rounded-full animate-pulse">
+                                <AlertTriangle className="w-3 h-3" /> Completar
                               </span>
                             )}
                           </div>
@@ -514,26 +568,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                             className="shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all active:scale-95"
                             title="Eliminar ejercicio"
                           >
-                            <span className="text-lg">🗑️</span>
+                            <Trash2 className="w-5 h-5" />
                           </button>
 
                           {/* Icono de expandir/colapsar */}
                           <div
                             className={`text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
                           >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
+                            <ChevronDown className="w-5 h-5" />
                           </div>
                         </div>
                       </div>
@@ -542,34 +584,70 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                       {isExpanded && (
                         <div className="p-4 pt-0 space-y-4 border-t border-gray-200 dark:border-gray-700">
                           <div>
-                            <Input
-                              placeholder={t("exerciseName")}
-                              value={exercise.name}
-                              onChange={(e) =>
-                                handleExerciseChange(
-                                  exerciseIndex,
-                                  "name",
-                                  e.target.value,
-                                )
-                              }
-                              required
-                              className={`font-medium ${
-                                validationErrors.some(
-                                  (err) =>
-                                    err.exerciseIndex === exerciseIndex &&
-                                    err.setIndex === -1,
-                                )
-                                  ? "border-red-500 dark:border-red-500"
-                                  : ""
-                              }`}
-                            />
+                            {editingNameIndexes.has(exerciseIndex) ||
+                            !exercise.name ? (
+                              <input
+                                ref={(el) => {
+                                  if (el)
+                                    nameInputRefs.current.set(
+                                      exerciseIndex,
+                                      el,
+                                    );
+                                  else
+                                    nameInputRefs.current.delete(exerciseIndex);
+                                }}
+                                placeholder={t("exerciseName")}
+                                value={exercise.name}
+                                onChange={(e) =>
+                                  handleExerciseChange(
+                                    exerciseIndex,
+                                    "name",
+                                    e.target.value,
+                                  )
+                                }
+                                required
+                                onBlur={() =>
+                                  stopEditingName(exerciseIndex, exercise.name)
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && exercise.name) {
+                                    e.preventDefault();
+                                    stopEditingName(exerciseIndex, exercise.name);
+                                  }
+                                  if (e.key === "Escape" && exercise.name) {
+                                    stopEditingName(exerciseIndex, exercise.name);
+                                  }
+                                }}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 font-medium ${
+                                  validationErrors.some(
+                                    (err) =>
+                                      err.exerciseIndex === exerciseIndex &&
+                                      err.setIndex === -1,
+                                  )
+                                    ? "border-red-500 dark:border-red-500"
+                                    : "border-gray-300 dark:border-gray-600"
+                                }`}
+                              />
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => startEditingName(exerciseIndex)}
+                                className="group w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-transparent hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all text-left"
+                                title={t("exerciseName")}
+                              >
+                                <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {exercise.name}
+                                </span>
+                                <Pencil className="shrink-0 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </button>
+                            )}
                             {validationErrors.some(
                               (err) =>
                                 err.exerciseIndex === exerciseIndex &&
                                 err.setIndex === -1,
                             ) && (
                               <div className="text-xs text-red-600 dark:text-red-400 mt-1">
-                                ⚠️ El nombre del ejercicio es requerido
+                                ⚠️ {t("exerciseNameRequired")}
                               </div>
                             )}
                           </div>
@@ -601,9 +679,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                 variant="secondary"
                                 size="sm"
                                 onClick={() => handleAddSet(exerciseIndex)}
-                                className="text-xs"
+                                className="text-xs flex items-center gap-1"
                               >
-                                ➕ {t("addSet")}
+                                <Plus className="w-3 h-3" /> {t("addSet")}
                               </Button>
                             </div>
 
@@ -644,10 +722,10 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                         onClick={() =>
                                           handleCopySet(exerciseIndex, setIndex)
                                         }
-                                        className="p-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-all active:scale-95"
+                                        className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all active:scale-95"
                                         title={t("copySetTitle")}
                                       >
-                                        📋
+                                        <Copy className="w-3 h-3" />
                                       </button>
                                       {exercise.sets.length > 1 && (
                                         <button
@@ -658,10 +736,10 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                               setIndex,
                                             )
                                           }
-                                          className="p-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95"
+                                          className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-all active:scale-95"
                                           title={t("removeSetTitle")}
                                         >
-                                          ✕
+                                          <X className="w-3 h-3" />
                                         </button>
                                       )}
                                     </div>
@@ -1114,9 +1192,10 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                       <button
                         type="button"
                         onClick={() => setCurrentStep("exercises")}
-                        className="shrink-0 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-2 rounded-lg transition-all text-xs"
+                        className="shrink-0 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-2 rounded-lg transition-all"
+                        title="Editar"
                       >
-                        ✏️
+                        <Pencil className="w-4 h-4" />
                       </button>
                     </div>
                   ))}

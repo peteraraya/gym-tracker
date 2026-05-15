@@ -180,6 +180,7 @@
     "weight": "Weight (kg)",
     "notes": "Notes (optional)",
     "exerciseName": "Exercise name",
+    "exerciseNameRequired": "Exercise name is required",
     "createRoutineBtn": "Create Routine",
     "updateRoutineBtn": "Update Routine",
     "imageLabel": "Image (optional)",

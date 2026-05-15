@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { Exercise, SetType } from "@/types";
 import type { ValidationError, EditingValue } from "@/hooks/useRoutineForm";
 import { Input } from "@/components/ui/Input";
@@ -93,6 +93,23 @@ export const ExerciseFormCard: React.FC<ExerciseFormCardProps> = ({
   const t = useTranslations("routineForm");
   const { success } = useToast();
   const { confirm } = useConfirm();
+
+  // Click-to-edit para el nombre del ejercicio
+  const [isEditingName, setIsEditingName] = useState(!exercise.name);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Enfocar automáticamente cuando se activa la edición
+  useEffect(() => {
+    if (isEditingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [isEditingName]);
+
+  // Si el nombre se borra externamente, volver a modo edición
+  useEffect(() => {
+    if (!exercise.name) setIsEditingName(true);
+  }, [exercise.name]);
 
   return (
     <div
@@ -213,26 +230,63 @@ export const ExerciseFormCard: React.FC<ExerciseFormCardProps> = ({
         <div className="p-4 pt-0 space-y-4 border-t border-gray-200 dark:border-gray-700">
           {/* Nombre */}
           <div>
-            <Input
-              placeholder={t("exerciseName")}
-              value={exercise.name}
-              onChange={(e) => onExerciseChange("name", e.target.value)}
-              required
-              className={`font-medium ${
-                validationErrors.some(
-                  (err) =>
-                    err.exerciseIndex === exerciseIndex && err.setIndex === -1,
-                )
-                  ? "border-red-500 dark:border-red-500"
-                  : ""
-              }`}
-            />
+            {isEditingName ? (
+              <input
+                ref={nameInputRef}
+                placeholder={t("exerciseName")}
+                value={exercise.name}
+                onChange={(e) => onExerciseChange("name", e.target.value)}
+                required
+                onBlur={() => { if (exercise.name) setIsEditingName(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && exercise.name) {
+                    e.preventDefault();
+                    setIsEditingName(false);
+                  }
+                  if (e.key === "Escape" && exercise.name) {
+                    setIsEditingName(false);
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 font-medium ${
+                  validationErrors.some(
+                    (err) =>
+                      err.exerciseIndex === exerciseIndex && err.setIndex === -1,
+                  )
+                    ? "border-red-500 dark:border-red-500"
+                    : "border-gray-300 dark:border-gray-600"
+                }`}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditingName(true)}
+                className="group w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-transparent hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all text-left"
+                title={t("exerciseName")}
+              >
+                <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {exercise.name}
+                </span>
+                <svg
+                  className="shrink-0 w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+              </button>
+            )}
             {validationErrors.some(
               (err) =>
                 err.exerciseIndex === exerciseIndex && err.setIndex === -1,
             ) && (
               <div className="text-xs text-red-600 dark:text-red-400 mt-1">
-                ⚠️ El nombre del ejercicio es requerido
+                ⚠️ {t("exerciseNameRequired")}
               </div>
             )}
           </div>
