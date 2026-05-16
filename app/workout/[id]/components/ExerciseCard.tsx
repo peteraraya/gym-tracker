@@ -320,7 +320,7 @@ export function ExerciseCard({
             </label>
             <button
               onClick={() => setEditingField("reps")}
-              className={`w-full min-h-[72px] px-4 py-3 rounded-2xl transition-all font-bold border-2 active:scale-95 touch-manipulation ${
+              className={`w-full min-h-18 px-4 py-3 rounded-2xl transition-all font-bold border-2 active:scale-95 touch-manipulation ${
                 currentReps === "" || currentReps === 0
                   ? "text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
                   : "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 border-blue-400 dark:border-blue-600 shadow-md"
@@ -342,7 +342,7 @@ export function ExerciseCard({
             </label>
             <button
               onClick={() => setEditingField("weight")}
-              className={`w-full min-h-[72px] px-4 py-3 rounded-2xl transition-all font-bold border-2 active:scale-95 touch-manipulation ${
+              className={`w-full min-h-18 px-4 py-3 rounded-2xl transition-all font-bold border-2 active:scale-95 touch-manipulation ${
                 currentWeight === "" || currentWeight === 0
                   ? "text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
                   : "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 border-purple-400 dark:border-purple-600 shadow-md"
@@ -391,25 +391,25 @@ export function ExerciseCard({
           <div className="grid grid-cols-4 gap-2">
             <button
               onClick={() => handleQuickWeightAdjustment(-5)}
-              className="min-h-[48px] px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-red-200 dark:border-red-800"
+              className="min-h-12 px-3 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-red-200 dark:border-red-800"
             >
               -5
             </button>
             <button
               onClick={() => handleQuickWeightAdjustment(-2.5)}
-              className="min-h-[48px] px-3 py-2 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-orange-200 dark:border-orange-800"
+              className="min-h-12 px-3 py-2 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-orange-200 dark:border-orange-800"
             >
               -2.5
             </button>
             <button
               onClick={() => handleQuickWeightAdjustment(+2.5)}
-              className="min-h-[48px] px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-emerald-200 dark:border-emerald-800"
+              className="min-h-12 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-emerald-200 dark:border-emerald-800"
             >
               +2.5
             </button>
             <button
               onClick={() => handleQuickWeightAdjustment(+5)}
-              className="min-h-[48px] px-3 py-2 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-green-200 dark:border-green-800"
+              className="min-h-12 px-3 py-2 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 rounded-lg font-bold text-base transition-all active:scale-95 border-2 border-green-200 dark:border-green-800"
             >
               +5
             </button>

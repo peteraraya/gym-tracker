@@ -751,7 +751,7 @@ export default function WeeklyPlanner({
                                   setWeeklyViewMode("edit");
                                   setSelectedWeekDay(todayKey);
                                 }}
-                                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all active:scale-95 shadow-lg hover:shadow-xl inline-flex items-center gap-2"
+                                className="px-8 py-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all active:scale-95 shadow-lg hover:shadow-xl inline-flex items-center gap-2"
                               >
                                 <Plus className="w-5 h-5" />
                                 Planificar Hoy
@@ -870,7 +870,7 @@ export default function WeeklyPlanner({
                         {/* Botón para ver toda la semana */}
                         <button
                           onClick={() => setShowFullWeek(true)}
-                          className="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white font-semibold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg border border-slate-600"
+                          className="w-full py-4 bg-linear-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white font-semibold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg border border-slate-600"
                         >
                           <span className="text-lg">📅</span>
                           <span>Ver Toda la Semana</span>
@@ -1165,7 +1165,7 @@ export default function WeeklyPlanner({
                               </button>
                             )}
                             <span
-                              className={`text-sm font-bold min-w-[32px] text-center px-2.5 py-1.5 rounded-full shadow-lg ${
+                              className={`text-sm font-bold min-w-8 text-center px-2.5 py-1.5 rounded-full shadow-lg ${
                                 routineCount > 0
                                   ? "bg-emerald-500 text-white"
                                   : "bg-gray-700/80 text-gray-400"

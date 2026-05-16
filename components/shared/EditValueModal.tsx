@@ -134,7 +134,7 @@ export function EditValueModal({
       <div className="px-3 pb-3 space-y-3">
 
         {/* Pantalla principal estilo calculadora */}
-        <div className="relative flex items-center justify-center bg-gray-900 dark:bg-gray-950 rounded-2xl border border-gray-700 min-h-[72px] px-4">
+        <div className="relative flex items-center justify-center bg-gray-900 dark:bg-gray-950 rounded-2xl border border-gray-700 min-h-18 px-4">
           <span
             className={`tabular-nums font-bold tracking-tight transition-all ${
               displayText === '–'

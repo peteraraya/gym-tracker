@@ -22,8 +22,8 @@ export function PageHeader({
   children
 }: PageHeaderProps) {
   return (
-    <div className={`relative overflow-hidden bg-gradient-to-r ${gradient}`}>
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+    <div className={`relative overflow-hidden bg-linear-to-r ${gradient}`}>
+      <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent" />
       <div className="container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

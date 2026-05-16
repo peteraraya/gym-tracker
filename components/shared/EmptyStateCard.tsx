@@ -25,7 +25,7 @@ export function EmptyStateCard({
   gradient = 'from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800'
 }: EmptyStateCardProps) {
   return (
-    <div className={`bg-gradient-to-br ${gradient} border-2 border-gray-200 dark:border-zinc-700 rounded-2xl p-8 text-center mt-4`}>
+    <div className={`bg-linear-to-br ${gradient} border-2 border-gray-200 dark:border-zinc-700 rounded-2xl p-8 text-center mt-4`}>
       {/* Icon */}
       <div className="w-20 h-20 mx-auto mb-4 bg-white/50 dark:bg-gray-700/50 rounded-full flex items-center justify-center">
         {typeof icon === 'string' ? (
@@ -51,10 +51,10 @@ export function EmptyStateCard({
       {(actionLabel || secondaryActionLabel) && (
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {actionLabel && onAction && (
-            <Button
+              <Button
               variant="gradient"
               onClick={onAction}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="gap-2 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               {actionLabel}
             </Button>

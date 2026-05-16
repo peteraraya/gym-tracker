@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/Card';
+import { motion } from 'framer-motion';
 import type { Achievement } from '@/types';
 import { Trophy, Shield } from '@/components/icons/lucide';
 
@@ -17,35 +18,40 @@ const tierColors = {
     text: 'text-amber-100',
     border: 'border-amber-600',
     icon: 'text-amber-300',
-    progress: 'bg-amber-600'
+    progress: 'bg-amber-600',
+    glow: '0 0 18px 4px rgba(180,83,9,0.55), 0 0 40px 8px rgba(180,83,9,0.2)',
   },
   silver: {
     bg: 'from-gray-400 to-gray-600',
     text: 'text-gray-100',
     border: 'border-gray-400',
     icon: 'text-gray-200',
-    progress: 'bg-gray-500'
+    progress: 'bg-gray-500',
+    glow: '0 0 18px 4px rgba(156,163,175,0.5), 0 0 40px 8px rgba(156,163,175,0.2)',
   },
   gold: {
     bg: 'from-yellow-400 to-yellow-600',
     text: 'text-yellow-900',
     border: 'border-yellow-500',
     icon: 'text-yellow-200',
-    progress: 'bg-yellow-500'
+    progress: 'bg-yellow-500',
+    glow: '0 0 20px 6px rgba(234,179,8,0.65), 0 0 50px 12px rgba(234,179,8,0.25)',
   },
   platinum: {
     bg: 'from-cyan-400 to-cyan-600',
     text: 'text-cyan-100',
     border: 'border-cyan-400',
     icon: 'text-cyan-200',
-    progress: 'bg-cyan-500'
+    progress: 'bg-cyan-500',
+    glow: '0 0 20px 6px rgba(6,182,212,0.6), 0 0 50px 12px rgba(6,182,212,0.25)',
   },
   diamond: {
     bg: 'from-blue-400 to-purple-600',
     text: 'text-white',
     border: 'border-purple-400',
     icon: 'text-purple-200',
-    progress: 'bg-purple-500'
+    progress: 'bg-purple-500',
+    glow: '0 0 22px 8px rgba(139,92,246,0.65), 0 0 60px 16px rgba(139,92,246,0.25)',
   }
 };
 
@@ -85,12 +91,20 @@ export function AchievementCard({
   const isUnlocked = achievement.unlocked;
 
   return (
+    <motion.div
+      animate={isUnlocked ? {
+        boxShadow: [colors.glow, colors.glow.replace(/0\.65/, '0.35').replace(/0\.55/, '0.25').replace(/0\.6/, '0.3'), colors.glow],
+      } : {}}
+      transition={isUnlocked ? { duration: 2.8, repeat: Infinity, ease: 'easeInOut' } : {}}
+      style={{ borderRadius: '0.75rem' }}
+      whileHover={isUnlocked ? { scale: 1.03 } : {}}
+    >
     <Card
       className={`
         relative overflow-hidden transition-all duration-300
         ${isUnlocked 
-          ? `bg-gradient-to-br ${colors.bg} border-2 ${colors.border} hover:shadow-2xl hover:scale-105` 
-          : 'bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 opacity-75'
+          ? `bg-linear-to-br ${colors.bg} border-2 ${colors.border}` 
+          : 'bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 grayscale opacity-40'
         }
         ${onClick ? 'cursor-pointer' : ''}
       `}
@@ -193,5 +207,6 @@ export function AchievementCard({
         </div>
       </CardContent>
     </Card>
+    </motion.div>
   );
 }

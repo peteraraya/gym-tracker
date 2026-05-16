@@ -131,7 +131,7 @@ const TodayWorkoutCard: React.FC<{
     const active = routines.find((r: any) => r.id === activeWorkout.routineId);
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 to-green-600 p-5 shadow-xl shadow-emerald-500/20"
+        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-emerald-500 to-green-600 p-5 shadow-xl shadow-emerald-500/20"
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/40" />
@@ -155,7 +155,7 @@ const TodayWorkoutCard: React.FC<{
     const first = planned[0] as any;
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-5 shadow-xl shadow-indigo-500/25"
+        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-purple-700 p-5 shadow-xl shadow-indigo-500/25"
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/40" />

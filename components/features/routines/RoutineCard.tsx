@@ -1,9 +1,42 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Dumbbell, Activity, Play, Pencil, Copy, Trash2, Flame } from '@/components/icons/lucide';
+import { APP_CONFIG } from '@/config/app.config';
 import type { Routine } from '@/types';
+
+// Keyword map ligero: ejercicio → grupo muscular
+const MUSCLE_KEYWORDS: Array<[string[], string]> = [
+  [['pecho', 'press banca', 'apertura pecho', 'chest', 'bench', 'fondos pecho', 'flye', 'aperturas'], 'pecho'],
+  [['espalda', 'jalón', 'remo', 'dominada', 'pull-up', 'pulldown', 'pull up', 'row', 'peso muerto rumano', 'remo con barra'], 'espalda'],
+  [['pierna', 'sentadilla', 'prensa', 'leg press', 'squat', 'zancada', 'lunges', 'cuádricep', 'femoral', 'curl femoral', 'extensión de piernas'], 'piernas'],
+  [['hombro', 'press militar', 'elevación lateral', 'lateral raise', 'shoulder', 'deltoid', 'elevaciones'], 'hombros'],
+  [['bícep', 'curl', 'bicep', 'martillo', 'hammer curl', 'curl con barra', 'curl alterno'], 'biceps'],
+  [['trícep', 'extensión', 'tricep', 'skull crusher', 'press francés', 'jalón de polea para trícep'], 'triceps'],
+  [['glúteo', 'hip thrust', 'peso muerto', 'deadlift', 'glute bridge', 'patada trasera'], 'gluteos'],
+  [['core', 'abdom', 'plancha', 'crunch', 'abdomen', 'oblicuo', 'plank', 'sit-up', 'leg raise'], 'core'],
+  [['gemelo', 'calf', 'pantorrilla', 'elevación de talones'], 'gemelos'],
+  [['cardio', 'correr', 'cinta', 'bicicleta', 'elíptica', 'hiit', 'sprint'], 'cardio'],
+  [['trapecio', 'encogimiento', 'shrug'], 'trapecio'],
+  [['antebrazo', 'forearm', 'muñeca'], 'antebrazos'],
+];
+
+function detectPrimaryMuscle(routine: Routine): string | null {
+  const counts: Record<string, number> = {};
+  routine.exercises.forEach(ex => {
+    const name = ex.name.toLowerCase();
+    for (const [keywords, group] of MUSCLE_KEYWORDS) {
+      if (keywords.some(kw => name.includes(kw))) {
+        counts[group] = (counts[group] || 0) + 1;
+        break;
+      }
+    }
+  });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  return sorted[0]?.[0] ?? null;
+}
 
 interface RoutineCardProps {
   routine: Routine;
@@ -30,10 +63,15 @@ export function RoutineCard({
 }: RoutineCardProps) {
   const totalExercises = routine.exercises.length;
   const totalSeries = routine.exercises.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0);
+  const primaryMuscle = useMemo(() => detectPrimaryMuscle(routine), [routine]);
+  const accentColor = primaryMuscle
+    ? (APP_CONFIG.muscleGroupColors as Record<string, string>)[primaryMuscle]
+    : undefined;
 
   return (
-    <Card 
-      className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-400 dark:hover:border-blue-500 bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/10"
+    <Card
+      className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-indigo-400 dark:hover:border-indigo-500 bg-linear-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/10 overflow-hidden"
+      style={accentColor ? { borderLeft: `4px solid ${accentColor}` } : undefined}
     >
       <CardContent className="p-5">
         {/* Active workout badge */}
@@ -114,7 +152,7 @@ export function RoutineCard({
           variant="gradient"
           onClick={() => onStart(routine.id)}
           disabled={isStarting}
-          className="w-full gap-2 shadow-lg hover:shadow-xl transition-all bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-2"
+          className="w-full gap-2 shadow-lg hover:shadow-xl transition-all bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-2"
         >
           {isStarting ? (
             <>

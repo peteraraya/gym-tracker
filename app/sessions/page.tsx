@@ -23,8 +23,44 @@ import {
   SessionCard as SharedSessionCard,
   StatBadge,
 } from "@/components/shared";
+import type { WorkoutSession as WS } from "@/types";
 
 const SESSIONS_PER_PAGE = 10;
+
+// ── Timeline helpers ─────────────────────────────────────────────────────────
+function getMondayOf(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function weekLabel(monday: Date): string {
+  const today = getMondayOf(new Date());
+  const diffMs = today.getTime() - monday.getTime();
+  const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000));
+  if (diffWeeks === 0) return "Esta semana";
+  if (diffWeeks === 1) return "Semana pasada";
+  const end = new Date(monday);
+  end.setDate(monday.getDate() + 6);
+  return `${monday.getDate()} – ${end.getDate()} ${end.toLocaleDateString("es-ES", { month: "short" })}`;
+}
+
+function groupSessionsByWeek(items: WS[]): Array<{ label: string; sessions: WS[] }> {
+  const map = new Map<string, { monday: Date; sessions: WS[] }>();
+  for (const s of items) {
+    const monday = getMondayOf(new Date(s.date));
+    const key = monday.toISOString();
+    if (!map.has(key)) map.set(key, { monday, sessions: [] });
+    map.get(key)!.sessions.push(s);
+  }
+  return Array.from(map.values())
+    .sort((a, b) => b.monday.getTime() - a.monday.getTime())
+    .map(({ monday, sessions }) => ({ label: weekLabel(monday), sessions }));
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface FilterState {
   searchTerm: string;
@@ -339,26 +375,53 @@ export default function SessionsPage() {
                   />
                 ) : (
                   <>
-                    <div className="space-y-3">
-                      {pagination.currentPageItems.map((session) => {
-                        const routine = routines.find(
-                          (r) => r.id === session.routineId,
-                        );
-                        const routineName =
-                          routine?.name ?? tS("routineDeleted");
-                        const isDeleted = !routine;
+                    {/* Timeline agrupado por semana */}
+                    <div className="relative">
+                      {groupSessionsByWeek(pagination.currentPageItems).map((group, gi) => (
+                        <div key={gi} className="mb-6">
+                          {/* Separador de semana */}
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider whitespace-nowrap">
+                              {group.label}
+                            </span>
+                            <div className="flex-1 h-px bg-indigo-200 dark:bg-indigo-800/60" />
+                            <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
+                              {group.sessions.length} sesión{group.sessions.length !== 1 ? "es" : ""}
+                            </span>
+                          </div>
 
-                        return (
-                          <SharedSessionCard
-                            key={session.id}
-                            session={session}
-                            routineName={routineName}
-                            isRoutineDeleted={isDeleted}
-                            onEdit={handleEditSession}
-                            onDelete={handleDeleteSession}
-                          />
-                        );
-                      })}
+                          {/* Sesiones con línea de tiempo */}
+                          <div className="relative pl-6">
+                            {/* Línea vertical */}
+                            <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-linear-to-b from-indigo-400 via-violet-400 to-transparent dark:from-indigo-600 dark:via-violet-700" />
+
+                            <div className="space-y-3">
+                              {group.sessions.map((session) => {
+                                const routine = routines.find(
+                                  (r) => r.id === session.routineId,
+                                );
+                                const routineName =
+                                  routine?.name ?? tS("routineDeleted");
+                                const isDeleted = !routine;
+
+                                return (
+                                  <div key={session.id} className="relative">
+                                    {/* Dot en la línea */}
+                                    <div className="absolute -left-4 top-4 w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400 ring-2 ring-white dark:ring-zinc-950 shrink-0" />
+                                    <SharedSessionCard
+                                      session={session}
+                                      routineName={routineName}
+                                      isRoutineDeleted={isDeleted}
+                                      onEdit={handleEditSession}
+                                      onDelete={handleDeleteSession}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     {pagination.isPaginated && (

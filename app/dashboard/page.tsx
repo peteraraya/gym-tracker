@@ -403,7 +403,7 @@ export default function DashboardPage() {
         {validSessions.length > 0 && (
           <>
             {/* Logros Destacados */}
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-700 mt-4">
+            <div className="bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-700 mt-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Award className="w-6 h-6 text-slate-700 dark:text-slate-300" />

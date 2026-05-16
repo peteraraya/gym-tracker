@@ -109,14 +109,14 @@ export const BottomNavBar: React.FC = () => {
         {moreOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-[48] bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-48 bg-black/40 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMoreOpen(false)}
             />
             <motion.div
-              className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-[49] mx-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
+              className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-49 mx-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
               initial={{ y: 24, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 24, opacity: 0, scale: 0.97 }}
@@ -186,14 +186,14 @@ export const BottomNavBar: React.FC = () => {
             ))}
 
             {/* Botón central elevado */}
-            <Link href={centerHref} className="relative -mt-6 flex-shrink-0 mx-2">
+            <Link href={centerHref} className="relative -mt-6 shrink-0 mx-2">
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.05 }}
                 className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg ${
                   activeWorkout
-                    ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/40'
-                    : 'bg-gradient-to-br from-indigo-600 to-violet-600 shadow-indigo-500/40'
+                    ? 'bg-linear-to-br from-emerald-500 to-green-600 shadow-emerald-500/40'
+                    : 'bg-linear-to-br from-indigo-600 to-violet-600 shadow-indigo-500/40'
                 }`}
               >
                 <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.2} />

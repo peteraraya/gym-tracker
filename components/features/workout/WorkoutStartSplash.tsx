@@ -84,12 +84,12 @@ export function WorkoutStartSplash({
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.25 }}
       onClick={() => onCompleteRef.current()}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center cursor-pointer select-none"
+      className="fixed inset-0 z-9999 flex flex-col items-center justify-center cursor-pointer select-none"
       aria-label="Iniciando entrenamiento — toca para empezar ya"
     >
       {/* Fondo degradado animado */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-blue-900 to-purple-900"
+        className="absolute inset-0 bg-linear-to-br from-indigo-900 via-blue-900 to-purple-900"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}

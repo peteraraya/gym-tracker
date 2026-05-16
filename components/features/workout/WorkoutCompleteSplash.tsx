@@ -107,7 +107,7 @@ export const WorkoutCompleteSplash: React.FC<WorkoutCompleteSplashProps> = ({
 
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden cursor-pointer"
+      className="fixed inset-0 z-9999 flex flex-col items-center justify-center overflow-hidden cursor-pointer"
       style={{
         background: 'linear-gradient(135deg, #0f0c29 0%, #1a1060 40%, #302b63 70%, #24243e 100%)',
       }}
@@ -140,7 +140,7 @@ export const WorkoutCompleteSplash: React.FC<WorkoutCompleteSplashProps> = ({
           className="mb-4"
         >
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-yellow-500/40">
+            <div className="w-24 h-24 rounded-full bg-linear-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-yellow-500/40">
               <Trophy className="w-12 h-12 text-white" strokeWidth={1.8} />
             </div>
             {/* Anillo pulsante */}

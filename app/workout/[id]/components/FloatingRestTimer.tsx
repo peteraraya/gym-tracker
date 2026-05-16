@@ -53,7 +53,7 @@ export function FloatingRestTimer({ duration, onComplete, onDismiss }: FloatingR
 
   return (
     <div className="fixed top-20 right-4 z-40 animate-slide-in-right">
-      <div className="bg-linear-to-br from-blue-500 to-purple-600 text-white rounded-2xl shadow-2xl p-4 min-w-[160px]">
+      <div className="bg-linear-to-br from-blue-500 to-purple-600 text-white rounded-2xl shadow-2xl p-4 min-w-40">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
