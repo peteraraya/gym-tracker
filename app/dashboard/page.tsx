@@ -226,7 +226,7 @@ export default function DashboardPage() {
         title={t("pageTitle")}
         subtitle={t("pageDescription")}
         icon={<BarChart3 className="w-7 h-7 text-white" />}
-        gradient="from-slate-700 via-slate-800 to-slate-900"
+        gradient="from-indigo-600 to-violet-600"
         stats={
           profile && (
             <>

@@ -58,7 +58,7 @@ export default function GlossaryPage() {
         title="Glosario de Fitness"
         subtitle={`${glossaryTerms.length} términos esenciales para tu entrenamiento`}
         icon={<BookOpen className="w-7 h-7 text-white" />}
-        gradient="from-indigo-700 via-purple-800 to-purple-900"
+        gradient="from-indigo-600 to-violet-600"
       />
 
       <PageContent>

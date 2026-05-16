@@ -1,414 +1,375 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "@/context/LocaleContext";
 import { useGym } from "@/context/GymContext";
 import { useWorkout } from "@/context/WorkoutContext";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import {
-  ClipboardList,
+  calculateStreak,
+  calculateTotalVolume,
+  filterSessionsByMonth,
+} from "@/lib/utils/dateUtils";
+import { getWeeklyPlan } from "@/lib/storage/storage";
+import type { WeeklyPlan } from "@/lib/storage/localStorage";
+import {
   Dumbbell,
-  Target,
-  Rocket,
+  Play,
+  ArrowRight,
   Calendar,
   TrendingUp,
-  Lightbulb,
-  Sparkles,
-  Plus,
-  ArrowRight,
-  BarChart3,
+  ChevronRight,
+  Flame,
+  Trophy,
+  Zap,
+  Moon,
+  ClipboardList,
   Activity,
 } from "@/components/icons/lucide";
+import Link from "next/link";
 
+// ——— Helpers ———
+type DayKey =
+  | "sunday" | "monday" | "tuesday" | "wednesday"
+  | "thursday" | "friday" | "saturday";
+
+const DAY_MAP: DayKey[] = [
+  "sunday", "monday", "tuesday", "wednesday",
+  "thursday", "friday", "saturday",
+];
+
+const DAY_LABELS: Record<DayKey, string> = {
+  sunday: "Domingo", monday: "Lunes", tuesday: "Martes",
+  wednesday: "Miércoles", thursday: "Jueves",
+  friday: "Viernes", saturday: "Sábado",
+};
+
+function getTodayKey(): DayKey {
+  return DAY_MAP[new Date().getDay()];
+}
+
+function getThisWeekVolume(sessions: any[]): number {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+  return calculateTotalVolume(sessions.filter((s) => new Date(s.date) >= monday));
+}
+
+function getLastWeekVolume(sessions: any[]): number {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const thisMonday = new Date(now);
+  thisMonday.setDate(now.getDate() - mondayOffset);
+  thisMonday.setHours(0, 0, 0, 0);
+  const lastMonday = new Date(thisMonday);
+  lastMonday.setDate(thisMonday.getDate() - 7);
+  const lastSunday = new Date(thisMonday);
+  lastSunday.setMilliseconds(-1);
+  return calculateTotalVolume(
+    sessions.filter((s) => { const d = new Date(s.date); return d >= lastMonday && d <= lastSunday; })
+  );
+}
+
+// ——— Flame animada ———
+const AnimatedFlame: React.FC<{ size?: number }> = ({ size = 24 }) => (
+  <motion.span
+    animate={{ scale: [1, 1.2, 0.95, 1.1, 1], rotate: [-5, 5, -3, 3, 0] }}
+    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+    style={{ display: "inline-block", lineHeight: 1 }}
+  >
+    <Flame style={{ width: size, height: size }} className="text-orange-500" />
+  </motion.span>
+);
+
+// ——— Card descanso ———
+const RestDayCard: React.FC<{ dayLabel: string; showSetup?: boolean }> = ({ dayLabel, showSetup = false }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="rounded-3xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 p-5"
+  >
+    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">{dayLabel}</p>
+    <div className="flex items-center gap-3 mb-3">
+      <Moon className="w-7 h-7 text-zinc-400 dark:text-zinc-500" />
+      <div>
+        <h2 className="text-zinc-800 dark:text-zinc-100 font-bold text-lg">Día de descanso</h2>
+        <p className="text-zinc-500 dark:text-zinc-400 text-sm">No tienes entrenamiento planificado</p>
+      </div>
+    </div>
+    {showSetup ? (
+      <Link href="/planning" className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
+        Planificar semana <ChevronRight className="w-4 h-4" />
+      </Link>
+    ) : (
+      <Link href="/routines" className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
+        Entrenar igualmente <ChevronRight className="w-4 h-4" />
+      </Link>
+    )}
+  </motion.div>
+);
+
+// ——— Card entrenamiento de hoy ———
+const TodayWorkoutCard: React.FC<{
+  todayKey: DayKey;
+  todayRoutineIds: string[];
+  routines: any[];
+  activeWorkout: any;
+  onStart: (id: string) => void;
+  loading: boolean;
+}> = ({ todayKey, todayRoutineIds, routines, activeWorkout, onStart, loading }) => {
+  const router = useRouter();
+
+  if (loading) return <div className="rounded-3xl bg-zinc-100 dark:bg-zinc-800/60 h-40 animate-pulse" />;
+
+  if (activeWorkout?.routineId) {
+    const active = routines.find((r: any) => r.id === activeWorkout.routineId);
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 to-green-600 p-5 shadow-xl shadow-emerald-500/20"
+      >
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/40" />
+        </div>
+        <div className="relative">
+          <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">🔥 Entrenamiento activo</p>
+          <h2 className="text-white font-bold text-xl mb-3">{active?.name || "Entrenamiento"}</h2>
+          <button onClick={() => router.push(`/workout/${activeWorkout.routineId}`)}
+            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <Activity className="w-4 h-4" /> Continuar entrenamiento <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (todayRoutineIds.length > 0) {
+    const planned = todayRoutineIds.map((id) => routines.find((r: any) => r.id === id)).filter(Boolean);
+    if (planned.length === 0) return <RestDayCard dayLabel={DAY_LABELS[todayKey]} />;
+    const first = planned[0] as any;
+    return (
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-5 shadow-xl shadow-indigo-500/25"
+      >
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/40" />
+          <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-white/30" />
+        </div>
+        <div className="relative">
+          <p className="text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-1">
+            📅 Tu entrenamiento de hoy · {DAY_LABELS[todayKey]}
+          </p>
+          <h2 className="text-white font-bold text-xl truncate mb-0.5">{first.name}</h2>
+          <p className="text-indigo-200 text-sm mb-4">
+            {first.exercises?.length || 0} ejercicios ·{" "}
+            {(first.exercises || []).reduce((s: number, ex: any) => s + (ex.sets?.length || 0), 0)} series
+          </p>
+          <button onClick={() => onStart(first.id)}
+            className="flex items-center gap-2 bg-white text-indigo-700 text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg hover:bg-indigo-50 transition-colors"
+          >
+            <Play className="w-4 h-4 fill-indigo-600" /> Iniciar ahora
+          </button>
+          {planned.length > 1 && (
+            <p className="text-indigo-300 text-xs mt-2">+{planned.length - 1} rutina{planned.length > 2 ? "s" : ""} más</p>
+          )}
+        </div>
+      </motion.div>
+    );
+  }
+
+  return <RestDayCard dayLabel={DAY_LABELS[todayKey]} showSetup={routines.length > 0} />;
+};
+
+// ——— Página ———
 export default function Home() {
   const { routines, sessions, loading } = useGym();
-  const { activeWorkout } = useWorkout();
-  const t = useTranslations("home");
-  const tCommon = useTranslations("common");
+  const { activeWorkout, startWorkout } = useWorkout();
   const router = useRouter();
-  const [selectedRoutineId, setSelectedRoutineId] = useState("");
+  const t = useTranslations("home");
 
-  const totalExercises = useMemo(() => {
-    if (!Array.isArray(routines)) return 0;
-    return routines.reduce((acc, r) => acc + (r?.exercises?.length || 0), 0);
-  }, [routines]);
+  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null);
+  const todayKey = getTodayKey();
 
-  const recentSessions = useMemo(() => {
-    if (!Array.isArray(sessions)) return [];
-    return sessions.slice(0, 3);
-  }, [sessions]);
+  useEffect(() => { getWeeklyPlan().then(setWeeklyPlan).catch(() => {}); }, []);
+
+  const todayRoutineIds = useMemo<string[]>(() => weeklyPlan?.[todayKey]?.routines ?? [], [weeklyPlan, todayKey]);
+  const streakCount = useMemo(() => calculateStreak(sessions), [sessions]);
+  const thisWeekVol = useMemo(() => getThisWeekVolume(sessions), [sessions]);
+  const lastWeekVol = useMemo(() => getLastWeekVolume(sessions), [sessions]);
+  const volTrend = useMemo(() => lastWeekVol === 0 ? null : Math.round(((thisWeekVol - lastWeekVol) / lastWeekVol) * 100), [thisWeekVol, lastWeekVol]);
+  const monthSessions = useMemo(() => { const n = new Date(); return filterSessionsByMonth(sessions, n.getMonth(), n.getFullYear()).length; }, [sessions]);
+  const recentSessions = useMemo(() => sessions.slice(0, 3), [sessions]);
+
+  const handleStart = useCallback((routineId: string) => {
+    if (activeWorkout?.routineId === routineId) { router.push(`/workout/${routineId}`); return; }
+    const routine = routines.find((r) => r.id === routineId);
+    if (routine) { startWorkout(routine); router.push(`/workout/${routineId}`); }
+  }, [activeWorkout, routines, startWorkout, router]);
+
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    return h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
+  }, []);
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Hero Section */}
-        <div className="bg-linear-to-br from-blue-600 via-purple-600 to-indigo-700 text-white mb-4">
-          <div className="container mx-auto px-4 py-12 sm:py-16 md:py-20">
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
-                  <Dumbbell className="w-10 h-10" />
-                </div>
-              </div>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        <div className="max-w-lg mx-auto px-4 pt-6 pb-4 space-y-4">
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                {t("welcome")}
-              </h1>
-              <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                {t("subtitle")}
+          {/* Cabecera */}
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between"
+          >
+            <div>
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm">{greeting} 👋</p>
+              <h1 className="text-zinc-900 dark:text-zinc-50 font-bold text-2xl leading-tight">Hoy</h1>
+              <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">
+                {new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })}
               </p>
-
-              {/* Quick Action Buttons */}
-              <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-                <Link href="/routines">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="bg-white text-blue-600 hover:bg-blue-50 font-semibold"
-                  >
-                    <ClipboardList className="w-5 h-5" />
-                    {t("viewRoutines")}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-
-                {routines.length > 0 && (
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <label htmlFor="routine-select" className="sr-only">
-                      {tCommon("selectRoutine") || "Selecciona una rutina"}
-                    </label>
-                    <select
-                      id="routine-select"
-                      aria-label={tCommon("selectRoutine") || "Selecciona una rutina"}
-                      value={selectedRoutineId}
-                      onChange={(e) => setSelectedRoutineId(e.target.value)}
-                      className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 font-medium"
-                    >
-                      <option value="" disabled>
-                        {tCommon("selectRoutine") || "Selecciona una rutina..."}
-                      </option>
-                      {routines.map((routine) => (
-                        <option key={routine.id} value={routine.id}>
-                          {routine.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className={activeWorkout ? "bg-green-500 hover:bg-green-600 border-0 font-bold" : "bg-green-500 hover:bg-green-600 border-0 font-bold"}
-                      onClick={() => {
-                        // Si hay un entrenamiento activo, navegar directamente sin reiniciar
-                        if (activeWorkout) {
-                          router.push(`/workout/${activeWorkout.routineId}`);
-                          return;
-                        }
-                        const id = selectedRoutineId || routines[0]?.id;
-                        if (id) router.push(`/workout/${id}`);
-                      }}
-                    >
-                      <Activity className="w-5 h-5" />
-                      {activeWorkout
-                        ? tCommon("continueWorkout") || "Continuar Entrenamiento"
-                        : tCommon("startWorkout") || "Iniciar Entrenamiento"}
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
-        </div>
+            {streakCount > 0 && (
+              <Link href="/achievements">
+                <motion.div whileTap={{ scale: 0.93 }}
+                  className="flex flex-col items-center bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/40 rounded-2xl px-3 py-2"
+                >
+                  <AnimatedFlame size={22} />
+                  <span className="text-orange-600 dark:text-orange-400 font-black text-xl leading-none">{streakCount}</span>
+                  <span className="text-orange-400/70 dark:text-orange-400/60 text-[10px] font-medium">días</span>
+                </motion.div>
+              </Link>
+            )}
+          </motion.div>
 
-        {/* Stats Section */}
-        <div className="container mx-auto px-4 py-8 sm:py-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 -mt-8 sm:-mt-12 relative z-10">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                    <ClipboardList className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    {loading ? (
-                      <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    ) : (
-                      <p className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100">
-                        {routines.length}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t("routinesCard")}
-                    </p>
-                  </div>
+          {/* Card principal */}
+          <TodayWorkoutCard
+            todayKey={todayKey}
+            todayRoutineIds={todayRoutineIds}
+            routines={routines}
+            activeWorkout={activeWorkout}
+            onStart={handleStart}
+            loading={loading}
+          />
+
+          {/* Stats rápidos */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+            className="grid grid-cols-3 gap-3"
+          >
+            <Link href="/progress">
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                <div className="flex items-center justify-between mb-1">
+                  <TrendingUp className="w-4 h-4 text-indigo-500" />
+                  {volTrend !== null && (
+                    <span className={`text-[10px] font-bold ${volTrend >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+                      {volTrend >= 0 ? "↗" : "↘"} {Math.abs(volTrend)}%
+                    </span>
+                  )}
                 </div>
-                <Link href="/routines">
-                  <Button variant="ghost" size="sm" className="w-full">
-                    {t("viewRoutines")}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
+                <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">
+                  {thisWeekVol >= 1000 ? `${(thisWeekVol / 1000).toFixed(1)}t` : `${thisWeekVol}kg`}
+                </p>
+                <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Vol. semana</p>
               </div>
+            </Link>
+            <Link href="/sessions">
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                <Calendar className="w-4 h-4 text-blue-500 mb-1" />
+                <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{loading ? "—" : monthSessions}</p>
+                <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Mes actual</p>
+              </div>
+            </Link>
+            <Link href="/achievements">
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                <Trophy className="w-4 h-4 text-amber-500 mb-1" />
+                <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{streakCount}</p>
+                <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Mejor racha</p>
+              </div>
+            </Link>
+          </motion.div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                    <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    {loading ? (
-                      <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    ) : (
-                      <p className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100">
-                        {sessions.length}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t("sessionsCard")}
-                    </p>
-                  </div>
+          {/* Acceso rápido */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
+            className="grid grid-cols-2 gap-3"
+          >
+            <Link href="/routines">
+              <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+                  <ClipboardList className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <Link href="/sessions">
-                  <Button variant="ghost" size="sm" className="w-full">
-                    {t("viewHistory") || "Ver Historial"}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                    <Dumbbell className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    {loading ? (
-                      <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    ) : (
-                      <p className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100">
-                        {totalExercises}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {t("exercisesCard")}
-                    </p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Rutinas</p>
+                  <p className="text-zinc-400 text-xs">{routines.length} creadas</p>
                 </div>
-                <Link href="/exercises">
-                  <Button variant="ghost" size="sm" className="w-full">
-                    {t("exploreExercises") || "Explorar Ejercicios"}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="container mx-auto px-4 pb-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Quick Actions */}
-              <div className="space-y-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  <Rocket className="w-5 h-5 inline mr-2 text-blue-600" />
-                  {t("getStarted")}
-                </h2>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-purple-600" />
-                      {t("recommendedRoutines")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      {t("recommendedRoutinesDesc")}
-                    </p>
-                    <Link href="/recommended">
-                      <Button variant="primary" className="w-full">
-                        <Target className="w-4 h-4" />
-                        {t("viewRecommended")}
-                        <ArrowRight className="w-4 h-4 ml-auto" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-indigo-600" />
-                      Planificación
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      Planifica tus próximas sesiones y crea objetivos.
-                    </p>
-                    <Link href="/planning">
-                      <Button variant="secondary" className="w-full">
-                        <Calendar className="w-4 h-4" />
-                        Ir a Planificación
-                        <ArrowRight className="w-4 h-4 ml-auto" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                {routines.length === 0 ? (
-                  <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Plus className="w-5 h-5 text-blue-600" />
-                        {t("createFirstRoutine") || "Crear Primera Rutina"}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                        {t("getStartedDesc")}
-                      </p>
-                      <Link href="/routines">
-                        <Button variant="primary" className="w-full">
-                          <Plus className="w-4 h-4" />
-                          {t("createFirstRoutine") || "Crear Rutina"}
-                          <ArrowRight className="w-4 h-4 ml-auto" />
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <ClipboardList className="w-5 h-5 text-blue-600" />
-                        {t("haveRoutines.title") || "Tus Rutinas"}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                        {t("haveRoutines.subtitle") ||
-                          `${routines.length} rutinas creadas`}
-                      </p>
-                      <Link href="/routines">
-                        <Button variant="primary" className="w-full">
-                          <ClipboardList className="w-4 h-4" />
-                          {t("haveRoutines.cta") || "Ver Rutinas"}
-                          <ArrowRight className="w-4 h-4 ml-auto" />
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                )}
+            </Link>
+            <Link href="/dashboard">
+              <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                  <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Dashboard</p>
+                  <p className="text-zinc-400 text-xs">{sessions.length} sesiones</p>
+                </div>
               </div>
+            </Link>
+          </motion.div>
 
-              {/* Progress & Info */}
-              <div className="space-y-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  <BarChart3 className="w-5 h-5 inline mr-2 text-green-600" />
-                  {t("progress") || "Progreso"}
-                </h2>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-emerald-600" />
-                      {t("progress") || "Progreso"}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      {t("progressDesc") || "Ver tus estadísticas de progreso"}
-                    </p>
-                    <Link href="/progress">
-                      <Button variant="secondary" className="w-full">
-                        <TrendingUp className="w-4 h-4" />
-                        {t("viewProgress") || "Ver Progreso"}
-                        <ArrowRight className="w-4 h-4 ml-auto" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-indigo-600" />
-                      {t("history") || "Historial"}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      {t("historyDesc") || "Ver historial de entrenamientos"}
-                    </p>
-                    <Link href="/sessions">
-                      <Button variant="secondary" className="w-full">
-                        <Calendar className="w-4 h-4" />
-                        {t("viewHistory") || "Ver Historial"}
-                        <ArrowRight className="w-4 h-4 ml-auto" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Lightbulb className="w-5 h-5 text-amber-600" />
-                      {t("exerciseGuide") || "Guía de Ejercicios"}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="mb-4 text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      {t("exerciseGuideDesc") ||
-                        "Explora ejercicios y aprende técnica"}
-                    </p>
-                    <Link href="/exercises">
-                      <Button variant="secondary" className="w-full">
-                        <Lightbulb className="w-4 h-4" />
-                        {t("exploreExercises") || "Explorar Ejercicios"}
-                        <ArrowRight className="w-4 h-4 ml-auto" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Recent Sessions */}
+          {/* Sesiones recientes */}
+          <AnimatePresence>
             {recentSessions.length > 0 && (
-              <div className="mt-8 sm:mt-12">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">
-                  <Activity className="w-5 h-5 inline mr-2 text-green-600" />
-                  {t("recentSessions") || "Entrenamientos Recientes"}
-                </h2>
-                <div className="grid sm:grid-cols-3 gap-4">
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">Recientes</h2>
+                  <Link href="/sessions" className="text-indigo-600 dark:text-indigo-400 text-xs font-medium flex items-center gap-0.5 hover:underline">
+                    Ver todo <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+                <div className="space-y-2">
                   {recentSessions.map((session) => (
-                    <Card
-                      key={session.id}
-                      className="hover:shadow-lg transition-shadow"
-                    >
-                      <CardContent className="p-4">
-                        <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                          {session.routineName || "Entrenamiento"}
+                    <div key={session.id} className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 py-3">
+                      <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                        <Dumbbell className="w-4 h-4 text-zinc-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{session.routineName || "Entrenamiento"}</p>
+                        <p className="text-zinc-400 text-xs">
+                          {session.date ? new Date(session.date).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }) : ""}
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {session.date ? new Date(session.date).toLocaleDateString(undefined) : ""}
-                        </p>
-                      </CardContent>
-                    </Card>
+                      </div>
+                      {(session.totalVolume ?? 0) > 0 && (
+                        <span className="text-zinc-400 dark:text-zinc-500 text-xs font-medium shrink-0">
+                          {(session.totalVolume ?? 0) >= 1000 ? `${((session.totalVolume ?? 0) / 1000).toFixed(1)}t` : `${session.totalVolume}kg`}
+                        </span>
+                      )}
+                    </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
+
+          {/* Estado vacío */}
+          {!loading && routines.length === 0 && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+              className="rounded-3xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 p-8 text-center"
+            >
+              <Dumbbell className="w-10 h-10 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
+              <p className="text-zinc-700 dark:text-zinc-300 font-semibold mb-1">{t("createFirstRoutine") || "Crea tu primera rutina"}</p>
+              <p className="text-zinc-400 text-sm mb-4">{t("getStartedDesc") || "Empieza a registrar tus entrenamientos"}</p>
+              <Link href="/routines">
+                <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors">
+                  Crear rutina
+                </button>
+              </Link>
+            </motion.div>
+          )}
+
         </div>
       </div>
     </ProtectedRoute>

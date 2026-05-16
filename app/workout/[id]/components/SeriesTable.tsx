@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -440,26 +441,62 @@ export function SeriesTable({
                       )}
                     </td>
 
-                    {/* Checkbox */}
+                    {/* Checkbox animado */}
                     <td className="py-3 px-2 text-center">
-                      <button
+                      <motion.button
                         onClick={() => onToggleSetComplete(idx, !isCompleted)}
-                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        whileTap={{ scale: 0.8 }}
+                        animate={isCompleted
+                          ? { scale: [1, 1.3, 1], backgroundColor: '#22c55e' }
+                          : { scale: 1, backgroundColor: '' }
+                        }
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center ${
                           isCompleted
-                            ? 'bg-green-500 hover:bg-green-600 text-white'
-                            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500'
+                            ? 'bg-green-500 text-white shadow-md shadow-green-400/40'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
                         }`}
                       >
-                        {isCompleted ? (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </button>
+                        <AnimatePresence mode="wait">
+                          {isCompleted ? (
+                            <motion.svg
+                              key="checked"
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              transition={{ duration: 0.18, type: 'spring', stiffness: 400 }}
+                            >
+                              <motion.path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 0.22, ease: 'easeOut' }}
+                              />
+                            </motion.svg>
+                          ) : (
+                            <motion.svg
+                              key="unchecked"
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.12 }}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </motion.svg>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
                     </td>
 
                     {/* Delete button */}

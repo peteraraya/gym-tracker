@@ -152,7 +152,7 @@ export default function AIAssistantPage() {
           title="Asistente IA"
           subtitle="Tu entrenador personal inteligente"
           icon={<Sparkles className="w-7 h-7 text-white" />}
-          gradient="from-purple-700 via-indigo-700 to-blue-800"
+          gradient="from-indigo-600 to-violet-600"
         >
           {/* Info Cards */}
           <div className="grid md:grid-cols-3 gap-3 mt-4">

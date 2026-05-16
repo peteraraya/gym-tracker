@@ -58,7 +58,7 @@ export default function AchievementsPage() {
             title="Logros y Medallas"
             subtitle="Desbloquea logros por tu dedicación y progreso"
             icon={<Trophy className="w-7 h-7 text-white" />}
-            gradient="from-amber-700 via-orange-700 to-orange-800"
+            gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
             <LoadingSpinner size="lg" message="Cargando logros..." />
@@ -75,7 +75,7 @@ export default function AchievementsPage() {
           title="Logros y Medallas"
           subtitle="Desbloquea logros por tu dedicación y progreso"
           icon={<Trophy className="w-7 h-7 text-white" />}
-          gradient="from-amber-700 via-orange-700 to-orange-800"
+          gradient="from-indigo-600 to-violet-600"
           stats={
             <div className="text-center">
               <div className="text-4xl font-bold text-white">

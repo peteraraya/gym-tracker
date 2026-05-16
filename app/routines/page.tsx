@@ -336,7 +336,7 @@ export default function RoutinesPage() {
           title={t("title")}
           subtitle={t("subtitle")}
           icon={<ClipboardList className="w-7 h-7 text-white" />}
-          gradient="from-slate-700 via-slate-800 to-gray-900"
+          gradient="from-indigo-600 to-violet-600"
           actions={
             <>
               <Button

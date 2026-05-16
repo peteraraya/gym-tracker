@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { WeightSuggestionBanner } from "@/components/features/workout/WeightSuggestionBanner";
@@ -143,7 +144,21 @@ export function ExerciseCard({
   }, [completedSets, totalSets]);
 
   return (
-    <Card className="mb-4 border-2 border-blue-200 dark:border-blue-900">
+    <motion.div
+      className="mb-4"
+      animate={{
+        boxShadow: [
+          '0 0 0px 0px rgba(99,102,241,0)',
+          '0 0 18px 4px rgba(99,102,241,0.35)',
+          '0 0 8px 2px rgba(139,92,246,0.25)',
+          '0 0 18px 4px rgba(99,102,241,0.35)',
+          '0 0 0px 0px rgba(99,102,241,0)',
+        ],
+      }}
+      transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+      style={{ borderRadius: '0.75rem' }}
+    >
+    <Card className="border-2 border-indigo-300 dark:border-indigo-700">
       {/* Header con información del ejercicio - Mejorado */}
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3 mb-3">
@@ -446,5 +461,6 @@ export function ExerciseCard({
           .sort((a, b) => b - a)}
       />
     </Card>
+    </motion.div>
   );
 }

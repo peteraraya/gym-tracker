@@ -224,7 +224,7 @@ export default function ProfilePage() {
           title="Mi Perfil"
           subtitle="Gestiona tu información personal y configuración"
           icon={<span className="text-3xl">👤</span>}
-          gradient="from-slate-700 via-gray-800 to-gray-900"
+          gradient="from-indigo-600 to-violet-600"
         />
 
         <PageContent maxWidth="2xl">

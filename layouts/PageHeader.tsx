@@ -4,17 +4,19 @@ export interface PageHeaderProps {
   title: string;
   subtitle?: string;
   icon?: ReactNode;
-  gradient: string;
+  gradient?: string;
   actions?: ReactNode;
   stats?: ReactNode;
   children?: ReactNode;
 }
 
+const BRAND_GRADIENT = 'from-indigo-600 to-violet-600';
+
 export function PageHeader({
   title,
   subtitle,
   icon,
-  gradient,
+  gradient = BRAND_GRADIENT,
   actions,
   stats,
   children

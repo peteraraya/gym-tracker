@@ -19,7 +19,7 @@ const StatsCard = memo(function StatsCard({ title, value, icon, subtitle, trend,
   return (
     <Card className="relative overflow-hidden group">
       {/* Background gradient */}
-      <div className={`absolute inset-0 bg-linear-to-br ${gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
+      <div className={`absolute inset-0 bg-linear-to-br ${gradient} opacity-15 group-hover:opacity-25 transition-opacity`} />
       
       <div className="relative">
         <div className="flex items-start justify-between mb-2">

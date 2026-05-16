@@ -222,7 +222,7 @@ export default function RecommendedRoutinesPage() {
           title="Rutinas Recomendadas"
           subtitle="Rutinas profesionales listas para guardar y comenzar"
           icon={<span className="text-3xl">🎯</span>}
-          gradient="from-teal-700 via-cyan-700 to-blue-800"
+          gradient="from-indigo-600 to-violet-600"
         />
 
         <PageContent>

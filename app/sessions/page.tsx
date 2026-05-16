@@ -221,7 +221,7 @@ export default function SessionsPage() {
             title="Historial de Sesiones"
             subtitle="Revisa y analiza tus entrenamientos anteriores"
             icon={<Calendar className="w-7 h-7 text-white" />}
-            gradient="from-green-700 via-emerald-700 to-teal-800"
+            gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
             <LoadingSpinner size="lg" message="Cargando sesiones..." />
@@ -238,7 +238,7 @@ export default function SessionsPage() {
           title="Historial de Sesiones"
           subtitle="Revisa y analiza tus entrenamientos anteriores"
           icon={<Calendar className="w-7 h-7 text-white" />}
-          gradient="from-green-700 via-emerald-700 to-teal-800"
+          gradient="from-indigo-600 to-violet-600"
         >
           {/* Quick stats */}
           {sessions.length > 0 && (

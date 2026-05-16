@@ -1003,7 +1003,7 @@ export default function PlanningPage() {
           title="Planificación"
           subtitle="Mesociclos, volumen semanal y progresión de entrenamientos"
           icon={<span className="text-3xl">📅</span>}
-          gradient="from-indigo-700 via-purple-700 to-blue-800"
+          gradient="from-indigo-600 to-violet-600"
         />
 
         <PageContent maxWidth="4xl">

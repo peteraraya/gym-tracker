@@ -173,7 +173,7 @@ export default function ProgressPage() {
             title={t("progress.title")}
             subtitle={t("progress.subtitle")}
             icon={<TrendingUp className="w-7 h-7 text-white" />}
-            gradient="from-orange-700 via-red-700 to-red-800"
+            gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
             <LoadingSpinner
@@ -194,7 +194,7 @@ export default function ProgressPage() {
             title={t("progress.title")}
             subtitle={t("progress.subtitle")}
             icon={<TrendingUp className="w-7 h-7 text-white" />}
-            gradient="from-orange-700 via-red-700 to-red-800"
+            gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
             <EmptyStateCard
@@ -215,7 +215,7 @@ export default function ProgressPage() {
           title={t("progress.title")}
           subtitle={t("progress.subtitle")}
           icon={<TrendingUp className="w-7 h-7 text-white" />}
-          gradient="from-orange-700 via-red-700 to-red-800"
+          gradient="from-indigo-600 to-violet-600"
         />
 
         <PageContent>

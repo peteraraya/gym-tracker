@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Clock, Weight, ListChecks, Repeat, Settings } from '@/components/icons/lucide';
 import type { Routine } from '@/types';
@@ -237,9 +238,18 @@ export function CompactWorkoutHeader({
         {/* Series */}
         <div className="flex flex-col items-center">
           <ListChecks className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 mb-0.5" />
-          <div className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums">
-            {stats.sets}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={stats.sets}
+              className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums"
+              initial={{ y: -8, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+            >
+              {stats.sets}
+            </motion.div>
+          </AnimatePresence>
           <div className="text-[10px] text-gray-600 dark:text-gray-400">
             series
           </div>

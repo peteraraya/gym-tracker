@@ -38,7 +38,7 @@ export default function EquipmentPage() {
           title="Mi Equipamiento"
           subtitle="Selecciona el equipamiento que tienes disponible"
           icon={<span className="text-3xl">🏋️</span>}
-          gradient="from-blue-700 via-indigo-700 to-indigo-800"
+          gradient="from-indigo-600 to-violet-600"
         >
           {/* Stats */}
           <div className="mt-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-md">

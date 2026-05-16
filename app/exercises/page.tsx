@@ -216,7 +216,7 @@ export default function ExercisesPage() {
           title="Guía de Ejercicios"
           subtitle="Explora ejercicios con técnicas profesionales"
           icon={<span className="text-3xl">💪</span>}
-          gradient="from-blue-700 via-blue-800 to-indigo-900"
+          gradient="from-indigo-600 to-violet-600"
           actions={
             <Button
               variant="secondary"
