@@ -49,9 +49,19 @@ export function ServiceWorkerRegistration() {
               if (permission === 'granted') {
                 // Suscribirse a push notifications
                 await subscribeToPushNotifications(registration);
-                
-                // Mostrar notificación de bienvenida
-                await showWelcomeNotification(registration);
+
+                // Nota: no mostramos notificación de bienvenida por defecto
+                // para evitar que otras notificaciones (p.ej. temporizadores)
+                // queden sobreescritas o mezcladas. Si quieres activar la
+                // notificación de bienvenida, setea `localStorage.setItem('pwa_show_welcome','true')`.
+                try {
+                  const showWelcome = localStorage.getItem('pwa_show_welcome') === 'true';
+                  if (showWelcome) {
+                    await showWelcomeNotification(registration);
+                  }
+                } catch (e) {
+                  // Si localStorage no está disponible, simplemente no mostrar bienvenida
+                }
               } else if (permission === 'denied') {
                 console.log('[PWA] Notification permission denied by user');
               }

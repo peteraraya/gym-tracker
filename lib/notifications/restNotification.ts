@@ -1,6 +1,14 @@
 // Helpers para notificaciones de descanso (cliente)
 let _restInterval: number | null = null;
 
+function isRunningOnCapacitorNative() {
+  try {
+    return typeof window !== 'undefined' && !!((window as any).Capacitor && (window as any).Capacitor.isNativePlatform && (window as any).Capacitor.isNativePlatform());
+  } catch (e) {
+    return false;
+  }
+}
+
 async function ensurePermission(): Promise<boolean> {
   if (typeof window === 'undefined' || !('Notification' in window)) return false;
   if (Notification.permission === 'granted') return true;
@@ -31,6 +39,18 @@ export async function startRestNotification(
   if (typeof window === 'undefined') return;
   const ok = await ensurePermission();
   if (!ok) return;
+  // Si estamos en la app nativa (Capacitor Android), delegar al plugin nativo
+  if (isRunningOnCapacitorNative()) {
+    try {
+      const Plugins = (window as any).Capacitor?.Plugins || (window as any).Plugins;
+      if (Plugins && Plugins.RestForeground && typeof Plugins.RestForeground.start === 'function') {
+        await Plugins.RestForeground.start({ duration, nextExercise, tag });
+        return;
+      }
+    } catch (e) {
+      console.warn('[restNotification] error calling native plugin', e);
+    }
+  }
 
   const endTime = Date.now() + duration * 1000;
   postToSW({ type: 'START_REST', duration, title, endTime, nextExercise, tag });
@@ -54,6 +74,18 @@ export async function startRestNotification(
 
 export async function updateRestNotification(remaining: number, tag = 'rest-timer') {
   if (typeof window === 'undefined') return;
+  if (isRunningOnCapacitorNative()) {
+    try {
+      const Plugins = (window as any).Capacitor?.Plugins || (window as any).Plugins;
+      if (Plugins && Plugins.RestForeground && typeof Plugins.RestForeground.update === 'function') {
+        await Plugins.RestForeground.update({ remaining });
+        return;
+      }
+    } catch (e) {
+      console.warn('[restNotification] error calling native plugin update', e);
+    }
+  }
+
   postToSW({ type: 'UPDATE_REST', remaining, tag });
 }
 
@@ -63,5 +95,17 @@ export async function endRestNotification(tag = 'rest-timer') {
     clearInterval(_restInterval);
     _restInterval = null;
   }
+  if (isRunningOnCapacitorNative()) {
+    try {
+      const Plugins = (window as any).Capacitor?.Plugins || (window as any).Plugins;
+      if (Plugins && Plugins.RestForeground && typeof Plugins.RestForeground.stop === 'function') {
+        await Plugins.RestForeground.stop();
+        return;
+      }
+    } catch (e) {
+      console.warn('[restNotification] error calling native plugin stop', e);
+    }
+  }
+
   postToSW({ type: 'END_REST', tag });
 }

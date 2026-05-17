@@ -369,6 +369,29 @@ function formatSeconds(seconds) {
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
+// Genera un data URL SVG con el número grande (para usar en `notification.image`)
+function createNumberSVGDataUrl(number, opts = {}) {
+  const width = opts.width || 512;
+  const height = opts.height || 256;
+  const bg = opts.bg || '#0f172a'; // fondo oscuro
+  const fg = opts.fg || '#ffffff'; // texto claro
+  const fontSize = opts.fontSize || Math.floor(height * 0.6);
+  const fontFamily = opts.fontFamily || 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial';
+  const sanitized = String(number)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
+    `<rect width="100%" height="100%" rx="28" fill="${bg}"/>` +
+    `<text x="50%" y="50%" fill="${fg}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="700" dominant-baseline="middle" text-anchor="middle">${sanitized}</text>` +
+    `</svg>`;
+
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
 // Message handling para comunicación con la app
 self.addEventListener('message', (event) => {
   console.log('[SW] Message received:', event.data);
@@ -393,7 +416,9 @@ self.addEventListener('message', (event) => {
   // START_REST -> inicia/actualiza una notificación con cuenta regresiva
   if (event.data.type === 'START_REST') {
     const duration = Number(event.data.duration) || 0;
-    const title = event.data.title || 'Descanso';
+    // Forzamos siempre el título 'Descanso' en la notificación para evitar
+    // que otros mensajes (p.ej. de bienvenida) sobreescriban el texto.
+    const title = 'Descanso';
     const nextExercise = event.data.nextExercise;
     const tag = event.data.tag || 'rest-timer';
     const endTime = Number(event.data.endTime) || (Date.now() + duration * 1000);
@@ -406,14 +431,14 @@ self.addEventListener('message', (event) => {
     const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
     const formatted = formatSeconds(remaining);
 
-    const options = {
-      body: nextExercise ? `Próximo: ${nextExercise}` : 'Descansando',
+    // Base options for the notification updates. Use the same `tag` so updates replace the notification.
+    const baseOptions = {
+      body: title,
       tag,
-      renotify: true,
+      renotify: false, // actualizar sin volver a notificar (sin sonido/vibración cada vez)
       requireInteraction: true,
       icon: '/icons/icon-192x192.png',
       badge: '/icons/badge-72x72.png',
-      vibrate: [200, 100, 200],
       data: { endTime, nextExercise },
       actions: event.data.actions || [
         { action: 'skip', title: 'Saltar' },
@@ -422,7 +447,14 @@ self.addEventListener('message', (event) => {
       ]
     };
 
-    self.registration.showNotification(`${title} — ${formatted}`, options);
+    // Initial notification: include a vibration so user notices start and an image
+    const initialOptions = Object.assign({}, baseOptions, {
+      vibrate: [200, 100, 200],
+      image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
+    });
+
+    // Show the remaining time as the notification title (aparece grande en muchas UIs)
+    self.registration.showNotification(formatted, initialOptions);
 
     // Limpiar intervalo anterior si existe
     if (self._restIntervals[tag]) {
@@ -436,8 +468,12 @@ self.addEventListener('message', (event) => {
         if (!meta) return;
         const remainingSec = Math.max(0, Math.ceil((meta.endTime - Date.now()) / 1000));
         const fmt = formatSeconds(remainingSec);
-        const opts = Object.assign({}, options, { data: { endTime: meta.endTime, nextExercise: meta.nextExercise } });
-        self.registration.showNotification(`${meta.title} — ${fmt}`, opts);
+        // Use baseOptions for updates (no vibrate, no renotify)
+        const opts = Object.assign({}, baseOptions, {
+          data: { endTime: meta.endTime, nextExercise: meta.nextExercise },
+          image: createNumberSVGDataUrl(fmt, { width: 512, height: 256 })
+        });
+        self.registration.showNotification(fmt, opts);
 
         if (remainingSec <= 0) {
           clearInterval(self._restIntervals[tag]);
@@ -468,15 +504,18 @@ self.addEventListener('message', (event) => {
     const remaining = Number(event.data.remaining) || 0;
 
     self._restNotifications = self._restNotifications || {};
-    const meta = self._restNotifications[tag] || { title: event.data.title || 'Descanso', nextExercise: event.data.nextExercise };
+    const meta = self._restNotifications[tag] || { nextExercise: event.data.nextExercise };
+    // Asegurar título fijo
+    meta.title = 'Descanso';
     const formatted = formatSeconds(Math.max(0, remaining));
 
-    self.registration.showNotification(`${meta.title} — ${formatted}`, {
-      body: meta.nextExercise ? `Próximo: ${meta.nextExercise}` : 'Descansando',
+    self.registration.showNotification(formatted, {
+      body: 'Descanso',
       tag,
-      renotify: true,
+      renotify: false,
       requireInteraction: true,
-      data: { remaining }
+      data: { remaining },
+      image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
     });
 
     if (remaining <= 0) {
