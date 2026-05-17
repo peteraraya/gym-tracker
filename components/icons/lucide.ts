@@ -76,6 +76,7 @@ export {
   Star,
   Crown,
   Gem,
+  Bug,
   Trophy,
   Database,
   Shield,
