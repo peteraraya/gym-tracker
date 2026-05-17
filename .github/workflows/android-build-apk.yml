@@ -32,11 +32,23 @@ jobs:
           echo "Skipping mobile static build because Capacitor server.url is set to remote webview."
           echo "If you want a packaged web build, remove server.url from capacitor.config.ts and restore mobile build step."
 
-      - name: Ensure @capacitor/android installed
-        run: npm i @capacitor/android@6 --no-audit --no-fund
+      - name: Ensure Capacitor Android platform exists and sync
+        run: |
+          # Ensure capacitor android runtime is available
+          if [ ! -d "node_modules/@capacitor/android" ]; then
+            npm i @capacitor/android@6 --no-audit --no-fund
+          fi
 
-      - name: Capacitor sync Android
-        run: npx cap sync android
+          # If android platform is not present, try to add it (idempotent)
+          if [ ! -d "android" ] || [ ! -f "android/gradlew" ]; then
+            echo "Android platform not present, running: npx cap add android"
+            npx cap add android || true
+          else
+            echo "Android platform directory exists, skipping cap add"
+          fi
+
+          # Sync native project with web assets
+          npx cap sync android
 
       - name: Setup JDK 17
         uses: actions/setup-java@v4
