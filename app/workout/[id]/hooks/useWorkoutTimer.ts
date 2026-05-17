@@ -1,5 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useWorkout } from '@/context/WorkoutContext';
+import {
+  startRestNotification,
+  updateRestNotification,
+  endRestNotification,
+} from '@/lib/notifications/restNotification';
 
 export interface TimerState {
   showTimer: boolean;
@@ -82,8 +87,12 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
       const remaining = Math.max(0, currentTimeLeft - 1);
       setCurrentTimeLeft(remaining);
 
-      if (remaining === 0 && timerCompleteRef.current) {
-        timerCompleteRef.current();
+      if (remaining === 0) {
+        // Asegurar que la notificación final se muestre antes de ejecutar el callback
+        try { endRestNotification().catch(() => {}); } catch (e) {}
+        if (timerCompleteRef.current) {
+          timerCompleteRef.current();
+        }
       }
     }, 1000);
 
@@ -118,6 +127,10 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         }
       );
     }
+    // Iniciar notificación de descanso (no bloqueante)
+    try {
+      startRestNotification(duration, title, nextExercise).catch(() => {});
+    } catch (err) {}
   }, [activeWorkout, updateWorkoutProgress]);
   
   const stopTimer = useCallback(() => {
@@ -142,6 +155,8 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         }
       );
     }
+    // Terminar notificación
+    try { endRestNotification().catch(() => {}); } catch (e) {}
   }, [activeWorkout, updateWorkoutProgress]);
   
   const minimizeTimer = useCallback((timeLeft: number) => {
@@ -166,6 +181,8 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         }
       );
     }
+    // Actualizar notificación con el tiempo restante
+    try { updateRestNotification(timeLeft).catch(() => {}); } catch (e) {}
   }, [activeWorkout, updateWorkoutProgress, timerTitle, nextExerciseName]);
   
   const expandTimer = useCallback(() => {
@@ -195,6 +212,8 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         }
       );
     }
+    // Terminar notificación
+    try { endRestNotification().catch(() => {}); } catch (e) {}
   }, [activeWorkout, updateWorkoutProgress]);
   
   const skipAndAdvance = useCallback(() => {
@@ -220,6 +239,8 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         }
       );
     }
+    // Terminar notificación
+    try { endRestNotification().catch(() => {}); } catch (e) {}
     
     // Ejecutar el callback después de cerrar el timer
     if (timerCompleteRef.current) {

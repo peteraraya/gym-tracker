@@ -66,6 +66,7 @@ import {
 } from "@/lib/exercises/personalRecords";
 import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSplash";
 import { WorkoutCompleteSplash } from "@/components/features/workout/WorkoutCompleteSplash";
+import { updateRestNotification } from '@/lib/notifications/restNotification';
 
 // ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
 function debounce<T extends (...args: any[]) => any>(
@@ -465,6 +466,35 @@ export default function WorkoutPage() {
   useEffect(() => {
     timerHandlersRef.current = timerHandlers;
   }, [timerHandlers]);
+
+  // Escuchar acciones desde la notificación (vía Service Worker)
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const onMessage = (event: any) => {
+      const data = event.data;
+      if (!data || data.type !== 'notification-action') return;
+
+      const action = data.action;
+      const handlers = timerHandlersRef.current;
+      if (!handlers) return;
+
+      if (action === 'skip') {
+        if (handlers.skipAndAdvance) handlers.skipAndAdvance();
+        else handlers.skipTimer();
+      } else if (action === 'add-30s' || action === 'more-rest') {
+        const added = 30;
+        const newTime = Math.max(0, (handlers.currentTimeLeft || 0) + added);
+        handlers.setCurrentTimeLeft(newTime);
+        updateRestNotification(newTime).catch(() => {});
+      } else if (action === 'continue') {
+        handlers.expandTimer();
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', onMessage as any);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage as any);
+  }, []);
 
   // ✅ Refs para currentExerciseIndex y currentSet (evitan que debouncedSave se
   // recree al completar series, lo que cancelaría timers de persistencia legítimos)

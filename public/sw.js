@@ -361,19 +361,164 @@ async function updateStats() {
   console.log('[SW] Updating stats in background');
 }
 
+// Helper: formatea segundos a MM:SS
+function formatSeconds(seconds) {
+  const s = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
 // Message handling para comunicación con la app
 self.addEventListener('message', (event) => {
   console.log('[SW] Message received:', event.data);
   
+  if (!event.data || !event.data.type) return;
+
   if (event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+    return;
   }
-  
+
   if (event.data.type === 'CACHE_URLS') {
     event.waitUntil(
       caches.open(RUNTIME_CACHE).then((cache) => {
         return cache.addAll(event.data.urls);
       })
     );
+    return;
+  }
+
+  // ===== REST TIMER MESSAGES =====
+  // START_REST -> inicia/actualiza una notificación con cuenta regresiva
+  if (event.data.type === 'START_REST') {
+    const duration = Number(event.data.duration) || 0;
+    const title = event.data.title || 'Descanso';
+    const nextExercise = event.data.nextExercise;
+    const tag = event.data.tag || 'rest-timer';
+    const endTime = Number(event.data.endTime) || (Date.now() + duration * 1000);
+
+    self._restNotifications = self._restNotifications || {};
+    self._restIntervals = self._restIntervals || {};
+
+    self._restNotifications[tag] = { endTime, title, nextExercise };
+
+    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    const formatted = formatSeconds(remaining);
+
+    const options = {
+      body: nextExercise ? `Próximo: ${nextExercise}` : 'Descansando',
+      tag,
+      renotify: true,
+      requireInteraction: true,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/badge-72x72.png',
+      vibrate: [200, 100, 200],
+      data: { endTime, nextExercise },
+      actions: event.data.actions || [
+        { action: 'skip', title: 'Saltar' },
+        { action: 'add-30s', title: '+30s' },
+        { action: 'close', title: 'Cerrar' }
+      ]
+    };
+
+    self.registration.showNotification(`${title} — ${formatted}`, options);
+
+    // Limpiar intervalo anterior si existe
+    if (self._restIntervals[tag]) {
+      clearInterval(self._restIntervals[tag]);
+    }
+
+    // Intentar mantener la notificación actualizada desde el SW (su ejecución puede interrumpirse por el runtime)
+    self._restIntervals[tag] = setInterval(() => {
+      try {
+        const meta = self._restNotifications[tag];
+        if (!meta) return;
+        const remainingSec = Math.max(0, Math.ceil((meta.endTime - Date.now()) / 1000));
+        const fmt = formatSeconds(remainingSec);
+        const opts = Object.assign({}, options, { data: { endTime: meta.endTime, nextExercise: meta.nextExercise } });
+        self.registration.showNotification(`${meta.title} — ${fmt}`, opts);
+
+        if (remainingSec <= 0) {
+          clearInterval(self._restIntervals[tag]);
+          delete self._restIntervals[tag];
+
+          self.registration.showNotification('Descanso terminado', {
+            body: meta.nextExercise ? `Listo para: ${meta.nextExercise}` : 'Descanso finalizado',
+            tag,
+            renotify: true,
+            vibrate: [300, 100, 300],
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/badge-72x72.png',
+          });
+
+          delete self._restNotifications[tag];
+        }
+      } catch (err) {
+        console.error('[SW] Error updating rest notification:', err);
+      }
+    }, 1000);
+
+    return;
+  }
+
+  // UPDATE_REST -> actualizar la notificación con tiempo restante proporcionado
+  if (event.data.type === 'UPDATE_REST') {
+    const tag = event.data.tag || 'rest-timer';
+    const remaining = Number(event.data.remaining) || 0;
+
+    self._restNotifications = self._restNotifications || {};
+    const meta = self._restNotifications[tag] || { title: event.data.title || 'Descanso', nextExercise: event.data.nextExercise };
+    const formatted = formatSeconds(Math.max(0, remaining));
+
+    self.registration.showNotification(`${meta.title} — ${formatted}`, {
+      body: meta.nextExercise ? `Próximo: ${meta.nextExercise}` : 'Descansando',
+      tag,
+      renotify: true,
+      requireInteraction: true,
+      data: { remaining }
+    });
+
+    if (remaining <= 0) {
+      // finalizar
+      self.registration.showNotification('Descanso terminado', {
+        body: meta.nextExercise ? `Listo para: ${meta.nextExercise}` : 'Descanso finalizado',
+        tag,
+        renotify: true,
+        vibrate: [300, 100, 300],
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+      });
+
+      if (self._restIntervals && self._restIntervals[tag]) {
+        clearInterval(self._restIntervals[tag]);
+        delete self._restIntervals[tag];
+      }
+      delete self._restNotifications[tag];
+    }
+
+    return;
+  }
+
+  // END_REST -> terminar y mostrar aviso final
+  if (event.data.type === 'END_REST') {
+    const tag = event.data.tag || 'rest-timer';
+    if (self._restIntervals && self._restIntervals[tag]) {
+      clearInterval(self._restIntervals[tag]);
+      delete self._restIntervals[tag];
+    }
+    if (self._restNotifications && self._restNotifications[tag]) {
+      const meta = self._restNotifications[tag];
+      self.registration.showNotification('Descanso terminado', {
+        body: meta.nextExercise ? `Listo para: ${meta.nextExercise}` : 'Descanso finalizado',
+        tag,
+        renotify: true,
+        vibrate: [300, 100, 300],
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+      });
+      delete self._restNotifications[tag];
+    }
+    return;
   }
 });
