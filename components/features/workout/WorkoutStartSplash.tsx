@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell } from '@/components/icons/lucide';
 
 interface WorkoutStartSplashProps {
   routineName: string;

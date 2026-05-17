@@ -11,7 +11,7 @@ import {
   Crown, 
   Gem,
   X
-} from 'lucide-react';
+} from '@/components/icons/lucide';
 
 interface AchievementNotificationProps {
   achievement: Achievement;

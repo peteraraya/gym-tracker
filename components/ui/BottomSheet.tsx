@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X } from '@/components/icons/lucide';
 
 interface BottomSheetProps {
   isOpen: boolean;

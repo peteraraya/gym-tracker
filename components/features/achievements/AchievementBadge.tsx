@@ -2,7 +2,7 @@
 
 import { Achievement } from '@/types';
 import { getTierColor } from '@/lib/achievements/achievements';
-import * as LucideIcons from 'lucide-react';
+import * as LucideIcons from '@/components/icons/lucide';
 import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 

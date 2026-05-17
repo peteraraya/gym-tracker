@@ -14,7 +14,7 @@ import {
   Calendar,
   RefreshCw,
   Plus,
-} from "lucide-react";
+} from "@/components/icons/lucide";
 
 export const AchievementDebugPanel: React.FC = () => {
   const { sessions, addSession } = useGym();
