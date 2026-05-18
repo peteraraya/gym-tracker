@@ -31,7 +31,6 @@ import {
 } from "@/components/icons/lucide";
 import { useGym } from "@/context/GymContext";
 import { useValidSessions } from "@/hooks/useValidSessions";
-import { LoadingState } from "@/components/shared/LoadingState";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { StatsGrid, EmptyStateCard } from "@/components/shared";
 import { StatCard } from "@/components/shared/StatsGrid";
@@ -49,10 +48,19 @@ import {
 import { LazyErrorBoundary } from "@/components/shared/LazyErrorBoundary";
 import logger from "@/lib/logger";
 
+function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-4 mt-4">
+      <span className="text-zinc-600 dark:text-zinc-400">{icon}</span>
+      <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{title}</h2>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [period, setPeriod] = useState<"week" | "month">("week");
   const t = useTranslations("dashboard");
 
@@ -113,7 +121,7 @@ export default function DashboardPage() {
     } catch (error) {
       logger.error("[Dashboard] ❌ Error loading dashboard:", error);
     } finally {
-      setLoading(false);
+      setProfileLoading(false);
     }
   }, []);
 
@@ -211,15 +219,6 @@ export default function DashboardPage() {
 
   // console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
 
-  // Cargar sesiones desde localStorage para combinarlas con las del servidor
-  if (loading) {
-    return (
-      <div className="p-4 max-w-7xl mx-auto">
-        <LoadingState message={t("loadingStats")} />
-      </div>
-    );
-  }
-
   return (
     <PageLayout>
       <PageHeader
@@ -228,7 +227,9 @@ export default function DashboardPage() {
         icon={<BarChart3 className="w-7 h-7 text-white" />}
         gradient="from-indigo-600 to-violet-600"
         stats={
-          profile && (
+          profileLoading ? (
+            <div className="h-8 w-32 bg-white/20 rounded-lg animate-pulse" />
+          ) : profile && (
             <>
               <Target className="w-5 h-5 text-white" />
               <div className="text-sm">
@@ -314,8 +315,7 @@ export default function DashboardPage() {
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
             {t("charts.volumeChartTitle")}
           </h2>
-          <div className="ml-auto flex gap-2">
-            <Button
+          <div className="ml-auto flex gap-2">            <Button
               variant={period === "week" ? "primary" : "secondary"}
               onClick={() => handlePeriodChange("week")}
               className="text-sm"
@@ -337,12 +337,7 @@ export default function DashboardPage() {
 
         {/* Activity Heatmap */}
         <div>
-          <div className="flex items-center gap-2 mb-4 mt-4">
-            <TrendingUp className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-              {t("charts.activityHeatmapTitle")}
-            </h2>
-          </div>
+          <SectionHeader icon={<TrendingUp className="w-5 h-5" />} title={t("charts.activityHeatmapTitle")} />
           <LazyErrorBoundary>
             <ActivityHeatmap sessions={validSessions} />
           </LazyErrorBoundary>

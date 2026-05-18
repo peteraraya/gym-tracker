@@ -260,65 +260,112 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
             className="grid grid-cols-3 gap-3"
           >
-            <Link href="/progress">
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                <div className="flex items-center justify-between mb-1">
-                  <TrendingUp className="w-4 h-4 text-indigo-500" />
-                  {volTrend !== null && (
-                    <span className={`text-[10px] font-bold ${volTrend >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
-                      {volTrend >= 0 ? "↗" : "↘"} {Math.abs(volTrend)}%
-                    </span>
-                  )}
-                </div>
-                <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">
-                  {thisWeekVol >= 1000 ? `${(thisWeekVol / 1000).toFixed(1)}t` : `${thisWeekVol}kg`}
-                </p>
-                <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Vol. semana</p>
-              </div>
-            </Link>
-            <Link href="/sessions">
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                <Calendar className="w-4 h-4 text-blue-500 mb-1" />
-                <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{loading ? "—" : monthSessions}</p>
-                <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Mes actual</p>
-              </div>
-            </Link>
-            <Link href="/achievements">
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                <Trophy className="w-4 h-4 text-amber-500 mb-1" />
-                <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{streakCount}</p>
-                <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Mejor racha</p>
-              </div>
-            </Link>
+            {loading ? (
+              <>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="bg-zinc-100 dark:bg-zinc-800/60 rounded-2xl p-3 h-[72px] animate-pulse" />
+                ))}
+              </>
+            ) : (
+              <>
+                <Link href="/progress">
+                  <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                    <div className="flex items-center justify-between mb-1">
+                      <TrendingUp className="w-4 h-4 text-indigo-500" />
+                      {volTrend !== null && (
+                        <span className={`text-[10px] font-bold ${volTrend >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+                          {volTrend >= 0 ? "↗" : "↘"} {Math.abs(volTrend)}%
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">
+                      {thisWeekVol >= 1000 ? `${(thisWeekVol / 1000).toFixed(1)}t` : `${thisWeekVol}kg`}
+                    </p>
+                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Vol. semana</p>
+                  </div>
+                </Link>
+                <Link href="/sessions">
+                  <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                    <Calendar className="w-4 h-4 text-blue-500 mb-1" />
+                    <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{monthSessions}</p>
+                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Mes actual</p>
+                  </div>
+                </Link>
+                <Link href="/achievements">
+                  <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                    <Trophy className="w-4 h-4 text-amber-500 mb-1" />
+                    <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{streakCount > 0 ? streakCount : sessions.length}</p>
+                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{streakCount > 0 ? "Racha actual" : "Sesiones"}</p>
+                  </div>
+                </Link>
+              </>
+            )}
           </motion.div>
 
           {/* Acceso rápido */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
             className="grid grid-cols-2 gap-3"
           >
-            <Link href="/routines">
-              <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                  <ClipboardList className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Rutinas</p>
-                  <p className="text-zinc-400 text-xs">{routines.length} creadas</p>
-                </div>
-              </div>
-            </Link>
-            <Link href="/dashboard">
-              <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
-                  <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Dashboard</p>
-                  <p className="text-zinc-400 text-xs">{sessions.length} sesiones</p>
-                </div>
-              </div>
-            </Link>
+            {loading ? (
+              <>
+                <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-2xl h-[60px] animate-pulse" />
+                <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-2xl h-[60px] animate-pulse" />
+              </>
+            ) : (
+              <>
+                <Link href="/routines">
+                  <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+                      <ClipboardList className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Rutinas</p>
+                      <p className="text-zinc-400 text-xs">{routines.length} creadas</p>
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/dashboard">
+                  <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                      <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Dashboard</p>
+                      <p className="text-zinc-400 text-xs">{sessions.length} sesiones</p>
+                    </div>
+                  </div>
+                </Link>
+              </>
+            )}
           </motion.div>
+
+          {/* Inicio rápido: cuando no hay plan semanal pero sí rutinas */}
+          {!loading && weeklyPlan === null && routines.length > 0 && todayRoutineIds.length === 0 && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">Inicio rápido</h2>
+                <Link href="/planning" className="text-indigo-600 dark:text-indigo-400 text-xs font-medium flex items-center gap-0.5 hover:underline">
+                  Planificar <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+              <div className="space-y-2">
+                {routines.slice(0, 3).map((r) => (
+                  <button key={r.id} onClick={() => handleStart(r.id)}
+                    className="w-full flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 py-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors text-left"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+                      <Play className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{r.name}</p>
+                      <p className="text-zinc-400 text-xs">{r.exercises?.length ?? 0} ejercicios</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-zinc-400 shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Sesiones recientes */}
           <AnimatePresence>
@@ -331,24 +378,40 @@ export default function Home() {
                   </Link>
                 </div>
                 <div className="space-y-2">
-                  {recentSessions.map((session) => (
-                    <div key={session.id} className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 py-3">
-                      <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
-                        <Dumbbell className="w-4 h-4 text-zinc-500" />
+                  {recentSessions.map((session) => {
+                    const exCount = session.exercises?.length ?? 0;
+                    const vol = session.totalVolume ?? 0;
+                    const dur = session.totalDuration;
+                    const durLabel = dur
+                      ? dur >= 3600
+                        ? `${Math.floor(dur / 3600)}h ${Math.floor((dur % 3600) / 60)}m`
+                        : `${Math.floor(dur / 60)}m`
+                      : null;
+                    return (
+                      <div key={session.id} className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 py-3">
+                        <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                          <Dumbbell className="w-4 h-4 text-zinc-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{session.routineName || "Entrenamiento"}</p>
+                          <p className="text-zinc-400 text-xs">
+                            {session.date ? new Date(session.date).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }) : ""}
+                            {exCount > 0 && <span className="ml-1.5">· {exCount} ejerc.</span>}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-0.5 shrink-0">
+                          {vol > 0 && (
+                            <span className="text-zinc-600 dark:text-zinc-400 text-xs font-semibold">
+                              {vol >= 1000 ? `${(vol / 1000).toFixed(1)}t` : `${vol}kg`}
+                            </span>
+                          )}
+                          {durLabel && (
+                            <span className="text-zinc-400 dark:text-zinc-500 text-[10px]">{durLabel}</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{session.routineName || "Entrenamiento"}</p>
-                        <p className="text-zinc-400 text-xs">
-                          {session.date ? new Date(session.date).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }) : ""}
-                        </p>
-                      </div>
-                      {(session.totalVolume ?? 0) > 0 && (
-                        <span className="text-zinc-400 dark:text-zinc-500 text-xs font-medium shrink-0">
-                          {(session.totalVolume ?? 0) >= 1000 ? `${((session.totalVolume ?? 0) / 1000).toFixed(1)}t` : `${session.totalVolume}kg`}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </motion.div>
             )}

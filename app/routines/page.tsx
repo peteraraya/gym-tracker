@@ -151,41 +151,19 @@ export default function RoutinesPage() {
       setIsModalOpen(true);
     }
 
-    // Inicializar filtro desde localStorage (escrito por WeeklyPlanner)
+    // Inicializar filtro desde localStorage (escrito en sesiones anteriores)
     try {
       const stored = localStorage.getItem("weekly_routines_search") || "";
       setSearchFilter(stored);
     } catch (e) {}
   }, []);
 
-  // Escuchar cambios en localStorage para sincronizar el filtro (cuando se modifica desde WeeklyPlanner)
+  // Persistir filtro en localStorage para mantenerlo entre navegaciones
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handler = (e: StorageEvent) => {
-      if (e.key === "weekly_routines_search") {
-        setSearchFilter(e.newValue || "");
-      }
-    };
-
-    const customHandler = (e: CustomEvent) => {
-      setSearchFilter(e.detail || "");
-    };
-
-    window.addEventListener("storage", handler);
-    window.addEventListener(
-      "weekly_routines_search_changed",
-      customHandler as EventListener,
-    );
-
-    return () => {
-      window.removeEventListener("storage", handler);
-      window.removeEventListener(
-        "weekly_routines_search_changed",
-        customHandler as EventListener,
-      );
-    };
-  }, []);
+    try {
+      localStorage.setItem("weekly_routines_search", searchFilter);
+    } catch (e) {}
+  }, [searchFilter]);
 
   const handleDelete = async (id: string) => {
     // Encontrar el nombre de la rutina para mostrarlo en la confirmación
@@ -437,19 +415,7 @@ export default function RoutinesPage() {
           <div className="mb-6">
             <SearchInput
               value={searchFilter}
-              onChange={(v) => {
-                setSearchFilter(v);
-                try {
-                  localStorage.setItem("weekly_routines_search", v);
-                  try {
-                    window.dispatchEvent(
-                      new CustomEvent("weekly_routines_search_changed", {
-                        detail: v,
-                      }),
-                    );
-                  } catch (e) {}
-                } catch (e) {}
-              }}
+              onChange={setSearchFilter}
               placeholder="Buscar rutinas por nombre o descripción..."
             />
           </div>
@@ -497,7 +463,7 @@ export default function RoutinesPage() {
           )}
 
           {/* Floating Free Workout button */}
-          <div className="fixed top-6 right-4 sm:bottom-8 sm:right-6 z-40">
+          <div className="fixed bottom-20 right-4 sm:bottom-8 sm:right-6 z-40">
             <button
               onClick={() => router.push("/workout/free")}
               aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"

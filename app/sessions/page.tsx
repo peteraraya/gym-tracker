@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useGym } from "@/context/GymContext";
 import { useToast } from "@/context/NotificationContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import { ClientOnly } from "@/components/shared/ClientOnly";
 import { SessionFilters } from "@/components/features/sessions/SessionFilters";
 import { SessionComparison } from "@/components/features/sessions/SessionComparison";
 import { EditSessionModal } from "@/components/features/sessions/EditSessionModal";
@@ -12,17 +11,16 @@ import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/hooks/ui/usePagination";
 import type { WorkoutSession, Routine } from "@/types";
 import * as storageService from "@/lib/storage/storage";
-import { useSessionStats } from "@/hooks/useSessionStats";
 import { useConfirm } from "@/context/NotificationContext";
 import { useLocale } from "@/context/LocaleContext";
-import { Calendar } from "@/components/icons/lucide";
+import { Calendar, Filter } from "@/components/icons/lucide";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
   EmptyStateCard,
   LoadingSpinner,
   SessionCard as SharedSessionCard,
-  StatBadge,
 } from "@/components/shared";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import type { WorkoutSession as WS } from "@/types";
 
 const SESSIONS_PER_PAGE = 10;
@@ -127,6 +125,64 @@ function applyFilters(
   return filtered;
 }
 
+function SessionDetailContent({ session, routines }: { session: WS; routines: Routine[] }) {
+  const formatDuration = (s?: number) => {
+    if (!s) return null;
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  };
+  const routine = routines.find((r) => r.id === session.routineId);
+  const dur = formatDuration(session.totalDuration);
+  const vol = session.totalVolume ?? 0;
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* Meta */}
+      <div className="flex flex-wrap gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <span>{new Date(session.date).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+        {dur && <span>· {dur}</span>}
+        {vol > 0 && <span>· {vol >= 1000 ? `${(vol / 1000).toFixed(1)}t` : `${vol}kg`}</span>}
+        {!routine && <span className="text-red-500">· Rutina eliminada</span>}
+      </div>
+
+      {/* Exercises */}
+      <div className="space-y-3">
+        {session.exercises.map((ex, i) => {
+          const sets = ex.actualReps?.length ?? ex.completedSets ?? 0;
+          return (
+            <div key={i} className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">{ex.exerciseName || "Ejercicio"}</p>
+                <span className="text-xs text-zinc-400">{sets} serie{sets !== 1 ? "s" : ""}</span>
+              </div>
+              {ex.actualReps && ex.actualReps.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {ex.actualReps.map((reps, si) => {
+                    const w = ex.actualWeight?.[si];
+                    return (
+                      <span key={si} className="text-xs px-2 py-0.5 bg-white dark:bg-zinc-700 rounded-lg text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600">
+                        {reps} rep{w ? ` × ${w}kg` : ""}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Notes */}
+      {session.notes && (
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+          <p className="text-sm text-amber-900 dark:text-amber-200">📝 {session.notes}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SessionsPage() {
   const {
     sessions: serverSessions,
@@ -145,8 +201,10 @@ export default function SessionsPage() {
     null,
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [viewingSession, setViewingSession] = useState<WorkoutSession | null>(null);
   const [hideDeletedRoutines, setHideDeletedRoutines] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -186,9 +244,6 @@ export default function SessionsPage() {
     }));
   }, [serverSessions, localSessions]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const stats = useSessionStats(sessions);
-
   const displayedSessions = useMemo(() => {
     if (!hideDeletedRoutines) return sessions;
     return sessions.filter((s) => routines.some((r) => r.id === s.routineId));
@@ -206,6 +261,10 @@ export default function SessionsPage() {
   const handleEditSession = (session: WorkoutSession) => {
     setEditingSession(session);
     setIsEditModalOpen(true);
+  };
+
+  const handleViewSession = (session: WorkoutSession) => {
+    setViewingSession(session);
   };
 
   const handleSaveSession = async (updatedSession: WorkoutSession) => {
@@ -300,7 +359,7 @@ export default function SessionsPage() {
                   {tS("uniqueRoutines")}
                 </div>
                 <div className="text-2xl font-bold text-white mt-1">
-                  {new Set(sessions.map((s) => s.routineId)).size}
+                  {new Set(filteredSessions.map((s) => s.routineId)).size}
                 </div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
@@ -309,7 +368,7 @@ export default function SessionsPage() {
                 </div>
                 <div className="text-2xl font-bold text-white mt-1">
                   {
-                    sessions.filter((s) => {
+                    filteredSessions.filter((s) => {
                       const date = new Date(s.date);
                       const now = new Date();
                       return (
@@ -323,24 +382,6 @@ export default function SessionsPage() {
             </div>
           )}
 
-          {/* Top controls */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
-            <label className="flex items-center gap-2 text-sm text-white/90 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 hover:bg-white/20 transition-colors cursor-pointer">
-              <input
-                type="checkbox"
-                checked={hideDeletedRoutines}
-                onChange={(e) => setHideDeletedRoutines(e.target.checked)}
-                className="form-checkbox h-4 w-4 text-blue-600 rounded"
-              />
-              <span>Ocultar rutinas eliminadas</span>
-            </label>
-            {filteredSessions.length > 1 && (
-              <SessionComparison
-                sessions={filteredSessions}
-                routines={routines}
-              />
-            )}
-          </div>
         </PageHeader>
 
         <PageContent>
@@ -351,100 +392,164 @@ export default function SessionsPage() {
               description="Completa tu primera rutina para ver tu historial aquí"
             />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              {/* Filters sidebar */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-4">
+            <>
+              {/* Toolbar: filtros mobile + comparación */}
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <button
+                  onClick={() => setIsFilterSheetOpen(true)}
+                  className="lg:hidden flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <Filter className="w-4 h-4" />
+                  Filtros
+                  {(filters.searchTerm || filters.selectedRoutine !== "all" || filters.dateRange !== "all") && (
+                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                  )}
+                </button>
+                <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hideDeletedRoutines}
+                    onChange={(e) => setHideDeletedRoutines(e.target.checked)}
+                    className="form-checkbox h-4 w-4 text-blue-600 rounded"
+                  />
+                  <span>Ocultar eliminadas</span>
+                </label>
+                {filteredSessions.length > 1 && (
+                  <SessionComparison
+                    sessions={filteredSessions}
+                    routines={routines}
+                  />
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                {/* Filters sidebar — solo desktop */}
+                <div className="hidden lg:block lg:col-span-1">
+                  <div className="sticky top-4">
+                    <SessionFilters
+                      routines={routines}
+                      totalSessions={displayedSessions.length}
+                      filteredCount={filteredSessions.length}
+                      filters={filters}
+                      onFilterChange={setFilters}
+                    />
+                  </div>
+                </div>
+
+                {/* Session list */}
+                <div className="lg:col-span-3">
+                  {filteredSessions.length === 0 ? (
+                    <EmptyStateCard
+                      icon="🔍"
+                      title="No se encontraron sesiones"
+                      description="Intenta cambiar los filtros de búsqueda"
+                    />
+                  ) : (
+                    <>
+                      {/* Timeline agrupado por semana */}
+                      <div className="relative">
+                        {groupSessionsByWeek(pagination.currentPageItems).map((group, gi) => (
+                          <div key={gi} className="mb-6">
+                            {/* Separador de semana */}
+                            <div className="flex items-center gap-3 mb-3">
+                              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider whitespace-nowrap">
+                                {group.label}
+                              </span>
+                              <div className="flex-1 h-px bg-indigo-200 dark:bg-indigo-800/60" />
+                              <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
+                                {group.sessions.length} sesión{group.sessions.length !== 1 ? "es" : ""}
+                              </span>
+                            </div>
+
+                            {/* Sesiones con línea de tiempo */}
+                            <div className="relative pl-6">
+                              {/* Línea vertical */}
+                              <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-linear-to-b from-indigo-400 via-violet-400 to-transparent dark:from-indigo-600 dark:via-violet-700" />
+
+                              <div className="space-y-3">
+                                {group.sessions.map((session) => {
+                                  const routine = routines.find(
+                                    (r) => r.id === session.routineId,
+                                  );
+                                  const routineName =
+                                    routine?.name ?? tS("routineDeleted");
+                                  const isDeleted = !routine;
+
+                                  return (
+                                    <div key={session.id} className="relative">
+                                      {/* Dot en la línea */}
+                                      <div className="absolute -left-4 top-4 w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400 ring-2 ring-white dark:ring-zinc-950 shrink-0" />
+                                      <SharedSessionCard
+                                        session={session}
+                                        routineName={routineName}
+                                        isRoutineDeleted={isDeleted}
+                                        onView={handleViewSession}
+                                        onEdit={handleEditSession}
+                                        onDelete={handleDeleteSession}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {pagination.isPaginated && (
+                        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <Pagination
+                            page={pagination.page}
+                            totalPages={pagination.totalPages}
+                            totalItems={pagination.totalItems}
+                            pageSize={pagination.pageSize}
+                            hasNextPage={pagination.hasNextPage}
+                            hasPrevPage={pagination.hasPrevPage}
+                            onPageChange={pagination.goToPage}
+                            onNextPage={pagination.nextPage}
+                            onPrevPage={pagination.prevPage}
+                            onFirstPage={pagination.firstPage}
+                            onLastPage={pagination.lastPage}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* BottomSheet de filtros — solo mobile */}
+              <BottomSheet
+                isOpen={isFilterSheetOpen}
+                onClose={() => setIsFilterSheetOpen(false)}
+                title="Filtros"
+                maxHeight="85vh"
+              >
+                <div className="p-4">
                   <SessionFilters
                     routines={routines}
                     totalSessions={displayedSessions.length}
                     filteredCount={filteredSessions.length}
                     filters={filters}
-                    onFilterChange={setFilters}
+                    onFilterChange={(f) => {
+                      setFilters(f);
+                    }}
                   />
                 </div>
-              </div>
+              </BottomSheet>
 
-              {/* Session list */}
-              <div className="lg:col-span-3">
-                {filteredSessions.length === 0 ? (
-                  <EmptyStateCard
-                    icon="🔍"
-                    title="No se encontraron sesiones"
-                    description="Intenta cambiar los filtros de búsqueda"
-                  />
-                ) : (
-                  <>
-                    {/* Timeline agrupado por semana */}
-                    <div className="relative">
-                      {groupSessionsByWeek(pagination.currentPageItems).map((group, gi) => (
-                        <div key={gi} className="mb-6">
-                          {/* Separador de semana */}
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider whitespace-nowrap">
-                              {group.label}
-                            </span>
-                            <div className="flex-1 h-px bg-indigo-200 dark:bg-indigo-800/60" />
-                            <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
-                              {group.sessions.length} sesión{group.sessions.length !== 1 ? "es" : ""}
-                            </span>
-                          </div>
-
-                          {/* Sesiones con línea de tiempo */}
-                          <div className="relative pl-6">
-                            {/* Línea vertical */}
-                            <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-linear-to-b from-indigo-400 via-violet-400 to-transparent dark:from-indigo-600 dark:via-violet-700" />
-
-                            <div className="space-y-3">
-                              {group.sessions.map((session) => {
-                                const routine = routines.find(
-                                  (r) => r.id === session.routineId,
-                                );
-                                const routineName =
-                                  routine?.name ?? tS("routineDeleted");
-                                const isDeleted = !routine;
-
-                                return (
-                                  <div key={session.id} className="relative">
-                                    {/* Dot en la línea */}
-                                    <div className="absolute -left-4 top-4 w-2.5 h-2.5 rounded-full bg-indigo-500 dark:bg-indigo-400 ring-2 ring-white dark:ring-zinc-950 shrink-0" />
-                                    <SharedSessionCard
-                                      session={session}
-                                      routineName={routineName}
-                                      isRoutineDeleted={isDeleted}
-                                      onEdit={handleEditSession}
-                                      onDelete={handleDeleteSession}
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {pagination.isPaginated && (
-                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <Pagination
-                          page={pagination.page}
-                          totalPages={pagination.totalPages}
-                          totalItems={pagination.totalItems}
-                          pageSize={pagination.pageSize}
-                          hasNextPage={pagination.hasNextPage}
-                          hasPrevPage={pagination.hasPrevPage}
-                          onPageChange={pagination.goToPage}
-                          onNextPage={pagination.nextPage}
-                          onPrevPage={pagination.prevPage}
-                          onFirstPage={pagination.firstPage}
-                          onLastPage={pagination.lastPage}
-                        />
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
+              {/* Detail sheet */}
+              {viewingSession && (
+                <BottomSheet
+                  isOpen={!!viewingSession}
+                  onClose={() => setViewingSession(null)}
+                  title={viewingSession.routineName || routines.find(r => r.id === viewingSession.routineId)?.name || "Detalle"}
+                  maxHeight="90vh"
+                >
+                  <SessionDetailContent session={viewingSession} routines={routines} />
+                </BottomSheet>
+              )}
+            </>
           )}
 
           {/* Edit modal */}
