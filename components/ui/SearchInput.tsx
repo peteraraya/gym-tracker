@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, X } from '@/components/icons/lucide';
 
 interface SearchInputProps {
@@ -24,39 +24,49 @@ export function SearchInput({
 }: SearchInputProps) {
   const [localValue, setLocalValue] = useState(value);
 
-  // Sync with external value changes
+  // Mantener siempre la última referencia de onChange sin hacerla dependencia del effect
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
+
+  // Sync con valor externo (ej: limpiar desde fuera)
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
-  // Debounce logic
+  // Debounce: solo dispara cuando el usuario escribe (no en el montaje inicial)
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     if (debounceMs === 0) {
-      onChange(localValue);
+      onChangeRef.current(localValue);
       return;
     }
 
     const timer = setTimeout(() => {
-      onChange(localValue);
+      onChangeRef.current(localValue);
     }, debounceMs);
 
     return () => clearTimeout(timer);
-  }, [localValue, debounceMs, onChange]);
+  }, [localValue, debounceMs]);
 
   const handleClear = () => {
     setLocalValue('');
-    onChange('');
+    onChangeRef.current('');
     onClear?.();
   };
 
   return (
     <div className={`relative ${className}`}>
-      {/* Search Icon */}
       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
         <Search className="w-5 h-5" />
       </div>
 
-      {/* Input */}
       <input
         type="search"
         value={localValue}
@@ -66,7 +76,6 @@ export function SearchInput({
         className="w-full h-12 px-4 pl-12 pr-12 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 transition-all text-base outline-none"
       />
 
-      {/* Clear Button */}
       {localValue && (
         <button
           onClick={handleClear}
