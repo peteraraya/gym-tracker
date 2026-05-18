@@ -33,9 +33,6 @@ export async function PUT(
     const body = await request.json()
     const { name, description, image, exercises, restBetweenSets, restBetweenExercises } = body
 
-    console.log('[Routines API] PUT - Updating routine:', id)
-    console.log('[Routines API] PUT - Exercises count:', exercises?.length)
-    console.log('[Routines API] PUT - First exercise:', JSON.stringify(exercises?.[0], null, 2))
 
     // Update routine
     const { error: routineError } = await supabase
@@ -78,7 +75,7 @@ export async function PUT(
         weight: ex.sets?.[0]?.weight || 0
       }))
 
-      console.log('[Routines API] PUT - Inserting exercises:', JSON.stringify(exercisesData[0], null, 2))
+      // console.log('[Routines API] PUT - Inserting exercises:', JSON.stringify(exercisesData[0], null, 2))
 
       const { error: exercisesError } = await supabase
         .from('exercises')
@@ -90,7 +87,7 @@ export async function PUT(
       }
     }
 
-    console.log('[Routines API] PUT - Update successful')
+    // console.log('[Routines API] PUT - Update successful')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[Routines API] PUT - Unexpected error:', error)

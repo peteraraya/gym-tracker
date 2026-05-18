@@ -78,7 +78,7 @@ useEffect(() => {
           const localProfile = getProfileLocally();
           
           if (localProfile) {
-            console.log('[TdeeCalculator] ✅ Loaded from localStorage');
+            // console.log('[TdeeCalculator] ✅ Loaded from localStorage');
             setAge(localProfile.age || '');
             if (localProfile.gender === 'male' || localProfile.gender === 'female') setSex(localProfile.gender as 'male'|'female');
             setHeight(localProfile.height || '');
@@ -92,12 +92,12 @@ useEffect(() => {
         }
       } else {
         // Modo DATABASE: Cargar desde Supabase
-        console.log('[TdeeCalculator] ☁️ Loading from Supabase...');
+        // console.log('[TdeeCalculator] ☁️ Loading from Supabase...');
         const response = await fetch('/api/profile');
         if (response.ok) {
           const profile: UserProfile | null = await response.json();
           if (profile) {
-            console.log('[TdeeCalculator] ✅ Loaded from Supabase');
+            // console.log('[TdeeCalculator] ✅ Loaded from Supabase');
             setAge(profile.age || '');
             if (profile.gender === 'male' || profile.gender === 'female') setSex(profile.gender as 'male'|'female');
             setHeight(profile.height || '');
@@ -129,7 +129,7 @@ useEffect(() => {
       try {
         const storage = await import('@/lib/storage/storage');
         const profile = await storage.getProfile();
-        console.log('Perfil unificado cargado para TDEE:', profile);
+        // console.log('Perfil unificado cargado para TDEE:', profile);
         let used = false;
         if (profile) {
           if (profile.gender) {
@@ -193,7 +193,7 @@ useEffect(() => {
 
     const id = window.setTimeout(() => {
       try {
-        console.log('TDEE: autoguardado', payload);
+        // console.log('TDEE: autoguardado', payload);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
         setStatusMsg('Guardado localmente');
         setTimeout(() => setStatusMsg(''), 1200);
@@ -205,7 +205,7 @@ useEffect(() => {
             
             if (!isLocalStorageMode()) {
               // Modo DATABASE: Guardar en Supabase
-              console.log('[TdeeCalculator] ☁️ Auto-saving to Supabase...');
+              // console.log('[TdeeCalculator] ☁️ Auto-saving to Supabase...');
               const res = await fetch('/api/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -221,7 +221,7 @@ useEffect(() => {
               });
 
               if (res.ok) {
-                console.log('[TdeeCalculator] ✅ Auto-saved to Supabase');
+                // console.log('[TdeeCalculator] ✅ Auto-saved to Supabase');
                 setStatusMsg('Guardado remoto');
                 setTimeout(() => setStatusMsg(''), 1200);
               } else if (res.status === 401) {

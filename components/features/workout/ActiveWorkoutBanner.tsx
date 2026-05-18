@@ -37,7 +37,7 @@ export function ActiveWorkoutBanner() {
     });
 
     if (confirmed) {
-      console.log("[ActiveWorkoutBanner] User confirmed cancellation");
+      // console.log("[ActiveWorkoutBanner] User confirmed cancellation");
 
       // Marcar la cancelación antes de llamar a cancelWorkout
       try {
@@ -45,10 +45,10 @@ export function ActiveWorkoutBanner() {
         localStorage.setItem("gym-tracker-cancelled", timestamp);
         sessionStorage.setItem("workout_cancelled", timestamp);
         localStorage.setItem("workout_cancelled_persistent", timestamp);
-        console.log(
-          "[ActiveWorkoutBanner] Set cancellation markers:",
-          timestamp,
-        );
+        // console.log(
+        //   "[ActiveWorkoutBanner] Set cancellation markers:",
+        //   timestamp,
+        // );
       } catch (e) {
         console.error(
           "[ActiveWorkoutBanner] Error setting cancellation markers:",

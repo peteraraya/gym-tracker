@@ -115,24 +115,20 @@ export default function FreeWorkoutPage() {
             const localProfile = getProfileLocally();
 
             if (localProfile) {
-              console.log(
-                "[FreeWorkout] ✅ Loaded profile from localStorage:",
-                localProfile,
-              );
               setUserProfile(localProfile);
               return;
             }
           }
         } else {
           // Modo DATABASE: Cargar desde Supabase
-          console.log("[FreeWorkout] ☁️ Loading profile from Supabase...");
+          // console.log("[FreeWorkout] ☁️ Loading profile from Supabase...");
           const response = await fetch("/api/profile");
           if (response.ok) {
             const profile = await response.json();
-            console.log(
-              "[FreeWorkout] ✅ Loaded profile from Supabase:",
-              profile,
-            );
+            // console.log(
+            //   "[FreeWorkout] ✅ Loaded profile from Supabase:",
+            //   profile,
+            // );
             setUserProfile(profile);
           }
         }

@@ -213,10 +213,10 @@ export default function WorkoutPage() {
         const parsed = JSON.parse(stored);
         if (parsed.startedAt) {
           const startTime = new Date(parsed.startedAt).getTime();
-          console.log(
-            "[Workout Init] Loaded start time from storage:",
-            new Date(startTime).toISOString(),
-          );
+          // console.log(
+          //   "[Workout Init] Loaded start time from storage:",
+          //   new Date(startTime).toISOString(),
+          // );
           return startTime;
         }
       }
@@ -513,13 +513,13 @@ export default function WorkoutPage() {
     () =>
       debounce((data: any) => {
         if (!routine || !isInitialized) {
-          console.log(
-            "[Workout] ⏸️ Skipping save - not initialized or no routine",
-          );
+          // console.log(
+          //   "[Workout] ⏸️ Skipping save - not initialized or no routine",
+          // );
           return;
         }
 
-        console.log("[Workout] 💾 Saving workout data (debounced):", data);
+        // console.log("[Workout] 💾 Saving workout data (debounced):", data);
 
         const th = timerHandlersRef.current;
         updateWorkoutProgress(
@@ -706,7 +706,7 @@ export default function WorkoutPage() {
       if (storedWorkout && storedWorkout.routineId === id) {
         const s = storedWorkout as any;
 
-        console.log("[Init] 📦 Restoring workout from storage:", s);
+        // console.log("[Init] 📦 Restoring workout from storage:", s);
 
         // Restaurar el tiempo de inicio del entrenamiento
         if (s.startedAt) {
@@ -736,7 +736,7 @@ export default function WorkoutPage() {
           lastWeights: s.lastWeights || {},
         };
 
-        console.log("[Init] ✅ Restored data prepared:", restoredData);
+        // console.log("[Init] ✅ Restored data prepared:", restoredData);
         workoutState.restoreData(restoredData);
 
         // Restaurar timer si estaba en descanso
@@ -784,7 +784,7 @@ export default function WorkoutPage() {
 
       if (mounted) {
         setIsInitialized(true);
-        console.log("[Init] Initialization complete");
+        // console.log("[Init] Initialization complete");
         // Mostrar splash si startWorkout fue llamado hace menos de 8s
         // (cubre navegación desde rutinas, planificador, asistente IA, etc.)
         try {
@@ -984,9 +984,9 @@ export default function WorkoutPage() {
       // Limpiar actualReps si excede el número de series
       const currentReps = workoutState.workoutData.actualReps[exerciseId];
       if (currentReps && currentReps.length > maxSets) {
-        console.log(
-          `[Cleanup] Trimming actualReps for ${exerciseId} from ${currentReps.length} to ${maxSets}`,
-        );
+        // console.log(
+        //   `[Cleanup] Trimming actualReps for ${exerciseId} from ${currentReps.length} to ${maxSets}`,
+        // );
         workoutState.updateActualReps(
           exerciseId,
           currentReps.slice(0, maxSets),
@@ -997,9 +997,9 @@ export default function WorkoutPage() {
       // Limpiar actualWeights si excede el número de series
       const currentWeights = workoutState.workoutData.actualWeights[exerciseId];
       if (currentWeights && currentWeights.length > maxSets) {
-        console.log(
-          `[Cleanup] Trimming actualWeights for ${exerciseId} from ${currentWeights.length} to ${maxSets}`,
-        );
+        // console.log(
+        //   `[Cleanup] Trimming actualWeights for ${exerciseId} from ${currentWeights.length} to ${maxSets}`,
+        // );
         workoutState.updateActualWeights(
           exerciseId,
           currentWeights.slice(0, maxSets),
@@ -1009,7 +1009,7 @@ export default function WorkoutPage() {
     });
 
     if (hasChanges) {
-      console.log("[Cleanup] Data inconsistencies were corrected");
+      // console.log("[Cleanup] Data inconsistencies were corrected");
     }
   }, [
     routine?.exercises,
@@ -1026,14 +1026,14 @@ export default function WorkoutPage() {
     const maxSets = currentExercise.sets.length;
 
     if (workoutState.currentSet > maxSets) {
-      console.log(
-        `[Cleanup] Correcting currentSet from ${workoutState.currentSet} to ${maxSets}`,
-      );
+      // console.log(
+      //   `[Cleanup] Correcting currentSet from ${workoutState.currentSet} to ${maxSets}`,
+      // );
       workoutState.setCurrentSet(maxSets);
     } else if (workoutState.currentSet < 1) {
-      console.log(
-        `[Cleanup] Correcting currentSet from ${workoutState.currentSet} to 1`,
-      );
+      // console.log(
+      //   `[Cleanup] Correcting currentSet from ${workoutState.currentSet} to 1`,
+      // );
       workoutState.setCurrentSet(1);
     }
   }, [
@@ -1205,7 +1205,7 @@ export default function WorkoutPage() {
         isFromQuickMode = false,
       } = params;
 
-      console.log("[completeSetLogic] Completing set:", params);
+      // console.log("[completeSetLogic] Completing set:", params);
 
       // Validar datos: exigir al menos repeticiones (peso puede ser 0 para ejercicios corporales)
       if (!(reps > 0)) {
@@ -1355,7 +1355,7 @@ export default function WorkoutPage() {
       const existingReps =
         workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
       if (existingReps && existingReps > 0) {
-        console.log("[Workout] Serie ya completada, ignorando");
+        // console.log("[Workout] Serie ya completada, ignorando");
         return;
       }
 
@@ -1554,11 +1554,11 @@ export default function WorkoutPage() {
       if (pauseStartTime) {
         const pauseDuration = Date.now() - pauseStartTime;
         setTotalPausedTime((prev) => prev + pauseDuration);
-        console.log(
-          "[Workout] Resuming - pause duration:",
-          Math.floor(pauseDuration / 1000),
-          "seconds",
-        );
+        // console.log(
+        //   "[Workout] Resuming - pause duration:",
+        //   Math.floor(pauseDuration / 1000),
+        //   "seconds",
+        // );
       }
       setIsPaused(false);
       setPauseStartTime(null);
@@ -1567,7 +1567,7 @@ export default function WorkoutPage() {
       // Pausar
       setPauseStartTime(Date.now());
       setIsPaused(true);
-      console.log("[Workout] Paused at:", new Date().toISOString());
+      // console.log("[Workout] Paused at:", new Date().toISOString());
       success("⏸️ Entrenamiento pausado", 2000);
     }
   }, [isPaused, pauseStartTime, success]);
@@ -2132,12 +2132,6 @@ export default function WorkoutPage() {
       ),
     };
 
-    console.log("[handleAddSet] Adding set:", {
-      exerciseId,
-      oldSetsCount: currentExercise.sets.length,
-      newSetsCount: updatedSets.length,
-      updatedRoutine,
-    });
 
     setRoutine(updatedRoutine);
 
@@ -2147,7 +2141,7 @@ export default function WorkoutPage() {
 
       // Persistir la rutina actualizada
       await updateRoutine(id, updatedRoutine);
-      console.log("[handleAddSet] Successfully saved to storage");
+      // console.log("[handleAddSet] Successfully saved to storage");
       success("Serie agregada", 2000);
     } catch (err) {
       console.error("[handleAddSet] Error saving:", err);
@@ -2301,36 +2295,28 @@ export default function WorkoutPage() {
 
   const handleQuickEditReps = useCallback(
     (exerciseId: string, setIndex: number, reps: number) => {
-      console.log("[handleQuickEditReps] Called:", {
-        exerciseId,
-        setIndex,
-        reps,
-      });
+   
       const currentReps = workoutState.workoutData.actualReps[exerciseId] || [];
       const newReps = [...currentReps];
       newReps[setIndex] = reps;
       workoutState.updateActualReps(exerciseId, newReps);
 
-      console.log(
-        "[handleQuickEditReps] completedSets BEFORE:",
-        workoutState.workoutData.completedSets[exerciseId],
-      );
+      // console.log(
+      //   "[handleQuickEditReps] completedSets BEFORE:",
+      //   workoutState.workoutData.completedSets[exerciseId],
+      // );
       // NO actualizar completed sets automáticamente - debe ser manual con el checkbox
-      console.log(
-        "[handleQuickEditReps] completedSets AFTER:",
-        workoutState.workoutData.completedSets[exerciseId],
-      );
+      // console.log(
+      //   "[handleQuickEditReps] completedSets AFTER:",
+      //   workoutState.workoutData.completedSets[exerciseId],
+      // );
     },
     [workoutState],
   );
 
   const handleQuickEditWeight = useCallback(
     (exerciseId: string, setIndex: number, weight: number) => {
-      console.log("[handleQuickEditWeight] Called:", {
-        exerciseId,
-        setIndex,
-        weight,
-      });
+
       const currentWeights =
         workoutState.workoutData.actualWeights[exerciseId] || [];
       const newWeights = [...currentWeights];
@@ -2338,15 +2324,6 @@ export default function WorkoutPage() {
       workoutState.updateActualWeights(exerciseId, newWeights);
 
       // ✅ Récord personal eliminado - no se celebra durante el entrenamiento
-
-      console.log(
-        "[handleQuickEditWeight] completedSets BEFORE:",
-        workoutState.workoutData.completedSets[exerciseId],
-      );
-      console.log(
-        "[handleQuickEditWeight] completedSets AFTER:",
-        workoutState.workoutData.completedSets[exerciseId],
-      );
     },
     [workoutState],
   );
@@ -2363,10 +2340,7 @@ export default function WorkoutPage() {
       const key = `${exerciseId}:${setIndex}`;
       // ✅ Bloquear si ya hay una operación en curso para este índice (usando solo estado)
       if (togglingKeys[key]) {
-        console.log(
-          "[handleQuickToggleSetComplete] Ignorado - operación en curso:",
-          key,
-        );
+
         return;
       }
 
@@ -2393,11 +2367,6 @@ export default function WorkoutPage() {
       };
 
       try {
-        console.log("[handleQuickToggleSetComplete] Called:", {
-          exerciseId,
-          setIndex,
-          isComplete,
-        });
         const exercise = routine?.exercises.find(
           (ex: Exercise) => ex.id === exerciseId,
         );
@@ -2599,12 +2568,6 @@ export default function WorkoutPage() {
         ),
       };
 
-      console.log(
-        "[handleQuickAddSet] Adding set to exercise:",
-        exerciseId,
-        "New count:",
-        updatedSets.length,
-      );
 
       setRoutine(updatedRoutine);
 

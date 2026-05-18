@@ -45,7 +45,7 @@ export function useWakeLock() {
         await wakeLockRef.current.release();
         wakeLockRef.current = null;
         setIsActive(false);
-        console.log('[WakeLock] Liberado manualmente');
+        // console.log('[WakeLock] Liberado manualmente');
       } catch (err) {
         console.error('[WakeLock] Error al liberar:', err);
       }
@@ -56,7 +56,7 @@ export function useWakeLock() {
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible' && isActive && !wakeLockRef.current) {
-        console.log('[WakeLock] Página visible de nuevo, re-activando...');
+        // console.log('[WakeLock] Página visible de nuevo, re-activando...');
         await requestWakeLock();
       }
     };

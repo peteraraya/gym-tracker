@@ -57,7 +57,7 @@ export default function RecommendedRoutinesPage() {
           const localProfile = getProfileLocally();
 
           if (localProfile) {
-            console.log("[Recommended] ✅ Loaded from localStorage");
+            // console.log("[Recommended] ✅ Loaded from localStorage");
             setUserProfile(localProfile);
             const recommendations = getRecommendedRoutines(localProfile);
             setPersonalizedRecommendations(recommendations);
@@ -67,11 +67,11 @@ export default function RecommendedRoutinesPage() {
         }
       } else {
         // Modo DATABASE: Cargar desde Supabase
-        console.log("[Recommended] ☁️ Loading from Supabase...");
+        // console.log("[Recommended] ☁️ Loading from Supabase...");
         const response = await fetch("/api/profile");
         if (response.ok) {
           const profile: UserProfile | null = await response.json();
-          console.log("[Recommended] ✅ Loaded from Supabase");
+          // console.log("[Recommended] ✅ Loaded from Supabase");
           setUserProfile(profile);
           if (profile) {
             const recommendations = getRecommendedRoutines(profile);

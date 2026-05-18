@@ -59,7 +59,7 @@ export async function GET() {
       )
     }
 
-    console.log('[Routines API] Fetching routines for user:', user.id)
+    // console.log('[Routines API] Fetching routines for user:', user.id)
 
     // Get routines with exercises
     const { data: routines, error } = await supabase
@@ -79,7 +79,7 @@ export async function GET() {
       )
     }
 
-    console.log(`[Routines API] Found ${routines?.length || 0} routines`)
+    // console.log(`[Routines API] Found ${routines?.length || 0} routines`)
 
     // Transform to match frontend format
     const formattedRoutines = routines?.map(routine => ({
@@ -188,7 +188,7 @@ export async function POST(request: Request) {
       }
     }
 
-    console.log(`[Routines API] Creating routine "${name}" with ${exercises.length} exercises`)
+    // console.log(`[Routines API] Creating routine "${name}" with ${exercises.length} exercises`)
 
     // Create routine
     const { data: routine, error: routineError } = await supabase
@@ -212,7 +212,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('[Routines API] Routine created:', routine.id)
+    // console.log('[Routines API] Routine created:', routine.id)
 
     // Create exercises
     const exercisesData = exercises.map((ex: RoutineExercise, index: number) => ({
@@ -235,7 +235,7 @@ export async function POST(request: Request) {
     if (exercisesError) {
       console.error('[Routines API] Error creating exercises:', exercisesError.message)
       // Rollback: delete the routine
-      console.log('[Routines API] Rolling back routine:', routine.id)
+      // console.log('[Routines API] Rolling back routine:', routine.id)
       await supabase.from('routines').delete().eq('id', routine.id)
       return NextResponse.json(
         { error: 'Error al crear los ejercicios', details: exercisesError.message }, 
@@ -243,7 +243,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('[Routines API] Exercises created successfully')
+    // console.log('[Routines API] Exercises created successfully')
 
     return NextResponse.json({ success: true, id: routine.id }, { status: 201 })
   } catch (error) {

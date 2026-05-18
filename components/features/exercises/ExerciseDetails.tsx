@@ -160,7 +160,7 @@ export const ExerciseDetails: React.FC<ExerciseDetailsProps> = React.memo(({ exe
                     onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(String(recommendation.suggestedWeight));
-                          console.log('Copied suggested weight to clipboard');
+                          // console.log('Copied suggested weight to clipboard');
                         } catch {
                           // ignore
                         }

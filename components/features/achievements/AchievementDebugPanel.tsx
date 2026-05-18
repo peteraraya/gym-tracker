@@ -60,7 +60,7 @@ export const AchievementDebugPanel: React.FC = () => {
 
     try {
       await addSession(testSession);
-      console.log("[Debug] Test session created");
+      // console.log("[Debug] Test session created");
     } catch (error) {
       console.error("[Debug] Error creating test session:", error);
     }

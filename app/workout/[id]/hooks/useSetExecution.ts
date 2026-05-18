@@ -26,7 +26,7 @@ export function useSetExecution(callbacks?: SetExecutionCallbacks) {
    * Inicia una serie inmediatamente (sin cuenta atrás de preparación)
    */
   const startSet = useCallback(() => {
-    console.log('[SetExecution] startSet called - starting immediately');
+    // console.log('[SetExecution] startSet called - starting immediately');
     setSetStartTime(Date.now());
     setIsExecutingSet(true);
     

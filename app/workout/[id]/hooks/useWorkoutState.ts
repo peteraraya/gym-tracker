@@ -120,7 +120,7 @@ export function useWorkoutState(
   useEffect(() => {
     const timer = setTimeout(() => {
       isInitializingRef.current = false;
-      console.log('[useWorkoutState] ✅ Initialization complete, ready to save');
+      // console.log('[useWorkoutState] ✅ Initialization complete, ready to save');
     }, 100);
     return () => clearTimeout(timer);
   }, []);
@@ -150,7 +150,7 @@ export function useWorkoutState(
       // ✅ Guardar inmediatamente usando queueMicrotask para garantizar orden
       if (!isInitializingRef.current && onDataChangeRef.current) {
         queueMicrotask(() => {
-          console.log('[useWorkoutState] 💾 Saving after completeSet');
+          // console.log('[useWorkoutState] 💾 Saving after completeSet');
           onDataChangeRef.current?.(newData);
         });
       }
@@ -193,7 +193,7 @@ export function useWorkoutState(
 
         if (!isInitializingRef.current && onDataChangeRef.current) {
           queueMicrotask(() => {
-            console.log('[useWorkoutState] 💾 Saving after completeSetAt');
+            // console.log('[useWorkoutState] 💾 Saving after completeSetAt');
             onDataChangeRef.current?.(newData);
           });
         }
@@ -218,7 +218,7 @@ export function useWorkoutState(
       // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
         queueMicrotask(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateCompletedSets');
+          // console.log('[useWorkoutState] 💾 Saving after updateCompletedSets');
           onDataChangeRef.current?.(newData);
         });
       }
@@ -256,7 +256,7 @@ export function useWorkoutState(
       // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
         queueMicrotask(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateActualReps');
+          // console.log('[useWorkoutState] 💾 Saving after updateActualReps');
           onDataChangeRef.current?.(newData);
         });
       }
@@ -282,7 +282,7 @@ export function useWorkoutState(
       // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
         queueMicrotask(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateActualWeights');
+          // console.log('[useWorkoutState] 💾 Saving after updateActualWeights');
           onDataChangeRef.current?.(newData);
         });
       }
@@ -307,7 +307,7 @@ export function useWorkoutState(
       // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
         queueMicrotask(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateSetType');
+          // console.log('[useWorkoutState] 💾 Saving after updateSetType');
           onDataChangeRef.current?.(newData);
         });
       }
@@ -447,7 +447,7 @@ export function useWorkoutState(
 
       if (!isInitializingRef.current && onDataChangeRef.current) {
         queueMicrotask(() => {
-          console.log('[useWorkoutState] 💾 Saving after skipExercise');
+          // console.log('[useWorkoutState] 💾 Saving after skipExercise');
           onDataChangeRef.current?.(newData);
         });
       }
@@ -470,7 +470,7 @@ export function useWorkoutState(
 
       if (!isInitializingRef.current && onDataChangeRef.current) {
         queueMicrotask(() => {
-          console.log('[useWorkoutState] 💾 Saving after unskipExercise');
+          // console.log('[useWorkoutState] 💾 Saving after unskipExercise');
           onDataChangeRef.current?.(newData);
         });
       }
@@ -512,7 +512,7 @@ export function useWorkoutState(
    * Restaura datos desde storage
    */
   const restoreData = useCallback((data: Partial<WorkoutData>) => {
-    console.log('[useWorkoutState] 🔄 Restoring data:', data);
+    // console.log('[useWorkoutState] 🔄 Restoring data:', data);
     
     // ✅ Validar estructura antes de restaurar
     if (!validateWorkoutData(data)) {

@@ -285,13 +285,6 @@ export function QuickEditMode({
     currentValue: number,
     exerciseName: string,
   ) => {
-    console.log("[QuickEdit] startEditing called:", {
-      exerciseId,
-      setIndex,
-      field,
-      currentValue,
-      exerciseName,
-    });
     setEditingCell({ exerciseId, setIndex, field, currentValue, exerciseName });
     setTempValue(currentValue === 0 ? "" : String(currentValue));
   };

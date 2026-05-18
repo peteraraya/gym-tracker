@@ -54,7 +54,7 @@ export default function ProfilePage() {
           const localProfile = getProfileLocally();
           
           if (localProfile) {
-            console.log('[Profile] ✅ Loaded from localStorage:', localProfile);
+            // console.log('[Profile] ✅ Loaded from localStorage:', localProfile);
             setAge(localProfile.age || '');
             setGender(localProfile.gender || '');
             setHeight(localProfile.height || '');
@@ -68,12 +68,12 @@ export default function ProfilePage() {
         }
       } else {
         // Modo DATABASE: Cargar desde Supabase
-        console.log('[Profile] ☁️ Loading from Supabase...');
+        // console.log('[Profile] ☁️ Loading from Supabase...');
         const response = await fetch('/api/profile');
         if (response.ok) {
           const profile: UserProfile | null = await response.json();
           if (profile) {
-            console.log('[Profile] ✅ Loaded from Supabase:', profile);
+            // console.log('[Profile] ✅ Loaded from Supabase:', profile);
             setAge(profile.age || '');
             setGender(profile.gender || '');
             setHeight(profile.height || '');
@@ -116,14 +116,14 @@ export default function ProfilePage() {
         if (typeof window !== 'undefined') {
           const { saveProfileLocally } = await import('@/lib/user/localProfile');
           saveProfileLocally(profileData);
-          console.log('[Profile] ✅ Saved to localStorage');
+          // console.log('[Profile] ✅ Saved to localStorage');
           setProfileMessage('✓ Perfil guardado localmente correctamente');
           setLoading(false);
           return;
         }
       } else {
         // Modo DATABASE: Guardar en Supabase
-        console.log('[Profile] ☁️ Saving to Supabase...');
+        // console.log('[Profile] ☁️ Saving to Supabase...');
         const response = await fetch('/api/profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -131,7 +131,7 @@ export default function ProfilePage() {
         });
 
         if (response.ok) {
-          console.log('[Profile] ✅ Saved to Supabase');
+          // console.log('[Profile] ✅ Saved to Supabase');
           setProfileMessage('✓ Perfil actualizado correctamente');
         } else {
           const data = await response.json();

@@ -54,7 +54,7 @@ export async function GET() {
       )
     }
 
-    console.log('[Sessions API] Fetching sessions for user:', user.id)
+    // console.log('[Sessions API] Fetching sessions for user:', user.id)
 
     // Get sessions with routine info
     const { data: sessions, error } = await supabase
@@ -78,7 +78,7 @@ export async function GET() {
       )
     }
 
-    console.log(`[Sessions API] Found ${sessions?.length || 0} sessions`)
+    // console.log(`[Sessions API] Found ${sessions?.length || 0} sessions`)
 
     // Transform to match frontend format
     const formattedSessions = sessions?.map(session => ({
@@ -160,7 +160,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log(`[Sessions API] Creating session for routine ${routineId} with ${exercises.length} exercises`)
+    // console.log(`[Sessions API] Creating session for routine ${routineId} with ${exercises.length} exercises`)
 
     // Create session
     const { data: session, error: sessionError } = await supabase
@@ -183,7 +183,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('[Sessions API] Session created:', session.id)
+    // console.log('[Sessions API] Session created:', session.id)
 
     // Create session exercises
     const sessionExercisesData = exercises.map((ex: SessionExercise) => ({
@@ -203,7 +203,7 @@ export async function POST(request: Request) {
     if (exercisesError) {
       console.error('[Sessions API] Error creating session exercises:', exercisesError.message)
       // Rollback: delete the session
-      console.log('[Sessions API] Rolling back session:', session.id)
+      // console.log('[Sessions API] Rolling back session:', session.id)
       await supabase.from('workout_sessions').delete().eq('id', session.id)
       return NextResponse.json(
         { error: 'Error al guardar los ejercicios', details: exercisesError.message }, 
@@ -211,7 +211,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('[Sessions API] Session exercises created successfully')
+    // console.log('[Sessions API] Session exercises created successfully')
 
     return NextResponse.json({ success: true, id: session.id }, { status: 201 })
   } catch (error) {

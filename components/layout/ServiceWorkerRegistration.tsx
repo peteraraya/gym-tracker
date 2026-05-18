@@ -19,7 +19,7 @@ export function ServiceWorkerRegistration() {
           scope: '/'
         });
 
-        console.log('[PWA] Service Worker registered:', registration.scope);
+        // console.log('[PWA] Service Worker registered:', registration.scope);
 
         // Verificar actualizaciones
         registration.addEventListener('updatefound', () => {
@@ -29,7 +29,7 @@ export function ServiceWorkerRegistration() {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // Hay una nueva versión disponible
-              console.log('[PWA] New version available');
+              // console.log('[PWA] New version available');
 
               // Guardar referencia al nuevo worker y mostrar modal para actualizar
               newWorkerRef.current = newWorker;
@@ -44,7 +44,7 @@ export function ServiceWorkerRegistration() {
           setTimeout(async () => {
             try {
               const permission = await Notification.requestPermission();
-              console.log('[PWA] Notification permission:', permission);
+              // console.log('[PWA] Notification permission:', permission);
               
               if (permission === 'granted') {
                 // Suscribirse a push notifications
@@ -63,7 +63,7 @@ export function ServiceWorkerRegistration() {
                   // Si localStorage no está disponible, simplemente no mostrar bienvenida
                 }
               } else if (permission === 'denied') {
-                console.log('[PWA] Notification permission denied by user');
+                console.warn('[PWA] Notification permission denied by user');
               }
             } catch (error) {
               console.error('[PWA] Error requesting notification permission:', error);
@@ -80,7 +80,7 @@ export function ServiceWorkerRegistration() {
 
       // Detectar cuando vuelve la conexión
     window.addEventListener('online', () => {
-      console.log('[PWA] Back online');
+      // console.log('[PWA] Back online');
       // Intentar sincronizar datos pendientes (si background sync está disponible)
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then((registration) => {
@@ -97,7 +97,7 @@ export function ServiceWorkerRegistration() {
     });
 
     window.addEventListener('offline', () => {
-      console.log('[PWA] Gone offline');
+      console.warn('[PWA] Gone offline');
     });
 
 
@@ -154,7 +154,7 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     // Verificar si ya está suscrito
     const existingSubscription = await registration.pushManager.getSubscription();
     if (existingSubscription) {
-      console.log('[PWA] Already subscribed to push notifications');
+      // console.log('[PWA] Already subscribed to push notifications');
       // Enviar suscripción existente al servidor
       await sendSubscriptionToServer(existingSubscription);
       return;
@@ -165,7 +165,7 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     
     if (!vapidPublicKey) {
-      console.log('[PWA] VAPID public key not configured. Skipping push notification subscription.');
+      console.warn('[PWA] VAPID public key not configured. Skipping push notification subscription.');
       // No intentar suscribirse sin VAPID key para evitar errores
       return;
     }
@@ -178,7 +178,7 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
       applicationServerKey: applicationServerKey as unknown as ArrayBuffer
     });
 
-    console.log('[PWA] Push subscription created:', subscription);
+    // console.log('[PWA] Push subscription created:', subscription);
 
     // Enviar la suscripción al servidor
     await sendSubscriptionToServer(subscription);
@@ -186,13 +186,13 @@ async function subscribeToPushNotifications(registration: ServiceWorkerRegistrat
   } catch (error: any) {
     // Manejo silencioso de errores comunes
     if (error?.name === 'AbortError') {
-      console.log('[PWA] Push notification subscription aborted (service not available). This is normal if VAPID keys are not configured.');
+      console.warn('[PWA] Push notification subscription aborted (service not available). This is normal if VAPID keys are not configured.');
     } else if (error?.name === 'NotAllowedError') {
-      console.log('[PWA] Push notification permission denied by user.');
+      console.warn('[PWA] Push notification permission denied by user.');
     } else if (error?.name === 'NotSupportedError') {
-      console.log('[PWA] Push notifications not supported in this browser.');
+      console.warn('[PWA] Push notifications not supported in this browser.');
     } else {
-      console.log('[PWA] Push notification subscription skipped:', error?.message || 'Unknown error');
+      console.warn('[PWA] Push notification subscription skipped:', error?.message || 'Unknown error');
     }
     // No lanzar el error para no interrumpir la experiencia del usuario
   }

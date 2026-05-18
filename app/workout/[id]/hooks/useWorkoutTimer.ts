@@ -68,10 +68,10 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         setNextExerciseName(activeWorkout.restTimerNextExercise);
         setTimerMinimized(false);
         
-        console.log('[useWorkoutTimer] ✅ Timer restaurado. Restante:', remaining, 's');
+        // console.log('[useWorkoutTimer] ✅ Timer restaurado. Restante:', remaining, 's');
       } else {
         // El timer expiró mientras la página estaba cerrada
-        console.log('[useWorkoutTimer] Timer expirado durante F5, ejecutando callback');
+        // console.log('[useWorkoutTimer] Timer expirado durante F5, ejecutando callback');
         timerCompleteRef.current();
       }
     }

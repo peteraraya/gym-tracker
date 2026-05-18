@@ -86,7 +86,7 @@ export default function ProgressPage() {
         }
 
         if (!exercise) {
-          console.log(
+          console.warn(
             "Ejercicio no encontrado:",
             sessionExercise.exerciseId,
             sessionExercise.exerciseName,
