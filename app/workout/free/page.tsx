@@ -14,6 +14,7 @@ import SetTypeSelector, { SetTypeBadge } from "@/components/features/workout/Set
 import { WeightSelector } from "@/components/features/workout/WeightSelector";
 import { Input } from "@/components/ui/Input";
 import { NumericInput } from "@/components/ui/NumericInput";
+import { Toggle } from "@/components/ui/Toggle";
 import { RestTimeSelector } from "@/components/features/workout/RestTimeSelector";
 import { ExerciseSelector } from "@/components/features/exercises/ExerciseSelector";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
@@ -676,21 +677,12 @@ export default function FreeWorkoutPage() {
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     🧠 Inteligente
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setUseSmartRest(!useSmartRest)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      useSmartRest
-                        ? "bg-purple-600"
-                        : "bg-gray-300 dark:bg-gray-600"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        useSmartRest ? "translate-x-6" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
+                  <Toggle
+                    checked={useSmartRest}
+                    onChange={setUseSmartRest}
+                    activeColor="bg-purple-600"
+                    label="Descanso inteligente"
+                  />
                 </div>
               </div>
             </CardContent>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Toggle } from '@/components/ui/Toggle';
 import { requestNotificationPermission } from '@/lib/workout/restCalculator';
 
 /**
@@ -129,18 +130,11 @@ export const RestSettings: React.FC = () => {
                 Reproduce un sonido al terminar el descanso
               </p>
             </div>
-            <button
-              onClick={handleSoundToggle}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                soundEnabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  soundEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
+            <Toggle
+              checked={soundEnabled}
+              onChange={handleSoundToggle}
+              label="Sonido de Alerta"
+            />
           </div>
         </div>
 
@@ -155,18 +149,11 @@ export const RestSettings: React.FC = () => {
                 Muestra mensajes de ánimo durante el descanso
               </p>
             </div>
-            <button
-              onClick={handleMotivationToggle}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                motivationEnabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  motivationEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
+            <Toggle
+              checked={motivationEnabled}
+              onChange={handleMotivationToggle}
+              label="Mensajes Motivacionales"
+            />
           </div>
         </div>
 

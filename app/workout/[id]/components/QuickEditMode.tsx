@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Toggle } from "@/components/ui/Toggle";
 import SetTypeCycleButton from "@/components/features/workout/SetTypeCycleButton";
 import { EditValueModal } from "@/components/shared/EditValueModal";
 import { FloatingRestTimer } from "./FloatingRestTimer";
@@ -720,10 +721,9 @@ export function QuickEditMode({
 
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newVal = !skipRestTimers;
+                <Toggle
+                  checked={skipRestTimers}
+                  onChange={(newVal) => {
                     setSkipRestTimers(newVal);
                     try {
                       showToast(
@@ -735,15 +735,10 @@ export function QuickEditMode({
                       );
                     } catch {}
                   }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
-                    skipRestTimers ? "bg-green-500" : "bg-white/30"
-                  }`}
-                  role="switch"
-                  aria-checked={skipRestTimers}
-                  title={skipRestTimers ? "Omitir descansos: ON" : "Omitir descansos: OFF"}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${skipRestTimers ? "translate-x-6" : "translate-x-1"}`} />
-                </button>
+                  activeColor="bg-green-500"
+                  label={skipRestTimers ? "Omitir descansos: ON" : "Omitir descansos: OFF"}
+                  className="focus:ring-white focus:ring-offset-blue-600"
+                />
 
                 <button
                   onClick={(e) => {
@@ -764,10 +759,9 @@ export function QuickEditMode({
               </div>
 
               <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const newVal = !autoAdvance;
+                <Toggle
+                  checked={autoAdvance}
+                  onChange={(newVal) => {
                     setAutoAdvance(newVal);
                     try {
                       showToast(
@@ -777,15 +771,10 @@ export function QuickEditMode({
                       );
                     } catch {}
                   }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 ${
-                    autoAdvance ? "bg-blue-500" : "bg-white/30"
-                  }`}
-                  role="switch"
-                  aria-checked={autoAdvance}
-                  title={autoAdvance ? "Avanzar auto: ON" : "Avanzar auto: OFF"}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoAdvance ? "translate-x-6" : "translate-x-1"}`} />
-                </button>
+                  activeColor="bg-blue-500"
+                  label={autoAdvance ? "Avanzar auto: ON" : "Avanzar auto: OFF"}
+                  className="focus:ring-white focus:ring-offset-blue-600"
+                />
 
                 <button
                   onClick={(e) => {
