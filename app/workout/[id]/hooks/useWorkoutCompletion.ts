@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAchievementManager } from '@/lib/achievements/achievementManager';
+import { useConfirm } from '@/context/NotificationContext';
 import type { CompleteSplashStats } from '@/components/features/workout/WorkoutCompleteSplash';
 
 interface UseWorkoutCompletionProps {
@@ -38,6 +39,7 @@ export function useWorkoutCompletion({
   
   // ✨ Usar el nuevo sistema de logros
   const achievementManager = useAchievementManager();
+  const { confirm } = useConfirm();
   
   const openCompletionModal = useCallback((duration?: number) => {
     const calculatedDuration = duration || Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
@@ -53,6 +55,22 @@ export function useWorkoutCompletion({
     const totalDuration = proposedDuration && proposedDuration > 0
       ? proposedDuration
       : Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+
+    // Validación: más de 5 horas (18000 segundos)
+    if (totalDuration > 18000) {
+      const hours = Math.floor(totalDuration / 3600);
+      const minutes = Math.floor((totalDuration % 3600) / 60);
+      const confirmed = await confirm({
+        title: 'Duración inusualmente larga',
+        message: `Estás a punto de registrar ${hours}h ${minutes}m de entrenamiento. ¿Es correcto?`,
+        confirmText: 'Sí, guardar',
+        cancelText: 'Corregir duración',
+      });
+      if (!confirmed) return;
+    }
+
+    // Cerrar el modal antes de procesar para que no reaparezca tras el splash
+    setShowNotesModal(false);
 
     // Calculate total volume
     let totalVolume = 0;
@@ -201,7 +219,8 @@ export function useWorkoutCompletion({
     shownAchievements,
     achievementManager,
     onWorkoutComplete,
-    onAchievementUnlocked
+    onAchievementUnlocked,
+    confirm,
   ]);
   
   return {
