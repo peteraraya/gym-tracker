@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Modal } from '@/components/ui/Modal';
+import { Select } from '@/components/ui/Select';
 import { TrendingUp, TrendingDown, Minus, ArrowRight } from '@/components/icons/lucide';
 import type { WorkoutSession, Routine } from '@/types';
 
@@ -112,13 +113,10 @@ export function SessionComparison({ sessions, routines }: SessionComparisonProps
           {/* Selectores de sesiones */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Primera Sesión
-              </label>
-              <select
+              <Select
+                label="Primera Sesión"
                 value={session1Id}
                 onChange={(e) => setSession1Id(e.target.value)}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="">Selecciona una sesión</option>
                 {dedupedSessions.map((session) => (
@@ -126,17 +124,14 @@ export function SessionComparison({ sessions, routines }: SessionComparisonProps
                     {getRoutineName(session.routineId)} - {new Date(session.date).toLocaleDateString('es-ES')}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Segunda Sesión
-              </label>
-              <select
+              <Select
+                label="Segunda Sesión"
                 value={session2Id}
                 onChange={(e) => setSession2Id(e.target.value)}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="">Selecciona una sesión</option>
                 {dedupedSessions.map((session) => (
@@ -144,7 +139,7 @@ export function SessionComparison({ sessions, routines }: SessionComparisonProps
                     {getRoutineName(session.routineId)} - {new Date(session.date).toLocaleDateString('es-ES')}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
 

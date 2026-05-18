@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { NumericInput } from '@/components/ui/NumericInput';
+import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Scale } from '@/components/icons/lucide';
 import { FitnessGoal, FitnessLevel, UserProfile } from '@/types';
@@ -285,11 +286,14 @@ useEffect(() => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Fila 1: Sexo / Edad / Peso */}
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400">Sexo</label>
-                <select value={sex} onChange={e => setSex(e.target.value as 'male'|'female')} className="mt-1 w-full px-3 py-2 border rounded">
+                <Select
+                  label="Sexo"
+                  value={sex}
+                  onChange={e => setSex(e.target.value as 'male'|'female')}
+                >
                   <option value="male">Masculino</option>
                   <option value="female">Femenino</option>
-                </select>
+                </Select>
               </div>
 
               <div>
@@ -310,14 +314,17 @@ useEffect(() => {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400">Actividad</label>
-                <select value={activity} onChange={e => setActivity(e.target.value)} className="mt-1 w-full px-3 py-2 border rounded">
+                <Select
+                  label="Actividad"
+                  value={activity}
+                  onChange={e => setActivity(e.target.value)}
+                >
                   <option value="sedentary">Sedentario (poco o nada)</option>
                   <option value="light">Ligero (1-3 días/sem)</option>
                   <option value="moderate">Moderado (3-5 días/sem)</option>
                   <option value="active">Activo (6-7 días/sem)</option>
                   <option value="very_active">Muy activo</option>
-                </select>
+                </Select>
               </div>
 
               {/* Fila 3: Objetivo (perfil) / Nivel / Objetivo (calorías) */}
@@ -332,14 +339,17 @@ useEffect(() => {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-400">Objetivo</label>
-                <select value={goal} onChange={e => setGoal(e.target.value as any)} className="mt-1 w-full px-3 py-2 border rounded">
+                <Select
+                  label="Objetivo"
+                  value={goal}
+                  onChange={e => setGoal(e.target.value as any)}
+                >
                   <option value="maintenance">Mantenimiento</option>
                   <option value="mild-cut">Déficit leve (-10%)</option>
                   <option value="cut">Pérdida (-20%)</option>
                   <option value="mild-bulk">Volumen leve (+10%)</option>
                   <option value="bulk">Volumen (+20%)</option>
-                </select>
+                </Select>
               </div>
             </div>
 

@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Award
 } from '@/components/icons/lucide';
+import { Spinner } from '@/components/ui/Spinner';
 import type { DifficultyLevel } from '@/data/exercises/types';
 
 interface WizardData {
@@ -588,9 +589,10 @@ export default function RoutineWizard({ onComplete, onCancel }: RoutineWizardPro
             >
               {isCreating ? (
                 <>
-                  <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Spinner size="sm" className="mr-2 text-white" />
                   Creando...
                 </>
+                
               ) : step === totalSteps ? (
                 <>
                   <Check className="w-4 h-4 mr-2" />

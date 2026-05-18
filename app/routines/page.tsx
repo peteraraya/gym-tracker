@@ -25,6 +25,7 @@ import {
   Copy,
   Flame,
   Dumbbell,
+  Search,
 } from "@/components/icons/lucide";
 import { useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
@@ -449,7 +450,7 @@ export default function RoutinesPage() {
                   } catch (e) {}
                 } catch (e) {}
               }}
-              placeholder="🔍 Buscar rutinas por nombre o descripción..."
+              placeholder="Buscar rutinas por nombre o descripción..."
             />
           </div>
           {/* Content */}
@@ -471,7 +472,7 @@ export default function RoutinesPage() {
             />
           ) : filteredRoutines.length === 0 ? (
             <EmptyStateCard
-              icon="🔍"
+              icon={<Search className="w-12 h-12" />}
               title="No se encontraron rutinas"
               description="Intenta con otro término de búsqueda"
               actionLabel="Limpiar búsqueda"

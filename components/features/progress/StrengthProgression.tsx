@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import type { WorkoutSession } from '@/types';
 import { TrendingUp, TrendingDown } from '@/components/icons/lucide';
 import { useTranslations } from '@/context/LocaleContext';
@@ -136,20 +137,17 @@ export const StrengthProgression: React.FC<StrengthProgressionProps> = ({ sessio
       <CardContent>
         {/* Selector de ejercicio */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            {t('selectExercise')}
-          </label>
-          <select
+          <Select
+            label={t('selectExercise')}
             value={selectedExercise}
             onChange={(e) => setSelectedExercise(e.target.value)}
-            className="w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"
           >
             {exercises.map(exercise => (
               <option key={exercise} value={exercise}>
                 {exercise}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Estadísticas */}

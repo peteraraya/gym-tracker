@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
 import { useToast, useConfirm } from "@/context/NotificationContext";
 import { useGym } from "@/context/GymContext";
 import {
@@ -355,7 +356,7 @@ export function DevTools() {
 
         {isLoading && (
           <div className="text-center py-4">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
+            <Spinner size="lg" className="inline-block text-red-500" />
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
               Procesando...
             </p>

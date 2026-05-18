@@ -28,6 +28,7 @@ import { useToast } from "@/context/NotificationContext";
 import type { Routine } from "@/types";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { Modal } from "@/components/ui/Modal";
+import { Select } from "@/components/ui/Select";
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
@@ -408,15 +409,9 @@ function CreateMesocycleModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Objetivo{" "}
-              <InfoTooltip
-                title="Objetivo"
-                content="El objetivo determina textos, etiquetas y valores por defecto. Puedes elegir una plantilla para aplicar ajustes concretos."
-              />
-            </label>
-            <select
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Select
+              label="Objetivo"
+              className="rounded-xl dark:bg-gray-800 dark:border-gray-700"
               value={goal}
               onChange={(e) => setGoal(e.target.value as PlanningGoal)}
             >
@@ -427,18 +422,12 @@ function CreateMesocycleModal({
                   </option>
                 ),
               )}
-            </select>
+            </Select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Duración{" "}
-              <InfoTooltip
-                title="Duración"
-                content="Número de semanas del mesociclo; afecta el calendario y el deload final automático."
-              />
-            </label>
-            <select
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Select
+              label="Duración"
+              className="rounded-xl dark:bg-gray-800 dark:border-gray-700"
               value={weeks}
               onChange={(e) => setWeeks(Number(e.target.value))}
             >
@@ -447,7 +436,7 @@ function CreateMesocycleModal({
                   {w} semanas
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -464,15 +453,9 @@ function CreateMesocycleModal({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Progresión{" "}
-              <InfoTooltip
-                title="Progresión"
-                content="El esquema de progresión determina cómo aumentan sets/intensidad entre semanas (p. ej. lineal: incremento constante)."
-              />
-            </label>
-            <select
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Select
+              label="Progresión"
+              className="rounded-xl dark:bg-gray-800 dark:border-gray-700"
               value={scheme}
               onChange={(e) =>
                 setScheme(e.target.value as Mesocycle["progressionScheme"])
@@ -481,20 +464,14 @@ function CreateMesocycleModal({
               <option value="linear">Lineal</option>
               <option value="undulating">Ondulante</option>
               <option value="block">Por bloques</option>
-            </select>
+            </Select>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Plantilla (opcional){" "}
-            <InfoTooltip
-              title="Plantilla"
-              content="La plantilla aplica valores iniciales (sets/RPE/frecuencia) para todas las semanas. Se autoselecciona según el Objetivo, puedes cambiarla o dejar 'Ninguna'."
-            />
-          </label>
-          <select
-            className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <Select
+            label="Plantilla (opcional)"
+            className="rounded-xl dark:bg-gray-800 dark:border-gray-700"
             value={preset}
             onChange={(e) => {
               const v = e.target.value as "none" | PlanningGoal;
@@ -509,7 +486,7 @@ function CreateMesocycleModal({
             <option value="power">Potencia</option>
             <option value="cut">Definición</option>
             <option value="recomp">Recomp</option>
-          </select>
+          </Select>
         </div>
 
         <div>
@@ -712,9 +689,9 @@ function WeeklyScheduleEditor({
                   {/* Botón agregar rutina */}
                   {addingDay === day ? (
                     <div className="space-y-1">
-                      <select
+                      <Select
                         autoFocus
-                        className="w-full text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="text-xs rounded-lg px-2 py-1"
                         defaultValue=""
                         onChange={(e) => {
                           if (e.target.value) {
@@ -734,7 +711,7 @@ function WeeklyScheduleEditor({
                               {r.name}
                             </option>
                           ))}
-                      </select>
+                      </Select>
                     </div>
                   ) : (
                     <button
