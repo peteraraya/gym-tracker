@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Spinner } from '../ui/Spinner';
 
 interface LoadingStateProps {
   message?: string;
@@ -13,7 +14,9 @@ export function LoadingState({
 }: LoadingStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
-      <div className="text-4xl mb-3 animate-bounce">⏳</div>
+      <div className="text-4xl mb-3 animate-bounce">
+        <Spinner size="lg" />
+      </div>
       <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1.5">
         {message}
       </h3>

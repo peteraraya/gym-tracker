@@ -16,7 +16,7 @@ const updates = {
   'routineForm.removeSetTitle': 'Eliminar serie',
   'routineForm.addSet': 'Añadir serie',
   'routineForm.selectExercisesTitle': 'Seleccionar Ejercicios',
-  'routineForm.saving': '⏳ Guardando...',
+  'routineForm.saving': 'Guardando...',
   'routineForm.createSuccess': 'Rutina creada exitosamente',
   'routineForm.updateSuccess': 'Rutina actualizada exitosamente',
   'routineForm.saveError': 'Error al guardar la rutina. Por favor intenta de nuevo.',

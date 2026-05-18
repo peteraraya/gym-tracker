@@ -193,7 +193,7 @@
     "removeSetTitle": "Remove set",
     "addSet": "Add set",
     "selectExercisesTitle": "Select Exercises",
-    "saving": "⏳ Saving...",
+    "saving": "Saving...",
     "createSuccess": "Routine created successfully",
     "updateSuccess": "Routine updated successfully",
     "saveError": "Error saving routine. Please try again.",

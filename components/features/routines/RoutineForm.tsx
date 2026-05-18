@@ -28,6 +28,7 @@ import {
 import SetTypeSelector from "@/components/features/workout/SetTypeSelector";
 import { WarmupRecommendation } from "@/components/features/workout/WarmupRecommendation";
 import { StepIndicator } from "@/components/features/routines/RoutineForm/StepIndicator";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface RoutineFormProps {
   routineId?: string | null;
@@ -1220,7 +1221,9 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
-                    <span className="animate-spin">⏳</span>
+                    <span className="animate-spin">
+                      <Spinner size="sm" />
+                    </span>
                     {t("saving")}
                   </span>
                 ) : (

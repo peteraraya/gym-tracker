@@ -148,7 +148,7 @@
     "removeSetTitle": "Eliminar serie",
     "addSet": "Añadir serie",
     "selectExercisesTitle": "Seleccionar Ejercicios",
-    "saving": "⏳ Guardando...",
+    "saving": "Guardando...",
     "createSuccess": "Rutina creada exitosamente",
     "updateSuccess": "Rutina actualizada exitosamente",
     "saveError": "Error al guardar la rutina. Por favor intenta de nuevo.",
