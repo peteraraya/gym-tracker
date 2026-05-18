@@ -4,15 +4,21 @@
  * preocuparte de su ubicación física dentro de components/.
  */
 
-// ─── Componentes base (en shared/) ─────────────────────────────────────────
+// ─── Primitivos UI (ahora viven en ui/, re-exportados aquí) ─────────────────
 export { StatBadge } from './StatBadge';
+export { EmptyState } from './EmptyState';
 export { EmptyStateCard } from './EmptyStateCard';
 export { ActionButton } from './ActionButton';
 export { SearchInput } from './SearchInput';
 export { LoadingSpinner, InlineSpinner } from './LoadingSpinner';
+export { LoadingState } from './LoadingState';
 export { FilterBar, SearchBar, FilterButtons } from './FilterBar';
+export { FilterButton, FilterPanel } from './FilterPanel';
 export { PageSection, PageSectionCard } from './PageSection';
 export { GridLayout, CardGrid, StatsGrid } from './GridLayout';
+export { Pagination } from './Pagination';
+export { ClientOnly } from './ClientOnly';
+export { VirtualList } from './VirtualList';
 
 // ─── Componentes de dominio (re-exports para facilitar imports) ────────────
 export { RoutineCard } from '../features/routines/RoutineCard';
