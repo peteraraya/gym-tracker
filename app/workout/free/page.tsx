@@ -13,6 +13,7 @@ import { PreparationCountdown } from "@/components/features/workout/PreparationC
 import SetTypeSelector, { SetTypeBadge } from "@/components/features/workout/SetTypeSelector";
 import { WeightSelector } from "@/components/features/workout/WeightSelector";
 import { Input } from "@/components/ui/Input";
+import { NumericInput } from "@/components/ui/NumericInput";
 import { RestTimeSelector } from "@/components/features/workout/RestTimeSelector";
 import { ExerciseSelector } from "@/components/features/exercises/ExerciseSelector";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
@@ -599,12 +600,10 @@ export default function FreeWorkoutPage() {
 
                       <div className="mt-3">
                         <label className="block text-xs text-gray-600 mb-1">Descanso entre ejercicios (seg)</label>
-                        <input
-                          type="number"
-                          min={0}
+                        <NumericInput
                           value={preRestBetweenExercises}
-                          onChange={(e) => setPreRestBetweenExercises(Number(e.target.value || 120))}
-                          className="w-40 p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+                          onChange={(v) => setPreRestBetweenExercises(v)}
+                          className="p-2 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
                         />
                       </div>
                     </div>
@@ -749,20 +748,10 @@ export default function FreeWorkoutPage() {
                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Repeticiones
                     </label>
-                    <input
-                      type="number"
-                      className="w-full px-2 py-2 border rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={currentReps === 0 ? "" : currentReps}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setCurrentReps(0);
-                        } else {
-                          const num = parseInt(val);
-                          setCurrentReps(isNaN(num) ? 0 : Math.max(0, num));
-                        }
-                      }}
-                      min="0"
+                    <NumericInput
+                      className="px-2 py-2 border rounded-md text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={currentReps}
+                      onChange={(v) => setCurrentReps(Math.max(0, v))}
                       placeholder="0"
                     />
                   </div>
@@ -913,20 +902,17 @@ export default function FreeWorkoutPage() {
                               <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
                                 Reps
                               </label>
-                              <input
-                                type="number"
-                                className="w-full p-1.5 border rounded-md bg-white dark:bg-gray-700 text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              <NumericInput
+                                className="p-1.5 border rounded-md text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 value={set.reps}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  const num = val === "" ? 0 : parseInt(val);
+                                onChange={(v) => {
                                   const newExercises = [...exercises];
                                   const updatedSets = [
                                     ...activeExercise.completedSets,
                                   ];
                                   updatedSets[i] = {
                                     ...updatedSets[i],
-                                    reps: isNaN(num) ? 0 : Math.max(0, num),
+                                    reps: Math.max(0, v),
                                   };
                                   newExercises[activeExerciseIndex!] = {
                                     ...activeExercise,
@@ -934,7 +920,6 @@ export default function FreeWorkoutPage() {
                                   };
                                   setExercises(newExercises);
                                 }}
-                                min="0"
                               />
                             </div>
                             <div>
@@ -1186,22 +1171,17 @@ export default function FreeWorkoutPage() {
                                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                     Reps
                                   </label>
-                                  <input
-                                    type="number"
-                                    className="w-full p-1.5 border rounded bg-white dark:bg-gray-700 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  <NumericInput
+                                    className="p-1.5 border rounded text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     value={set.reps}
-                                    onChange={(e) => {
-                                      e.stopPropagation();
-                                      const val = e.target.value;
-                                      const num =
-                                        val === "" ? 0 : parseInt(val);
+                                    onChange={(v) => {
                                       const newExercises = [...exercises];
                                       const updatedSets = [
                                         ...exercise.completedSets,
                                       ];
                                       updatedSets[i] = {
                                         ...updatedSets[i],
-                                        reps: isNaN(num) ? 0 : Math.max(0, num),
+                                        reps: Math.max(0, v),
                                       };
                                       newExercises[index] = {
                                         ...exercise,
@@ -1209,7 +1189,6 @@ export default function FreeWorkoutPage() {
                                       };
                                       setExercises(newExercises);
                                     }}
-                                    min="0"
                                   />
                                 </div>
                                 <div>

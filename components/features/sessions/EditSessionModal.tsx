@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { NumericInput } from '@/components/ui/NumericInput';
 import type { WorkoutSession } from '@/types';
 
 interface EditSessionModalProps {
@@ -379,14 +380,13 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
                           <tr key={setIdx} className="border-b border-gray-200 dark:border-gray-700">
                             <td className="py-2 px-2 text-gray-600 dark:text-gray-400">{setIdx + 1}</td>
                             <td className="py-2 px-2">
-                              <input
-                                type="number"
-                                min="0"
+                              <NumericInput
+                                min={0}
                                 value={actualReps[setIdx] || ''}
-                                placeholder="0"
-                                onChange={(e) => updateExerciseReps(exIdx, setIdx, parseInt(e.target.value) || 0)}
-                                onFocus={(e) => e.target.select()}
-                                className="w-full p-2 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                                placeholder="–"
+                                onChange={(v) => updateExerciseReps(exIdx, setIdx, v)}
+                                onFocus={(e) => (e.target as HTMLInputElement).select()}
+                                className="p-2 text-center"
                               />
                             </td>
                             <td className="py-2 px-2">

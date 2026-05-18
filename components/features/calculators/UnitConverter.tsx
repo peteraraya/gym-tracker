@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { ArrowLeftRight, Scale } from '@/components/icons/lucide';
 
 export default function UnitConverter() {
@@ -51,13 +52,12 @@ export default function UnitConverter() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             {/* Kilogramos */}
             <div className="space-y-2">
-              <Input
-                type="number"
+              <NumericInput
                 label="Kilogramos (kg)"
                 value={kgValue}
-                onChange={(e) => handleKgChange(parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.1"
+                onChange={(v) => handleKgChange(v)}
+                allowDecimal
+                min={0}
               />
               <div className="text-center">
                 <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">
@@ -77,13 +77,12 @@ export default function UnitConverter() {
 
             {/* Libras */}
             <div className="space-y-2 md:order-last">
-              <Input
-                type="number"
+              <NumericInput
                 label="Libras (lbs)"
                 value={lbsValue}
-                onChange={(e) => handleLbsChange(parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.1"
+                onChange={(v) => handleLbsChange(v)}
+                allowDecimal
+                min={0}
               />
               <div className="text-center">
                 <div className="text-4xl font-bold text-purple-600 dark:text-purple-400">

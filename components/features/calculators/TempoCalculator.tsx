@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { Clock } from '@/components/icons/lucide';
 
 export default function TempoCalculator() {
@@ -79,48 +80,44 @@ export default function TempoCalculator() {
             </h4>
             <div className="grid grid-cols-4 gap-3">
               <div>
-                <Input
-                  type="number"
+                <NumericInput
                   label="Excéntrico"
                   value={eccentric}
-                  onChange={(e) => setEccentric(parseInt(e.target.value) || 0)}
-                  min="0"
+                  onChange={(v) => setEccentric(v)}
+                  min={0}
                 />
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
                   Bajada
                 </div>
               </div>
               <div>
-                <Input
-                  type="number"
+                <NumericInput
                   label="Pausa 1"
                   value={pause1}
-                  onChange={(e) => setPause1(parseInt(e.target.value) || 0)}
-                  min="0"
+                  onChange={(v) => setPause1(v)}
+                  min={0}
                 />
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
                   Abajo
                 </div>
               </div>
               <div>
-                <Input
-                  type="number"
+                <NumericInput
                   label="Concéntrico"
                   value={concentric}
-                  onChange={(e) => setConcentric(parseInt(e.target.value) || 0)}
-                  min="0"
+                  onChange={(v) => setConcentric(v)}
+                  min={0}
                 />
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
                   Subida
                 </div>
               </div>
               <div>
-                <Input
-                  type="number"
+                <NumericInput
                   label="Pausa 2"
                   value={pause2}
-                  onChange={(e) => setPause2(parseInt(e.target.value) || 0)}
-                  min="0"
+                  onChange={(v) => setPause2(v)}
+                  min={0}
                 />
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
                   Arriba
@@ -137,19 +134,17 @@ export default function TempoCalculator() {
 
           {/* Series y Reps */}
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="number"
+            <NumericInput
               label="Repeticiones por Serie"
               value={reps}
-              onChange={(e) => setReps(parseInt(e.target.value) || 0)}
-              min="1"
+              onChange={(v) => setReps(v)}
+              min={1}
             />
-            <Input
-              type="number"
+            <NumericInput
               label="Número de Series"
               value={sets}
-              onChange={(e) => setSets(parseInt(e.target.value) || 0)}
-              min="1"
+              onChange={(v) => setSets(v)}
+              min={1}
             />
           </div>
 

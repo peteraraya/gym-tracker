@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { Button } from '@/components/ui/Button';
 import { BarChart3, Plus, Trash2 } from '@/components/icons/lucide';
 
@@ -79,27 +80,24 @@ export default function VolumeCalculator() {
                 </Button>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <Input
-                  type="number"
+                <NumericInput
                   label="Series"
                   value={exercise.sets}
-                  onChange={(e) => updateExercise(exercise.id, 'sets', parseInt(e.target.value) || 0)}
-                  min="0"
+                  onChange={(v) => updateExercise(exercise.id, 'sets', v)}
+                  min={0}
                 />
-                <Input
-                  type="number"
+                <NumericInput
                   label="Reps"
                   value={exercise.reps}
-                  onChange={(e) => updateExercise(exercise.id, 'reps', parseInt(e.target.value) || 0)}
-                  min="0"
+                  onChange={(v) => updateExercise(exercise.id, 'reps', v)}
+                  min={0}
                 />
-                <Input
-                  type="number"
+                <NumericInput
                   label="Peso (kg)"
                   value={exercise.weight}
-                  onChange={(e) => updateExercise(exercise.id, 'weight', parseFloat(e.target.value) || 0)}
-                  min="0"
-                  step="0.5"
+                  onChange={(v) => updateExercise(exercise.id, 'weight', v)}
+                  allowDecimal
+                  min={0}
                 />
               </div>
               <div className="mt-2 text-right text-sm text-gray-600 dark:text-gray-400">

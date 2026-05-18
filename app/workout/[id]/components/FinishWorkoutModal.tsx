@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { NumericInput } from '@/components/ui/NumericInput';
 
 interface FinishWorkoutModalProps {
   isOpen: boolean;
@@ -24,9 +26,10 @@ export function FinishWorkoutModal({
   onFinish,
   isSaving
 }: FinishWorkoutModalProps) {
-  const hours = Math.floor(proposedDuration / 3600);
-  const minutes = Math.floor((proposedDuration % 3600) / 60);
-  const seconds = proposedDuration % 60;
+  // Estado local para aislar los inputs del timer del padre que sigue corriendo
+  const [localHours, setLocalHours] = useState(() => Math.floor(proposedDuration / 3600));
+  const [localMinutes, setLocalMinutes] = useState(() => Math.floor((proposedDuration % 3600) / 60));
+  const [localSeconds, setLocalSeconds] = useState(() => proposedDuration % 60);
 
   const updateDuration = (h: number, m: number, s: number) => {
     const total = h * 3600 + m * 60 + s;
@@ -47,16 +50,14 @@ export function FinishWorkoutModal({
               <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1 text-center">
                 Horas
               </label>
-              <input
-                type="number"
-                min="0"
-                max="23"
-                value={hours}
-                onChange={(e) => {
-                  const h = Math.max(0, Math.min(23, parseInt(e.target.value) || 0));
-                  updateDuration(h, minutes, seconds);
+              <NumericInput
+                value={localHours}
+                onChange={(v) => {
+                  const h = Math.max(0, Math.min(23, v));
+                  setLocalHours(h);
+                  updateDuration(h, localMinutes, localSeconds);
                 }}
-                className="w-full p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
@@ -65,16 +66,14 @@ export function FinishWorkoutModal({
               <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1 text-center">
                 Minutos
               </label>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={minutes}
-                onChange={(e) => {
-                  const m = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
-                  updateDuration(hours, m, seconds);
+              <NumericInput
+                value={localMinutes}
+                onChange={(v) => {
+                  const m = Math.max(0, Math.min(59, v));
+                  setLocalMinutes(m);
+                  updateDuration(localHours, m, localSeconds);
                 }}
-                className="w-full p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
@@ -83,16 +82,14 @@ export function FinishWorkoutModal({
               <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1 text-center">
                 Segundos
               </label>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={seconds}
-                onChange={(e) => {
-                  const s = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
-                  updateDuration(hours, minutes, s);
+              <NumericInput
+                value={localSeconds}
+                onChange={(v) => {
+                  const s = Math.max(0, Math.min(59, v));
+                  setLocalSeconds(s);
+                  updateDuration(localHours, localMinutes, s);
                 }}
-                className="w-full p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>

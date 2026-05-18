@@ -425,6 +425,16 @@ self.addEventListener('message', (event) => {
 
     self._restNotifications = self._restNotifications || {};
     self._restIntervals = self._restIntervals || {};
+    self._restActive = self._restActive || {};
+
+    // Marcar descanso como activo (suprime notificaciones genéricas)
+    self._restActive[tag] = true;
+
+    // Limpiar intervalo anterior antes de crear uno nuevo
+    if (self._restIntervals[tag]) {
+      clearInterval(self._restIntervals[tag]);
+      delete self._restIntervals[tag];
+    }
 
     self._restNotifications[tag] = { endTime, title, nextExercise };
 
@@ -447,28 +457,25 @@ self.addEventListener('message', (event) => {
       ]
     };
 
-    // Initial notification: include a vibration so user notices start and an image
+    // Notificación inicial con vibración
     const initialOptions = Object.assign({}, baseOptions, {
       vibrate: [200, 100, 200],
       image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
     });
 
-    // Show the remaining time as the notification title (aparece grande en muchas UIs)
     self.registration.showNotification(formatted, initialOptions);
 
-    // Limpiar intervalo anterior si existe
-    if (self._restIntervals[tag]) {
-      clearInterval(self._restIntervals[tag]);
-    }
-
-    // Intentar mantener la notificación actualizada desde el SW (su ejecución puede interrumpirse por el runtime)
+    // El SW es el único responsable de actualizar la notificación cada segundo
     self._restIntervals[tag] = setInterval(() => {
       try {
         const meta = self._restNotifications[tag];
-        if (!meta) return;
+        if (!meta) {
+          clearInterval(self._restIntervals[tag]);
+          delete self._restIntervals[tag];
+          return;
+        }
         const remainingSec = Math.max(0, Math.ceil((meta.endTime - Date.now()) / 1000));
         const fmt = formatSeconds(remainingSec);
-        // Use baseOptions for updates (no vibrate, no renotify)
         const opts = Object.assign({}, baseOptions, {
           data: { endTime: meta.endTime, nextExercise: meta.nextExercise },
           image: createNumberSVGDataUrl(fmt, { width: 512, height: 256 })
@@ -478,9 +485,10 @@ self.addEventListener('message', (event) => {
         if (remainingSec <= 0) {
           clearInterval(self._restIntervals[tag]);
           delete self._restIntervals[tag];
+          self._restActive[tag] = false;
 
-          self.registration.showNotification('Descanso terminado', {
-            body: meta.nextExercise ? `Listo para: ${meta.nextExercise}` : 'Descanso finalizado',
+          self.registration.showNotification('¡A entrenar!', {
+            body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
             tag,
             renotify: true,
             vibrate: [300, 100, 300],
@@ -498,15 +506,23 @@ self.addEventListener('message', (event) => {
     return;
   }
 
-  // UPDATE_REST -> actualizar la notificación con tiempo restante proporcionado
+  // UPDATE_REST -> ignorar si el SW ya tiene un intervalo activo para este tag
+  // Así evitamos que la app y el SW compitan generando notificaciones duplicadas
   if (event.data.type === 'UPDATE_REST') {
     const tag = event.data.tag || 'rest-timer';
-    const remaining = Number(event.data.remaining) || 0;
 
+    self._restIntervals = self._restIntervals || {};
     self._restNotifications = self._restNotifications || {};
+    self._restActive = self._restActive || {};
+
+    // Si el SW ya gestiona este temporizador, ignorar el UPDATE_REST del cliente
+    if (self._restIntervals[tag]) {
+      return;
+    }
+
+    // Si no hay intervalo activo (SW reiniciado, etc.), actualizar manualmente
+    const remaining = Number(event.data.remaining) || 0;
     const meta = self._restNotifications[tag] || { nextExercise: event.data.nextExercise };
-    // Asegurar título fijo
-    meta.title = 'Descanso';
     const formatted = formatSeconds(Math.max(0, remaining));
 
     self.registration.showNotification(formatted, {
@@ -519,20 +535,15 @@ self.addEventListener('message', (event) => {
     });
 
     if (remaining <= 0) {
-      // finalizar
-      self.registration.showNotification('Descanso terminado', {
-        body: meta.nextExercise ? `Listo para: ${meta.nextExercise}` : 'Descanso finalizado',
+      self._restActive[tag] = false;
+      self.registration.showNotification('¡A entrenar!', {
+        body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
         tag,
         renotify: true,
         vibrate: [300, 100, 300],
         icon: '/icons/icon-192x192.png',
         badge: '/icons/badge-72x72.png',
       });
-
-      if (self._restIntervals && self._restIntervals[tag]) {
-        clearInterval(self._restIntervals[tag]);
-        delete self._restIntervals[tag];
-      }
       delete self._restNotifications[tag];
     }
 
@@ -542,14 +553,19 @@ self.addEventListener('message', (event) => {
   // END_REST -> terminar y mostrar aviso final
   if (event.data.type === 'END_REST') {
     const tag = event.data.tag || 'rest-timer';
-    if (self._restIntervals && self._restIntervals[tag]) {
+
+    self._restIntervals = self._restIntervals || {};
+    self._restNotifications = self._restNotifications || {};
+    self._restActive = self._restActive || {};
+
+    if (self._restIntervals[tag]) {
       clearInterval(self._restIntervals[tag]);
       delete self._restIntervals[tag];
     }
-    if (self._restNotifications && self._restNotifications[tag]) {
+    if (self._restNotifications[tag]) {
       const meta = self._restNotifications[tag];
-      self.registration.showNotification('Descanso terminado', {
-        body: meta.nextExercise ? `Listo para: ${meta.nextExercise}` : 'Descanso finalizado',
+      self.registration.showNotification('¡A entrenar!', {
+        body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
         tag,
         renotify: true,
         vibrate: [300, 100, 300],
@@ -558,6 +574,27 @@ self.addEventListener('message', (event) => {
       });
       delete self._restNotifications[tag];
     }
+    self._restActive[tag] = false;
+    return;
+  }
+
+  // SHOW_NOTIFICATION -> notificación genérica (bienvenida, etc.)
+  // Se suprime si hay un descanso activo para evitar interrumpir el temporizador
+  if (event.data.type === 'SHOW_NOTIFICATION') {
+    self._restActive = self._restActive || {};
+
+    const hasActiveRest = Object.values(self._restActive).some(Boolean);
+    if (hasActiveRest) {
+      console.log('[SW] Notificación genérica suprimida: hay un descanso activo');
+      return;
+    }
+
+    const { title = 'Gym Tracker', options = {} } = event.data;
+    self.registration.showNotification(title, {
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/badge-72x72.png',
+      ...options
+    });
     return;
   }
 });

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { Button } from '@/components/ui/Button';
 import { Scale } from '@/components/icons/lucide';
 import { FitnessGoal, FitnessLevel, UserProfile } from '@/types';
@@ -392,12 +393,12 @@ useEffect(() => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm text-gray-600 dark:text-gray-400">Proteínas (g/kg)</label>
-                  <input type="number" step="0.1" value={proteinPerKg} onChange={e => setProteinPerKg(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded" />
+                  <NumericInput allowDecimal value={proteinPerKg} onChange={v => setProteinPerKg(v)} className="mt-1 px-3 py-2 border rounded" />
                 </div>
 
                 <div>
                   <label className="block text-sm text-gray-600 dark:text-gray-400">Grasas (% calorías)</label>
-                  <input type="number" value={fatPercent} onChange={e => setFatPercent(Number(e.target.value))} className="mt-1 w-full px-3 py-2 border rounded" />
+                  <NumericInput value={fatPercent} onChange={v => setFatPercent(v)} className="mt-1 px-3 py-2 border rounded" />
                 </div>
                 <Button onClick={() => { setProteinPerKg(1.8); setFatPercent(25); }} variant="ghost">Reset</Button>
 

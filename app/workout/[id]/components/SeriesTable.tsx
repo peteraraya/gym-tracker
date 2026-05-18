@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { WeightSelector } from '@/components/features/workout/WeightSelector';
 import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
 import SetTypeCycleButton from '@/components/features/workout/SetTypeCycleButton';
@@ -143,12 +144,11 @@ export function SeriesTable({
                       <div className="flex items-center gap-1 min-w-0">
                         {/* Reps - clickable */}
                         {isEditingReps ? (
-                          <input
-                            type="number"
+                          <NumericInput
                             value={doneReps ?? set.reps}
-                            onChange={(e) => onEditReps(idx, parseInt(e.target.value) || 0)}
+                            onChange={(v) => onEditReps(idx, v)}
                             onBlur={() => setMobileEditingField(null)}
-                            onKeyDown={(e) => e.key === 'Enter' && setMobileEditingField(null)}
+                            onKeyDown={(e) => (e as React.KeyboardEvent).key === 'Enter' && setMobileEditingField(null)}
                             autoFocus
                             className="w-10 px-1 py-0.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-semibold border border-blue-500 text-center"
                           />
@@ -331,14 +331,13 @@ export function SeriesTable({
                     {/* Reps */}
                     <td className="py-3 px-2">
                       {editingSetIndex === idx ? (
-                        <Input
-                          type="number"
+                        <NumericInput
                           value={doneReps ?? set.reps}
-                          onChange={(e) => onEditReps(idx, parseInt(e.target.value) || 0)}
+                          onChange={(v) => onEditReps(idx, v)}
                           onBlur={() => setEditingSetIndex(null)}
                           autoFocus
-                          min="0"
-                          max="100"
+                          min={0}
+                          max={100}
                           className="w-16 text-center"
                         />
                       ) : (

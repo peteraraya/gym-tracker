@@ -17,6 +17,7 @@ import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
+import { NumericInput } from "@/components/ui/NumericInput";
 import { Timer } from "@/components/features/workout/Timer";
 import { motion, AnimatePresence } from "framer-motion";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
@@ -2765,13 +2766,10 @@ export default function WorkoutPage() {
 
                     <div>
                       <label className="block text-xs text-gray-600 mb-1">Duración objetivo (min)</label>
-                      <input
-                        type="number"
-                        min={10}
-                        max={180}
+                      <NumericInput
                         value={preMinutesPerSession}
-                        onChange={(e) => setPreMinutesPerSession(Number(e.target.value || 45))}
-                        className="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
+                        onChange={(v) => setPreMinutesPerSession(v)}
+                        className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
                       />
                     </div>
                   </div>
@@ -2779,25 +2777,19 @@ export default function WorkoutPage() {
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs text-gray-600 mb-1">Descanso entre series (seg)</label>
-                      <input
-                        type="number"
-                        min={10}
-                        step={5}
+                      <NumericInput
                         value={preRestBetweenSets}
-                        onChange={(e) => setPreRestBetweenSets(Number(e.target.value || 60))}
-                        className="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
+                        onChange={(v) => setPreRestBetweenSets(v)}
+                        className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs text-gray-600 mb-1">Descanso entre ejercicios (seg)</label>
-                      <input
-                        type="number"
-                        min={10}
-                        step={5}
+                      <NumericInput
                         value={preRestBetweenExercises}
-                        onChange={(e) => setPreRestBetweenExercises(Number(e.target.value || 120))}
-                        className="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
+                        onChange={(v) => setPreRestBetweenExercises(v)}
+                        className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700"
                       />
                     </div>
                   </div>
@@ -3160,21 +3152,15 @@ export default function WorkoutPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Horas
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="23"
+                <NumericInput
                   value={editingTime.hours}
-                  onChange={(e) =>
+                  onChange={(v) =>
                     setEditingTime((prev) => ({
                       ...prev,
-                      hours: Math.max(
-                        0,
-                        Math.min(23, parseInt(e.target.value) || 0),
-                      ),
+                      hours: Math.max(0, Math.min(23, v)),
                     }))
                   }
-                  className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -3182,21 +3168,15 @@ export default function WorkoutPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Minutos
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
+                <NumericInput
                   value={editingTime.minutes}
-                  onChange={(e) =>
+                  onChange={(v) =>
                     setEditingTime((prev) => ({
                       ...prev,
-                      minutes: Math.max(
-                        0,
-                        Math.min(59, parseInt(e.target.value) || 0),
-                      ),
+                      minutes: Math.max(0, Math.min(59, v)),
                     }))
                   }
-                  className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -3204,21 +3184,15 @@ export default function WorkoutPage() {
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Segundos
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
+                <NumericInput
                   value={editingTime.seconds}
-                  onChange={(e) =>
+                  onChange={(v) =>
                     setEditingTime((prev) => ({
                       ...prev,
-                      seconds: Math.max(
-                        0,
-                        Math.min(59, parseInt(e.target.value) || 0),
-                      ),
+                      seconds: Math.max(0, Math.min(59, v)),
                     }))
                   }
-                  className="w-full p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>

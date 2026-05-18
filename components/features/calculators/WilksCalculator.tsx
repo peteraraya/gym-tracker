@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { Trophy } from '@/components/icons/lucide';
 
 export default function WilksCalculator() {
@@ -64,13 +65,12 @@ export default function WilksCalculator() {
         <div className="space-y-6">
           {/* Datos Básicos */}
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="number"
+            <NumericInput
               label="Peso Corporal (kg)"
               value={bodyWeight}
-              onChange={(e) => setBodyWeight(parseFloat(e.target.value) || 0)}
-              min="0"
-              step="0.1"
+              onChange={(v) => setBodyWeight(v)}
+              allowDecimal
+              min={0}
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -107,29 +107,26 @@ export default function WilksCalculator() {
               Los 3 Grandes (1RM)
             </h4>
             <div className="space-y-3">
-              <Input
-                type="number"
+              <NumericInput
                 label="🦵 Sentadilla (kg)"
                 value={squat}
-                onChange={(e) => setSquat(parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.5"
+                onChange={(v) => setSquat(v)}
+                allowDecimal
+                min={0}
               />
-              <Input
-                type="number"
+              <NumericInput
                 label="💪 Press de Banca (kg)"
                 value={bench}
-                onChange={(e) => setBench(parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.5"
+                onChange={(v) => setBench(v)}
+                allowDecimal
+                min={0}
               />
-              <Input
-                type="number"
+              <NumericInput
                 label="🏋️ Peso Muerto (kg)"
                 value={deadlift}
-                onChange={(e) => setDeadlift(parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.5"
+                onChange={(v) => setDeadlift(v)}
+                allowDecimal
+                min={0}
               />
             </div>
           </div>
