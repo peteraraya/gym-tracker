@@ -57,7 +57,7 @@ muscleGroups.forEach(group => {
   const groupExercises = groupedExercises[group];
   
   if (groupExercises.length === 0) {
-    console.log(`Warning: No exercises found for group: ${group}`);
+    console.warn(`Warning: No exercises found for group: ${group}`);
     return;
   }
   

@@ -209,7 +209,7 @@ for (const dir of SCAN_DIRS) {
       writeFileSync(filePath, content, 'utf8');
       modifiedFiles++;
       totalReplacements += fileReplacements;
-      console.log(`  ✏️  ${filePath.replace(ROOT, '').replace(/\\/g, '/')} (${fileReplacements} reemplazos)`);
+      // console.log(`  ✏️  ${filePath.replace(ROOT, '').replace(/\\/g, '/')} (${fileReplacements} reemplazos)`);
     }
   }
 }

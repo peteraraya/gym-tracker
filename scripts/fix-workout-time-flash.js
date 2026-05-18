@@ -50,7 +50,7 @@ if (content.match(oldPattern)) {
     return Date.now();
   });`;
     content = content.replace(altPattern, altNewCode);
-    console.log('✅ Updated workoutStartTime initialization (alternative pattern)');
+    // console.log('✅ Updated workoutStartTime initialization (alternative pattern)');
   }
 }
 

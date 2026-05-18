@@ -66,9 +66,6 @@ export function ActiveWorkoutBanner() {
       // Cancelar el workout
       await cancelWorkout();
 
-      console.log(
-        "[ActiveWorkoutBanner] Workout cancelled, redirecting to routines",
-      );
 
       // Redirigir después de un pequeño delay para asegurar que el estado se limpió
       setTimeout(() => {

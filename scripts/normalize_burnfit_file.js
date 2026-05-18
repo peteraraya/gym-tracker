@@ -9,7 +9,7 @@ try {
   fs.writeFileSync(backupPath, content, 'utf8');
   const newContent = content.replace(/image:\s*'https:\/\/[^']+?\/male-([a-z0-9-]+?)(?:-front|-side)?\.gif'/gi, "image: '$1.gif'");
   if (newContent === content) {
-    console.log('No se encontraron coincidencias; no se realizaron cambios.');
+    console.warn('No se encontraron coincidencias; no se realizaron cambios.');
   } else {
     fs.writeFileSync(filePath, newContent, 'utf8');
     console.log('Archivo actualizado. Respaldo creado en:', backupPath);

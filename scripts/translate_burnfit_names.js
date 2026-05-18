@@ -96,10 +96,10 @@ try {
     return p1 + es + p4;
   });
   if (newContent === content) {
-    console.log('No se encontraron nombres a traducir.');
+    console.warn('No se encontraron nombres a traducir.');
   } else {
     fs.writeFileSync(filePath, newContent, 'utf8');
-    console.log('Nombres traducidos y respaldo creado en:', backupPath);
+    // console.log('Nombres traducidos y respaldo creado en:', backupPath);
   }
 } catch (err) {
   console.error('Error procesando el archivo:', err);

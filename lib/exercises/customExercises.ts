@@ -18,7 +18,7 @@ export function getCustomExercises(): ExerciseTemplate[] {
     if (!stored) return [];
     
     const exercises = JSON.parse(stored);
-    console.log('💾 [CustomExercises] Ejercicios personalizados cargados:', exercises.length);
+    // console.log('💾 [CustomExercises] Ejercicios personalizados cargados:', exercises.length);
     return exercises;
   } catch (error) {
     console.error('❌ [CustomExercises] Error al cargar ejercicios personalizados:', error);
@@ -44,7 +44,7 @@ export function saveCustomExercise(exercise: Omit<ExerciseTemplate, 'id'>): Exer
     exercises.push(newExercise);
     localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(exercises));
     
-    console.log('✅ [CustomExercises] Ejercicio personalizado guardado:', newExercise.name);
+    // console.log('✅ [CustomExercises] Ejercicio personalizado guardado:', newExercise.name);
     return newExercise;
   } catch (error) {
     console.error('❌ [CustomExercises] Error al guardar ejercicio personalizado:', error);
@@ -68,7 +68,7 @@ export function updateCustomExercise(id: string, updates: Partial<ExerciseTempla
     exercises[index] = { ...exercises[index], ...updates };
     localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(exercises));
     
-    console.log('✅ [CustomExercises] Ejercicio actualizado:', exercises[index].name);
+    // console.log('✅ [CustomExercises] Ejercicio actualizado:', exercises[index].name);
     return true;
   } catch (error) {
     console.error('❌ [CustomExercises] Error al actualizar ejercicio:', error);
@@ -90,7 +90,7 @@ export function deleteCustomExercise(id: string): boolean {
     }
     
     localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(filtered));
-    console.log('✅ [CustomExercises] Ejercicio eliminado:', id);
+    // console.log('✅ [CustomExercises] Ejercicio eliminado:', id);
     return true;
   } catch (error) {
     console.error('❌ [CustomExercises] Error al eliminar ejercicio:', error);
@@ -137,7 +137,7 @@ export function importCustomExercises(jsonString: string): { success: boolean; c
     
     localStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(merged));
     
-    console.log('✅ [CustomExercises] Ejercicios importados:', imported.length);
+    // console.log('✅ [CustomExercises] Ejercicios importados:', imported.length);
     return { success: true, count: imported.length };
   } catch (error) {
     console.error('❌ [CustomExercises] Error al importar ejercicios:', error);
@@ -150,7 +150,7 @@ export function importCustomExercises(jsonString: string): { success: boolean; c
  */
 export function clearCustomExercises(): void {
   localStorage.removeItem(CUSTOM_EXERCISES_KEY);
-  console.log('🗑️ [CustomExercises] Todos los ejercicios personalizados eliminados');
+  // console.log('🗑️ [CustomExercises] Todos los ejercicios personalizados eliminados');
 }
 
 /**
