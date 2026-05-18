@@ -15,7 +15,7 @@ import {
 import { EXERCISE_DATABASE } from "@/data/exercises";
 import { useToast } from "@/context/NotificationContext";
 import { useWorkout } from "@/context/WorkoutContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { getTrainerReply, TrainerLevel } from "@/lib/ai/trainerPersona";
 import { Modal } from "@/components/ui/Modal";
 
@@ -28,6 +28,8 @@ interface Message {
 
 export function FloatingAIAssistant() {
   const { sessions, routines, refreshRoutines, refreshSessions } = useGym();
+  const pathname = usePathname();
+  const isInWorkout = pathname?.startsWith('/workout/');
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -346,7 +348,7 @@ export function FloatingAIAssistant() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-6 z-40 p-4 bg-linear-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 group"
+        className={`fixed ${isInWorkout ? 'bottom-28' : 'bottom-20'} right-6 z-40 p-4 bg-linear-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 group`}
         aria-label="Abrir asistente IA"
       >
         <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
@@ -360,8 +362,8 @@ export function FloatingAIAssistant() {
     <div
       className={`fixed z-40 transition-all duration-300 ${
         isMinimized
-          ? "bottom-20 right-6 w-80"
-          : "bottom-20 right-6 w-96 h-[600px]"
+          ? `${isInWorkout ? 'bottom-28' : 'bottom-20'} right-6 w-80`
+          : `${isInWorkout ? 'bottom-28' : 'bottom-20'} right-6 w-96 h-[600px]`
       }`}
     >
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">
