@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Toggle } from "@/components/ui/Toggle";
+import { Timer, ArrowRight, Plus, Check } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
 import SetTypeCycleButton from "@/components/features/workout/SetTypeCycleButton";
 import { EditValueModal } from "@/components/shared/EditValueModal";
@@ -50,6 +50,8 @@ interface QuickEditModeProps {
   onShowExerciseInfo?: (exerciseName: string) => void; // ✅ NUEVO: Callback para mostrar info del ejercicio
   sessions?: any[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
   onAddExercises?: (exercises: ExerciseTemplate[]) => void; // Callback para agregar ejercicios durante el entrenamiento
+  /** Cuando es true, no renderiza el sticky header interno (el padre lo muestra en su bloque sticky) */
+  hideHeader?: boolean;
 }
 
 /**
@@ -79,6 +81,7 @@ export function QuickEditMode({
   sessions = [],
   onAddExercises,
   togglingKeys = {},
+  hideHeader = false,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -695,141 +698,124 @@ export function QuickEditMode({
         />
       )}
 
-      {/* Header compacto - sticky */}
-      <div className="bg-linear-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-b-xl shadow sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <h2 className="text-sm font-bold truncate flex items-center gap-2">
-              <span>📝</span>
-              <span>Edición Rápida</span>
-            </h2>
-            <span className="text-xs opacity-90 hidden sm:inline">Toca para editar</span>
-            <span className="text-xs opacity-90 ml-2">{formatElapsed(elapsedSeconds)}</span>
+      {/* Header compacto - sticky (omitido cuando hideHeader=true, el padre lo gestiona) */}
+      {!hideHeader && (
+      <div className="bg-linear-to-r from-blue-600 to-violet-600 text-white px-3 py-2.5 rounded-b-xl shadow-lg sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+
+          {/* Título + tiempo */}
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="text-sm font-bold tracking-tight">Edición Rápida</span>
+            <span className="text-xs tabular-nums bg-white/15 px-2 py-0.5 rounded-full font-mono">
+              {formatElapsed(elapsedSeconds)}
+            </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col items-center px-2">
-              <div className="text-lg font-bold leading-none">{progressPercent}%</div>
-              <div className="text-[10px] opacity-90">{completedSets}/{totalSets}</div>
-            </div>
+          {/* Progreso */}
+          <div className="flex items-center gap-1.5 bg-white/15 rounded-full px-2.5 py-1 shrink-0">
+            <span className="text-sm font-bold tabular-nums leading-none">{progressPercent}%</span>
+            <span className="text-[10px] opacity-70 tabular-nums leading-none">{completedSets}/{totalSets}</span>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Toggle
-                  checked={skipRestTimers}
-                  onChange={(newVal) => {
-                    setSkipRestTimers(newVal);
-                    try {
-                      showToast(
-                        newVal
-                          ? "Omitir descansos activado"
-                          : "Omitir descansos desactivado",
-                        "info",
-                        2200,
-                      );
-                    } catch {}
-                  }}
-                  activeColor="bg-green-500"
-                  label={skipRestTimers ? "Omitir descansos: ON" : "Omitir descansos: OFF"}
-                  className="focus:ring-white focus:ring-offset-blue-600"
-                />
+          <div className="w-px h-5 bg-white/25 shrink-0" />
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showToast(
-                      "Omitir descansos: al activar, los timers no se iniciarán entre series.",
-                      "info",
-                      5200,
-                    );
-                  }}
-                  className="p-1 rounded-md hover:bg-white/10 ml-1"
-                  title="Qué hace: Omitir descansos"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
-              </div>
+          {/* Controles */}
+          <div className="flex items-center gap-1 shrink-0">
 
-              <div className="flex items-center gap-1">
-                <Toggle
-                  checked={autoAdvance}
-                  onChange={(newVal) => {
-                    setAutoAdvance(newVal);
-                    try {
-                      showToast(
-                        newVal ? "Avanzar automáticamente activado" : "Avanzar automáticamente desactivado",
-                        "info",
-                        2200,
-                      );
-                    } catch {}
-                  }}
-                  activeColor="bg-blue-500"
-                  label={autoAdvance ? "Avanzar auto: ON" : "Avanzar auto: OFF"}
-                  className="focus:ring-white focus:ring-offset-blue-600"
-                />
+            {/* Pill: Omitir descansos */}
+            <button
+              onClick={() => {
+                const newVal = !skipRestTimers;
+                setSkipRestTimers(newVal);
+                try {
+                  showToast(
+                    newVal ? "Omitir descansos activado" : "Omitir descansos desactivado",
+                    "info",
+                    2200,
+                  );
+                } catch {}
+              }}
+              title="Omitir descansos: al activar, los timers no se iniciarán entre series."
+              aria-label={skipRestTimers ? "Omitir descansos: ON" : "Omitir descansos: OFF"}
+              className={`flex items-center gap-1 h-7 px-2 rounded-full text-[11px] font-semibold transition-all ${
+                skipRestTimers
+                  ? "bg-green-400/90 text-white shadow-sm"
+                  : "bg-white/15 text-white/70 hover:bg-white/25"
+              }`}
+            >
+              <Timer className="w-3 h-3 shrink-0" />
+              <span className="hidden sm:inline">{skipRestTimers ? "ON" : "OFF"}</span>
+            </button>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showToast(
-                      "Avanzar automáticamente: al activar, el foco avanzará a la siguiente serie tras completar.",
-                      "info",
-                      5200,
-                    );
-                  }}
-                  className="p-1 rounded-md hover:bg-white/10 ml-1"
-                  title="Qué hace: Avanzar automáticamente"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </button>
-              </div>
+            {/* Pill: Avance automático */}
+            <button
+              onClick={() => {
+                const newVal = !autoAdvance;
+                setAutoAdvance(newVal);
+                try {
+                  showToast(
+                    newVal ? "Avanzar automáticamente activado" : "Avanzar automáticamente desactivado",
+                    "info",
+                    2200,
+                  );
+                } catch {}
+              }}
+              title="Avanzar automáticamente: al activar, el foco avanzará a la siguiente serie tras completar."
+              aria-label={autoAdvance ? "Avanzar auto: ON" : "Avanzar auto: OFF"}
+              className={`flex items-center gap-1 h-7 px-2 rounded-full text-[11px] font-semibold transition-all ${
+                autoAdvance
+                  ? "bg-blue-300/90 text-white shadow-sm"
+                  : "bg-white/15 text-white/70 hover:bg-white/25"
+              }`}
+            >
+              <ArrowRight className="w-3 h-3 shrink-0" />
+              <span className="hidden sm:inline">{autoAdvance ? "ON" : "OFF"}</span>
+            </button>
 
-              {onAddSet && currentExerciseId && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddSet(currentExerciseId);
-                  }}
-                  className="p-2 bg-white/10 hover:bg-white/20 rounded-md text-white text-sm font-semibold"
-                  title="Agregar serie"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
-              )}
+            {/* Agregar serie */}
+            {onAddSet && currentExerciseId && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddSet(currentExerciseId);
+                }}
+                className="h-7 w-7 flex items-center justify-center bg-white/15 hover:bg-white/25 rounded-full transition-colors"
+                title="Agregar serie"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            )}
 
-              {onFinishWorkout && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFinishWorkout();
-                  }}
-                  disabled={completedSets === 0}
-                  className={`p-2 rounded-md ml-1 ${
-                    completedSets === 0
-                      ? "bg-gray-400/50 cursor-not-allowed"
-                      : "bg-white/10 hover:bg-white/20"
-                  }`}
-                  title="Finalizar entrenamiento"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
-              )}
-            </div>
+            {/* Finalizar entrenamiento */}
+            {onFinishWorkout && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFinishWorkout();
+                }}
+                disabled={completedSets === 0}
+                className={`h-7 w-7 flex items-center justify-center rounded-full transition-all ${
+                  completedSets > 0
+                    ? "bg-green-400 hover:bg-green-300 shadow-sm"
+                    : "bg-white/10 opacity-40 cursor-not-allowed"
+                }`}
+                title="Finalizar entrenamiento"
+              >
+                <Check className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="w-full bg-white/10 rounded-full h-1 mt-2 overflow-hidden">
-          <div className="bg-white h-1 transition-all" style={{ width: `${progressPercent}%` }} />
+        {/* Barra de progreso */}
+        <div className="w-full bg-white/15 rounded-full h-1.5 mt-2 overflow-hidden">
+          <div
+            className="bg-white h-1.5 rounded-full transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
       </div>
+      )}
 
       {displayExercises.map(({ exercise, originalIdx: exIdx }) => {
         const exerciseId = exercise.id;

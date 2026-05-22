@@ -19,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import { NumericInput } from "@/components/ui/NumericInput";
 import { Timer } from "@/components/features/workout/Timer";
+import { Timer as TimerIcon, ArrowRight, Plus, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
@@ -172,6 +173,8 @@ export default function WorkoutPage() {
   const [isQuickEditMode, setIsQuickEditMode] = useState(true);
   // Omitir descansos (estado global para que ambos modos lo respeten)
   const [skipRestTimers, setSkipRestTimers] = useState(false);
+  // Auto-avance de ejercicio/serie (estado global para Edición Rápida)
+  const [autoAdvance, setAutoAdvance] = useState(true);
 
   // ✅ CRÍTICO #1 FIX: Placeholder para el callback (se define después)
   const handleWorkoutDataChangeRef = useRef<(data: any) => void>(() => {});
@@ -636,6 +639,30 @@ export default function WorkoutPage() {
 
   // Haptic Feedback mejorado
   const haptic = useHapticFeedback();
+
+  // Valores computados para el header sticky de Edición Rápida
+  const qemTotalSets = useMemo(() => {
+    if (!routine) return 1;
+    return routine.exercises.reduce((sum: number, ex: Exercise) => sum + ex.sets.length, 0) || 1;
+  }, [routine]);
+  const qemCompletedSets = useMemo(
+    () =>
+      Object.values(workoutState.workoutData.completedSets || {}).reduce(
+        (sum: number, n: unknown) => sum + ((n as number) || 0),
+        0,
+      ),
+    [workoutState.workoutData.completedSets],
+  );
+  const qemProgressPercent = Math.round((qemCompletedSets / qemTotalSets) * 100);
+  const qemCurrentExerciseId = useMemo(() => {
+    if (!routine) return null;
+    const skipped = workoutState.workoutData.skippedExercises || [];
+    const found = routine.exercises.find((ex: Exercise) => {
+      if (skipped.includes(ex.id)) return false;
+      return (workoutState.workoutData.completedSets?.[ex.id] || 0) < ex.sets.length;
+    });
+    return found?.id ?? routine.exercises[0]?.id ?? null;
+  }, [routine, workoutState.workoutData.completedSets, workoutState.workoutData.skippedExercises]);
 
   // ==================== INITIALIZATION ====================
   // ✅ CRÍTICO #9 FIX: Estado consolidado para inicialización
@@ -2743,7 +2770,7 @@ export default function WorkoutPage() {
           />
         )}
 
-        <div className="sticky top-16 z-10 mb-4">
+        <div className="sticky top-16 z-20 mb-4">
           <div className="rounded-lg bg-white dark:bg-gray-800 shadow-lg">
             <CompactWorkoutHeader
               routine={routine}
@@ -2761,6 +2788,102 @@ export default function WorkoutPage() {
               onOpenSoundSettings={soundSettingsModal.openSettings} // ✨ NEW: Callback para abrir configuración
             />
           </div>
+          {/* Toggle entre Modo Guiado y Edición Rápida */}
+          <div className="mt-1 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+            <button
+              onClick={() => setIsQuickEditMode(false)}
+              className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+                !isQuickEditMode
+                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              }`}
+            >
+              🎯 Modo Guiado
+            </button>
+            <button
+              onClick={() => setIsQuickEditMode(true)}
+              className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+                isQuickEditMode
+                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              }`}
+            >
+              📝 Edición Rápida
+            </button>
+          </div>
+          {/* Header de Edición Rápida - siempre visible al hacer scroll */}
+          {isQuickEditMode && (
+            <div className="bg-linear-to-r from-blue-600 to-violet-600 text-white px-3 py-2.5 rounded-b-xl shadow-lg">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="text-sm font-bold tracking-tight">Edición Rápida</span>
+                  <span className="text-xs tabular-nums bg-white/15 px-2 py-0.5 rounded-full font-mono">
+                    {`${Math.floor(elapsedTime / 60)}:${String(elapsedTime % 60).padStart(2, "0")}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/15 rounded-full px-2.5 py-1 shrink-0">
+                  <span className="text-sm font-bold tabular-nums leading-none">{qemProgressPercent}%</span>
+                  <span className="text-[10px] opacity-70 tabular-nums leading-none">{qemCompletedSets}/{qemTotalSets}</span>
+                </div>
+                <div className="w-px h-5 bg-white/25 shrink-0" />
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => setSkipRestTimers((v) => !v)}
+                    title={skipRestTimers ? "Omitir descansos: ON" : "Omitir descansos: OFF"}
+                    aria-label={skipRestTimers ? "Omitir descansos activado" : "Omitir descansos desactivado"}
+                    className={`flex items-center gap-1 h-7 px-2 rounded-full text-[11px] font-semibold transition-all ${
+                      skipRestTimers
+                        ? "bg-green-400/90 text-white shadow-sm"
+                        : "bg-white/15 text-white/70 hover:bg-white/25"
+                    }`}
+                  >
+                    <TimerIcon className="w-3 h-3 shrink-0" />
+                    <span className="hidden sm:inline">{skipRestTimers ? "ON" : "OFF"}</span>
+                  </button>
+                  <button
+                    onClick={() => setAutoAdvance((v) => !v)}
+                    title={autoAdvance ? "Auto-avance: ON" : "Auto-avance: OFF"}
+                    aria-label={autoAdvance ? "Auto-avance activado" : "Auto-avance desactivado"}
+                    className={`flex items-center gap-1 h-7 px-2 rounded-full text-[11px] font-semibold transition-all ${
+                      autoAdvance
+                        ? "bg-blue-300/90 text-white shadow-sm"
+                        : "bg-white/15 text-white/70 hover:bg-white/25"
+                    }`}
+                  >
+                    <ArrowRight className="w-3 h-3 shrink-0" />
+                    <span className="hidden sm:inline">{autoAdvance ? "ON" : "OFF"}</span>
+                  </button>
+                  {qemCurrentExerciseId && (
+                    <button
+                      onClick={() => handleQuickAddSet(qemCurrentExerciseId)}
+                      className="h-7 w-7 flex items-center justify-center bg-white/15 hover:bg-white/25 rounded-full transition-colors"
+                      title="Agregar serie al ejercicio actual"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => completion.openCompletionModal()}
+                    disabled={qemCompletedSets === 0}
+                    className={`h-7 w-7 flex items-center justify-center rounded-full transition-all ${
+                      qemCompletedSets > 0
+                        ? "bg-green-400 hover:bg-green-300 shadow-sm"
+                        : "bg-white/10 opacity-40 cursor-not-allowed"
+                    }`}
+                    title="Finalizar entrenamiento"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              <div className="w-full bg-white/15 rounded-full h-1.5 mt-2 overflow-hidden">
+                <div
+                  className="bg-white h-1.5 rounded-full transition-all duration-500"
+                  style={{ width: `${qemProgressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Panel de preconfiguración: sólo para rutinas vacías (antes de añadir ejercicios) */}
@@ -2894,30 +3017,6 @@ export default function WorkoutPage() {
           </div>
         )}
 
-        {/* Toggle entre Modo Guiado y Edición Rápida */}
-        <div className="mb-4 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-          <button
-            onClick={() => setIsQuickEditMode(false)}
-            className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
-              !isQuickEditMode
-                ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-            }`}
-          >
-            🎯 Modo Guiado
-          </button>
-          <button
-            onClick={() => setIsQuickEditMode(true)}
-            className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
-              isQuickEditMode
-                ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-            }`}
-          >
-            📝 Edición Rápida
-          </button>
-        </div>
-
         {isQuickEditMode ? (
           <QuickEditMode
             routine={routine}
@@ -2992,6 +3091,9 @@ export default function WorkoutPage() {
             onAddExercises={handleAddExercises}
             onSkipRestTimersChange={setSkipRestTimers}
             skipRestTimers={skipRestTimers}
+            autoAdvance={autoAdvance}
+            onAutoAdvanceChange={setAutoAdvance}
+            hideHeader
           />
         ) : (
           /* Modo guiado - Flujo normal */
