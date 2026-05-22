@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { NumericInput } from '@/components/ui/NumericInput';
@@ -13,7 +13,7 @@ interface FinishWorkoutModalProps {
   onDurationChange: (duration: number) => void;
   sessionNotes: string;
   onNotesChange: (notes: string) => void;
-  onFinish: () => void;
+  onFinish: (duration: number) => void;
   isSaving: boolean;
 }
 
@@ -31,6 +31,15 @@ export function FinishWorkoutModal({
   const [localHours, setLocalHours] = useState(() => Math.floor(proposedDuration / 3600));
   const [localMinutes, setLocalMinutes] = useState(() => Math.floor((proposedDuration % 3600) / 60));
   const [localSeconds, setLocalSeconds] = useState(() => proposedDuration % 60);
+
+  // Sincronizar con el tiempo real cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      setLocalHours(Math.floor(proposedDuration / 3600));
+      setLocalMinutes(Math.floor((proposedDuration % 3600) / 60));
+      setLocalSeconds(proposedDuration % 60);
+    }
+  }, [isOpen, proposedDuration]);
 
   const updateDuration = (h: number, m: number, s: number) => {
     const total = h * 3600 + m * 60 + s;
@@ -124,7 +133,12 @@ export function FinishWorkoutModal({
             Cancelar
           </Button>
           <Button
-            onClick={onFinish}
+            onClick={() => {
+              // Pasar la duración del estado local directamente para evitar race conditions
+              const localDuration = localHours * 3600 + localMinutes * 60 + localSeconds;
+              onDurationChange(localDuration);
+              onFinish(Math.max(localDuration, 60));
+            }}
             disabled={isSaving}
             className="flex-1 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >

@@ -49,12 +49,15 @@ export function useWorkoutCompletion({
     setShowNotesModal(true);
   }, [workoutStartTime, totalPausedTime]);
   
-  const finishWorkout = useCallback(async (workoutData: any) => {
+  const finishWorkout = useCallback(async (workoutData: any, confirmedDuration?: number) => {
     if (!routine) return;
 
-    const totalDuration = proposedDuration && proposedDuration > 0
-      ? proposedDuration
-      : Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+    // Prioridad: duración pasada directamente desde el modal > proposedDuration > cálculo automático
+    const totalDuration = confirmedDuration && confirmedDuration > 0
+      ? confirmedDuration
+      : proposedDuration && proposedDuration > 0
+        ? proposedDuration
+        : Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
 
     // Validación: más de 5 horas (18000 segundos)
     if (totalDuration > 18000) {

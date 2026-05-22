@@ -1144,7 +1144,7 @@ export default function WorkoutPage() {
     return false;
   }, [workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights]);
 
-  const handleFinish = useCallback(async () => {
+  const handleFinish = useCallback(async (confirmedDuration?: number) => {
     try {
       if (originalRoutine && routine && hasRoutineChanges(originalRoutine, routine)) {
         const confirmed = await confirm({
@@ -1198,7 +1198,7 @@ export default function WorkoutPage() {
         // eslint-disable-next-line no-console
         console.warn('[workout] saveQueue.flush failed', e);
       }
-      await completion.finishWorkout(workoutState.workoutData);
+      await completion.finishWorkout(workoutState.workoutData, confirmedDuration);
     } catch (err) {
       console.error("Error finishing workout:", err);
       error("Error al finalizar el entrenamiento");
@@ -3362,7 +3362,7 @@ export default function WorkoutPage() {
           onDurationChange={completion.setProposedDuration}
           sessionNotes={completion.sessionNotes}
           onNotesChange={completion.setSessionNotes}
-          onFinish={handleFinish}
+          onFinish={(duration) => handleFinish(duration)}
           isSaving={false}
         />
 
