@@ -238,10 +238,9 @@ export function useWorkoutCompletion({
     completeSplash,
     onCompleteSplashDone: useCallback(() => {
       setCompleteSplash(null);
-      if (pendingNavigate) {
-        router.replace('/sessions');
-        router.refresh();
-      }
-    }, [pendingNavigate, router]),
+      // El splash solo aparece tras completar exitosamente → siempre navegar a /sessions
+      router.replace('/sessions');
+      router.refresh();
+    }, [router]),
   };
 }
