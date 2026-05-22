@@ -935,22 +935,31 @@ export default function WorkoutPage() {
       const hasCompletedAllSets = completedCount >= currentExercise.sets.length;
 
       if (hasCompletedAllSets) {
-        const isLastExercise =
-          workoutState.currentExerciseIndex >= routine.exercises.length - 1;
+        // Verificar si hay algún ejercicio activo (no omitido) después del actual
+        const skippedIdsEff = workoutState.workoutData.skippedExercises || [];
+        const hasNextActiveExercise = routine.exercises
+          .slice(workoutState.currentExerciseIndex + 1)
+          .some((ex: Exercise) => !skippedIdsEff.includes(ex.id));
+        const isLastExercise = !hasNextActiveExercise;
 
         if (isLastExercise) {
-          // Último ejercicio completado - no abrir modal automáticamente.
+          // Último ejercicio activo completado - no abrir modal automáticamente.
           // El modal solo se abre cuando el usuario pulsa explícitamente "Completar".
         } else {
-          // Avanzar al siguiente ejercicio
+          // Avanzar al siguiente ejercicio activo (saltando los omitidos)
           setTimeout(() => {
-            const nextIndex = workoutState.currentExerciseIndex + 1;
-            const nextExercise = routine.exercises[nextIndex];
-
-            if (nextExercise) {
+            const skippedIdsNext = workoutState.workoutData.skippedExercises || [];
+            let nextIndex: number | null = null;
+            for (let i = workoutState.currentExerciseIndex + 1; i < routine.exercises.length; i++) {
+              if (!skippedIdsNext.includes(routine.exercises[i].id)) {
+                nextIndex = i;
+                break;
+              }
+            }
+            if (nextIndex !== null) {
+              const nextExercise = routine.exercises[nextIndex];
               workoutState.setCurrentExerciseIndex(nextIndex);
               workoutState.setCurrentSet(1);
-
               if (nextExercise.sets[0]) {
                 workoutState.setCurrentReps(nextExercise.sets[0].reps);
                 workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
@@ -1190,27 +1199,36 @@ export default function WorkoutPage() {
     }
   }, [timerHandlers.showTimer, pendingToast, success]);
 
+  // Refs para leer valores sin incluirlos como dependencias del efecto de predicción.
+  // Esto evita que la predicción sobreescriba el peso editado manualmente por el usuario.
+  const currentWeightRef = useRef<number | ''>(workoutState.currentWeight);
+  currentWeightRef.current = workoutState.currentWeight;
+  const weightPredictionRef = useRef(weightPrediction);
+  weightPredictionRef.current = weightPrediction;
+
   useEffect(() => {
     if (!currentExercise || !isInitialized) return;
 
     const currentWeightValue =
-      typeof workoutState.currentWeight === "number"
-        ? workoutState.currentWeight
+      typeof currentWeightRef.current === "number"
+        ? currentWeightRef.current
         : 0;
-    const prediction = weightPrediction.predictWeightForSet(currentWeightValue);
+    const prediction = weightPredictionRef.current.predictWeightForSet(currentWeightValue);
 
-    if (prediction.weight !== workoutState.currentWeight) {
+    if (prediction.weight !== currentWeightRef.current) {
       workoutState.setCurrentWeight(prediction.weight);
 
       if (prediction.reasoning) {
         success(`💡 ${prediction.reasoning}`, 3000);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    currentExercise,
+    currentExercise?.id,
     workoutState.currentSet,
     isInitialized,
-    workoutState.currentWeight,
+    // workoutState.currentWeight omitido intencionalmente: se lee desde ref.
+    // Si estuviera en deps, re-ejecutaría al escribir el usuario y podría reemplazar su valor.
   ]);
 
   // ==================== HANDLERS ====================
@@ -1284,7 +1302,16 @@ export default function WorkoutPage() {
       const exerciseIndex = routine.exercises.findIndex(
         (ex: Exercise) => ex.id === exerciseId,
       );
-      const isLastExercise = exerciseIndex >= routine.exercises.length - 1;
+      // Encontrar el siguiente ejercicio activo (ignorando los omitidos)
+      const skippedIds = workoutState.workoutData.skippedExercises || [];
+      let nextExerciseIdx: number | null = null;
+      for (let i = exerciseIndex + 1; i < routine.exercises.length; i++) {
+        if (!skippedIds.includes(routine.exercises[i].id)) {
+          nextExerciseIdx = i;
+          break;
+        }
+      }
+      const isLastExercise = nextExerciseIdx === null;
 
       // Determinar el tipo de descanso y siguiente acción
       let nextAction: "next-set" | "next-exercise" | "finish-workout" | "none" =
@@ -1298,7 +1325,7 @@ export default function WorkoutPage() {
           nextAction = "finish-workout";
         } else {
           nextAction = "next-exercise";
-          const nextExercise = routine.exercises[exerciseIndex + 1];
+          const nextExercise = routine.exercises[nextExerciseIdx!];
           nextExerciseName = nextExercise.name;
           restTime = calculateExerciseRestTime({
             currentExercise: exercise,
@@ -1351,6 +1378,7 @@ export default function WorkoutPage() {
         isLastSetOfExercise,
         isLastExercise,
         exerciseIndex,
+        nextExerciseIndex: nextExerciseIdx,
       };
     },
     [workoutState, routine, error, haptic, useSmartRest],
@@ -1442,14 +1470,17 @@ export default function WorkoutPage() {
             result.nextExerciseName,
           );
         } else {
-          // Sin timer: avanzar directamente al siguiente ejercicio
-          haptic.exerciseChange();
-          workoutState.setCurrentExerciseIndex(result.exerciseIndex + 1);
-          workoutState.setCurrentSet(1);
-          const nextExercise = routine.exercises[result.exerciseIndex + 1];
-          if (nextExercise?.sets[0]) {
-            workoutState.setCurrentReps(nextExercise.sets[0].reps);
-            workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
+          // Sin timer: avanzar directamente al siguiente ejercicio activo (saltando omitidos)
+          const nextIdx = result.nextExerciseIndex;
+          if (nextIdx !== null && nextIdx !== undefined) {
+            haptic.exerciseChange();
+            workoutState.setCurrentExerciseIndex(nextIdx);
+            workoutState.setCurrentSet(1);
+            const nextExercise = routine.exercises[nextIdx];
+            if (nextExercise?.sets[0]) {
+              workoutState.setCurrentReps(nextExercise.sets[0].reps);
+              workoutState.setCurrentWeight(nextExercise.sets[0].weight || 0);
+            }
           }
         }
       } else if (result.nextAction === "next-set") {
@@ -1505,15 +1536,26 @@ export default function WorkoutPage() {
       workoutState.getExerciseData(exerciseId);
     const totalSets = currentExercise.sets.length;
     const isLastSet = completedCount >= totalSets;
-    const isLastExercise =
-      workoutState.currentExerciseIndex >= routine.exercises.length - 1;
+    // Verificar si hay algún ejercicio activo (no omitido) después del actual
+    const skippedIdsTimer = workoutState.workoutData.skippedExercises || [];
+    const hasNextActive = routine.exercises
+      .slice(workoutState.currentExerciseIndex + 1)
+      .some((ex: Exercise) => !skippedIdsTimer.includes(ex.id));
+    const isLastExercise = !hasNextActive;
 
     if (isLastSet && isLastExercise) {
-      // Último set del último ejercicio tras el descanso.
+      // Último set del último ejercicio activo tras el descanso.
       // No abrir modal automáticamente; el usuario debe pulsar "Completar" explícitamente.
     } else if (isLastSet && !isLastExercise) {
-      const nextIndex = workoutState.currentExerciseIndex + 1;
-      if (routine.exercises[nextIndex]) {
+      // Buscar el primer ejercicio activo (no omitido) después del actual
+      let nextIndex: number | null = null;
+      for (let i = workoutState.currentExerciseIndex + 1; i < routine.exercises.length; i++) {
+        if (!skippedIdsTimer.includes(routine.exercises[i].id)) {
+          nextIndex = i;
+          break;
+        }
+      }
+      if (nextIndex !== null) {
         // Haptic feedback al cambiar de ejercicio
         haptic.exerciseChange();
 
