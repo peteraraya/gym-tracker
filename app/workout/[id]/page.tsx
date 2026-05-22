@@ -735,6 +735,7 @@ export default function WorkoutPage() {
           actualPauseDurations: s.actualPauseDurations || {},
           actualRestTimes: s.actualRestTimes || {},
           lastWeights: s.lastWeights || {},
+          skippedExercises: Array.isArray(s.skippedExercises) ? s.skippedExercises : [],
         };
 
         // console.log("[Init] ✅ Restored data prepared:", restoredData);
