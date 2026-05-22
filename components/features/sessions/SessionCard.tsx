@@ -70,12 +70,12 @@ export function SessionCard({
         ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10' 
         : 'border-gray-200 dark:border-gray-700'
     }`}>
-      <CardContent className="p-5">
+      <CardContent className="p-3 sm:p-5">
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h3 className={`text-lg font-bold ${
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h3 className={`text-base font-bold truncate ${
                 isRoutineDeleted 
                   ? 'text-red-700 dark:text-red-400' 
                   : 'text-zinc-900 dark:text-zinc-100'
@@ -83,27 +83,27 @@ export function SessionCard({
                 {routineName || session.routineName || 'Entrenamiento Libre'}
               </h3>
               {isRoutineDeleted && (
-                <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">
+                <span className="px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full shrink-0">
                   Eliminada
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <Calendar className="w-4 h-4" />
-              <span>{formatDate(session.date)}</span>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+              <Calendar className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{formatDate(session.date)}</span>
             </div>
           </div>
           {session.completedAt && (
-            <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold rounded-full">
-              ✓ Completado
+            <div className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold rounded-full shrink-0 ml-2">
+              ✓
             </div>
           )}
         </div>
 
         {/* Stats */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           <StatBadge
-            icon={<Dumbbell className="w-4 h-4" />}
+            icon={<Dumbbell className="w-3.5 h-3.5" />}
             value={totalExercises}
             label={`ejercicio${totalExercises !== 1 ? 's' : ''}`}
             color="blue"
@@ -118,7 +118,7 @@ export function SessionCard({
           />
           {totalVolume > 0 && (
             <StatBadge
-              icon={<TrendingUp className="w-4 h-4" />}
+              icon={<TrendingUp className="w-3.5 h-3.5" />}
               value={`${totalVolume.toLocaleString()} kg`}
               label=""
               color="purple"
@@ -127,7 +127,7 @@ export function SessionCard({
           )}
           {session.totalDuration && (
             <StatBadge
-              icon={<Clock className="w-4 h-4" />}
+              icon={<Clock className="w-3.5 h-3.5" />}
               value={formatDuration(session.totalDuration)}
               label=""
               color="orange"
@@ -138,7 +138,7 @@ export function SessionCard({
 
         {/* Time info */}
         {!compact && session.startedAt && (
-          <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
+          <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
             Iniciado: {formatTime(session.startedAt)}
             {session.completedAt && ` • Finalizado: ${formatTime(session.completedAt)}`}
           </div>
@@ -146,23 +146,23 @@ export function SessionCard({
 
         {/* Exercise preview */}
         {!compact && session.exercises.length > 0 && (
-          <div className="mb-4">
-            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-2">
+          <div className="mb-3">
+            <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">
               Ejercicios realizados:
             </div>
             <div className="space-y-1">
               {session.exercises.slice(0, 3).map((ex, idx) => (
                 <div 
                   key={idx}
-                  className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-800 rounded-lg p-2"
+                  className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-800 rounded-lg px-2 py-1.5"
                 >
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 w-5">
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 w-4 shrink-0">
                     {idx + 1}.
                   </span>
-                  <span className="flex-1 text-zinc-700 dark:text-zinc-300 font-medium truncate">
+                  <span className="flex-1 text-zinc-700 dark:text-zinc-300 font-medium truncate text-xs">
                     {ex.exerciseName || 'Ejercicio'}
                   </span>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 shrink-0">
                     {ex.actualReps?.length || ex.completedSets || 0} series
                   </span>
                 </div>
@@ -178,10 +178,10 @@ export function SessionCard({
 
         {/* Notes */}
         {!compact && session.notes && (
-          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+          <div className="mb-3 p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
             <div className="flex items-start gap-2">
-              <span className="text-sm">📝</span>
-              <p className="text-sm text-amber-900 dark:text-amber-200 flex-1">
+              <span className="text-sm shrink-0">📝</span>
+              <p className="text-xs text-amber-900 dark:text-amber-200 flex-1">
                 {session.notes}
               </p>
             </div>
@@ -190,13 +190,13 @@ export function SessionCard({
 
         {/* Actions */}
         {showActions && (
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 sm:flex gap-2">
             {onEdit && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(session)}
-                className="flex-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
+                className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
               >
                 <Eye className="w-3.5 h-3.5" />
                 Editar
@@ -207,7 +207,7 @@ export function SessionCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onView(session)}
-                className="flex-1 text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800"
+                className="text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800"
               >
                 <Eye className="w-3.5 h-3.5" />
                 Ver
@@ -218,7 +218,7 @@ export function SessionCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onSync(session)}
-                className="flex-1 text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800"
+                className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Sincronizar
@@ -229,7 +229,7 @@ export function SessionCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(session)}
-                className="flex-1 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800"
+                className="text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Eliminar
