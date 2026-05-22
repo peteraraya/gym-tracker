@@ -321,9 +321,14 @@ export function useWorkoutState(
    */
   const updateRestOverride = useCallback((exerciseId: string, duration: number) => {
     setWorkoutData(prev => {
+      // Limpiar per-set overrides del ejercicio para que el override de nivel ejercicio tenga efecto
+      const newPerSetOverrides = { ...prev.perSetRestOverrides };
+      delete newPerSetOverrides[exerciseId];
+
       const newData = {
         ...prev,
         restOverrides: { ...prev.restOverrides, [exerciseId]: duration },
+        perSetRestOverrides: newPerSetOverrides,
         _lastUpdate: Date.now()
       };
 

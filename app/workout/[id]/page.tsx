@@ -3041,6 +3041,11 @@ export default function WorkoutPage() {
             onEditRestTime={(exerciseId, restTime) => {
               workoutState.updateRestOverride(exerciseId, restTime);
 
+              // Si el timer de descanso ya está corriendo, reiniciarlo con el nuevo tiempo
+              if (timerHandlers.showTimer) {
+                timerHandlers.startTimer(restTime, timerHandlers.timerTitle, timerHandlers.nextExerciseName);
+              }
+
               // Formatear tiempo en minutos y segundos para el toast
               let timeDisplay;
               if (restTime >= 60) {
