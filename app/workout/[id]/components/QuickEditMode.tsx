@@ -572,17 +572,8 @@ export function QuickEditMode({
     setTempRestTime("");
   };
 
-  // Función para cancelar edición de descanso (ahora también guarda si hay cambios)
+  // Función para cancelar edición de descanso (descarta cambios)
   const cancelRestEdit = () => {
-    // Si hay un valor válido, guardarlo antes de cerrar
-    if (editingRestTime && tempRestTime && onEditRestTime) {
-      const value = parseInt(tempRestTime);
-
-      if (!isNaN(value) && value >= 0) {
-        onEditRestTime(editingRestTime.exerciseId, value);
-      }
-    }
-
     setEditingRestTime(null);
     setTempRestTime("");
   };
@@ -2102,116 +2093,128 @@ export function QuickEditMode({
         title={
           editingRestTime ? `${editingRestTime.exerciseName} - Descanso` : ""
         }
+        maxHeight="95vh"
       >
         {editingRestTime && (
-          <div className="space-y-6 p-4">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Tiempo de descanso entre series (segundos)
-              </p>
-              {/* Input editable grande */}
-              <input
-                ref={restInputRef}
-                type="text"
-                inputMode="numeric"
-                value={tempRestTime}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "" || /^\d+$/.test(value)) {
-                    setTempRestTime(value);
-                  }
-                }}
-                onFocus={(e) => e.target.select()}
-                autoFocus
-                placeholder="Segundos"
-                className="w-full text-5xl font-bold text-center bg-transparent border-b-4 border-purple-500 dark:border-purple-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors py-2 mb-2"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Escribe directamente o usa los botones
-              </p>
-            </div>
-
-            {/* Atajos rápidos para tiempos comunes */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
-                Tiempos comunes
-              </p>
-              <div className="grid grid-cols-4 gap-2">
-                {[30, 60, 90, 120, 180, 240, 300, 360].map((seconds) => (
-                  <button
-                    key={seconds}
-                    onClick={() => setTempRestTime(String(seconds))}
-                    className="py-2 text-sm font-semibold bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-lg transition-colors"
-                  >
-                    {seconds < 60
-                      ? `${seconds}s`
-                      : `${Math.floor(seconds / 60)}m`}
-                  </button>
-                ))}
+          <>
+            <div className="space-y-4 px-4 pt-4 pb-2">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Tiempo de descanso entre series (segundos)
+                </p>
+                {/* Input editable grande */}
+                <input
+                  ref={restInputRef}
+                  type="text"
+                  inputMode="numeric"
+                  value={tempRestTime}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || /^\d+$/.test(value)) {
+                      setTempRestTime(value);
+                    }
+                  }}
+                  onFocus={(e) => e.target.select()}
+                  placeholder="Segundos"
+                  className="w-full text-5xl font-bold text-center bg-transparent border-b-4 border-purple-500 dark:border-purple-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors py-2 mb-2"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Escribe directamente o usa los botones
+                </p>
               </div>
-            </div>
 
-            {/* Teclado numérico */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
-                Teclado numérico
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              {/* Atajos rápidos para tiempos comunes */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
+                  Tiempos comunes
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {[30, 60, 90, 120, 180, 240, 300, 360].map((seconds) => {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    const label =
+                      seconds < 60
+                        ? `${seconds}s`
+                        : secs > 0
+                          ? `${mins}m ${secs}s`
+                          : `${mins}m`;
+                    return (
+                      <button
+                        key={seconds}
+                        onClick={() => setTempRestTime(String(seconds))}
+                        className="py-2 text-sm font-semibold bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-lg transition-colors"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Teclado numérico */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
+                  Teclado numérico
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() =>
+                        setTempRestTime((prev) =>
+                          prev === "0" ? String(num) : prev + String(num),
+                        )
+                      }
+                      className="h-14 text-2xl font-bold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors active:scale-95"
+                    >
+                      {num}
+                    </button>
+                  ))}
+
+                  <div className="h-14" />
+
                   <button
-                    key={num}
                     onClick={() =>
                       setTempRestTime((prev) =>
-                        prev === "0" ? String(num) : prev + num,
+                        prev === "" || prev === "0" ? "0" : prev + "0"
                       )
                     }
-                    className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
+                    className="h-14 text-2xl font-bold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors active:scale-95"
                   >
-                    {num}
+                    0
                   </button>
-                ))}
 
-                <div className="h-16" />
-
-                <button
-                  onClick={() =>
-                    setTempRestTime((prev) => (prev === "0" ? "0" : prev + "0"))
-                  }
-                  className="h-16 text-2xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors active:scale-95"
-                >
-                  0
-                </button>
-
-                {/* Botón borrar */}
-                <button
-                  onClick={() =>
-                    setTempRestTime((prev) =>
-                      prev.length > 1 ? prev.slice(0, -1) : "",
-                    )
-                  }
-                  className="h-16 text-xl font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-colors active:scale-95"
-                >
-                  ⌫
-                </button>
+                  {/* Botón borrar */}
+                  <button
+                    onClick={() =>
+                      setTempRestTime((prev) =>
+                        prev.length > 1 ? prev.slice(0, -1) : "",
+                      )
+                    }
+                    className="h-14 text-xl font-bold bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-colors active:scale-95"
+                  >
+                    ⌫
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Botones de acción */}
-            <div className="grid grid-cols-2 gap-3 pt-4">
+            {/* Botones de acción — sticky para que siempre sean visibles */}
+            <div className="sticky bottom-0 bg-white dark:bg-gray-800 grid grid-cols-2 gap-3 px-4 py-3 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={cancelRestEdit}
-                className="py-4 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl transition-colors"
+                className="py-3.5 text-base font-bold bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={saveRestTime}
-                className="py-4 text-base font-bold bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-colors"
+                className="py-3.5 text-base font-bold bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-colors"
               >
                 Guardar
               </button>
             </div>
-          </div>
+          </>
         )}
       </BottomSheet>
     </div>
