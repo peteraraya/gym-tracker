@@ -273,9 +273,18 @@
       "confirmText": "Delete",
       "cancelText": "Cancel"
     },
+    "confirmSync": {
+      "title": "Sync routine",
+      "message": "Do you want to update the routine \"{routineName}\" with data from this session? Reps and weights will be updated.",
+      "confirmText": "Sync",
+      "cancelText": "Cancel"
+    },
+    "noRoutineFound": "No routine found for this session",
     "toast": {
       "updateSuccess": "✅ Session updated successfully",
       "updateError": "Error updating session",
+      "syncSuccess": "Routine synced from session",
+      "syncError": "Error syncing routine from session",
       "deleteSuccess": "🗑️ Session deleted successfully",
       "deleteError": "Error deleting session"
     }

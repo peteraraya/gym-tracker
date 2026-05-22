@@ -58,6 +58,7 @@ import {
   calculateSmartRestTime,
   applySmartRestToAllSets,
 } from "./services/restCalculationService";
+import { saveQueue } from '@/lib/utils/saveQueue';
 import { LoadingState } from "@/components/shared/LoadingState";
 import {
   getPersonalRecord,
@@ -1068,26 +1069,43 @@ export default function WorkoutPage() {
   }, [workoutState.currentExerciseIndex]);
   
   // Detectar si la rutina actual difiere de la original (cambios en sets/pesos/orden)
+  // Ahora también considera los valores editados durante la sesión (`workoutState.workoutData`)
   const hasRoutineChanges = useCallback((orig: any | null, curr: any | null) => {
     if (!orig || !curr) return false;
     const origEx = orig.exercises || [];
     const currEx = curr.exercises || [];
     if (origEx.length !== currEx.length) return true;
 
+    const sessionReps = workoutState.workoutData.actualReps || {};
+    const sessionWeights = workoutState.workoutData.actualWeights || {};
+
     for (const ce of currEx) {
       const oe = origEx.find((e: any) => e.id === ce.id);
       if (!oe) return true; // ejercicio nuevo
-      if ((oe.sets || []).length !== (ce.sets || []).length) return true;
-      for (let i = 0; i < (ce.sets || []).length; i++) {
-        const os = oe.sets[i] || {};
-        const cs = ce.sets[i] || {};
-        if (Number(os.reps || 0) !== Number(cs.reps || 0)) return true;
-        if (Number(os.weight || 0) !== Number(cs.weight || 0)) return true;
+
+      const origSets = oe.sets || [];
+      const currSets = ce.sets || [];
+      if (origSets.length !== currSets.length) return true;
+
+      for (let i = 0; i < currSets.length; i++) {
+        const os = origSets[i] || {};
+        const cs = currSets[i] || {};
+
+        // Preferir valores editados en sesión si existen, sino usar los de la rutina `curr`
+        const sr = sessionReps[ce.id] && typeof sessionReps[ce.id][i] !== 'undefined'
+          ? Number(sessionReps[ce.id][i])
+          : Number(cs.reps || 0);
+        const sw = sessionWeights[ce.id] && typeof sessionWeights[ce.id][i] !== 'undefined'
+          ? Number(sessionWeights[ce.id][i])
+          : Number(cs.weight || 0);
+
+        if (Number(os.reps || 0) !== sr) return true;
+        if (Number(os.weight || 0) !== sw) return true;
       }
     }
 
     return false;
-  }, []);
+  }, [workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights]);
 
   const handleFinish = useCallback(async () => {
     try {
@@ -1135,6 +1153,14 @@ export default function WorkoutPage() {
         }
       }
 
+      try {
+        await saveQueue.flush();
+      } catch (e) {
+        // No bloquear la finalización si el flush falla
+        // Log en consola para diagnóstico
+        // eslint-disable-next-line no-console
+        console.warn('[workout] saveQueue.flush failed', e);
+      }
       await completion.finishWorkout(workoutState.workoutData);
     } catch (err) {
       console.error("Error finishing workout:", err);
@@ -1990,7 +2016,7 @@ export default function WorkoutPage() {
             ? existingReps
             : currentExercise.sets[setIndex].reps;
         const weightToUse =
-          existingWeight !== undefined && existingWeight !== 0
+          existingWeight !== undefined && existingWeight !== null
             ? existingWeight
             : currentExercise.sets[setIndex].weight || 0;
 

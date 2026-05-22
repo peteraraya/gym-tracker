@@ -42,21 +42,27 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
   };
 
   const updateExerciseReps = (exerciseIndex: number, setIndex: number, value: number) => {
-    const updated = { ...editedSession };
-    if (!updated.exercises[exerciseIndex].actualReps) {
-      updated.exercises[exerciseIndex].actualReps = [];
-    }
-    updated.exercises[exerciseIndex].actualReps[setIndex] = value;
-    setEditedSession(updated);
+    setEditedSession(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== exerciseIndex) return ex;
+        const actualReps = [...(ex.actualReps || [])];
+        actualReps[setIndex] = value;
+        return { ...ex, actualReps };
+      }),
+    }));
   };
 
   const updateExerciseWeight = (exerciseIndex: number, setIndex: number, value: number) => {
-    const updated = { ...editedSession };
-    if (!updated.exercises[exerciseIndex].actualWeight) {
-      updated.exercises[exerciseIndex].actualWeight = [];
-    }
-    updated.exercises[exerciseIndex].actualWeight[setIndex] = value;
-    setEditedSession(updated);
+    setEditedSession(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== exerciseIndex) return ex;
+        const actualWeight = [...(ex.actualWeight || [])];
+        actualWeight[setIndex] = value;
+        return { ...ex, actualWeight };
+      }),
+    }));
   };
 
   const toggleExerciseCollapse = (exerciseIndex: number) => {
@@ -67,74 +73,52 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
   };
 
   const addSet = (exerciseIndex: number) => {
-    const updated = { ...editedSession };
-    const exercise = updated.exercises[exerciseIndex];
-    
-    // Inicializar arrays si no existen
-    if (!exercise.actualReps) exercise.actualReps = [];
-    if (!exercise.actualWeight) exercise.actualWeight = [];
-    
-    // Obtener valores de la última serie para copiarlos
-    const lastReps = exercise.actualReps.length > 0 
-      ? exercise.actualReps[exercise.actualReps.length - 1] 
-      : 0;
-    const lastWeight = exercise.actualWeight.length > 0 
-      ? exercise.actualWeight[exercise.actualWeight.length - 1] 
-      : 0;
-    
-    // Agregar nueva serie con los valores de la última serie
-    exercise.actualReps.push(lastReps);
-    exercise.actualWeight.push(lastWeight);
-    
-    setEditedSession(updated);
+    setEditedSession(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== exerciseIndex) return ex;
+        const actualReps = [...(ex.actualReps || [])];
+        const actualWeight = [...(ex.actualWeight || [])];
+        const lastReps = actualReps.length > 0 ? actualReps[actualReps.length - 1] : 0;
+        const lastWeight = actualWeight.length > 0 ? actualWeight[actualWeight.length - 1] : 0;
+        return { ...ex, actualReps: [...actualReps, lastReps], actualWeight: [...actualWeight, lastWeight] };
+      }),
+    }));
   };
 
   const removeExercise = (exerciseIndex: number) => {
-    const updated = { ...editedSession };
-    
-    // No permitir eliminar si solo hay un ejercicio
-    if (updated.exercises.length <= 1) {
-      return;
-    }
-    
-    // Eliminar el ejercicio
-    updated.exercises.splice(exerciseIndex, 1);
-    setEditedSession(updated);
+    if (editedSession.exercises.length <= 1) return;
+    setEditedSession(prev => ({
+      ...prev,
+      exercises: prev.exercises.filter((_, i) => i !== exerciseIndex),
+    }));
   };
 
   const removeSet = (exerciseIndex: number, setIndex: number) => {
-    const updated = { ...editedSession };
-    const exercise = updated.exercises[exerciseIndex];
-    
-    // No permitir eliminar si solo hay una serie
-    const maxSets = Math.max(
-      exercise.actualReps?.length || 0,
-      exercise.actualWeight?.length || 0,
-      1
-    );
-    
-    if (maxSets <= 1) {
-      return;
-    }
-    
-    // Eliminar la serie
-    if (exercise.actualReps && exercise.actualReps.length > setIndex) {
-      exercise.actualReps.splice(setIndex, 1);
-    }
-    if (exercise.actualWeight && exercise.actualWeight.length > setIndex) {
-      exercise.actualWeight.splice(setIndex, 1);
-    }
-    
-    setEditedSession(updated);
+    const exercise = editedSession.exercises[exerciseIndex];
+    const maxSets = Math.max(exercise.actualReps?.length || 0, exercise.actualWeight?.length || 0, 1);
+    if (maxSets <= 1) return;
+    setEditedSession(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== exerciseIndex) return ex;
+        return {
+          ...ex,
+          actualReps: ex.actualReps ? ex.actualReps.filter((_, j) => j !== setIndex) : ex.actualReps,
+          actualWeight: ex.actualWeight ? ex.actualWeight.filter((_, j) => j !== setIndex) : ex.actualWeight,
+        };
+      }),
+    }));
   };
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
-    
-    const updated = { ...editedSession };
-    const [movedExercise] = updated.exercises.splice(fromIndex, 1);
-    updated.exercises.splice(toIndex, 0, movedExercise);
-    setEditedSession(updated);
+    setEditedSession(prev => {
+      const exercises = [...prev.exercises];
+      const [movedExercise] = exercises.splice(fromIndex, 1);
+      exercises.splice(toIndex, 0, movedExercise);
+      return { ...prev, exercises };
+    });
   };
 
   const updateDuration = (hours: number, minutes: number, seconds: number) => {

@@ -13,6 +13,7 @@ import type { WorkoutSession, Routine } from "@/types";
 import * as storageService from "@/lib/storage/storage";
 import { useConfirm } from "@/context/NotificationContext";
 import { useLocale } from "@/context/LocaleContext";
+import { useWorkout } from "@/context/WorkoutContext";
 import { Calendar, Filter } from "@/components/icons/lucide";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
@@ -190,11 +191,14 @@ export default function SessionsPage() {
     loading,
     updateSession,
     deleteSession,
+    refreshRoutines,
   } = useGym();
   const { success, error: showError } = useToast();
   const { confirm } = useConfirm();
   const { t } = useLocale();
   const tS = useCallback((key: string) => t(`sessions.${key}`), [t]);
+
+  const { updateModifiedRoutine } = useWorkout();
 
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
   const [editingSession, setEditingSession] = useState<WorkoutSession | null>(
@@ -305,6 +309,77 @@ export default function SessionsPage() {
     } catch (err) {
       console.error("Error deleting session:", err);
       showError(tS("toast.deleteError"));
+    }
+  };
+
+  const handleSyncRoutine = async (session: WorkoutSession) => {
+    if (!session.routineId) {
+      showError(tS('noRoutineFound'));
+      return;
+    }
+
+    const routine = routines.find((r) => r.id === session.routineId);
+    if (!routine) {
+      showError(tS('routineDeleted'));
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: t('sessions.confirmSync.title'),
+      message: t('sessions.confirmSync.message').replace('{routineName}', routine.name),
+      confirmText: t('sessions.confirmSync.confirmText'),
+      cancelText: t('sessions.confirmSync.cancelText'),
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const updatedExercises = routine.exercises.map((ex) => {
+        const se = session.exercises.find(
+          (s) => String(s.exerciseId) === String(ex.id) || s.exerciseName === ex.name,
+        );
+        const origSets = ex.sets || [];
+        const seReps = se?.actualReps || [];
+        const seWeights = se?.actualWeight || [];
+        const maxLen = Math.max(origSets.length, seReps.length);
+        const newSets = [] as any[];
+        for (let i = 0; i < maxLen; i++) {
+          const orig = origSets[i] || { reps: 0, weight: 0, type: undefined, notes: undefined };
+          const reps = (seReps[i] !== undefined && seReps[i] !== null) ? seReps[i] : orig.reps;
+          // Solo usar el peso de la sesión si es mayor que 0; de lo contrario conservar
+          // el peso definido en la rutina para evitar borrar pesos con un valor vacío/0.
+          const weight = (seWeights[i] !== undefined && seWeights[i] !== null && seWeights[i] > 0) ? seWeights[i] : (orig.weight || 0);
+          // `restBetweenSets` pertenece al ejercicio, no a la serie. No incluirla en el objeto Set.
+          newSets.push({ reps, weight, type: orig.type, notes: orig.notes });
+        }
+        return { ...ex, sets: newSets };
+      });
+
+      const updatedRoutine = {
+        ...routine,
+        exercises: updatedExercises.map((ex) => ({
+          id: ex.id,
+          name: ex.name,
+          sets: ex.sets.map((s: any) => ({ reps: s.reps, weight: s.weight || 0, type: s.type, notes: s.notes })),
+          notes: ex.notes,
+          equipment: ex.equipment,
+          technique: ex.technique,
+          recommendedSets: ex.recommendedSets,
+          recommendedReps: ex.recommendedReps,
+          restTime: ex.restTime,
+          restBetweenSets: ex.restBetweenSets,
+          useSmartRest: ex.useSmartRest,
+        })),
+      } as any;
+
+      await updateModifiedRoutine(updatedRoutine);
+      // Refrescar la lista de rutinas en el contexto global
+      try { await refreshRoutines(); } catch {}
+
+      success(t('sessions.toast.syncSuccess'));
+    } catch (err) {
+      console.error('Error sincronizando rutina desde sesión', err);
+      showError(t('sessions.toast.syncError'));
     }
   };
 
@@ -486,6 +561,7 @@ export default function SessionsPage() {
                                         onView={handleViewSession}
                                         onEdit={handleEditSession}
                                         onDelete={handleDeleteSession}
+                                        onSync={handleSyncRoutine}
                                       />
                                     </div>
                                   );

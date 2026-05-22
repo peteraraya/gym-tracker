@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatBadge } from '@/components/shared/StatBadge';
 import { ActionButton } from '@/components/shared/ActionButton';
-import { Calendar, Clock, Dumbbell, TrendingUp, Trash2, Eye } from '@/components/icons/lucide';
+import { Calendar, Clock, Dumbbell, TrendingUp, Trash2, Eye, RefreshCw } from '@/components/icons/lucide';
 import type { WorkoutSession } from '@/types';
 
 interface SessionCardProps {
@@ -14,6 +14,7 @@ interface SessionCardProps {
   onView?: (session: WorkoutSession) => void;
   onEdit?: (session: WorkoutSession) => void;
   onDelete?: (session: WorkoutSession) => void;
+  onSync?: (session: WorkoutSession) => void;
   showActions?: boolean;
   compact?: boolean;
 }
@@ -25,6 +26,7 @@ export function SessionCard({
   onView,
   onEdit,
   onDelete,
+  onSync,
   showActions = true,
   compact = false
 }: SessionCardProps) {
@@ -209,6 +211,17 @@ export function SessionCard({
               >
                 <Eye className="w-3.5 h-3.5" />
                 Ver
+              </Button>
+            )}
+            {onSync && !isRoutineDeleted && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onSync(session)}
+                className="flex-1 text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Sincronizar
               </Button>
             )}
             {onDelete && (

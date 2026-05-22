@@ -228,9 +228,18 @@
       "confirmText": "Eliminar",
       "cancelText": "Cancelar"
     },
+    "confirmSync": {
+      "title": "Sincronizar rutina",
+      "message": "¿Deseas actualizar la rutina \"{routineName}\" con los datos de esta sesión? Se actualizarán repeticiones y pesos de los ejercicios.",
+      "confirmText": "Sincronizar",
+      "cancelText": "Cancelar"
+    },
+    "noRoutineFound": "No se encontró la rutina asociada a esta sesión",
     "toast": {
       "updateSuccess": "✅ Sesión actualizada exitosamente",
       "updateError": "Error al actualizar la sesión",
+      "syncSuccess": "Rutina sincronizada con la sesión",
+      "syncError": "Error al sincronizar la rutina",
       "deleteSuccess": "🗑️ Sesión eliminada exitosamente",
       "deleteError": "Error al eliminar la sesión"
     }
