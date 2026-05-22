@@ -16,7 +16,6 @@ import { useWorkout } from "@/context/WorkoutContext";
 import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Modal } from "@/components/ui/Modal";
 import { NumericInput } from "@/components/ui/NumericInput";
 import { Timer } from "@/components/features/workout/Timer";
 import { Timer as TimerIcon, ArrowRight, Plus, Check } from "lucide-react";
@@ -38,7 +37,7 @@ import { ExerciseList } from "./components/ExerciseList";
 import { QuickExerciseSwitcher } from "./components/QuickExerciseSwitcher";
 import { AddExerciseButton } from "./components/AddExerciseButton";
 import { QuickEditMode as QuickEditModeBase } from "./components/QuickEditMode";
-import { FinishWorkoutModal } from "./components/FinishWorkoutModal";
+import { WorkoutModals } from "./components/WorkoutModals";
 import { EditValueModal } from "@/components/shared/EditValueModal";
 import SetsReference from "@/components/features/workout/SetsReference";
 import {
@@ -60,7 +59,6 @@ import {
   applySmartRestToAllSets,
 } from "./services/restCalculationService";
 import { saveQueue } from '@/lib/utils/saveQueue';
-import { LoadingState } from "@/components/shared/LoadingState";
 import {
   getPersonalRecord,
   compareWithRecord,
@@ -157,8 +155,6 @@ export default function WorkoutPage() {
     clearRestState,
     finishWorkout: finishWorkoutContext,
     cancelWorkout,
-    skipExercise,
-    unskipExercise,
   } = useWorkout();
   const { success, error } = useToast();
   const { confirm } = useConfirm();
@@ -546,6 +542,7 @@ export default function WorkoutPage() {
             setTypes: data.setTypes,
             restOverrides: data.restOverrides,
             perSetRestOverrides: data.perSetRestOverrides,
+            skippedExercises: data.skippedExercises,
           },
         );
       }, 500), // Guardar máximo cada 500ms
@@ -2588,28 +2585,18 @@ export default function WorkoutPage() {
   // ==================== SKIP EXERCISE HANDLERS ====================
   const handleSkipExercise = useCallback(
     (exerciseId: string) => {
-      // Actualizar el estado local del workout
       workoutState.skipExercise(exerciseId);
-
-      // Actualizar el activeWorkout en el contexto
-      skipExercise(exerciseId);
-
       success("Ejercicio omitido en esta sesión", 2000);
     },
-    [workoutState, skipExercise, success],
+    [workoutState, success],
   );
 
   const handleUnskipExercise = useCallback(
     (exerciseId: string) => {
-      // Actualizar el estado local del workout
       workoutState.unskipExercise(exerciseId);
-
-      // Actualizar el activeWorkout en el contexto
-      unskipExercise(exerciseId);
-
       success("Ejercicio restaurado", 2000);
     },
-    [workoutState, unskipExercise, success],
+    [workoutState, success],
   );
 
   const handleQuickAddSet = useCallback(
@@ -3276,166 +3263,51 @@ export default function WorkoutPage() {
         )}
 
         {/* Modales compartidos entre ambos modos */}
-        <Modal
-          isOpen={showEditTimeModal}
-          onClose={() => setShowEditTimeModal(false)}
-          title="⏱️ Editar tiempo de entrenamiento"
-        >
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Ajusta el tiempo transcurrido del entrenamiento
-            </p>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Horas
-                </label>
-                <NumericInput
-                  value={editingTime.hours}
-                  onChange={(v) =>
-                    setEditingTime((prev) => ({
-                      ...prev,
-                      hours: Math.max(0, Math.min(23, v)),
-                    }))
-                  }
-                  className="p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Minutos
-                </label>
-                <NumericInput
-                  value={editingTime.minutes}
-                  onChange={(v) =>
-                    setEditingTime((prev) => ({
-                      ...prev,
-                      minutes: Math.max(0, Math.min(59, v)),
-                    }))
-                  }
-                  className="p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Segundos
-                </label>
-                <NumericInput
-                  value={editingTime.seconds}
-                  onChange={(v) =>
-                    setEditingTime((prev) => ({
-                      ...prev,
-                      seconds: Math.max(0, Math.min(59, v)),
-                    }))
-                  }
-                  className="p-3 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="secondary"
-                onClick={() => setShowEditTimeModal(false)}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSaveEditedTime}
-                className="flex-1"
-              >
-                Guardar
-              </Button>
-            </div>
-          </div>
-        </Modal>
-
-        <FinishWorkoutModal
-          isOpen={completion.showNotesModal}
-          onClose={() => completion.setShowNotesModal(false)}
-          proposedDuration={completion.proposedDuration}
-          onDurationChange={completion.setProposedDuration}
-          sessionNotes={completion.sessionNotes}
-          onNotesChange={completion.setSessionNotes}
+        <WorkoutModals
+          showEditTimeModal={showEditTimeModal}
+          onCloseEditTimeModal={() => setShowEditTimeModal(false)}
+          editingTime={editingTime}
+          onEditingTimeChange={setEditingTime}
+          onSaveEditedTime={handleSaveEditedTime}
+          completion={completion}
           onFinish={(duration) => handleFinish(duration)}
-          isSaving={false}
+          SoundSettingsModal={soundSettingsModal.SoundSettingsModal}
+          showExerciseInfo={showExerciseInfo}
+          loadingExerciseInfo={loadingExerciseInfo}
+          exerciseInfo={exerciseInfo}
+          selectedExerciseName={selectedExerciseName}
+          onCloseExerciseInfo={() => {
+            setShowExerciseInfo(false);
+            setSelectedExerciseName("");
+            setExerciseInfo(null);
+            setLoadingExerciseInfo(false);
+          }}
+          setExecution={{
+            showSetExecution: setExecution.showSetExecution,
+            exerciseName: currentExercise.name,
+            equipment: currentExercise.equipment,
+            currentSet: workoutState.currentSet,
+            totalSets: currentExercise.sets.length,
+            currentReps: workoutState.currentReps,
+            currentWeight: workoutState.currentWeight,
+            exerciseId: currentExercise.id,
+            onRepsChange: workoutState.setCurrentReps,
+            onWeightChange: workoutState.setCurrentWeight,
+            onComplete: (setNum: number) => handleCompleteSet(setNum),
+            onCancel: () => setExecution.cancelSetExecution(),
+          }}
+          showStartSplash={showStartSplash}
+          routineName={routine?.name || "Entrenamiento"}
+          exerciseCount={routine?.exercises?.length || 0}
+          totalSets={(routine?.exercises || []).reduce((sum: number, ex: any) => sum + (ex.sets?.length || 0), 0)}
+          onStartSplashComplete={() => setShowStartSplash(false)}
+          WorkoutCompleteSplash={WorkoutCompleteSplash}
+          completeSplashProps={completion.completeSplash}
+          onCompleteSplashDone={completion.onCompleteSplashDone}
+          SetExecutionModal={SetExecutionModal}
+          ExerciseInfoPanel={ExerciseInfoPanel}
+          WorkoutStartSplash={WorkoutStartSplash}
         />
-
-        {/* ✨ NEW: Modal de configuración de sonidos */}
-        <soundSettingsModal.SoundSettingsModal />
-
-        {showExerciseInfo && (
-          <Suspense fallback={<LoadingState message="Cargando ejercicio..." />}>
-            {loadingExerciseInfo ? (
-              <div className="p-6">
-                <LoadingState message="Cargando ejercicio..." />
-              </div>
-            ) : (
-              <ExerciseInfoPanel
-                exercise={
-                  exerciseInfo ||
-                  EXERCISE_DATABASE.find(
-                    (e) => e.name === selectedExerciseName,
-                  ) ||
-                  ({
-                    id: selectedExerciseName,
-                    name: selectedExerciseName,
-                    muscleGroup: "pecho",
-                  } as any)
-                }
-                onClose={() => {
-                  setShowExerciseInfo(false);
-                  setSelectedExerciseName("");
-                  setExerciseInfo(null);
-                  setLoadingExerciseInfo(false);
-                }}
-              />
-            )}
-          </Suspense>
-        )}
-
-        {/* ✅ Celebración de récord personal eliminada - no se muestra durante el entrenamiento */}
-
-        <Suspense fallback={<div />}>
-          <SetExecutionModal
-            isOpen={setExecution.showSetExecution}
-            exerciseName={currentExercise.name}
-            equipment={currentExercise.equipment}
-            currentSet={workoutState.currentSet}
-            totalSets={currentExercise.sets.length}
-            currentReps={workoutState.currentReps}
-            currentWeight={workoutState.currentWeight}
-            exerciseId={currentExercise.id}
-            onRepsChange={workoutState.setCurrentReps}
-            onWeightChange={workoutState.setCurrentWeight}
-            onComplete={handleCompleteSet}
-            onCancel={() => {
-              setExecution.cancelSetExecution();
-            }}
-          />
-        </Suspense>
-
-        {/* Splash animado de inicio de entrenamiento (solo en entrenos nuevos) */}
-        <AnimatePresence>
-          {showStartSplash && routine && (
-            <WorkoutStartSplash
-              routineName={routine.name || "Entrenamiento"}
-              exerciseCount={routine.exercises?.length || 0}
-              totalSets={
-                (routine.exercises || []).reduce(
-                  (sum: number, ex: any) => sum + (ex.sets?.length || 0),
-                  0,
-                )
-              }
-              onComplete={() => setShowStartSplash(false)}
-            />
-          )}
-        </AnimatePresence>
 
         {/* Splash animado de finalización de entrenamiento */}
         <AnimatePresence>

@@ -55,6 +55,7 @@ interface WorkoutContextType {
       setTypes?: { [key: string]: string[] };
       restOverrides?: { [key: string]: number };
       perSetRestOverrides?: { [key: string]: number[] };
+      skippedExercises?: string[];
     },
   ) => void;
   updateModifiedRoutine: (routine: Routine) => Promise<void>;
@@ -117,6 +118,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         setTypes?: { [key: string]: string[] };
         restOverrides?: { [key: string]: number };
         perSetRestOverrides?: { [key: string]: number[] };
+        skippedExercises?: string[];
       },
     ) => {
       logger.log("[WorkoutContext] updateWorkoutProgress", { exerciseIndex, set });
@@ -140,6 +142,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           setTypes:            additionalData?.setTypes            ?? prev.setTypes,
           restOverrides:       additionalData?.restOverrides       ?? prev.restOverrides,
           perSetRestOverrides: additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides,
+          skippedExercises:    additionalData?.skippedExercises    ?? prev.skippedExercises,
         };
       });
     },

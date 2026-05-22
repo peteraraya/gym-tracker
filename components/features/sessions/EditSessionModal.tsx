@@ -42,27 +42,33 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
   };
 
   const updateExerciseReps = (exerciseIndex: number, setIndex: number, value: number) => {
-    setEditedSession(prev => ({
-      ...prev,
-      exercises: prev.exercises.map((ex, i) => {
-        if (i !== exerciseIndex) return ex;
-        const actualReps = [...(ex.actualReps || [])];
-        actualReps[setIndex] = value;
-        return { ...ex, actualReps };
-      }),
-    }));
+    setEditedSession((prev: WorkoutSession | null): WorkoutSession | null => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        exercises: prev.exercises.map((ex, i) => {
+          if (i !== exerciseIndex) return ex;
+          const actualReps = [...(ex.actualReps || [])];
+          actualReps[setIndex] = value;
+          return { ...ex, actualReps };
+        }),
+      };
+    });
   };
 
   const updateExerciseWeight = (exerciseIndex: number, setIndex: number, value: number) => {
-    setEditedSession(prev => ({
-      ...prev,
-      exercises: prev.exercises.map((ex, i) => {
-        if (i !== exerciseIndex) return ex;
-        const actualWeight = [...(ex.actualWeight || [])];
-        actualWeight[setIndex] = value;
-        return { ...ex, actualWeight };
-      }),
-    }));
+    setEditedSession((prev: WorkoutSession | null): WorkoutSession | null => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        exercises: prev.exercises.map((ex, i) => {
+          if (i !== exerciseIndex) return ex;
+          const actualWeight = [...(ex.actualWeight || [])];
+          actualWeight[setIndex] = value;
+          return { ...ex, actualWeight };
+        }),
+      };
+    });
   };
 
   const toggleExerciseCollapse = (exerciseIndex: number) => {
@@ -73,47 +79,57 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
   };
 
   const addSet = (exerciseIndex: number) => {
-    setEditedSession(prev => ({
-      ...prev,
-      exercises: prev.exercises.map((ex, i) => {
-        if (i !== exerciseIndex) return ex;
-        const actualReps = [...(ex.actualReps || [])];
-        const actualWeight = [...(ex.actualWeight || [])];
-        const lastReps = actualReps.length > 0 ? actualReps[actualReps.length - 1] : 0;
-        const lastWeight = actualWeight.length > 0 ? actualWeight[actualWeight.length - 1] : 0;
-        return { ...ex, actualReps: [...actualReps, lastReps], actualWeight: [...actualWeight, lastWeight] };
-      }),
-    }));
+    setEditedSession((prev: WorkoutSession | null): WorkoutSession | null => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        exercises: prev.exercises.map((ex, i) => {
+          if (i !== exerciseIndex) return ex;
+          const actualReps = [...(ex.actualReps || [])];
+          const actualWeight = [...(ex.actualWeight || [])];
+          const lastReps = actualReps.length > 0 ? actualReps[actualReps.length - 1] : 0;
+          const lastWeight = actualWeight.length > 0 ? actualWeight[actualWeight.length - 1] : 0;
+          return { ...ex, actualReps: [...actualReps, lastReps], actualWeight: [...actualWeight, lastWeight] };
+        }),
+      };
+    });
   };
 
   const removeExercise = (exerciseIndex: number) => {
-    if (editedSession.exercises.length <= 1) return;
-    setEditedSession(prev => ({
-      ...prev,
-      exercises: prev.exercises.filter((_, i) => i !== exerciseIndex),
-    }));
+    if (editedSession?.exercises.length <= 1) return;
+    setEditedSession((prev: WorkoutSession | null): WorkoutSession | null => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        exercises: prev.exercises.filter((_, i) => i !== exerciseIndex),
+      };
+    });
   };
 
   const removeSet = (exerciseIndex: number, setIndex: number) => {
-    const exercise = editedSession.exercises[exerciseIndex];
-    const maxSets = Math.max(exercise.actualReps?.length || 0, exercise.actualWeight?.length || 0, 1);
-    if (maxSets <= 1) return;
-    setEditedSession(prev => ({
-      ...prev,
-      exercises: prev.exercises.map((ex, i) => {
-        if (i !== exerciseIndex) return ex;
-        return {
-          ...ex,
-          actualReps: ex.actualReps ? ex.actualReps.filter((_, j) => j !== setIndex) : ex.actualReps,
-          actualWeight: ex.actualWeight ? ex.actualWeight.filter((_, j) => j !== setIndex) : ex.actualWeight,
-        };
-      }),
-    }));
+    setEditedSession(prev => {
+      if (!prev) return null;
+      const exercise = prev.exercises[exerciseIndex];
+      const maxSets = Math.max(exercise.actualReps?.length || 0, exercise.actualWeight?.length || 0, 1);
+      if (maxSets <= 1) return prev;
+      return {
+        ...prev,
+        exercises: prev.exercises.map((ex, i) => {
+          if (i !== exerciseIndex) return ex;
+          return {
+            ...ex,
+            actualReps: ex.actualReps ? ex.actualReps.filter((_, j) => j !== setIndex) : ex.actualReps,
+            actualWeight: ex.actualWeight ? ex.actualWeight.filter((_, j) => j !== setIndex) : ex.actualWeight,
+          };
+        }),
+      };
+    });
   };
 
   const moveExercise = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
-    setEditedSession(prev => {
+    setEditedSession((prev: WorkoutSession | null): WorkoutSession | null => {
+      if (!prev) return null;
       const exercises = [...prev.exercises];
       const [movedExercise] = exercises.splice(fromIndex, 1);
       exercises.splice(toIndex, 0, movedExercise);
@@ -123,7 +139,10 @@ export function EditSessionModal({ session, isOpen, onClose, onSave }: EditSessi
 
   const updateDuration = (hours: number, minutes: number, seconds: number) => {
     const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-    setEditedSession({ ...editedSession, totalDuration: totalSeconds });
+    setEditedSession((prev: WorkoutSession | null): WorkoutSession | null => {
+      if (!prev) return null;
+      return { ...prev, totalDuration: totalSeconds };
+    });
   };
 
   const updateNotes = (notes: string) => {

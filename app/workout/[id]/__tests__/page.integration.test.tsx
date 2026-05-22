@@ -125,10 +125,6 @@ vi.mock('@/components/icons/lucide', () => ({
 }));
 
 // Mock de componentes de workout
-vi.mock('../components/WorkoutHeader', () => ({
-  WorkoutHeader: () => <div data-testid="workout-header">Header</div>
-}));
-
 vi.mock('../components/ExerciseCard', () => ({
   ExerciseCard: ({ onCompleteSet, onSkipExercise }: any) => (
     <div data-testid="exercise-card">
