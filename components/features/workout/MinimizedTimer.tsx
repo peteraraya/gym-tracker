@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Button } from '@/components/ui/Button';
@@ -6,13 +6,15 @@ import { ChevronUp, ArrowRight } from '@/components/icons/lucide';
 
 interface MinimizedTimerProps {
   timeLeft: number;
+  duration: number;
   title?: string;
   onExpand: () => void;
   onSkip: () => void;
 }
 
 export function MinimizedTimer({ 
-  timeLeft, 
+  timeLeft,
+  duration, 
   title = 'Descanso',
   onExpand,
   onSkip 
@@ -23,7 +25,7 @@ export function MinimizedTimer({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const progressWidth = timeLeft <= 10 ? '100%' : `${(timeLeft % 60) / 60 * 100}%`;
+  const progressWidth = timeLeft <= 10 ? '100%' : `${(timeLeft / duration) * 100}%`;
 
   return (
     <div className="fixed bottom-6 left-4 right-4 z-40 md:right-20 md:left-auto px-4">

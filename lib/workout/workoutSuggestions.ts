@@ -1,4 +1,4 @@
-import type { WorkoutSession } from '@/types';
+﻿import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 
 export type SuggestionType = 'weight_increase' | 'rest_warning' | 'overtraining' | 'deload' | 'consistency' | 'volume';
@@ -41,7 +41,7 @@ export function generateWorkoutSuggestions(
 ): WorkoutSuggestion[] {
   const suggestions: WorkoutSuggestion[] = [];
 
-  // Ordenar sesiones por fecha (más reciente primero)
+  // Ordenar sesiones por fecha (mÃ¡s reciente primero)
   const sortedSessions = [...sessions].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -66,7 +66,7 @@ export function generateWorkoutSuggestions(
   const deloadSuggestion = checkDeloadNeeded(sortedSessions);
   if (deloadSuggestion) suggestions.push(deloadSuggestion);
 
-  // 5. Felicitación por consistencia
+  // 5. FelicitaciÃ³n por consistencia
   const consistencySuggestion = checkConsistency(sortedSessions);
   if (consistencySuggestion) suggestions.push(consistencySuggestion);
 
@@ -81,33 +81,33 @@ function checkWeightProgression(
   exerciseName: string,
   currentWeight: number
 ): WorkoutSuggestion | null {
-  // Buscar las últimas 3-5 sesiones donde se hizo este ejercicio
+  // Buscar las Ãºltimas 3-5 sesiones donde se hizo este ejercicio
   const relevantSessions = sessions
     .filter(s => s.exercises.some(e => e.exerciseName === exerciseName))
     .slice(0, 5);
 
   if (relevantSessions.length < 3) return null;
 
-  // Obtener los pesos usados en cada sesión
+  // Obtener los pesos usados en cada sesiÃ³n
   const weights = relevantSessions.map(session => {
     const exercise = session.exercises.find(e => e.exerciseName === exerciseName);
     if (!exercise || !exercise.actualWeight || exercise.actualWeight.length === 0) return null;
-    // Usar el peso máximo de la sesión
-    return Math.max(...exercise.actualWeight);
+    // Usar el peso mÃ¡ximo de la sesiÃ³n
+    return exercise.actualWeight.length > 0 ? Math.max(...exercise.actualWeight) : null;
   }).filter(w => w !== null) as number[];
 
   if (weights.length < 3) return null;
 
-  // Verificar si ha usado el mismo peso en las últimas 3 sesiones
+  // Verificar si ha usado el mismo peso en las Ãºltimas 3 sesiones
   const lastThreeWeights = weights.slice(0, 3);
   const allSameWeight = lastThreeWeights.every(w => w === lastThreeWeights[0]);
 
   if (allSameWeight && lastThreeWeights[0] === currentWeight) {
     return {
       type: 'weight_increase',
-      title: '💪 Considera aumentar el peso',
-      message: `Has completado 3 sesiones con ${currentWeight}kg en ${exerciseName}. ¡Es momento de progresar! Intenta aumentar 2.5kg.`,
-      icon: '📈',
+      title: 'ðŸ’ª Considera aumentar el peso',
+      message: `Has completado 3 sesiones con ${currentWeight}kg en ${exerciseName}. Â¡Es momento de progresar! Intenta aumentar 2.5kg.`,
+      icon: 'ðŸ“ˆ',
       variant: 'success',
       actionable: true,
       data: {
@@ -140,9 +140,9 @@ function checkRestTime(
     if (restTime < minRecommended) {
       return {
         type: 'rest_warning',
-        title: '⚠️ Descanso bajo mínimo',
+        title: 'âš ï¸ Descanso bajo mÃ­nimo',
         message: `${exerciseName}: Se recomienda al menos ${formatRestTime(minRecommended)} de descanso. Actualmente: ${formatRestTime(restTime)}.`,
-        icon: '⏱️',
+        icon: 'â±ï¸',
         variant: 'warning',
         actionable: true,
         data: {
@@ -153,13 +153,13 @@ function checkRestTime(
       };
     }
     
-    // Mensaje positivo cuando está en rango adecuado
+    // Mensaje positivo cuando estÃ¡ en rango adecuado
     if (restTime >= minRecommended && restTime <= smartRestTime * 1.2) {
       return {
         type: 'consistency',
-        title: '✅ Descanso adecuado',
+        title: 'âœ… Descanso adecuado',
         message: `Perfecto! ${formatRestTime(restTime)} es un tiempo de descanso ideal para ${exerciseName}.`,
-        icon: '⏱️',
+        icon: 'â±ï¸',
         variant: 'success',
         actionable: false,
         data: {
@@ -172,18 +172,18 @@ function checkRestTime(
     return null;
   }
 
-  // Fallback: lógica anterior si no hay smartRestTime
+  // Fallback: lÃ³gica anterior si no hay smartRestTime
   const exAny = exercise as any;
   const equipment = exercise.equipment ?? '';
-  const isCompound = exAny.type === 'compound' || ['Barra', 'Barra/Mancuernas', 'Peso corporal', 'Máquina', 'Poleas'].includes(equipment);
+  const isCompound = exAny.type === 'compound' || ['Barra', 'Barra/Mancuernas', 'Peso corporal', 'MÃ¡quina', 'Poleas'].includes(equipment);
   const isHeavy = exAny.difficulty === 'avanzado';
 
   if (isCompound && restTime < 90) {
     return {
       type: 'rest_warning',
-      title: '⚠️ Descanso muy corto',
-      message: `${exerciseName} es un ejercicio compuesto. Se recomienda descansar al menos ${formatRestTime(90)}-${formatRestTime(180)} para recuperación óptima.`,
-      icon: '⏱️',
+      title: 'âš ï¸ Descanso muy corto',
+      message: `${exerciseName} es un ejercicio compuesto. Se recomienda descansar al menos ${formatRestTime(90)}-${formatRestTime(180)} para recuperaciÃ³n Ã³ptima.`,
+      icon: 'â±ï¸',
       variant: 'warning',
       actionable: true,
       data: {
@@ -197,9 +197,9 @@ function checkRestTime(
   if (isHeavy && restTime < 120) {
     return {
       type: 'rest_warning',
-      title: '⚠️ Descanso insuficiente',
+      title: 'âš ï¸ Descanso insuficiente',
       message: `Para ejercicios pesados como ${exerciseName}, considera descansar ${formatRestTime(120)}-${formatRestTime(180)} entre series para mantener la intensidad.`,
-      icon: '⏱️',
+      icon: 'â±ï¸',
       variant: 'warning',
       actionable: true,
       data: {
@@ -210,13 +210,13 @@ function checkRestTime(
     };
   }
 
-  // ✅ Mensaje positivo cuando el descanso es adecuado
+  // âœ… Mensaje positivo cuando el descanso es adecuado
   if (isCompound && restTime >= 90 && restTime <= 180) {
     return {
       type: 'consistency',
-      title: '✅ Descanso adecuado',
+      title: 'âœ… Descanso adecuado',
       message: `Perfecto! ${formatRestTime(restTime)} es un tiempo de descanso ideal para ${exerciseName}.`,
-      icon: '⏱️',
+      icon: 'â±ï¸',
       variant: 'success',
       actionable: false,
       data: {
@@ -228,9 +228,9 @@ function checkRestTime(
   if (isHeavy && restTime >= 120 && restTime <= 180) {
     return {
       type: 'consistency',
-      title: '✅ Descanso óptimo',
+      title: 'âœ… Descanso Ã³ptimo',
       message: `Excelente! ${formatRestTime(restTime)} es perfecto para ejercicios pesados como ${exerciseName}.`,
-      icon: '⏱️',
+      icon: 'â±ï¸',
       variant: 'success',
       actionable: false,
       data: {
@@ -243,22 +243,22 @@ function checkRestTime(
 }
 
 /**
- * Detecta si el usuario está entrenando demasiados días consecutivos
+ * Detecta si el usuario estÃ¡ entrenando demasiados dÃ­as consecutivos
  */
 function checkOvertraining(sessions: WorkoutSession[]): WorkoutSuggestion | null {
   if (sessions.length < 5) return null;
 
-  // Obtener las últimas 7 sesiones
+  // Obtener las Ãºltimas 7 sesiones
   const recentSessions = sessions.slice(0, 7);
   
-  // Verificar si hay 5+ días consecutivos de entrenamiento
+  // Verificar si hay 5+ dÃ­as consecutivos de entrenamiento
   let consecutiveDays = 0;
   let maxConsecutive = 0;
   
   const dates = recentSessions.map(s => new Date(s.date).toDateString());
   const today = new Date().toDateString();
   
-  // Verificar días consecutivos hacia atrás desde hoy
+  // Verificar dÃ­as consecutivos hacia atrÃ¡s desde hoy
   for (let i = 0; i < 7; i++) {
     const checkDate = new Date();
     checkDate.setDate(checkDate.getDate() - i);
@@ -275,9 +275,9 @@ function checkOvertraining(sessions: WorkoutSession[]): WorkoutSuggestion | null
   if (maxConsecutive >= 5) {
     return {
       type: 'overtraining',
-      title: '🛑 Considera un día de descanso',
-      message: `Llevas ${maxConsecutive} días consecutivos entrenando. El descanso es crucial para la recuperación muscular y prevenir lesiones.`,
-      icon: '😴',
+      title: 'ðŸ›‘ Considera un dÃ­a de descanso',
+      message: `Llevas ${maxConsecutive} dÃ­as consecutivos entrenando. El descanso es crucial para la recuperaciÃ³n muscular y prevenir lesiones.`,
+      icon: 'ðŸ˜´',
       variant: 'danger',
       actionable: true,
       data: {
@@ -295,7 +295,7 @@ function checkOvertraining(sessions: WorkoutSession[]): WorkoutSuggestion | null
 function checkDeloadNeeded(sessions: WorkoutSession[]): WorkoutSuggestion | null {
   if (sessions.length < 12) return null;
 
-  // Verificar las últimas 4 semanas (12-16 sesiones)
+  // Verificar las Ãºltimas 4 semanas (12-16 sesiones)
   const last4Weeks = sessions.slice(0, 16);
   
   // Calcular volumen promedio (series totales)
@@ -305,16 +305,16 @@ function checkDeloadNeeded(sessions: WorkoutSession[]): WorkoutSuggestion | null
   
   const avgSetsPerSession = totalSets / last4Weeks.length;
   
-  // Si el promedio es alto (>20 series por sesión) y han pasado 4+ semanas
+  // Si el promedio es alto (>20 series por sesiÃ³n) y han pasado 4+ semanas
   if (avgSetsPerSession > 20 && last4Weeks.length >= 12) {
     const weeksSinceStart = Math.floor(last4Weeks.length / 3); // Asumiendo 3 sesiones/semana
     
     if (weeksSinceStart >= 4) {
       return {
         type: 'deload',
-        title: '🔄 Considera una semana de deload',
-        message: `Has entrenado intensamente por ${weeksSinceStart} semanas. Una semana de deload (50-60% del volumen) ayudará a tu recuperación y progreso a largo plazo.`,
-        icon: '🧘',
+        title: 'ðŸ”„ Considera una semana de deload',
+        message: `Has entrenado intensamente por ${weeksSinceStart} semanas. Una semana de deload (50-60% del volumen) ayudarÃ¡ a tu recuperaciÃ³n y progreso a largo plazo.`,
+        icon: 'ðŸ§˜',
         variant: 'info',
         actionable: true,
         data: {
@@ -334,7 +334,7 @@ function checkDeloadNeeded(sessions: WorkoutSession[]): WorkoutSuggestion | null
 function checkConsistency(sessions: WorkoutSession[]): WorkoutSuggestion | null {
   if (sessions.length < 3) return null;
 
-  // Verificar las últimas 2 semanas
+  // Verificar las Ãºltimas 2 semanas
   const twoWeeksAgo = new Date();
   twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
   
@@ -344,9 +344,9 @@ function checkConsistency(sessions: WorkoutSession[]): WorkoutSuggestion | null 
   if (recentSessions.length >= 4) {
     return {
       type: 'consistency',
-      title: '🎉 ¡Excelente consistencia!',
-      message: `Has completado ${recentSessions.length} entrenamientos en las últimas 2 semanas. ¡Sigue así!`,
-      icon: '🔥',
+      title: 'ðŸŽ‰ Â¡Excelente consistencia!',
+      message: `Has completado ${recentSessions.length} entrenamientos en las Ãºltimas 2 semanas. Â¡Sigue asÃ­!`,
+      icon: 'ðŸ”¥',
       variant: 'success',
       actionable: false
     };
@@ -356,7 +356,7 @@ function checkConsistency(sessions: WorkoutSession[]): WorkoutSuggestion | null 
 }
 
 /**
- * Genera sugerencias específicas para el ejercicio actual durante el workout
+ * Genera sugerencias especÃ­ficas para el ejercicio actual durante el workout
  */
 export function generateLiveSuggestions(
   exerciseName: string,
@@ -377,16 +377,16 @@ export function generateLiveSuggestions(
     const lastExercise = lastSession.exercises.find(e => e.exerciseName === exerciseName);
     
     if (lastExercise && lastExercise.actualWeight && lastExercise.actualWeight.length > 0) {
-      const lastWeight = Math.max(...lastExercise.actualWeight);
-      const lastReps = lastExercise.actualReps ? Math.max(...lastExercise.actualReps) : 0;
+      const lastWeight = lastExercise.actualWeight.length > 0 ? Math.max(...lastExercise.actualWeight) : 0;
+      const lastReps = lastExercise.actualReps && lastExercise.actualReps.length > 0 ? Math.max(...lastExercise.actualReps) : 0;
       
-      // Sugerencia si está usando menos peso que la última vez
+      // Sugerencia si estÃ¡ usando menos peso que la Ãºltima vez
       if (currentWeight < lastWeight && currentSet === 1) {
         suggestions.push({
           type: 'weight_increase',
-          title: '📊 Comparación con última sesión',
-          message: `La última vez usaste ${lastWeight}kg. Hoy estás usando ${currentWeight}kg. ¿Es intencional?`,
-          icon: '💭',
+          title: 'ðŸ“Š ComparaciÃ³n con Ãºltima sesiÃ³n',
+          message: `La Ãºltima vez usaste ${lastWeight}kg. Hoy estÃ¡s usando ${currentWeight}kg. Â¿Es intencional?`,
+          icon: 'ðŸ’­',
           variant: 'info',
           actionable: false,
           data: {
@@ -397,13 +397,13 @@ export function generateLiveSuggestions(
         });
       }
       
-      // Sugerencia si está usando más peso
+      // Sugerencia si estÃ¡ usando mÃ¡s peso
       if (currentWeight > lastWeight && currentSet === 1) {
         suggestions.push({
           type: 'weight_increase',
-          title: '💪 ¡Progreso detectado!',
-          message: `Has aumentado de ${lastWeight}kg a ${currentWeight}kg. ¡Excelente progresión!`,
-          icon: '📈',
+          title: 'ðŸ’ª Â¡Progreso detectado!',
+          message: `Has aumentado de ${lastWeight}kg a ${currentWeight}kg. Â¡Excelente progresiÃ³n!`,
+          icon: 'ðŸ“ˆ',
           variant: 'success',
           actionable: false
         });
@@ -411,13 +411,13 @@ export function generateLiveSuggestions(
     }
   }
 
-  // Motivación en la última serie
+  // MotivaciÃ³n en la Ãºltima serie
   if (currentSet === totalSets) {
     suggestions.push({
       type: 'consistency',
-      title: '🎯 ¡Última serie!',
-      message: 'Dale todo en esta última serie. ¡Tú puedes!',
-      icon: '💥',
+      title: 'ðŸŽ¯ Â¡Ãšltima serie!',
+      message: 'Dale todo en esta Ãºltima serie. Â¡TÃº puedes!',
+      icon: 'ðŸ’¥',
       variant: 'success',
       actionable: false
     });

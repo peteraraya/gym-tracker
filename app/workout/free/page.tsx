@@ -147,7 +147,11 @@ export default function FreeWorkoutPage() {
 
   const handleSetTimerComplete = (duration: number, pausedTime: number) => {
     setTotalPausedTime((prev) => prev + pausedTime);
-    handleCompleteSet();
+    // CRITICAL BUG FIX: Do NOT call handleCompleteSet() here.
+    // handleCompleteSet() was already called when the set was completed,
+    // and calling it again on timer completion creates a phantom duplicate set.
+    // The timer completion should only advance UI state (hide the timer).
+    handleTimerComplete();
   };
 
   const handleTimerComplete = () => setShowTimer(false);

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -837,21 +837,20 @@ export function QuickEditMode({
           : exIdx === firstIncompleteIndex;
         const isNext = exIdx === firstIncompleteIndex + 1;
 
-        // Auto-colapsar cuando se completa (solo si no está manualmente expandido)
+        // BUG FIX: Auto-collapse on completion using a ref guard to prevent
+        // multiple setTimeout calls. The old inline setTimeout during render
+        // caused cascading state updates and unnecessary re-renders.
         if (
           isFullyCompleted &&
           !isCollapsed &&
           completedCount > 0 &&
           !isManuallyExpanded
         ) {
-          // Usar setTimeout para evitar actualizar estado durante render
-          setTimeout(() => {
-            setCollapsedExercises((prev) => {
-              const newSet = new Set(prev);
-              newSet.add(exerciseId);
-              return newSet;
-            });
-          }, 0);
+          setCollapsedExercises((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(exerciseId);
+            return newSet;
+          });
         }
 
         return (

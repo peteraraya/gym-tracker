@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   useState,
@@ -633,6 +633,7 @@ export default function WorkoutPage() {
 
   // Wake Lock para mantener la pantalla activa
   const wakeLock = useWakeLock();
+  const { isSupported: wakeLockSupported, requestWakeLock, releaseWakeLock } = wakeLock;
 
   // Haptic Feedback mejorado
   const haptic = useHapticFeedback();
@@ -1080,19 +1081,27 @@ export default function WorkoutPage() {
 
   // Activar Wake Lock cuando el entrenamiento está activo
   useEffect(() => {
-    if (isInitialized && wakeLock.isSupported) {
-      wakeLock.requestWakeLock().then((activated) => {
-        if (activated) {
+    if (!isInitialized || !wakeLockSupported) return;
+
+    let mounted = true;
+
+    (async () => {
+      try {
+        const activated = await requestWakeLock();
+        if (activated && mounted) {
           success("🔋 Pantalla activa durante el entrenamiento", 2000);
         }
-      });
-    }
+      } catch (err) {
+        console.error('[Workout] WakeLock request failed:', err);
+      }
+    })();
 
-    // Liberar wake lock al salir
+    // Liberar wake lock al salir (no await en cleanup)
     return () => {
-      wakeLock.releaseWakeLock();
+      mounted = false;
+      void releaseWakeLock();
     };
-  }, [isInitialized, wakeLock.isSupported]);
+  }, [isInitialized, wakeLockSupported, requestWakeLock, releaseWakeLock, success]);
 
   useEffect(() => {
     // Defer closing the series table to the next tick to avoid synchronous setState within an effect
@@ -1286,17 +1295,10 @@ export default function WorkoutPage() {
         };
       }
 
-      // Completar la serie en la posición correcta (state update asincrónica)
-      workoutState.completeSetAt(exerciseId, setIndex, reps, weight);
-
-      // Feedback háptico
-      if (isFromQuickMode) {
-        haptic.success();
-      } else {
-        haptic.setComplete();
-      }
-
-      // Encontrar el ejercicio
+      // CRITICAL BUG FIX: Read exercise data BEFORE calling completeSetAt.
+      // completeSetAt updates state asynchronously (setWorkoutData), so
+      // reading from getExerciseData() after the call returns stale data
+      // from workoutDataRef (only synced on next render via useEffect).
       const exercise = routine?.exercises.find(
         (ex: Exercise) => ex.id === exerciseId,
       );
@@ -1308,9 +1310,7 @@ export default function WorkoutPage() {
         };
       }
 
-      // Calcular si es la última serie del ejercicio usando una copia local
-      // del array de reps actualizado (setState es asincrónico, no podemos
-      // depender de workoutState.workoutData inmediatamente después de escribir).
+      // Capture pre-update state and simulate the local data we need
       const prevExerciseData = workoutState.getExerciseData(exerciseId);
       const actualRepsLocal = Array.isArray(prevExerciseData.actualReps)
         ? [...prevExerciseData.actualReps]
@@ -1322,6 +1322,16 @@ export default function WorkoutPage() {
       const completedCount = actualRepsLocal.filter(
         (r: number) => typeof r === "number" && r > 0,
       ).length;
+
+      // Now update state (async — won't be reflected until next render)
+      workoutState.completeSetAt(exerciseId, setIndex, reps, weight);
+
+      // Feedback háptico
+      if (isFromQuickMode) {
+        haptic.success();
+      } else {
+        haptic.setComplete();
+      }
       const isLastSetOfExercise = completedCount >= exercise.sets.length;
       const exerciseIndex = routine.exercises.findIndex(
         (ex: Exercise) => ex.id === exerciseId,
@@ -2155,8 +2165,11 @@ export default function WorkoutPage() {
         workoutState.updateActualReps(exerciseId, newActualReps);
 
         // Decrementar explícitamente sin contar reps pre-editadas de otras series.
-        const prevCount = workoutState.workoutData.completedSets[exerciseId] ?? 0;
-        const newCompletedCount = Math.min(prevCount, setIndex);
+        // BUG FIX: Recount actual completed sets from the reps array instead of
+        // using Math.min(prevCount, setIndex), which incorrectly assumes all sets
+        // above setIndex are also unchecked. This broke completion counts when
+        // unchecking a middle set while higher-indexed sets remain completed.
+        const newCompletedCount = newActualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
         workoutState.updateCompletedSets(exerciseId, newCompletedCount);
 
         if (setIndex + 1 < workoutState.currentSet) {
@@ -2752,6 +2765,7 @@ export default function WorkoutPage() {
           <MinimizedTimer
             timeLeft={timerHandlers.currentTimeLeft}
             title={timerHandlers.timerTitle}
+            duration={timerHandlers.timerDuration}
             onExpand={timerHandlers.expandTimer}
             onSkip={timerHandlers.skipAndAdvance}
           />

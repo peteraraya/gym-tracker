@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { UserProfile } from '@/types';
@@ -105,10 +105,13 @@ export function useFreeWorkoutState() {
     });
 
     setExercises((prev) => {
-      const next = [...prev, ...newItems];
-      setActiveExerciseIndex(next.length - newItems.length);
-      return next;
+      return [...prev, ...newItems];
     });
+    // BUG FIX: Move setActiveExerciseIndex outside of setExercises updater.
+    // Calling setState inside a state updater function causes React warnings
+    // and is considered a side effect inside a pure function.
+    const newCount = exercises.length + newItems.length;
+    setActiveExerciseIndex(newCount - newItems.length);
   }, []);
 
   const addExerciseFromSuggestion = useCallback((rawExercises: any[], restBetweenSets: number) => {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+﻿import { useState, useCallback, useRef, useEffect } from 'react';
 import { useWorkout } from '@/context/WorkoutContext';
 import {
   startRestNotification,
@@ -39,6 +39,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   
   const timerCompleteRef = useRef(onTimerComplete);
   const hasRestoredRef = useRef(false);
+  const currentTimeLeftRef = useRef(currentTimeLeft);
   
   // Update ref when callback changes
   useEffect(() => {
@@ -77,27 +78,32 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     }
   }, [activeWorkout]);
   
+  // BUG FIX: Sync ref whenever currentTimeLeft changes
+  useEffect(() => {
+    currentTimeLeftRef.current = currentTimeLeft;
+  }, [currentTimeLeft]);
+
   // Countdown when minimized
   useEffect(() => {
     if (!showTimer || !timerMinimized || !timerStartTime) {
       return;
     }
-
-    const interval = setInterval(() => {
-      const remaining = Math.max(0, currentTimeLeft - 1);
+    const intervalId = setInterval(() => {
+      const remaining = Math.max(0, currentTimeLeftRef.current - 1);
       setCurrentTimeLeft(remaining);
-
+      currentTimeLeftRef.current = remaining;
       if (remaining === 0) {
         // Asegurar que la notificación final se muestre antes de ejecutar el callback
-        try { endRestNotification().catch(() => {}); } catch (e) {}
+        try {
+          endRestNotification().catch(() => {});
+        } catch (e) {}
         if (timerCompleteRef.current) {
           timerCompleteRef.current();
         }
       }
     }, 1000);
-
-    return () => clearInterval(interval);
-  }, [showTimer, timerMinimized, timerStartTime, currentTimeLeft]);
+    return () => clearInterval(intervalId);
+  }, [showTimer, timerMinimized, timerStartTime]); // Note: `currentTimeLeft` intentionally excluded from deps
   
   const startTimer = useCallback((duration: number, title: string, nextExercise?: string) => {
     const startTime = Date.now();

@@ -1,4 +1,4 @@
-import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/workout/restCalculator';
+﻿import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/workout/restCalculator';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 
 interface RestCalculationParams {
@@ -103,13 +103,13 @@ export function calculateExerciseRestTime({
 /**
  * Calculate smart rest time based on exercise characteristics
  */
-export function calculateSmartRestTime(exercise: any): number | undefined {
+export function calculateSmartRestTime(exercise: { name: string; sets: Array<{ reps: number; weight?: number }> }): number | undefined {
   const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === exercise.name);
 
   if (!exerciseTemplate) return undefined;
 
   const avgReps = Math.round(
-    exercise.sets.reduce((sum: number, set: any) => sum + set.reps, 0) / exercise.sets.length
+    exercise.sets.reduce((sum: number, set: { reps: number; weight?: number }) => sum + set.reps, 0) / exercise.sets.length
   );
 
   const restRecommendation = calculateRestBetweenSets(
