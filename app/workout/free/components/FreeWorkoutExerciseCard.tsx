@@ -11,6 +11,7 @@ import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/Set
 import { Dumbbell, Trash2 } from 'lucide-react';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { calculateRestBetweenSets, formatRestTime } from '@/lib/workout/restCalculator';
+import type { SetType } from '@/types';
 import type { FreeExercise } from '../hooks/useFreeWorkoutState';
 
 interface FreeWorkoutExerciseCardProps {
@@ -18,10 +19,10 @@ interface FreeWorkoutExerciseCardProps {
   exerciseIndex: number;
   currentReps: number | '';
   currentWeight: number | '';
-  currentSetType: string;
+  currentSetType: SetType;
   onRepsChange: (v: number | '') => void;
   onWeightChange: (v: number) => void;
-  onSetTypeChange: (t: any) => void;
+  onSetTypeChange: (t: SetType) => void;
   onCompleteSet: () => void;
   onStartSet: () => void;
   onSetTimerComplete: (duration: number, pausedTime: number) => void;

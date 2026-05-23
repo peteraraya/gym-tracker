@@ -174,30 +174,36 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   console.log('[SW] Push notification received');
   
-  const data = event.data ? event.data.json() : {};
-  const title = data.title || 'Gym Tracker';
-  const options = {
-    body: data.body || 'Tienes una nueva notificación',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
-    vibrate: [200, 100, 200],
-    tag: data.tag || 'default',
-    data: data.data || {},
-    actions: data.actions || [
-      {
-        action: 'open',
-        title: 'Abrir'
-      },
-      {
-        action: 'close',
-        title: 'Cerrar'
-      }
-    ],
-    requireInteraction: data.requireInteraction || false
-  };
-
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    (async () => {
+      // Cerrar cualquier notificación existente antes de mostrar una nueva
+      const existing = await self.registration.getNotifications();
+      existing.forEach(n => n.close());
+
+      const data = event.data ? event.data.json() : {};
+      const title = data.title || 'Gym Tracker';
+      const options = {
+        body: data.body || 'Tienes una nueva notificación',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+        vibrate: [400, 200, 400, 200, 400],
+        tag: 'gym-tracker-push',
+        data: data.data || {},
+        actions: data.actions || [
+          {
+            action: 'open',
+            title: 'Abrir'
+          },
+          {
+            action: 'close',
+            title: 'Cerrar'
+          }
+        ],
+        requireInteraction: data.requireInteraction || false
+      };
+
+      return self.registration.showNotification(title, options);
+    })()
   );
 });
 
@@ -375,7 +381,7 @@ function createNumberSVGDataUrl(number, opts = {}) {
   const height = opts.height || 256;
   const bg = opts.bg || '#0f172a'; // fondo oscuro
   const fg = opts.fg || '#ffffff'; // texto claro
-  const fontSize = opts.fontSize || Math.floor(height * 0.6);
+  const fontSize = opts.fontSize || Math.floor(height * 0.85);
   const fontFamily = opts.fontFamily || 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial';
   const sanitized = String(number)
     .replace(/&/g, '&amp;')
@@ -386,7 +392,7 @@ function createNumberSVGDataUrl(number, opts = {}) {
   const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
     `<rect width="100%" height="100%" rx="28" fill="${bg}"/>` +
-    `<text x="50%" y="50%" fill="${fg}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="700" dominant-baseline="middle" text-anchor="middle">${sanitized}</text>` +
+    `<text x="50%" y="50%" fill="${fg}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="900" dominant-baseline="middle" text-anchor="middle">${sanitized}</text>` +
     `</svg>`;
 
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -436,10 +442,19 @@ self.addEventListener('message', (event) => {
       delete self._restIntervals[tag];
     }
 
+    // Poner centinela inmediatamente para que UPDATE_REST no se cuele
+    // antes de que el intervalo real esté configurado (race condition)
+    self._restIntervals[tag] = true;
+
     self._restNotifications[tag] = { endTime, title, nextExercise };
 
     const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
     const formatted = formatSeconds(remaining);
+
+    // Cerrar cualquier notificación previa que no sea del rest timer
+    self.registration.getNotifications().then(list => {
+      list.forEach(n => { if (n.tag !== tag) n.close(); });
+    });
 
     // Base options for the notification updates. Use the same `tag` so updates replace the notification.
     const baseOptions = {
@@ -459,13 +474,15 @@ self.addEventListener('message', (event) => {
 
     // Notificación inicial con vibración
     const initialOptions = Object.assign({}, baseOptions, {
-      vibrate: [200, 100, 200],
+      vibrate: [400, 200, 400],
       image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
     });
 
     self.registration.showNotification(formatted, initialOptions);
 
-    // El SW es el único responsable de actualizar la notificación cada segundo
+    // Actualizar la notificación cada 5s para evitar spam de notificaciones en móvil.
+    // El chequeo del fin del timer sigue siendo cada 1s para que el aviso "¡A entrenar!" sea inmediato.
+    let tickCount = 0;
     self._restIntervals[tag] = setInterval(() => {
       try {
         const meta = self._restNotifications[tag];
@@ -475,23 +492,32 @@ self.addEventListener('message', (event) => {
           return;
         }
         const remainingSec = Math.max(0, Math.ceil((meta.endTime - Date.now()) / 1000));
-        const fmt = formatSeconds(remainingSec);
-        const opts = Object.assign({}, baseOptions, {
-          data: { endTime: meta.endTime, nextExercise: meta.nextExercise },
-          image: createNumberSVGDataUrl(fmt, { width: 512, height: 256 })
-        });
-        self.registration.showNotification(fmt, opts);
+
+        // Solo refrescar la UI de la notificación cada 5 ticks (cada 5s)
+        tickCount++;
+        if (remainingSec > 0 && tickCount % 5 === 0) {
+          const fmt = formatSeconds(remainingSec);
+          const opts = Object.assign({}, baseOptions, {
+            data: { endTime: meta.endTime, nextExercise: meta.nextExercise },
+            image: createNumberSVGDataUrl(fmt, { width: 512, height: 256 })
+          });
+          self.registration.showNotification(fmt, opts);
+        }
 
         if (remainingSec <= 0) {
           clearInterval(self._restIntervals[tag]);
           delete self._restIntervals[tag];
           self._restActive[tag] = false;
 
+          self.registration.getNotifications().then(list => {
+            list.forEach(n => n.close());
+          });
+
           self.registration.showNotification('¡A entrenar!', {
             body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
             tag,
             renotify: true,
-            vibrate: [300, 100, 300],
+            vibrate: [500, 200, 500, 200, 500],
             icon: '/icons/icon-192x192.png',
             badge: '/icons/badge-72x72.png',
           });
@@ -525,6 +551,11 @@ self.addEventListener('message', (event) => {
     const meta = self._restNotifications[tag] || { nextExercise: event.data.nextExercise };
     const formatted = formatSeconds(Math.max(0, remaining));
 
+    // Limpiar notificaciones previas antes de mostrar
+    self.registration.getNotifications().then(list => {
+      list.forEach(n => n.close());
+    });
+
     self.registration.showNotification(formatted, {
       body: 'Descanso',
       tag,
@@ -540,7 +571,7 @@ self.addEventListener('message', (event) => {
         body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
         tag,
         renotify: true,
-        vibrate: [300, 100, 300],
+        vibrate: [500, 200, 500, 200, 500],
         icon: '/icons/icon-192x192.png',
         badge: '/icons/badge-72x72.png',
       });
@@ -564,11 +595,14 @@ self.addEventListener('message', (event) => {
     }
     if (self._restNotifications[tag]) {
       const meta = self._restNotifications[tag];
+      self.registration.getNotifications().then(list => {
+        list.forEach(n => n.close());
+      });
       self.registration.showNotification('¡A entrenar!', {
         body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
         tag,
         renotify: true,
-        vibrate: [300, 100, 300],
+        vibrate: [500, 200, 500, 200, 500],
         icon: '/icons/icon-192x192.png',
         badge: '/icons/badge-72x72.png',
       });
@@ -590,11 +624,18 @@ self.addEventListener('message', (event) => {
     }
 
     const { title = 'Gym Tracker', options = {} } = event.data;
-    self.registration.showNotification(title, {
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/badge-72x72.png',
-      ...options
-    });
+    event.waitUntil(
+      (async () => {
+        const existing = await self.registration.getNotifications();
+        existing.forEach(n => n.close());
+        return self.registration.showNotification(title, {
+          tag: 'gym-tracker-general',
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/badge-72x72.png',
+          ...options
+        });
+      })()
+    );
     return;
   }
 });

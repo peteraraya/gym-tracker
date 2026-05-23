@@ -60,6 +60,8 @@ export async function startRestNotification(
     _restInterval = null;
   }
 
+  // Intervalo solo como heartbeat por si el SW se reinicia.
+  // El SW maneja sus propias actualizaciones cada 5s.
   _restInterval = window.setInterval(() => {
     const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
     postToSW({ type: 'UPDATE_REST', remaining, title, nextExercise, tag });
@@ -69,7 +71,7 @@ export async function startRestNotification(
         _restInterval = null;
       }
     }
-  }, 1000);
+  }, 30000);
 }
 
 export async function updateRestNotification(remaining: number, tag = 'rest-timer') {
