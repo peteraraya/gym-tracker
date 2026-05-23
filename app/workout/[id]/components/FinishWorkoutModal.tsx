@@ -1,7 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { NumericInput } from '@/components/ui/NumericInput';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface FinishWorkoutModalProps {
   isOpen: boolean;
@@ -10,7 +13,7 @@ interface FinishWorkoutModalProps {
   onDurationChange: (duration: number) => void;
   sessionNotes: string;
   onNotesChange: (notes: string) => void;
-  onFinish: () => void;
+  onFinish: (duration: number) => void;
   isSaving: boolean;
 }
 
@@ -24,9 +27,19 @@ export function FinishWorkoutModal({
   onFinish,
   isSaving
 }: FinishWorkoutModalProps) {
-  const hours = Math.floor(proposedDuration / 3600);
-  const minutes = Math.floor((proposedDuration % 3600) / 60);
-  const seconds = proposedDuration % 60;
+  // Estado local para aislar los inputs del timer del padre que sigue corriendo
+  const [localHours, setLocalHours] = useState(() => Math.floor(proposedDuration / 3600));
+  const [localMinutes, setLocalMinutes] = useState(() => Math.floor((proposedDuration % 3600) / 60));
+  const [localSeconds, setLocalSeconds] = useState(() => proposedDuration % 60);
+
+  // Sincronizar con el tiempo real cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      setLocalHours(Math.floor(proposedDuration / 3600));
+      setLocalMinutes(Math.floor((proposedDuration % 3600) / 60));
+      setLocalSeconds(proposedDuration % 60);
+    }
+  }, [isOpen, proposedDuration]);
 
   const updateDuration = (h: number, m: number, s: number) => {
     const total = h * 3600 + m * 60 + s;
@@ -47,16 +60,14 @@ export function FinishWorkoutModal({
               <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1 text-center">
                 Horas
               </label>
-              <input
-                type="number"
-                min="0"
-                max="23"
-                value={hours}
-                onChange={(e) => {
-                  const h = Math.max(0, Math.min(23, parseInt(e.target.value) || 0));
-                  updateDuration(h, minutes, seconds);
+              <NumericInput
+                value={localHours}
+                onChange={(v) => {
+                  const h = Math.max(0, Math.min(23, v));
+                  setLocalHours(h);
+                  updateDuration(h, localMinutes, localSeconds);
                 }}
-                className="w-full p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
@@ -65,16 +76,14 @@ export function FinishWorkoutModal({
               <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1 text-center">
                 Minutos
               </label>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={minutes}
-                onChange={(e) => {
-                  const m = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
-                  updateDuration(hours, m, seconds);
+              <NumericInput
+                value={localMinutes}
+                onChange={(v) => {
+                  const m = Math.max(0, Math.min(59, v));
+                  setLocalMinutes(m);
+                  updateDuration(localHours, m, localSeconds);
                 }}
-                className="w-full p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
@@ -83,16 +92,14 @@ export function FinishWorkoutModal({
               <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1 text-center">
                 Segundos
               </label>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={seconds}
-                onChange={(e) => {
-                  const s = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
-                  updateDuration(hours, minutes, s);
+              <NumericInput
+                value={localSeconds}
+                onChange={(v) => {
+                  const s = Math.max(0, Math.min(59, v));
+                  setLocalSeconds(s);
+                  updateDuration(localHours, localMinutes, s);
                 }}
-                className="w-full p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-2 text-center text-lg font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -126,16 +133,18 @@ export function FinishWorkoutModal({
             Cancelar
           </Button>
           <Button
-            onClick={onFinish}
+            onClick={() => {
+              // Pasar la duración del estado local directamente para evitar race conditions
+              const localDuration = localHours * 3600 + localMinutes * 60 + localSeconds;
+              onDurationChange(localDuration);
+              onFinish(Math.max(localDuration, 60));
+            }}
             disabled={isSaving}
-            className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <Spinner size="md" />
                 <span>Guardando...</span>
               </span>
             ) : (

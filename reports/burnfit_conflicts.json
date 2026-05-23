@@ -1,0 +1,4786 @@
+{
+  "counts": {
+    "ex_total": 291,
+    "burn_total": 382,
+    "duplicates_by_id": 0,
+    "duplicates_by_name": 114,
+    "burn_missing_fields": 382
+  },
+  "duplicatesById": [],
+  "duplicatesByName": [
+    {
+      "burnfitId": "back-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "conventional-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "barbell-incline-bench-press",
+      "burnfitName": "Press Inclinado",
+      "existingId": "incline-bench"
+    },
+    {
+      "burnfitId": "dumbbell-fly",
+      "burnfitName": "Aperturas con Mancuernas",
+      "existingId": "chest-fly"
+    },
+    {
+      "burnfitId": "lat-pull-down",
+      "burnfitName": "Jalón al Pecho",
+      "existingId": "lat-pulldown"
+    },
+    {
+      "burnfitId": "dumbbell-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "barbell-overhead-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "handstand-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "air-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "jump-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "weighted-pull-up",
+      "burnfitName": "Dominadas",
+      "existingId": "pull-ups"
+    },
+    {
+      "burnfitId": "hindu-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "pull-up",
+      "burnfitName": "Dominadas",
+      "existingId": "pull-ups"
+    },
+    {
+      "burnfitId": "archer-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "zercher-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "barbell-bulgarian-split-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "dumbbell-bulgarian-split-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "dumbbell-split-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "bodyweight-split-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "dumbbell-goblet-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "kettlebell-goblet-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "incline-dumbbell-fly",
+      "burnfitName": "Aperturas con Mancuernas",
+      "existingId": "chest-fly"
+    },
+    {
+      "burnfitId": "weighted-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "close-grip-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "incline-dumbbell-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "incline-bench-press-machine",
+      "burnfitName": "Press Inclinado",
+      "existingId": "incline-bench"
+    },
+    {
+      "burnfitId": "close-grip-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "seated-dumbbell-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "cable-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "lying-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "v-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "reverse-v-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "smith-machine-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "hack-squat-machine",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "mag-grip-lat-pulldown",
+      "burnfitName": "Jalón al Pecho",
+      "existingId": "lat-pulldown"
+    },
+    {
+      "burnfitId": "paused-back-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "smith-machine-split-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "paused-sumo-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "smith-machine-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "paused-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "parallel-grip-lat-pulldown",
+      "burnfitName": "Jalón al Pecho",
+      "existingId": "lat-pulldown"
+    },
+    {
+      "burnfitId": "smith-machine-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "spoto-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "underhand-lat-pulldown",
+      "burnfitName": "Jalón al Pecho",
+      "existingId": "lat-pulldown"
+    },
+    {
+      "burnfitId": "trap-bar-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "cable-overhead-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "hammer-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "smith-machine-incline-bench-press",
+      "burnfitName": "Press Inclinado",
+      "existingId": "incline-bench"
+    },
+    {
+      "burnfitId": "dumbbell-sumo-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "pike-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "assisted-pull-up-machine",
+      "burnfitName": "Dominadas",
+      "existingId": "pull-ups"
+    },
+    {
+      "burnfitId": "decline-dumbbell-fly",
+      "burnfitName": "Aperturas con Mancuernas",
+      "existingId": "chest-fly"
+    },
+    {
+      "burnfitId": "weighted-hanging-knee-raise",
+      "burnfitName": "Elevación de Rodillas Colgado",
+      "existingId": "hanging-knee-raise"
+    },
+    {
+      "burnfitId": "barbell-split-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "dumbbell-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "barbell-box-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "barbell-decline-bench-press",
+      "burnfitName": "Press Declinado",
+      "existingId": "decline-bench"
+    },
+    {
+      "burnfitId": "stiff-leg-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "bodyweight-overhead-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "barbell-hack-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "barbell-jump-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "clap-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "incline-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "sumo-deadlift-high-pull",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "pistol-box-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "decline-dumbbell-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "rkc-plank",
+      "burnfitName": "Plancha",
+      "existingId": "plank"
+    },
+    {
+      "burnfitId": "dumbbell-romanian-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "bodyweight-single-leg-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "barbell-single-leg-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "kettlebell-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "kettlebell-sumo-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "dumbbell-sumo-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "dumbbell-stiff-leg-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "barbell-sumo-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "kettlebell-sumo-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "sumo-air-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "pistol-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "tricep-extension-machine",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "deficit-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "pendulum-squat-machine",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "linear-hack-squat-machine",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "bench-press-machine",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "decline-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "reverse-grip-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "parallel-grip-pull-up",
+      "burnfitName": "Dominadas",
+      "existingId": "pull-ups"
+    },
+    {
+      "burnfitId": "parallel-grip-weighted-pull-up",
+      "burnfitName": "Dominadas",
+      "existingId": "pull-ups"
+    },
+    {
+      "burnfitId": "ez-bar-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "close-grip-smith-machine-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "cable-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "one-arm-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "one-arm-pull-up",
+      "burnfitName": "Dominadas",
+      "existingId": "pull-ups"
+    },
+    {
+      "burnfitId": "smith-machine-bulgarian-split-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "alternating-dumbbell-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "belt-squat-machine",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "safety-bar-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "dumbbell-lying-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "ez-bar-lying-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "feet-up-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "one-arm-cable-lat-pulldown",
+      "burnfitName": "Jalón al Pecho",
+      "existingId": "lat-pulldown"
+    },
+    {
+      "burnfitId": "reverse-grip-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "pause-bench-press",
+      "burnfitName": "Press de Banca",
+      "existingId": "bench-press"
+    },
+    {
+      "burnfitId": "seated-barbell-tricep-extension",
+      "burnfitName": "Extensión de Tríceps",
+      "existingId": "tricep-extension"
+    },
+    {
+      "burnfitId": "trap-bar-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "dumbbell-front-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "plank-twist",
+      "burnfitName": "Plancha",
+      "existingId": "plank"
+    },
+    {
+      "burnfitId": "knee-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "bosu-single-leg-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "bosu-dumbbell-single-leg-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "leverage-squat-machine",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "wide-air-squat",
+      "burnfitName": "Sentadilla",
+      "existingId": "squat"
+    },
+    {
+      "burnfitId": "pseudo-planche-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    },
+    {
+      "burnfitId": "kettlebell-single-leg-deadlift",
+      "burnfitName": "Peso Muerto",
+      "existingId": "deadlift"
+    },
+    {
+      "burnfitId": "mike-tyson-push-ups",
+      "burnfitName": "Flexiones",
+      "existingId": "push-ups"
+    }
+  ],
+  "missingFields": [
+    {
+      "id": "back-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "conventional-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-bench-press",
+      "name": "Press de Banca (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-incline-bench-press",
+      "name": "Press Inclinado",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-fly",
+      "name": "Aperturas con Mancuernas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lat-pull-down",
+      "name": "Jalón al Pecho",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-shoulder-press",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-lateral-raise",
+      "name": "Mancuernas Lateral Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-front-raise",
+      "name": "Mancuernas Frontal Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-shrug",
+      "name": "Mancuernas Encogimiento (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-bicep-curl",
+      "name": "Curl de Bíceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-bicep-curl",
+      "name": "Curl de Bíceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-kickback",
+      "name": "Mancuernas Kickback (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-wrist-curl",
+      "name": "Mancuernas Wrist Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "clean",
+      "name": "Clean",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "clean-jerk",
+      "name": "Clean Jerk",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "jerk",
+      "name": "Jerk",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "snatch",
+      "name": "Snatch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-overhead-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "sit-up",
+      "name": "Sit Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "leg-raise",
+      "name": "Elevación de Piernas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "burpee",
+      "name": "Burpee",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "thruster",
+      "name": "Thruster",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bentover-dumbbell-lateral-raise",
+      "name": "Bentover Mancuernas Lateral Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "handstand-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "air-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "treadmill",
+      "name": "Treadmill",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cycle",
+      "name": "Cycle",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "jump-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-pull-up",
+      "name": "Dominadas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hindu-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "handstand",
+      "name": "Handstand",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "v-up",
+      "name": "V Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pull-up",
+      "name": "Dominadas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-dips",
+      "name": "Lastradas Dips (Lastradas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "archer-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dips",
+      "name": "Dips",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "mountain-climber",
+      "name": "Mountain Climber",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-step-up",
+      "name": "Lastradas Step Up (Lastradas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "chin-up",
+      "name": "Dominadas (supinado)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-push-down",
+      "name": "Cable Empuje Down",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "step-up",
+      "name": "Step Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "zercher-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hip-adduction-machine",
+      "name": "Hip Adduction Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-calf-raise",
+      "name": "Standing Gemelos Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "good-morning",
+      "name": "Good Morning",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-bulgarian-split-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-bulgarian-split-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-split-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bodyweight-split-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-goblet-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-goblet-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-hip-thrust",
+      "name": "Barra Hip Thrust (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-dumbbell-fly",
+      "name": "Aperturas con Mancuernas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "close-grip-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-dumbbell-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pec-deck-fly-machine",
+      "name": "Pec Deck Aperturas Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-bench-press-machine",
+      "name": "Press Inclinado",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-chin-up",
+      "name": "Dominadas (supinado)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-incline-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-incline-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-dumbbell-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-pullover",
+      "name": "Barra Pullover (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weight-hyperextension",
+      "name": "Weight Hyperextension",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "back-extension",
+      "name": "Trasera Extensión",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "arnold-dumbbell-press",
+      "name": "Arnold Mancuernas Press (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "shoulder-press-machine",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-shrug",
+      "name": "Barra Encogimiento (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "face-pull",
+      "name": "Face Jalón",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-reverse-fly",
+      "name": "Cable Reverse Aperturas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-upright-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-upright-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-upright-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-hammer-curl",
+      "name": "Mancuernas Hammer Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "close-grip-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-dumbbell-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-wrist-curl",
+      "name": "Ez Bar Wrist Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "skull-crusher",
+      "name": "Skull Crusher",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lying-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "crunch",
+      "name": "Crunch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "heel-touch",
+      "name": "Heel Touch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hollow-rock",
+      "name": "Hollow Rock",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hollow-position",
+      "name": "Hollow Position",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-side-bend",
+      "name": "Mancuernas Side Bend (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "abs-roll-out",
+      "name": "Abs Roll Out",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "air-bicycle-abs",
+      "name": "Air Bicycle Abs",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "toes-to-bar",
+      "name": "Pies a la Barra",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "push-press",
+      "name": "Empuje Press",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "wallball-shot",
+      "name": "Wallball Shot",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "box-jump",
+      "name": "Salto al Cajón",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "jumping-jack",
+      "name": "Jumping Jack",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "v-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-v-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "t-bar-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-preacher-curl",
+      "name": "Mancuernas Preacher Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-preacher-curl",
+      "name": "Barra Preacher Curl (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-preacher-curl",
+      "name": "Ez Bar Preacher Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "preacher-curl-machine",
+      "name": "Preacher Curl Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-pec-deck-fly-machine",
+      "name": "Reverse Pec Deck Aperturas Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hip-abduction-machine",
+      "name": "Hip Abduction Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-overhead-press",
+      "name": "Smith Máquina Overhead Press (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "glute-kickback-machine",
+      "name": "Glute Kickback Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-snatch",
+      "name": "Kettlebell Snatch (Kettlebell)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bar-muscle-up",
+      "name": "Bar Muscle Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-dips-machine",
+      "name": "Seated Dips Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "arm-curl-machine",
+      "name": "Brazo Curl Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "high-knee-skip",
+      "name": "High Knee Skip",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hack-squat-machine",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "mag-grip-lat-pulldown",
+      "name": "Jalón al Pecho",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "abdominal-crunch-machine",
+      "name": "Crunch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "paused-back-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-split-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "low-pulley-cable-fly",
+      "name": "Low Pulley Cable Aperturas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-straight-arm-pulldown",
+      "name": "Cable Straight Brazo Pulldown",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "paused-barbell-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "paused-sumo-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lateral-raise-machine",
+      "name": "Lateral Elevación Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "climbing-stairs",
+      "name": "Climbing Stairs",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "paused-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "parallel-grip-lat-pulldown",
+      "name": "Jalón al Pecho",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "jumping-rope",
+      "name": "Jumping Rope",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-hammer-curl",
+      "name": "Cable Hammer Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "spoto-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "underhand-lat-pulldown",
+      "name": "Jalón al Pecho",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-shrug",
+      "name": "Smith Máquina Encogimiento (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "trap-bar-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-overhead-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-snatch",
+      "name": "Mancuernas Snatch (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hammer-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ring-muscle-up",
+      "name": "Ring Muscle Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "double-under",
+      "name": "Double Under",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-calf-raise-machine",
+      "name": "Seated Gemelos Elevación Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-incline-bench-press",
+      "name": "Press Inclinado",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "floor-seated-cable-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-sumo-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pike-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "assisted-pull-up-machine",
+      "name": "Dominadas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-lateral-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "decline-dumbbell-fly",
+      "name": "Aperturas con Mancuernas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-hanging-knee-raise",
+      "name": "Elevación de Rodillas Colgado",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "assisted-dip-machine",
+      "name": "Assisted Dip Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-split-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-box-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "snatch-balance",
+      "name": "Snatch Balance",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-burpee",
+      "name": "Burpee",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "shoulder-tap",
+      "name": "Shoulder Tap",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-floor-chest-press",
+      "name": "Barra Floor Chest Press (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-standing-calf-raise",
+      "name": "Barra Standing Gemelos Elevación (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-leg-curl",
+      "name": "Mancuernas Pierna Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-decline-bench-press",
+      "name": "Press Declinado",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "battling-ropes",
+      "name": "Battling Ropes",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-thruster",
+      "name": "Mancuernas Thruster (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-front-raise",
+      "name": "Ez Bar Frontal Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "stiff-leg-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-dumbbell-rear-lateral-raise",
+      "name": "Seated Mancuernas Rear Lateral Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-front-rack-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bodyweight-overhead-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "inchworm",
+      "name": "Inchworm",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-front-raise",
+      "name": "Barra Frontal Elevación (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-hack-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-jump-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "clap-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "sumo-deadlift-high-pull",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lateral-wide-pull-down",
+      "name": "Lateral Wide Jalón Down",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "clean-high-pull",
+      "name": "Clean High Jalón",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hang-clean",
+      "name": "Hang Clean",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-sumo-high-pull",
+      "name": "Kettlebell Sumo High Jalón (Kettlebell)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "snatch-high-pull",
+      "name": "Snatch High Jalón",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hang-snatch",
+      "name": "Hang Snatch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bodyweight-calf-raise",
+      "name": "Peso corporal Gemelos Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "stepmill-machine",
+      "name": "Stepmill Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pistol-box-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-crunch",
+      "name": "Crunch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-barbell-curl",
+      "name": "Reverse Barra Curl (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pilates-jackknife",
+      "name": "Pilates Jackknife",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lying-hip-abduction",
+      "name": "Lying Hip Abduction",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "decline-dumbbell-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "rkc-plank",
+      "name": "Plancha",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-barbell-wrist-curl",
+      "name": "Reverse Barra Wrist Curl (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-leg-curl",
+      "name": "Seated Pierna Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "side-lying-clam",
+      "name": "Side Lying Clam",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-dumbbell-wrist-curl",
+      "name": "Reverse Mancuernas Wrist Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "decline-chest-press-machine",
+      "name": "Declinado Chest Press Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "single-leg-glute-bridge",
+      "name": "Single Pierna Glute Bridge",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-romanian-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "45-degree-side-bend",
+      "name": "45 Degree Side Bend",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "underhand-barbell-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lying-barbell-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-dumbbell-twist-press",
+      "name": "Inclinado Mancuernas Twist Press (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-cable-fly",
+      "name": "Standing Cable Aperturas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bodyweight-single-leg-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-single-leg-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-sumo-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-sumo-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-stiff-leg-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-lateral-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-lateral-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bodyweight-lateral-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "single-leg-leg-extension",
+      "name": "Single Pierna Pierna Extensión",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "single-leg-leg-curl",
+      "name": "Single Pierna Pierna Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "single-leg-leg-press",
+      "name": "Single Pierna Pierna Press",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "horizontal-leg-press",
+      "name": "Horizontal Pierna Press",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "single-leg-horizontal-leg-press",
+      "name": "Single Pierna Horizontal Pierna Press",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-single-leg-leg-curl",
+      "name": "Seated Single Pierna Pierna Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "nordic-hamstring-curl",
+      "name": "Nordic Hamstring Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-sumo-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-sumo-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "sumo-air-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pistol-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-barbell-shoulder-press",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-dumbbell-shoulder-press",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "plate-shoulder-press",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "tricep-extension-machine",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "behind-neck-pulldown",
+      "name": "Behind Neck Pulldown",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-cable-pulldown",
+      "name": "One Brazo Cable Pulldown",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-lateral-wide-pulldown",
+      "name": "One Brazo Lateral Wide Pulldown",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "y-raise",
+      "name": "Y Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "low-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-low-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "high-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "underhand-high-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-high-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "shrug-machine",
+      "name": "Encogimiento Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-shrug",
+      "name": "Cable Encogimiento",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "donkey-kick",
+      "name": "Donkey Kick",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-donkey-kick",
+      "name": "Cable Donkey Kick",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-side-bend",
+      "name": "Cable Side Bend",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-decline-crunch",
+      "name": "Crunch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "decline-reverse-crunch",
+      "name": "Crunch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "decline-sit-up",
+      "name": "Sit Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-decline-sit-up",
+      "name": "Sit Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "side-crunch",
+      "name": "Crunch",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "deficit-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "turkish-get-up",
+      "name": "Turkish Get Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lunge-twist",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-lunge-twist",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-chest-press-machine",
+      "name": "Inclinado Chest Press Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-twist",
+      "name": "Cable Twist",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "elliptical-machine",
+      "name": "Elliptical Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-internal-rotation",
+      "name": "Cable Internal Rotation",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-external-rotation",
+      "name": "Cable External Rotation",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-cable-lateral-raise",
+      "name": "One Brazo Cable Lateral Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-cable-seated-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-squeeze-press",
+      "name": "Mancuernas Squeeze Press (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-landmine-press",
+      "name": "One Brazo Landmine Press",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "monster-glute-machine",
+      "name": "Monster Glute Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "abdominal-hip-thrust",
+      "name": "Abdominal Hip Thrust",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "weighted-abdominal-hip-thrust",
+      "name": "Lastradas Abdominal Hip Thrust (Lastradas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "walking",
+      "name": "Walking",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "running",
+      "name": "Running",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bentover-cable-lateral-raise",
+      "name": "Bentover Cable Lateral Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-dumbbell-lateral-raise",
+      "name": "One Brazo Mancuernas Lateral Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "hand-gripper-exercise",
+      "name": "Hand Gripper Exercise",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "torso-rotation-machine",
+      "name": "Torso Rotation Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "rack-pull",
+      "name": "Rack Jalón",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-rack-pull",
+      "name": "Smith Máquina Rack Jalón (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-multi-flight-machine",
+      "name": "Standing Multi Flight Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-incline-rear-lateral-raise",
+      "name": "Mancuernas Inclinado Rear Lateral Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-shoulder-press",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-kettlebell-shoulder-press",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-dumbbell-incline-lateral-raise",
+      "name": "One Brazo Mancuernas Inclinado Lateral Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-dumbbell-shoulder-press",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pendulum-squat-machine",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bentover-lateral-raise-machine",
+      "name": "Bentover Lateral Elevación Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-rope-push-down",
+      "name": "Cable Rope Empuje Down",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "linear-hack-squat-machine",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-shoulder-press-machine",
+      "name": "Press de Hombros",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-standing-calf-raise",
+      "name": "Mancuernas Standing Gemelos Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "middle-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-knee-up",
+      "name": "Seated Knee Up",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "side-lying-rear-delt-raise",
+      "name": "Side Lying Rear Delt Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "side-lying-lateral-raise",
+      "name": "Side Lying Lateral Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "back-extension-machine",
+      "name": "Trasera Extensión Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-backward-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-backward-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bodyweight-backwar-lunge",
+      "name": "Zancada",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bench-press-machine",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-jm-press",
+      "name": "Barra Jm Press (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-jm-press",
+      "name": "Smith Máquina Jm Press (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-hamstring-curl-machine",
+      "name": "Standing Hamstring Curl Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "glute-ham-raise",
+      "name": "Glute Ham Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-barbell-front-raise",
+      "name": "Inclinado Barra Frontal Elevación (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-ez-bar-front-raise",
+      "name": "Inclinado Ez Bar Frontal Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-dumbbell-front-raise",
+      "name": "Inclinado Mancuernas Frontal Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-incline-front-raise",
+      "name": "Barra Inclinado Frontal Elevación (Barra)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-incline-front-raise",
+      "name": "Ez Bar Inclinado Frontal Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-incline-front-raise",
+      "name": "Mancuernas Inclinado Frontal Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-reverse-curl",
+      "name": "Ez Bar Reverse Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "plate-front-raise-with-rotation",
+      "name": "Plate Frontal Elevación With Rotation",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "decline-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-grip-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "parallel-grip-pull-up",
+      "name": "Dominadas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "parallel-grip-weighted-pull-up",
+      "name": "Dominadas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-dumbbell-lateral-raise",
+      "name": "Seated Mancuernas Lateral Elevación (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "close-grip-smith-machine-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-behind-back-wrist-curl",
+      "name": "Ez Bar Behind Trasera Wrist Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-dumbbell-wrist-curl",
+      "name": "One Brazo Mancuernas Wrist Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-cable-fly",
+      "name": "One Brazo Cable Aperturas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-pull-up",
+      "name": "Dominadas",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "stand-to-stand-bridge",
+      "name": "Stand To Stand Bridge",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "full-back-bridge",
+      "name": "Full Trasera Bridge",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-bulgarian-split-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "alternating-dumbbell-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "belt-squat-machine",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "safety-bar-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-dumbbell-pull-over",
+      "name": "Inclinado Mancuernas Jalón Over (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-lying-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ez-bar-lying-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "feet-up-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ab-coaster-machine",
+      "name": "Ab Coaster Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-cable-lat-pulldown",
+      "name": "Jalón al Pecho",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-grip-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "incline-dumbbell-hammer-curl",
+      "name": "Inclinado Mancuernas Hammer Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "lying-cable-pull-over",
+      "name": "Lying Cable Jalón Over",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-upright-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-hip-thrust",
+      "name": "Smith Máquina Hip Thrust (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "smith-machine-behind-neck-press",
+      "name": "Smith Máquina Behind Neck Press (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pause-bench-press",
+      "name": "Press de Banca",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-lateral-raise-machine",
+      "name": "Standing Lateral Elevación Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-skull-crusher",
+      "name": "Mancuernas Skull Crusher (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-barbell-tricep-extension",
+      "name": "Extensión de Tríceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "donkey-calf-raise",
+      "name": "Donkey Gemelos Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-cable-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "trap-bar-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "trap-bar-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "trap-bar-overhead-press",
+      "name": "Trap Bar Overhead Press",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bicep-curl-machine",
+      "name": "Curl de Bíceps",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "chest-fly-machine",
+      "name": "Chest Aperturas Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dy-row-machine",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-front-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "plank-twist",
+      "name": "Plancha",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "behind-back-wrist-curl",
+      "name": "Behind Trasera Wrist Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "tricep-press-machine",
+      "name": "Tricep Press Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "inner-chest-press-machine",
+      "name": "Inner Chest Press Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "knee-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-kettlebell-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "high-pulley-cable-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bosu-single-leg-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bosu-dumbbell-single-leg-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "leverage-squat-machine",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "fire-hydrant",
+      "name": "Fire Hydrant",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "wide-air-squat",
+      "name": "Sentadilla",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-dumbbell-curl",
+      "name": "One Brazo Mancuernas Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-dumbbell-hammer-curl",
+      "name": "One Brazo Mancuernas Hammer Curl (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "yoga",
+      "name": "Yoga",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "reverse-ez-bar-wrist-curl",
+      "name": "Reverse Ez Bar Wrist Curl",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "pseudo-planche-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "standing-hip-abduction",
+      "name": "Standing Hip Abduction",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-face-pull",
+      "name": "One Brazo Face Jalón",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "rotary-calf-machine",
+      "name": "Rotary Gemelos Máquina (Máquina)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "ski-ergometer",
+      "name": "Ski Ergometer",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kick-boxing",
+      "name": "Kick Boxing",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "barbell-incline-rear-delt-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "high-pulley-one-arm-cable-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "low-pulley-one-arm-cable-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "kettlebell-single-leg-deadlift",
+      "name": "Peso Muerto",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "mike-tyson-push-ups",
+      "name": "Flexiones",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "one-arm-kettlebell-swing",
+      "name": "One Brazo Kettlebell Swing (Kettlebell)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "low-pulley-cable-rope-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "seated-cable-rear-lateral-raise",
+      "name": "Seated Cable Rear Lateral Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "cable-rear-lateral-raise",
+      "name": "Cable Rear Lateral Elevación",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "bird-dog",
+      "name": "Bird Dog",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-wrist-supination",
+      "name": "Mancuernas Wrist Supination (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "dumbbell-wrist-radial-flexion",
+      "name": "Mancuernas Wrist Radial Flexion (Mancuernas)",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    },
+    {
+      "id": "chest-supported-t-bar-row",
+      "name": "Remo",
+      "missing": [
+        "technique",
+        "description",
+        "recommendedSets",
+        "recommendedReps",
+        "restTime"
+      ]
+    }
+  ]
+}

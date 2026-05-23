@@ -1,6 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+// Guard: retornar error si la base de datos está deshabilitada
+function dbDisabledResponse() {
+  if (process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
+    return NextResponse.json(
+      { error: 'Base de datos deshabilitada. Usa almacenamiento local.' },
+      { status: 503 }
+    );
+  }
+  return null;
+}
+
 // Tipos para mejor validación
 interface SessionExercise {
   exerciseId: string;
@@ -20,6 +31,8 @@ interface CreateSessionBody {
 }
 
 export async function GET() {
+  const guard = dbDisabledResponse();
+  if (guard) return guard;
   try {
     const supabase = await createClient()
     
@@ -41,7 +54,7 @@ export async function GET() {
       )
     }
 
-    console.log('[Sessions API] Fetching sessions for user:', user.id)
+    // console.log('[Sessions API] Fetching sessions for user:', user.id)
 
     // Get sessions with routine info
     const { data: sessions, error } = await supabase
@@ -65,7 +78,7 @@ export async function GET() {
       )
     }
 
-    console.log(`[Sessions API] Found ${sessions?.length || 0} sessions`)
+    // console.log(`[Sessions API] Found ${sessions?.length || 0} sessions`)
 
     // Transform to match frontend format
     const formattedSessions = sessions?.map(session => ({
@@ -106,6 +119,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const guard = dbDisabledResponse();
+  if (guard) return guard;
   try {
     const supabase = await createClient()
     
@@ -145,7 +160,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log(`[Sessions API] Creating session for routine ${routineId} with ${exercises.length} exercises`)
+    // console.log(`[Sessions API] Creating session for routine ${routineId} with ${exercises.length} exercises`)
 
     // Create session
     const { data: session, error: sessionError } = await supabase
@@ -168,7 +183,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('[Sessions API] Session created:', session.id)
+    // console.log('[Sessions API] Session created:', session.id)
 
     // Create session exercises
     const sessionExercisesData = exercises.map((ex: SessionExercise) => ({
@@ -188,7 +203,7 @@ export async function POST(request: Request) {
     if (exercisesError) {
       console.error('[Sessions API] Error creating session exercises:', exercisesError.message)
       // Rollback: delete the session
-      console.log('[Sessions API] Rolling back session:', session.id)
+      // console.log('[Sessions API] Rolling back session:', session.id)
       await supabase.from('workout_sessions').delete().eq('id', session.id)
       return NextResponse.json(
         { error: 'Error al guardar los ejercicios', details: exercisesError.message }, 
@@ -196,7 +211,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('[Sessions API] Session exercises created successfully')
+    // console.log('[Sessions API] Session exercises created successfully')
 
     return NextResponse.json({ success: true, id: session.id }, { status: 201 })
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { Routine, Exercise } from '@/types';
 
 /**
@@ -24,6 +24,7 @@ interface WorkoutData {
   actualSetDurations: { [key: string]: number[] };
   actualPauseDurations: { [key: string]: number[] };
   actualRestTimes: { [key: string]: number[] };
+  skippedExercises: string[]; // ✅ Array de exerciseIds omitidos
   // ✅ Timestamp para forzar re-renders cuando cambia el estado
   _lastUpdate?: number;
 }
@@ -50,6 +51,7 @@ interface UseWorkoutStateReturn {
   
   // Acciones
   completeSet: (exerciseId: string, reps: number, weight: number) => void;
+  completeSetAt: (exerciseId: string, setIndex: number, reps: number, weight: number) => void;
   updateCompletedSets: (exerciseId: string, count: number) => void;
   updateActualReps: (exerciseId: string, reps: number[]) => void;
   updateActualWeights: (exerciseId: string, weights: number[]) => void;
@@ -59,6 +61,8 @@ interface UseWorkoutStateReturn {
   updateSetDuration: (exerciseId: string, setIndex: number, duration: number) => void;
   updatePauseDuration: (exerciseId: string, setIndex: number, duration: number) => void;
   updateRestTime: (exerciseId: string, setIndex: number, duration: number) => void;
+  skipExercise: (exerciseId: string) => void;
+  unskipExercise: (exerciseId: string) => void;
   
   // Utilidades
   reset: () => void;
@@ -90,6 +94,7 @@ export function useWorkoutState(
     actualSetDurations: {},
     actualPauseDurations: {},
     actualRestTimes: {},
+    skippedExercises: [], // ✅ Inicializar array vacío
   });
 
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -115,7 +120,7 @@ export function useWorkoutState(
   useEffect(() => {
     const timer = setTimeout(() => {
       isInitializingRef.current = false;
-      console.log('[useWorkoutState] ✅ Initialization complete, ready to save');
+      // console.log('[useWorkoutState] ✅ Initialization complete, ready to save');
     }, 100);
     return () => clearTimeout(timer);
   }, []);
@@ -142,17 +147,62 @@ export function useWorkoutState(
         _lastUpdate: Date.now() // ✅ Forzar detección de cambios
       };
       
-      // ✅ Guardar inmediatamente después de actualizar estado
+      // ✅ Guardar inmediatamente usando queueMicrotask para garantizar orden
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
-          console.log('[useWorkoutState] 💾 Saving after completeSet');
+        queueMicrotask(() => {
+          // console.log('[useWorkoutState] 💾 Saving after completeSet');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
     });
   }, []);
+
+  /**
+   * Completa (o actualiza) una serie en un índice específico.
+   * Esto escribe las reps/peso en la posición `setIndex` en lugar de hacer append.
+   */
+  const completeSetAt = useCallback(
+    (exerciseId: string, setIndex: number, reps: number, weight: number) => {
+      setWorkoutData((prev) => {
+        const prevReps = [...(prev.actualReps[exerciseId] || [])];
+        const prevWeights = [...(prev.actualWeights[exerciseId] || [])];
+
+        // Asegurar longitud suficiente
+        while (prevReps.length <= setIndex) prevReps.push(0);
+        while (prevWeights.length <= setIndex) prevWeights.push(0);
+
+        prevReps[setIndex] = reps;
+        prevWeights[setIndex] = weight;
+
+        // Usar el conteo previo como base y sólo incrementar hasta setIndex+1.
+        // Esto evita que reps pre-editadas de series futuras inflen el contador.
+        const completedCount = Math.max(
+          prev.completedSets[exerciseId] ?? 0,
+          setIndex + 1,
+        );
+
+        const newData = {
+          ...prev,
+          actualReps: { ...prev.actualReps, [exerciseId]: prevReps },
+          actualWeights: { ...prev.actualWeights, [exerciseId]: prevWeights },
+          completedSets: { ...prev.completedSets, [exerciseId]: completedCount },
+          _lastUpdate: Date.now(),
+        };
+
+        if (!isInitializingRef.current && onDataChangeRef.current) {
+          queueMicrotask(() => {
+            // console.log('[useWorkoutState] 💾 Saving after completeSetAt');
+            onDataChangeRef.current?.(newData);
+          });
+        }
+
+        return newData;
+      });
+    },
+    [],
+  );
 
   /**
    * Actualiza el número de series completadas
@@ -165,12 +215,12 @@ export function useWorkoutState(
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateCompletedSets');
+        queueMicrotask(() => {
+          // console.log('[useWorkoutState] 💾 Saving after updateCompletedSets');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -178,22 +228,37 @@ export function useWorkoutState(
   }, []);
 
   /**
+   * Valida un número para asegurar que sea válido y esté en rango
+   */
+  const validateNumber = (value: any, max: number): number => {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num < 0) {
+      return 0;
+    }
+    const rounded = Math.round(num * 100) / 100; // Redondear a 2 decimales
+    return Math.min(rounded, max);
+  };
+
+  /**
    * Actualiza las repeticiones reales
    */
   const updateActualReps = useCallback((exerciseId: string, reps: number[]) => {
+    // ✅ Validar cada repetición
+    const validatedReps = reps.map(r => validateNumber(r, 999)); // Máximo 999 reps
+    
     setWorkoutData(prev => {
       const newData = {
         ...prev,
-        actualReps: { ...prev.actualReps, [exerciseId]: reps },
+        actualReps: { ...prev.actualReps, [exerciseId]: validatedReps },
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateActualReps');
+        queueMicrotask(() => {
+          // console.log('[useWorkoutState] 💾 Saving after updateActualReps');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -204,19 +269,22 @@ export function useWorkoutState(
    * Actualiza los pesos reales
    */
   const updateActualWeights = useCallback((exerciseId: string, weights: number[]) => {
+    // ✅ Validar cada peso
+    const validatedWeights = weights.map(w => validateNumber(w, 9999)); // Máximo 9999 kg
+    
     setWorkoutData(prev => {
       const newData = {
         ...prev,
-        actualWeights: { ...prev.actualWeights, [exerciseId]: weights },
+        actualWeights: { ...prev.actualWeights, [exerciseId]: validatedWeights },
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateActualWeights');
+        queueMicrotask(() => {
+          // console.log('[useWorkoutState] 💾 Saving after updateActualWeights');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -236,12 +304,12 @@ export function useWorkoutState(
         _lastUpdate: Date.now()
       };
       
-      // ✅ Guardar inmediatamente
+      // ✅ Guardar inmediatamente usando queueMicrotask
       if (!isInitializingRef.current && onDataChangeRef.current) {
-        setTimeout(() => {
-          console.log('[useWorkoutState] 💾 Saving after updateSetType');
+        queueMicrotask(() => {
+          // console.log('[useWorkoutState] 💾 Saving after updateSetType');
           onDataChangeRef.current?.(newData);
-        }, 0);
+        });
       }
       
       return newData;
@@ -252,11 +320,26 @@ export function useWorkoutState(
    * Actualiza el descanso global del ejercicio
    */
   const updateRestOverride = useCallback((exerciseId: string, duration: number) => {
-    setWorkoutData(prev => ({
-      ...prev,
-      restOverrides: { ...prev.restOverrides, [exerciseId]: duration },
-      _lastUpdate: Date.now()
-    }));
+    setWorkoutData(prev => {
+      // Limpiar per-set overrides del ejercicio para que el override de nivel ejercicio tenga efecto
+      const newPerSetOverrides = { ...prev.perSetRestOverrides };
+      delete newPerSetOverrides[exerciseId];
+
+      const newData = {
+        ...prev,
+        restOverrides: { ...prev.restOverrides, [exerciseId]: duration },
+        perSetRestOverrides: newPerSetOverrides,
+        _lastUpdate: Date.now()
+      };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
+    });
   }, []);
 
   /**
@@ -266,11 +349,19 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const overrides = [...(prev.perSetRestOverrides[exerciseId] || [])];
       overrides[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         perSetRestOverrides: { ...prev.perSetRestOverrides, [exerciseId]: overrides },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
 
@@ -281,11 +372,19 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const durations = [...(prev.actualSetDurations[exerciseId] || [])];
       durations[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         actualSetDurations: { ...prev.actualSetDurations, [exerciseId]: durations },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
 
@@ -296,11 +395,19 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const durations = [...(prev.actualPauseDurations[exerciseId] || [])];
       durations[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         actualPauseDurations: { ...prev.actualPauseDurations, [exerciseId]: durations },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
 
@@ -311,23 +418,147 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const times = [...(prev.actualRestTimes[exerciseId] || [])];
       times[setIndex] = duration;
-      return {
+      const newData = {
         ...prev,
         actualRestTimes: { ...prev.actualRestTimes, [exerciseId]: times },
         _lastUpdate: Date.now()
       };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
     });
   }, []);
+
+  /**
+   * Omite un ejercicio (lo agrega a la lista de omitidos)
+   */
+  const skipExercise = useCallback((exerciseId: string) => {
+    setWorkoutData(prev => {
+      const skippedExercises = prev.skippedExercises || [];
+      if (skippedExercises.includes(exerciseId)) {
+        return prev; // Ya está omitido
+      }
+      
+      const newData = {
+        ...prev,
+        skippedExercises: [...skippedExercises, exerciseId],
+        _lastUpdate: Date.now()
+      };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          // console.log('[useWorkoutState] 💾 Saving after skipExercise');
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
+    });
+  }, []);
+
+  /**
+   * Desomite un ejercicio (lo remueve de la lista de omitidos)
+   */
+  const unskipExercise = useCallback((exerciseId: string) => {
+    setWorkoutData(prev => {
+      const skippedExercises = prev.skippedExercises || [];
+      const newData = {
+        ...prev,
+        skippedExercises: skippedExercises.filter(id => id !== exerciseId),
+        _lastUpdate: Date.now()
+      };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          // console.log('[useWorkoutState] 💾 Saving after unskipExercise');
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
+      return newData;
+    });
+  }, []);
+
+  /**
+   * Valida la estructura de WorkoutData
+   */
+  const validateWorkoutData = (data: any): boolean => {
+    if (!data || typeof data !== 'object') return false;
+    
+    // Validar que los campos requeridos sean objetos
+    const requiredFields = [
+      'completedSets', 'actualReps', 'actualWeights', 'setTypes',
+      'lastWeights', 'restOverrides', 'perSetRestOverrides',
+      'actualSetDurations', 'actualPauseDurations', 'actualRestTimes'
+    ];
+    
+    for (const field of requiredFields) {
+      if (data[field] && typeof data[field] !== 'object') {
+        console.warn(`[useWorkoutState] Invalid field type: ${field}`);
+        return false;
+      }
+    }
+    
+    // Validar que skippedExercises sea un array si existe
+    if (data.skippedExercises && !Array.isArray(data.skippedExercises)) {
+      console.warn(`[useWorkoutState] Invalid field type: skippedExercises must be array`);
+      return false;
+    }
+    
+    return true;
+  };
 
   /**
    * Restaura datos desde storage
    */
   const restoreData = useCallback((data: Partial<WorkoutData>) => {
-    console.log('[useWorkoutState] 🔄 Restoring data:', data);
+    // console.log('[useWorkoutState] 🔄 Restoring data:', data);
+    
+    // ✅ Validar estructura antes de restaurar
+    if (!validateWorkoutData(data)) {
+      console.error('[useWorkoutState] ❌ Invalid data structure, skipping restore');
+      return;
+    }
+    
+    // ✅ Validar y limpiar arrays numéricos
+    const sanitizedData: Partial<WorkoutData> = { ...data };
+    
+    if (data.actualReps) {
+      sanitizedData.actualReps = {};
+      for (const [key, value] of Object.entries(data.actualReps)) {
+        if (Array.isArray(value)) {
+          sanitizedData.actualReps[key] = value.map(r => validateNumber(r, 999));
+        }
+      }
+    }
+    
+    if (data.actualWeights) {
+      sanitizedData.actualWeights = {};
+      for (const [key, value] of Object.entries(data.actualWeights)) {
+        if (Array.isArray(value)) {
+          sanitizedData.actualWeights[key] = value.map(w => validateNumber(w, 9999));
+        }
+      }
+    }
+    
+    // ✅ Validar y limpiar skippedExercises
+    if (data.skippedExercises) {
+      if (Array.isArray(data.skippedExercises)) {
+        sanitizedData.skippedExercises = data.skippedExercises.filter(id => typeof id === 'string');
+      } else {
+        sanitizedData.skippedExercises = [];
+      }
+    }
+    
     setWorkoutData(prev => ({
       ...prev,
-      ...data,
-      _lastUpdate: Date.now() // ✅ Agregar timestamp para que se detecte el cambio
+      ...sanitizedData,
+      _lastUpdate: Date.now()
     }));
   }, []);
 
@@ -346,6 +577,7 @@ export function useWorkoutState(
       actualSetDurations: {},
       actualPauseDurations: {},
       actualRestTimes: {},
+      skippedExercises: [], // ✅ Resetear ejercicios omitidos
     });
     setCurrentExerciseIndex(0);
     setCurrentSet(1);
@@ -367,7 +599,8 @@ export function useWorkoutState(
     };
   }, []);
 
-  return {
+  // Memoizar el objeto devuelto para evitar re-ejecución de efectos
+  const returnValue = useMemo(() => ({
     // Estado
     workoutData,
     currentExerciseIndex,
@@ -375,16 +608,17 @@ export function useWorkoutState(
     currentReps,
     currentWeight,
     sessionNotes,
-    
+
     // Setters
     setCurrentExerciseIndex,
     setCurrentSet,
     setCurrentReps,
     setCurrentWeight,
     setSessionNotes,
-    
+
     // Acciones
     completeSet,
+    completeSetAt,
     updateCompletedSets,
     updateActualReps,
     updateActualWeights,
@@ -394,10 +628,37 @@ export function useWorkoutState(
     updateSetDuration,
     updatePauseDuration,
     updateRestTime,
-    
+    skipExercise,
+    unskipExercise,
+
     // Utilidades
     reset,
     restoreData,
     getExerciseData,
-  };
+  }), [
+    workoutData,
+    currentExerciseIndex,
+    currentSet,
+    currentReps,
+    currentWeight,
+    sessionNotes,
+    completeSet,
+    completeSetAt,
+    updateCompletedSets,
+    updateActualReps,
+    updateActualWeights,
+    updateSetType,
+    updateRestOverride,
+    updatePerSetRestOverride,
+    updateSetDuration,
+    updatePauseDuration,
+    updateRestTime,
+    skipExercise,
+    unskipExercise,
+    reset,
+    restoreData,
+    getExerciseData,
+  ]);
+
+  return returnValue;
 }

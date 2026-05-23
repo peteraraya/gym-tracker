@@ -26,7 +26,7 @@ vi.mock('@/components/ui/Input', () => ({
 }));
 
 // Mock del componente WeightSelector
-vi.mock('@/components/WeightSelector', () => ({
+vi.mock('@/components/features/workout/WeightSelector', () => ({
   WeightSelector: ({ value, onChange }: any) => (
     <input
       type="number"
@@ -38,13 +38,13 @@ vi.mock('@/components/WeightSelector', () => ({
 }));
 
 // Mock del componente SetTypeSelector
-vi.mock('@/components/SetTypeSelector', () => ({
+vi.mock('@/components/features/workout/SetTypeSelector', () => ({
   SetTypeSelector: () => <div>SetTypeSelector</div>,
   SetTypeBadge: ({ type }: any) => <span>{type}</span>
 }));
 
 // Mock del componente SetTypeCycleButton
-vi.mock('@/components/SetTypeCycleButton', () => ({
+vi.mock('@/components/features/workout/SetTypeCycleButton', () => ({
   default: ({ value, onChange }: any) => (
     <button onClick={() => onChange('normal')} data-testid="cycle-button">
       {value}

@@ -1,18 +1,19 @@
 /**
  * Optimized Lucide React Icons
- * 
+ *
  * Named imports from main package for better compatibility
  */
 
 export {
   // Navigation & UI
   Menu,
+  Grid3x3,
   X,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
   ChevronRight,
-  
+
   // Stats & Charts
   Calendar,
   Award,
@@ -21,7 +22,7 @@ export {
   BarChart3,
   Activity,
   Target,
-  
+
   // Fitness
   Dumbbell,
   Flame,
@@ -29,7 +30,7 @@ export {
   Weight,
   Repeat,
   ListChecks,
-  
+
   // Actions
   Plus,
   Minus,
@@ -42,14 +43,14 @@ export {
   Bot,
   Send,
   Bell,
-  
+
   // Alerts
   CheckCircle,
   XCircle,
   AlertCircle,
   AlertTriangle,
   Info,
-  
+
   // Misc
   Settings,
   User,
@@ -72,6 +73,10 @@ export {
   Circle,
   FileJson,
   FileSpreadsheet,
+  Star,
+  Crown,
+  Gem,
+  Bug,
   Trophy,
   Database,
   Shield,
@@ -79,6 +84,7 @@ export {
   ArrowLeft,
   RefreshCw,
   Zap,
+  Rocket,
   BookOpen,
   Link,
   Lightbulb,
@@ -89,5 +95,6 @@ export {
   Moon,
   Minimize2,
   Maximize2,
-  WifiOff
-} from 'lucide-react';
+  WifiOff,
+  Loader2,
+} from "lucide-react";

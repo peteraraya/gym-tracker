@@ -93,7 +93,7 @@ export function ExerciseList({
                   {/* Drag handle + Status indicator */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {/* Drag handle */}
-                    <div className="flex-shrink-0 text-gray-400 dark:text-gray-500">
+                    <div className="shrink-0 text-gray-400 dark:text-gray-500">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                         <circle cx="4" cy="4" r="1.5" />
                         <circle cx="4" cy="8" r="1.5" />
@@ -105,7 +105,7 @@ export function ExerciseList({
                     </div>
 
                     {/* Status indicator */}
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       {isCurrentExercise ? (
                         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
                           {idx + 1}
@@ -160,7 +160,7 @@ export function ExerciseList({
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {!isCurrentExercise && isCompleted && (
                       <Button
                         variant="ghost"

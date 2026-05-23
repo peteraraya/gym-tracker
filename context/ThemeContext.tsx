@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -13,8 +13,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>('auto');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    return (localStorage.getItem('gym-tracker-theme') as ThemeMode) || 'dark';
+  });
+
+  const [timeTick, setTimeTick] = useState<number>(() => Date.now());
 
   // Función para determinar si es de día o de noche basado en la hora
   const getTimeBasedTheme = (): 'light' | 'dark' => {
@@ -51,52 +55,29 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Cargar tema guardado al iniciar
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const savedTheme = localStorage.getItem('gym-tracker-theme') as ThemeMode | null;
-    const initialTheme = savedTheme || 'dark'; // Modo oscuro por defecto
-    setThemeState(initialTheme);
-    
-    const resolved = resolveTheme(initialTheme);
-    setResolvedTheme(resolved);
-    applyTheme(resolved);
-  }, []);
+  // Recalcular el tema resuelto cuando cambie la configuración o el tiempo
+  const resolvedTheme = useMemo(() => resolveTheme(theme), [theme, timeTick]);
 
-  // Actualizar tema cuando cambia la configuración
+  // Aplicar el tema cuando cambie el resuelto
   useEffect(() => {
-    const resolved = resolveTheme(theme);
-    setResolvedTheme(resolved);
-    applyTheme(resolved);
-  }, [theme]);
+    applyTheme(resolvedTheme);
+  }, [resolvedTheme]);
 
-  // Verificar cambios de hora cada minuto si está en modo auto
+  // Verificar cambios de hora cada minuto si está en modo auto (actualiza timeTick)
   useEffect(() => {
     if (theme !== 'auto') return;
 
-    const interval = setInterval(() => {
-      const newResolved = getTimeBasedTheme();
-      if (newResolved !== resolvedTheme) {
-        setResolvedTheme(newResolved);
-        applyTheme(newResolved);
-      }
-    }, 60000); // Verificar cada minuto
-
+    const interval = setInterval(() => setTimeTick(Date.now()), 60000);
     return () => clearInterval(interval);
-  }, [theme, resolvedTheme]);
+  }, [theme]);
 
-  // Escuchar cambios en la preferencia del sistema (opcional, por si el usuario cambia manualmente)
+  // Escuchar cambios en la preferencia del sistema (dispara una actualización de timeTick)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
-      if (theme === 'auto') {
-        const resolved = resolveTheme('auto');
-        setResolvedTheme(resolved);
-        applyTheme(resolved);
-      }
+      if (theme === 'auto') setTimeTick(Date.now());
     };
 
     mediaQuery.addEventListener('change', handleChange);
@@ -106,10 +87,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);
     localStorage.setItem('gym-tracker-theme', newTheme);
-    
-    const resolved = resolveTheme(newTheme);
-    setResolvedTheme(resolved);
-    applyTheme(resolved);
   };
 
   return (

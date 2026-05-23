@@ -219,6 +219,150 @@ export const trapecioExercises: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '10-15 repeticiones',
     restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-y-raise',
+    name: 'Elevaciones en Y en Polea',
+    muscleGroup: 'trapecio',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-y-raise-front.gif',
+    technique: [
+      'Poleas bajas, una manija en cada mano',
+      'Eleva los brazos formando una "Y"',
+      'Trabaja trapecio inferior y deltoides posterior',
+      'Excelente para salud del hombro'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-reverse-fly-trap',
+    name: 'Aperturas Inversas en Polea',
+    muscleGroup: 'trapecio',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-reverse-fly-trap-front.gif',
+    technique: [
+      'Poleas a altura del pecho, cruza los cables',
+      'Abre los brazos hacia los lados',
+      'Aprieta los omóplatos al final',
+      'Trabaja trapecio medio y deltoides posterior'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'prone-y-raise',
+    name: 'Elevaciones en Y Prono',
+    muscleGroup: 'trapecio',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-prone-y-raise-front.gif',
+    technique: [
+      'Acostado boca abajo en banco inclinado',
+      'Eleva los brazos formando una "Y"',
+      'Trabaja trapecio inferior y romboides',
+      'Usa peso ligero, enfócate en la contracción'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'dumbbell-high-pull',
+    name: 'Jalón Alto con Mancuernas',
+    muscleGroup: 'trapecio',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-dumbbell-high-pull-front.gif',
+    technique: [
+      'Mancuernas frente a ti, movimiento explosivo',
+      'Tira hacia arriba con codos altos',
+      'Similar al remo al cuello pero más dinámico',
+      'Desarrolla potencia del trapecio'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-12 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'smith-machine-shrug',
+    name: 'Encogimientos en Smith',
+    muscleGroup: 'trapecio',
+    equipment: 'Máquina Smith',
+    defaultSets: 4,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-smith-machine-shrug-front.gif',
+    technique: [
+      'Barra en la Smith a la altura de los muslos',
+      'Eleva los hombros hacia las orejas',
+      'Mayor estabilidad que con barra libre',
+      'Permite enfocarse completamente en los trapecios'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'single-arm-cable-shrug',
+    name: 'Encogimientos Unilaterales en Polea',
+    muscleGroup: 'trapecio',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-single-arm-cable-shrug-front.gif',
+    technique: [
+      'Polea baja, una manija en una mano',
+      'Encoge el hombro hacia la oreja',
+      'Corrige desbalances entre lados',
+      'Mayor rango de movimiento que bilateral'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-18 por lado',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'kelso-shrugs',
+    name: 'Encogimientos Kelso',
+    muscleGroup: 'trapecio',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-kelso-shrugs-front.gif',
+    technique: [
+      'Acostado boca abajo en banco inclinado alto',
+      'Mancuernas colgando, encoge hacia las orejas',
+      'Elimina el impulso del cuerpo',
+      'Aislamiento puro del trapecio superior'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'power-shrugs',
+    name: 'Encogimientos de Potencia',
+    muscleGroup: 'trapecio',
+    equipment: 'Barra',
+    defaultSets: 4,
+    defaultReps: 8,
+    image: URL_STORAGE + 'male-power-shrugs-front.gif',
+    technique: [
+      'Peso muerto explosivo con encogimiento al final',
+      'Movimiento dinámico desde las caderas',
+      'Desarrolla potencia y fuerza explosiva',
+      'Combina peso muerto con encogimiento'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '6-10 repeticiones',
+    restTime: '2-3 minutos'
   }
 ];
 

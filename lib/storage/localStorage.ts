@@ -109,11 +109,6 @@ export interface CreateRoutineData {
  */
 export async function getRoutines(): Promise<Routine[]> {
     const routines = getFromStorage<Routine[]>(STORAGE_KEYS.ROUTINES, []);
-    console.log('[localStorage] getRoutines - First routine exercises:', routines[0]?.exercises?.map(ex => ({
-        name: ex.name,
-        restBetweenSets: ex.restBetweenSets,
-        useSmartRest: ex.useSmartRest
-    })));
     return routines;
 }
 

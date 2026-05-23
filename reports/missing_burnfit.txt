@@ -1,0 +1,382 @@
+back-squat	back squat
+conventional-deadlift	conventional deadlift
+barbell-bench-press	barbell bench press
+barbell-incline-bench-press	barbell incline bench press
+dumbbell-fly	dumbbell fly
+lat-pull-down	lat pull down
+dumbbell-shoulder-press	dumbbell shoulder press
+dumbbell-lateral-raise	dumbbell lateral raise
+dumbbell-front-raise	dumbbell front raise
+dumbbell-shrug	dumbbell shrug
+barbell-bicep-curl	barbell bicep curl
+dumbbell-bicep-curl	dumbbell bicep curl
+dumbbell-tricep-extension	dumbbell tricep extension
+dumbbell-kickback	dumbbell kickback
+dumbbell-wrist-curl	dumbbell wrist curl
+clean	clean
+clean-jerk	clean & jerk
+jerk	jerk
+snatch	snatch
+barbell-overhead-squat	barbell overhead squat
+sit-up	sit up
+leg-raise	leg raise
+burpee	burpee
+thruster	thruster
+bentover-dumbbell-lateral-raise	bentover dumbbell lateral raise
+handstand-push-ups	handstand push ups
+air-squat	air squat
+treadmill	treadmill
+cycle	cycle
+jump-squat	jump squat
+weighted-pull-up	weighted pull up
+hindu-push-ups	hindu push ups
+handstand	handstand
+v-up	v-up
+pull-up	pull up
+seated-row-machine	seated row machine
+weighted-dips	weighted dips
+archer-push-ups	archer push ups
+dips	dips
+mountain-climber	mountain climber
+weighted-step-up	weighted step up
+lunge	lunge
+chin-up	chin up
+cable-push-down	cable push down
+step-up	step up
+zercher-squat	zercher squat
+hip-adduction-machine	hip adduction machine
+standing-calf-raise	standing calf raise
+good-morning	good-morning
+barbell-bulgarian-split-squat	barbell bulgarian split squat
+dumbbell-bulgarian-split-squat	dumbbell bulgarian split squat
+dumbbell-split-squat	dumbbell split squat
+bodyweight-split-squat	bodyweight split squat
+dumbbell-goblet-squat	dumbbell goblet squat
+kettlebell-goblet-squat	kettlebell goblet squat
+dumbbell-lunge	dumbbell lunge
+barbell-hip-thrust	barbell hip thrust
+incline-dumbbell-fly	incline dumbbell fly
+weighted-push-ups	weighted push ups
+close-grip-push-ups	close-grip push ups
+incline-dumbbell-bench-press	incline dumbbell bench press
+pec-deck-fly-machine	pec deck fly machine
+incline-bench-press-machine	incline bench press machine
+weighted-chin-up	weighted chin up
+barbell-incline-row	barbell incline row
+dumbbell-incline-row	dumbbell incline row
+one-arm-dumbbell-row	one arm dumbbell row
+barbell-pullover	barbell pullover
+weight-hyperextension	weight hyperextension
+back-extension	back extension
+arnold-dumbbell-press	arnold dumbbell press
+shoulder-press-machine	shoulder press machine
+barbell-shrug	barbell shrug
+face-pull	face pull
+cable-reverse-fly	cable reverse fly
+barbell-upright-row	barbell upright row
+dumbbell-upright-row	dumbbell upright row
+ez-bar-upright-row	ez bar upright row
+dumbbell-hammer-curl	dumbbell hammer curl
+close-grip-bench-press	close-grip bench press
+seated-dumbbell-tricep-extension	seated dumbbell tricep extension
+cable-tricep-extension	cable tricep extension
+ez-bar-wrist-curl	ez bar wrist curl
+skull-crusher	skull crusher
+lying-tricep-extension	lying tricep extension
+crunch	crunch
+heel-touch	heel touch
+hollow-rock	hollow rock
+hollow-position	hollow position
+dumbbell-side-bend	dumbbell side bend
+abs-roll-out	abs roll out
+air-bicycle-abs	air bicycle abs
+toes-to-bar	toes to bar
+push-press	push press
+wallball-shot	wallball shot
+box-jump	box jump
+jumping-jack	jumping jack
+v-squat	v squat
+reverse-v-squat	reverse v squat
+t-bar-row-machine	t-bar row machine
+dumbbell-preacher-curl	dumbbell preacher curl
+barbell-preacher-curl	barbell preacher curl
+ez-bar-preacher-curl	ez bar preacher curl
+preacher-curl-machine	preacher curl machine
+reverse-pec-deck-fly-machine	reverse pec deck fly machine
+hip-abduction-machine	hip abduction machine
+smith-machine-overhead-press	smith machine overhead press
+glute-kickback-machine	glute kickback machine
+kettlebell-snatch	kettlebell snatch
+bar-muscle-up	bar muscle up
+seated-dips-machine	seated dips machine
+arm-curl-machine	arm curl machine
+high-knee-skip	high-knee skip
+smith-machine-squat	smith machine squat
+hack-squat-machine	hack squat machine
+mag-grip-lat-pulldown	mag-grip lat pulldown
+abdominal-crunch-machine	abdominal crunch machine
+paused-back-squat	paused back squat
+smith-machine-split-squat	smith machine split squat
+smith-machine-row	smith machine row
+low-pulley-cable-fly	low pulley cable fly
+cable-straight-arm-pulldown	cable straight arm pulldown
+paused-barbell-row	paused barbell row
+paused-sumo-deadlift	paused sumo deadlift
+lateral-raise-machine	lateral raise machine
+climbing-stairs	climbing stairs
+smith-machine-deadlift	smith machine deadlift
+paused-deadlift	paused deadlift
+parallel-grip-lat-pulldown	parallel-grip lat pulldown
+jumping-rope	jumping rope
+smith-machine-bench-press	smith machine bench press
+cable-hammer-curl	cable hammer curl
+spoto-bench-press	spoto bench press
+underhand-lat-pulldown	underhand lat pulldown
+smith-machine-shrug	smith machine shrug
+trap-bar-deadlift	trap bar deadlift
+cable-overhead-tricep-extension	cable overhead tricep extension
+dumbbell-snatch	dumbbell snatch
+hammer-bench-press	hammer bench press
+ring-muscle-up	ring muscle up
+double-under	double under
+seated-calf-raise-machine	seated calf raise machine
+smith-machine-incline-bench-press	smith machine incline bench press
+floor-seated-cable-row	floor seated cable row
+barbell-lunge	barbell lunge
+dumbbell-sumo-squat	dumbbell sumo squat
+pike-push-ups	pike push ups
+assisted-pull-up-machine	assisted pull up machine
+barbell-lateral-lunge	barbell lateral lunge
+decline-dumbbell-fly	decline dumbbell fly
+weighted-hanging-knee-raise	weighted hanging knee raise
+assisted-dip-machine	assisted dip machine
+barbell-split-squat	barbell split squat
+dumbbell-squat	dumbbell squat
+barbell-box-squat	barbell box squat
+snatch-balance	snatch balance
+dumbbell-burpee	dumbbell burpee
+shoulder-tap	shoulder tap
+barbell-floor-chest-press	barbell floor chest press
+barbell-standing-calf-raise	barbell standing calf raise
+dumbbell-leg-curl	dumbbell leg curl
+barbell-decline-bench-press	barbell decline bench press
+battling-ropes	battling ropes
+dumbbell-thruster	dumbbell thruster
+ez-bar-front-raise	ez bar front raise
+stiff-leg-deadlift	stiff leg deadlift
+seated-dumbbell-rear-lateral-raise	seated dumbbell rear lateral raise
+barbell-front-rack-lunge	barbell front rack lunge
+bodyweight-overhead-squat	bodyweight overhead squat
+inchworm	inchworm
+barbell-front-raise	barbell front raise
+barbell-hack-squat	barbell hack squat
+barbell-jump-squat	barbell jump squat
+clap-push-ups	clap push ups
+incline-push-ups	incline push ups
+sumo-deadlift-high-pull	sumo deadlift high pull
+lateral-wide-pull-down	lateral wide pull down
+clean-high-pull	clean high pull
+hang-clean	hang clean
+kettlebell-sumo-high-pull	kettlebell sumo high pull
+snatch-high-pull	snatch high pull
+hang-snatch	hang snatch
+bodyweight-calf-raise	bodyweight calf raise
+stepmill-machine	stepmill machine
+pistol-box-squat	pistol box squat
+reverse-crunch	reverse crunch
+reverse-barbell-curl	reverse barbell curl
+pilates-jackknife	pilates jackknife
+lying-hip-abduction	lying hip abduction
+decline-dumbbell-bench-press	decline dumbbell bench press
+rkc-plank	rkc plank
+reverse-barbell-wrist-curl	reverse barbell wrist curl
+seated-leg-curl	seated leg curl
+side-lying-clam	side lying clam
+reverse-dumbbell-wrist-curl	reverse dumbbell wrist curl
+decline-chest-press-machine	decline chest press machine
+single-leg-glute-bridge	single leg glute bridge
+dumbbell-romanian-deadlift	dumbbell romanian deadlift
+45-degree-side-bend	45 degree side bend
+underhand-barbell-row	underhand barbell row
+lying-barbell-row	lying barbell row
+incline-dumbbell-twist-press	incline dumbbell twist press
+standing-cable-fly	standing cable fly
+bodyweight-single-leg-deadlift	bodyweight single leg deadlift
+barbell-single-leg-deadlift	barbell single leg deadlift
+kettlebell-deadlift	kettlebell deadlift
+kettlebell-sumo-deadlift	kettlebell sumo deadlift
+dumbbell-sumo-deadlift	dumbbell sumo deadlift
+dumbbell-stiff-leg-deadlift	dumbbell stiff leg deadlift
+dumbbell-lateral-lunge	dumbbell lateral lunge
+kettlebell-lateral-lunge	kettlebell lateral lunge
+bodyweight-lateral-lunge	bodyweight lateral lunge
+single-leg-leg-extension	single leg leg extension
+single-leg-leg-curl	single leg leg curl
+single-leg-leg-press	single leg leg press
+horizontal-leg-press	horizontal leg press
+single-leg-horizontal-leg-press	single leg horizontal leg press
+seated-single-leg-leg-curl	seated single leg leg curl
+nordic-hamstring-curl	nordic hamstring curl
+barbell-sumo-squat	barbell sumo squat
+kettlebell-sumo-squat	kettlebell sumo squat
+sumo-air-squat	sumo air squat
+pistol-squat	pistol squat
+seated-barbell-shoulder-press	seated barbell shoulder press
+seated-dumbbell-shoulder-press	seated dumbbell shoulder press
+plate-shoulder-press	plate shoulder press
+tricep-extension-machine	tricep extension machine
+behind-neck-pulldown	behind neck pulldown
+one-arm-cable-pulldown	one arm cable pulldown
+one-arm-lateral-wide-pulldown	one arm lateral wide pulldown
+y-raise	y raise
+low-row-machine	low row machine
+one-arm-low-row-machine	one arm low row machine
+high-row-machine	high row machine
+underhand-high-row-machine	underhand high row machine
+one-arm-high-row-machine	one arm high row machine
+shrug-machine	shrug machine
+cable-shrug	cable shrug
+donkey-kick	donkey kick
+cable-donkey-kick	cable donkey kick
+cable-side-bend	cable side bend
+weighted-decline-crunch	weighted decline crunch
+decline-reverse-crunch	decline reverse crunch
+decline-sit-up	decline sit up
+weighted-decline-sit-up	weighted decline sit up
+side-crunch	side crunch
+deficit-deadlift	deficit deadlift
+turkish-get-up	turkish get up
+lunge-twist	lunge twist
+kettlebell-lunge-twist	kettlebell lunge twist
+incline-chest-press-machine	incline chest press machine
+cable-twist	cable twist
+elliptical-machine	elliptical machine
+cable-internal-rotation	cable internal rotation
+cable-external-rotation	cable external rotation
+one-arm-cable-lateral-raise	one arm cable lateral raise
+one-arm-cable-seated-row	one arm cable seated row
+dumbbell-squeeze-press	dumbbell squeeze press
+one-arm-landmine-press	one arm landmine press
+monster-glute-machine	monster glute machine
+abdominal-hip-thrust	abdominal hip thrust
+weighted-abdominal-hip-thrust	weighted abdominal hip thrust
+walking	walking
+running	running
+bentover-cable-lateral-raise	bentover cable lateral raise
+one-arm-dumbbell-lateral-raise	one arm dumbbell lateral raise
+hand-gripper-exercise	hand gripper exercise
+torso-rotation-machine	torso rotation machine
+rack-pull	rack pull
+smith-machine-rack-pull	smith machine rack pull
+standing-multi-flight-machine	standing multi flight machine
+dumbbell-incline-rear-lateral-raise	dumbbell incline rear lateral raise
+kettlebell-shoulder-press	kettlebell shoulder press
+one-arm-kettlebell-shoulder-press	one arm kettlebell shoulder press
+one-arm-dumbbell-incline-lateral-raise	one arm dumbbell incline lateral raise
+incline-dumbbell-shoulder-press	incline dumbbell shoulder press
+pendulum-squat-machine	pendulum squat machine
+bentover-lateral-raise-machine	bentover lateral raise machine
+cable-rope-push-down	cable rope push down
+linear-hack-squat-machine	linear hack squat machine
+standing-shoulder-press-machine	standing shoulder press machine
+dumbbell-standing-calf-raise	dumbbell standing calf raise
+middle-row-machine	middle row machine
+seated-knee-up	seated knee up
+side-lying-rear-delt-raise	side lying rear delt raise
+side-lying-lateral-raise	side lying lateral raise
+back-extension-machine	back extension machine
+barbell-backward-lunge	barbell backward lunge
+kettlebell-backward-lunge	kettlebell backward lunge
+bodyweight-backwar-lunge	bodyweight backwar lunge
+bench-press-machine	bench press machine
+barbell-jm-press	barbell jm press
+smith-machine-jm-press	smith machine jm press
+standing-hamstring-curl-machine	standing hamstring curl machine
+glute-ham-raise	glute ham raise
+incline-barbell-front-raise	incline barbell front raise
+incline-ez-bar-front-raise	incline ez bar front raise
+incline-dumbbell-front-raise	incline dumbbell front raise
+barbell-incline-front-raise	barbell incline front raise
+ez-bar-incline-front-raise	ez bar incline front raise
+dumbbell-incline-front-raise	dumbbell incline front raise
+ez-bar-reverse-curl	ez bar reverse curl
+plate-front-raise-with-rotation	plate front raise with rotation
+decline-push-ups	decline push ups
+reverse-grip-push-ups	reverse-grip push ups
+parallel-grip-pull-up	parallel-grip pull up
+parallel-grip-weighted-pull-up	parallel-grip weighted pull up
+ez-bar-tricep-extension	ez bar tricep extension
+seated-dumbbell-lateral-raise	seated dumbbell lateral raise
+close-grip-smith-machine-bench-press	close-grip smith machine bench press
+ez-bar-behind-back-wrist-curl	ez bar behind back wrist curl
+one-arm-dumbbell-wrist-curl	one arm dumbbell wrist curl
+one-arm-cable-fly	one arm cable fly
+cable-bench-press	cable bench press
+one-arm-push-ups	one arm push ups
+one-arm-pull-up	one arm pull up
+stand-to-stand-bridge	stand to stand bridge
+full-back-bridge	full back bridge
+smith-machine-bulgarian-split-squat	smith machine bulgarian split squat
+alternating-dumbbell-bench-press	alternating dumbbell bench press
+belt-squat-machine	belt squat machine
+safety-bar-squat	safety bar squat
+incline-dumbbell-pull-over	incline dumbbell pull over
+dumbbell-lying-tricep-extension	dumbbell lying tricep extension
+ez-bar-lying-tricep-extension	ez bar lying tricep extension
+feet-up-bench-press	feet up bench press
+ab-coaster-machine	ab coaster machine
+one-arm-cable-lat-pulldown	one arm cable lat pulldown
+reverse-grip-bench-press	reverse-grip bench press
+incline-dumbbell-hammer-curl	incline dumbbell hammer curl
+lying-cable-pull-over	lying cable pull over
+smith-machine-upright-row	smith machine upright row
+smith-machine-hip-thrust	smith machine hip thrust
+smith-machine-behind-neck-press	smith machine behind neck press
+pause-bench-press	pause bench press
+standing-lateral-raise-machine	standing lateral raise machine
+dumbbell-skull-crusher	dumbbell skull crusher
+seated-barbell-tricep-extension	seated barbell tricep extension
+donkey-calf-raise	donkey calf raise
+standing-cable-row	standing cable row
+trap-bar-row	trap bar row
+trap-bar-squat	trap bar squat
+trap-bar-overhead-press	trap bar overhead press
+bicep-curl-machine	bicep curl machine
+chest-fly-machine	chest fly machine
+dy-row-machine	dy row machine
+dumbbell-front-squat	dumbbell front squat
+plank-twist	plank twist
+behind-back-wrist-curl	behind back wrist curl
+tricep-press-machine	tricep press machine
+inner-chest-press-machine	inner chest press machine
+knee-push-ups	knee push ups
+one-arm-kettlebell-row	one arm kettlebell row
+high-pulley-cable-row	high pulley cable row
+bosu-single-leg-deadlift	bosu single leg deadlift
+bosu-dumbbell-single-leg-deadlift	bosu dumbbell single leg deadlift
+leverage-squat-machine	leverage squat machine
+fire-hydrant	fire hydrant
+wide-air-squat	wide air squat
+one-arm-dumbbell-curl	one arm dumbbell curl
+one-arm-dumbbell-hammer-curl	one arm dumbbell hammer curl
+yoga	yoga
+reverse-ez-bar-wrist-curl	reverse ez bar wrist curl
+pseudo-planche-push-ups	pseudo planche push ups
+standing-hip-abduction	standing hip abduction
+one-arm-face-pull	one arm face pull
+rotary-calf-machine	rotary calf machine
+ski-ergometer	ski ergometer
+kick-boxing	kick boxing
+barbell-incline-rear-delt-row	barbell incline rear delt row
+high-pulley-one-arm-cable-row	high pulley one arm cable row
+low-pulley-one-arm-cable-row	low pulley one arm cable row
+kettlebell-single-leg-deadlift	kettlebell single leg deadlift
+mike-tyson-push-ups	mike tyson push ups
+one-arm-kettlebell-swing	one arm kettlebell swing
+low-pulley-cable-rope-row	low pulley cable rope row
+seated-cable-rear-lateral-raise	seated cable rear lateral raise
+cable-rear-lateral-raise	cable rear lateral raise
+bird-dog	bird dog
+dumbbell-wrist-supination	dumbbell wrist supination
+dumbbell-wrist-radial-flexion	dumbbell wrist radial flexion
+chest-supported-t-bar-row	chest supported t-bar row

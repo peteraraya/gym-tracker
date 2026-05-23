@@ -270,6 +270,96 @@ export const coreExercises: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '12-20 repeticiones',
     restTime: '45-60 segundos'
+  },
+  {
+    id: 'cable-reverse-crunch',
+    name: 'Crunch Inverso en Polea',
+    muscleGroup: 'core',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-reverse-crunch-front.gif',
+    technique: [
+      'Acuéstate con correa en tobillos conectada a polea baja',
+      'Lleva las rodillas hacia el pecho elevando las caderas',
+      'Enfoca el trabajo en el abdomen inferior',
+      'Baja con control sin dejar que el peso te jale'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'cable-sit-up',
+    name: 'Abdominales en Polea',
+    muscleGroup: 'core',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-sit-up-front.gif',
+    technique: [
+      'Acuéstate con cuerda de polea baja sobre el pecho',
+      'Haz sit-up completo contra la resistencia',
+      'Tensión constante en los abdominales',
+      'Permite progresión de peso'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'side-plank-cable-row',
+    name: 'Remo en Plancha Lateral con Polea',
+    muscleGroup: 'core',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-side-plank-cable-row-front.gif',
+    technique: [
+      'Plancha lateral, mano libre agarra manija de polea',
+      'Haz remo mientras mantienes la plancha',
+      'Desafío extremo para oblicuos y estabilidad',
+      'Combina anti-rotación con fuerza de tracción'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por lado',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'stability-ball-russian-twist',
+    name: 'Giros Rusos en Balón',
+    muscleGroup: 'core',
+    equipment: 'Balón de estabilidad',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-stability-ball-russian-twist-front.gif',
+    technique: [
+      'Espalda apoyada en balón, pies firmes en el suelo',
+      'Gira el torso de lado a lado',
+      'Mayor rango de movimiento que en el suelo',
+      'Desafía el equilibrio y los oblicuos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '20-30 repeticiones totales',
+    restTime: '45 segundos'
+  },
+  {
+    id: 'hollow-body-hold',
+    name: 'Posición Hueca',
+    muscleGroup: 'core',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 45,
+    image: URL_STORAGE + 'male-hollow-body-hold-front.gif',
+    technique: [
+      'Acuéstate boca arriba, eleva hombros y piernas del suelo',
+      'Brazos extendidos sobre la cabeza',
+      'Espalda baja pegada al suelo',
+      'Ejercicio fundamental de gimnasia para core'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '30-60 segundos',
+    restTime: '60 segundos'
   }
 ];
 

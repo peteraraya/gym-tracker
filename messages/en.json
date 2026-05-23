@@ -1,5 +1,8 @@
 {
   "common": {
+    "selectRoutine": "Select a routine...",
+    "startWorkout": "Start Workout",
+    "continueWorkout": "Continue Workout",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -16,8 +19,8 @@
     "skip": "Skip",
     "pause": "Pause",
     "resume": "Resume",
-    "restart": "Restart"
-    ,"confirm": "Confirm"
+    "restart": "Restart",
+    "confirm": "Confirm"
   },
   "setTimer": {
     "title": "Set Stopwatch",
@@ -43,7 +46,11 @@
     "calculators": "Calculators",
     "data": "Data",
     "profile": "Profile",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "glossary": "Glossary",
+    "aiAssistant": "AI Assistant",
+    "settings": "Settings",
+    "planning": "Planning"
   },
   "auth": {
     "signIn": "Sign In",
@@ -69,7 +76,6 @@
     "haveAccount": "Already have an account? Sign in",
     "submitting": "..."
   },
- 
   "home": {
     "welcome": "Welcome to Gym Tracker",
     "subtitle": "Track and follow your gym routines easily",
@@ -81,19 +87,29 @@
     "totalExercises": "Total exercises",
     "getStarted": "Get Started",
     "getStartedDesc": "Create your first workout routine and start tracking your progress",
+    "recentSessions": "Recent Sessions",
     "viewRoutines": "View Routines",
+    "recommendedRoutines": "Recommended Routines",
+    "recommendedRoutinesDesc": "Explore professional routines like Push Pull Legs, Upper/Lower and more",
+    "viewRecommended": "View recommended routines",
     "history": "History",
     "historyDesc": "Review your previous sessions and analyze your progress over time",
     "viewHistory": "View History",
+    "progress": "Progress",
+    "progressDesc": "Analyze your training volume by muscle group",
+    "viewProgress": "View Progress",
+    "exerciseGuide": "Exercise Guide",
+    "exerciseGuideDesc": "Learn proper technique with professional tips",
+    "exploreExercises": "Explore exercises",
+    "startJourney": "Start your fitness journey with a professional routine",
+    "exploreRecommended": "Explore recommended routines",
     "welcomeMessage": "Welcome! It looks like you don't have any routines yet",
-    "createFirstRoutine": "Create my first routine"
-    ,
+    "createFirstRoutine": "Create my first routine",
     "haveRoutines": {
       "title": "Ready to train",
       "subtitle": "You have saved routines. Start your next workout now",
       "cta": "Go to my routines"
-    }
-    ,
+    },
     "cta": {
       "train": "Go to train",
       "create": "Create routine"
@@ -111,7 +127,12 @@
     "startRoutine": "Start",
     "editRoutine": "Edit",
     "deleteRoutine": "Delete",
-    "confirmDelete": "Are you sure you want to delete this routine?",
+    "confirmDelete": {
+      "title": "Delete routine",
+      "message": "Are you sure you want to delete this routine?",
+      "confirmText": "Delete",
+      "cancelText": "Cancel"
+    },
     "exercisesLabel": "Exercises:",
     "previewLabel": "Preview:",
     "more": "more",
@@ -123,12 +144,6 @@
       "newTitle": "New Routine",
       "editTitle": "Edit Routine"
     },
-    "confirmDelete": {
-      "title": "Delete routine",
-      "message": "Are you sure you want to delete this routine?",
-      "confirmText": "Delete",
-      "cancelText": "Cancel"
-    },
     "confirmActive": {
       "title": "Active workout",
       "message": "You already have an active workout. Do you want to cancel it and start a new one?",
@@ -138,8 +153,7 @@
     "toast": {
       "deleteSuccess": "Routine deleted successfully",
       "deleteError": "Error deleting routine"
-    }
-    ,
+    },
     "empty": {
       "title": "No routines yet",
       "description": "Create your first routine to start training",
@@ -167,9 +181,9 @@
     "weight": "Weight (kg)",
     "notes": "Notes (optional)",
     "exerciseName": "Exercise name",
+    "exerciseNameRequired": "Exercise name is required",
     "createRoutineBtn": "Create Routine",
-    "updateRoutineBtn": "Update Routine"
-    ,
+    "updateRoutineBtn": "Update Routine",
     "imageLabel": "Image (optional)",
     "imageUploadClick": "Click to upload an image",
     "imageFormats": "JPG, PNG or GIF",
@@ -179,14 +193,11 @@
     "removeSetTitle": "Remove set",
     "addSet": "Add set",
     "selectExercisesTitle": "Select Exercises",
-    "saving": "⏳ Saving..."
-    ,
+    "saving": "Saving...",
     "createSuccess": "Routine created successfully",
     "updateSuccess": "Routine updated successfully",
-    "saveError": "Error saving routine. Please try again."
-    ,
-    "imagePreviewAlt": "Preview"
-    ,
+    "saveError": "Error saving routine. Please try again.",
+    "imagePreviewAlt": "Preview",
     "removeExercise": "Remove"
   },
   "exerciseSelector": {
@@ -210,8 +221,14 @@
     "gluteos": "Glutes",
     "hombros": "Shoulders",
     "brazos": "Arms",
-    "core": "Core/Abs",
-    "gemelos": "Calves"
+    "biceps": "Biceps",
+    "triceps": "Triceps",
+    "antebrazos": "Forearms",
+    "trapecio": "Trapezius",
+    "cuello": "Neck",
+    "core": "Core",
+    "gemelos": "Calves",
+    "cardio": "Cardio"
   },
   "workout": {
     "exercise": "Exercise",
@@ -233,12 +250,44 @@
   },
   "sessions": {
     "title": "Session History",
-    "subtitle": "Review your previous workouts",
+    "subtitle": "Review and analyze your previous workouts",
     "noSessions": "No sessions recorded",
     "noSessionsDesc": "Complete your first routine to see your history here",
+    "noResults": "No sessions found",
+    "noResultsDesc": "Try changing the search filters",
     "routineDeleted": "Deleted routine",
     "exercisesCompleted": "Exercises completed",
-    "notes": "Notes"
+    "notes": "Notes",
+    "loading": "Loading sessions...",
+    "totalSessions": "Total Sessions",
+    "filtered": "Filtered",
+    "uniqueRoutines": "Unique Routines",
+    "thisMonth": "This Month",
+    "hideDeletedRoutines": "Hide deleted routines",
+    "editSession": "Edit session",
+    "deleteSession": "Delete session",
+    "confirmDelete": {
+      "title": "Delete session?",
+      "message": "Are you sure you want to delete the session for",
+      "suffix": "? This action cannot be undone.",
+      "confirmText": "Delete",
+      "cancelText": "Cancel"
+    },
+    "confirmSync": {
+      "title": "Sync routine",
+      "message": "Do you want to update the routine \"{routineName}\" with data from this session? Reps and weights will be updated.",
+      "confirmText": "Sync",
+      "cancelText": "Cancel"
+    },
+    "noRoutineFound": "No routine found for this session",
+    "toast": {
+      "updateSuccess": "✅ Session updated successfully",
+      "updateError": "Error updating session",
+      "syncSuccess": "Routine synced from session",
+      "syncError": "Error syncing routine from session",
+      "deleteSuccess": "🗑️ Session deleted successfully",
+      "deleteError": "Error deleting session"
+    }
   },
   "progress": {
     "title": "Progress by Muscle Group",
@@ -329,11 +378,15 @@
     },
     "statsCards": {
       "totalSessions": "Total Sessions",
+      "totalSessionsSubtitle": "Sessions recorded",
       "totalVolume": "Total Volume",
+      "totalVolumeSubtitle": "Accumulated volume",
       "vsLastMonth": "vs last month",
       "currentStreak": "Current Streak",
+      "currentStreakSubtitle": "Training streak",
       "days": "days",
-      "totalSets": "Sets Completed"
+      "totalSets": "Sets Completed",
+      "totalSetsSubtitle": "Sets completed"
     },
     "charts": {
       "volumeChartTitle": "Volume Chart",
@@ -366,6 +419,9 @@
       "kg": "kg"
     },
     "volumeChart": {
+      "units": {
+        "kg": "kg"
+      },
       "title": "Training Volume",
       "lastWeek": "Last Week",
       "lastMonth": "Last Month",
@@ -456,7 +512,6 @@
       "tipTitle": "Tip:",
       "tipText": "Progress is calculated by comparing the total volume (weight × repetitions) of your first 3 sessions with the last 3 sessions of each exercise."
     }
-    
   },
   "volumeChart": {
     "title": "Training Volume",

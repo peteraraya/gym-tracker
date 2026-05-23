@@ -71,7 +71,7 @@ vi.mock('@/components/ui/Input', () => ({
   Input: (props: any) => <input {...props} />
 }));
 
-vi.mock('@/components/Timer', () => ({
+vi.mock('@/components/features/workout/Timer', () => ({
   Timer: ({ duration, onComplete }: any) => (
     <div data-testid="timer">
       <div>{duration}s</div>
@@ -80,7 +80,7 @@ vi.mock('@/components/Timer', () => ({
   )
 }));
 
-vi.mock('@/components/PreparationCountdown', () => ({
+vi.mock('@/components/features/workout/PreparationCountdown', () => ({
   PreparationCountdown: ({ onComplete }: any) => (
     <div data-testid="countdown">
       <button onClick={onComplete}>Start</button>
@@ -88,19 +88,19 @@ vi.mock('@/components/PreparationCountdown', () => ({
   )
 }));
 
-vi.mock('@/components/WorkoutGlobalTimer', () => ({
+vi.mock('@/components/features/workout/WorkoutGlobalTimer', () => ({
   WorkoutGlobalTimer: () => <div data-testid="global-timer">Timer</div>
 }));
 
-vi.mock('@/components/ProtectedRoute', () => ({
+vi.mock('@/components/layout/ProtectedRoute', () => ({
   default: ({ children }: any) => <div>{children}</div>
 }));
 
-vi.mock('@/components/ExerciseInfoPanel', () => ({
+vi.mock('@/components/features/exercises/ExerciseInfoPanel', () => ({
   ExerciseInfoPanel: () => <div data-testid="info-panel">Info</div>
 }));
 
-vi.mock('@/components/WeightSelector', () => ({
+vi.mock('@/components/features/workout/WeightSelector', () => ({
   WeightSelector: ({ value, onChange }: any) => (
     <input
       type="number"
@@ -111,12 +111,12 @@ vi.mock('@/components/WeightSelector', () => ({
   )
 }));
 
-vi.mock('@/components/SetTypeSelector', () => ({
+vi.mock('@/components/features/workout/SetTypeSelector', () => ({
   default: () => <div>SetTypeSelector</div>,
   SetTypeBadge: () => <div>Badge</div>
 }));
 
-vi.mock('@/components/SetTypeCycleButton', () => ({
+vi.mock('@/components/features/workout/SetTypeCycleButton', () => ({
   default: () => <div>CycleButton</div>
 }));
 
@@ -125,10 +125,6 @@ vi.mock('@/components/icons/lucide', () => ({
 }));
 
 // Mock de componentes de workout
-vi.mock('../components/WorkoutHeader', () => ({
-  WorkoutHeader: () => <div data-testid="workout-header">Header</div>
-}));
-
 vi.mock('../components/ExerciseCard', () => ({
   ExerciseCard: ({ onCompleteSet, onSkipExercise }: any) => (
     <div data-testid="exercise-card">
@@ -212,7 +208,7 @@ vi.mock('@/data/exercises', () => ({
   ]
 }));
 
-vi.mock('@/lib/restCalculator', () => ({
+vi.mock('@/lib/workout/restCalculator', () => ({
   calculateRestBetweenSets: () => ({
     recommended: 90,
     min: 60,

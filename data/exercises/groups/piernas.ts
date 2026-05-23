@@ -294,5 +294,97 @@ export const exercises: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '8-12 por pierna',
     restTime: '60-90 segundos'
+  },
+  {
+    id: 'walking-lunges',
+    name: 'Zancadas Caminando',
+    muscleGroup: 'piernas',
+    equipment: 'Mancuernas',
+    description: 'Variante dinámica de zancadas que mejora equilibrio y coordinación',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-walking-lunges-front.gif',
+    difficulty: 'intermedio',
+    category: 'compuesto',
+    primaryMuscles: ['Cuádriceps', 'Glúteos', 'Isquiotibiales'],
+    secondaryMuscles: ['Core', 'Pantorrillas'],
+    technique: [
+      'Da un paso largo hacia adelante',
+      'Baja hasta que ambas rodillas formen 90 grados',
+      'Empuja con el pie delantero y avanza con la otra pierna',
+      'Continúa alternando piernas mientras caminas'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 pasos por pierna',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'sumo-squat',
+    name: 'Sentadilla Sumo',
+    muscleGroup: 'piernas',
+    equipment: 'Mancuernas',
+    description: 'Enfatiza los aductores y glúteos con stance amplio',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-sumo-squat-front.gif',
+    difficulty: 'intermedio',
+    category: 'compuesto',
+    primaryMuscles: ['Cuádriceps', 'Glúteos', 'Aductores'],
+    secondaryMuscles: ['Isquiotibiales', 'Core'],
+    technique: [
+      'Stance muy amplio, pies apuntando hacia afuera 45 grados',
+      'Sostén una mancuerna con ambas manos entre las piernas',
+      'Baja manteniendo el torso erguido',
+      'Empuja con los talones para subir'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'nordic-curl',
+    name: 'Nordic Curl',
+    muscleGroup: 'piernas',
+    equipment: 'Peso corporal',
+    description: 'Ejercicio avanzado para isquiotibiales con control excéntrico',
+    defaultSets: 3,
+    defaultReps: 6,
+    image: URL_STORAGE + 'male-nordic-curl-front.gif',
+    difficulty: 'avanzado',
+    category: 'aislamiento',
+    primaryMuscles: ['Isquiotibiales'],
+    secondaryMuscles: ['Glúteos', 'Pantorrillas'],
+    technique: [
+      'Arrodíllate con los tobillos asegurados',
+      'Mantén el cuerpo recto desde rodillas hasta cabeza',
+      'Baja lentamente hacia adelante controlando con isquiotibiales',
+      'Usa las manos para amortiguar la caída si es necesario'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '5-10 repeticiones',
+    restTime: '2-3 minutos'
+  },
+  {
+    id: 'wall-sit',
+    name: 'Sentadilla Isométrica en Pared',
+    muscleGroup: 'piernas',
+    equipment: 'Peso corporal',
+    description: 'Ejercicio isométrico que desarrolla resistencia en cuádriceps',
+    defaultSets: 3,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-wall-sit-front.gif',
+    difficulty: 'principiante',
+    category: 'aislamiento',
+    primaryMuscles: ['Cuádriceps'],
+    secondaryMuscles: ['Glúteos', 'Core'],
+    technique: [
+      'Apoya la espalda contra una pared',
+      'Deslízate hacia abajo hasta que muslos estén paralelos al suelo',
+      'Rodillas a 90 grados, directamente sobre los tobillos',
+      'Mantén la posición el tiempo indicado'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '30-60 segundos',
+    restTime: '60-90 segundos'
   }
 ];

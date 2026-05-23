@@ -1,102 +1,12 @@
 import type { Exercise, Routine } from '@/types';
-import { EXERCISE_DATABASE } from '@/data/exercises';
-import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/restCalculator';
+import {
+  calculateNextRestTime as unifiedCalculateNextRestTime,
+  calculateExerciseRestTime as unifiedCalculateExerciseRestTime,
+} from '../services/restCalculationService';
 
-/**
- * Calcula el tiempo de descanso para la siguiente serie
- * Prioridad: perSetOverride > exerciseOverride > exerciseConfig > routineConfig > smart > default
- */
-export function calculateNextRestTime(params: {
-  currentExercise: Exercise;
-  routine: Routine;
-  restOverrides: Record<string, number>;
-  perSetOverrides: Record<string, number[]>;
-  currentSet: number;
-  useSmartRest: boolean;
-}): number {
-  const { currentExercise, routine, restOverrides, perSetOverrides, currentSet, useSmartRest } = params;
-  const setIndex = currentSet - 1;
-  
-  // 1. Override individual de la serie (edición manual en workout)
-  if (perSetOverrides?.[currentExercise.id]?.[setIndex]) {
-    return perSetOverrides[currentExercise.id][setIndex];
-  }
-  
-  // 2. Override del ejercicio (edición manual en workout)
-  if (restOverrides?.[currentExercise.id]) {
-    return restOverrides[currentExercise.id];
-  }
-  
-  // 3. Configurado en el ejercicio (manual o descanso inteligente aplicado)
-  // Tiene prioridad sobre el tiempo global de la rutina
-  if (currentExercise.restBetweenSets) {
-    return currentExercise.restBetweenSets;
-  }
-  
-  // 4. Configurado en la rutina (tiempo global)
-  if (routine.restBetweenSets) {
-    return routine.restBetweenSets;
-  }
-  
-  // 5. Descanso inteligente (solo si está habilitado y no hay configuración manual)
-  if (useSmartRest && currentExercise.useSmartRest !== false) {
-    const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-    if (exerciseTemplate) {
-      const currentSetData = currentExercise.sets[currentSet - 1];
-      const restRecommendation = calculateRestBetweenSets(
-        exerciseTemplate,
-        currentExercise.sets.length,
-        currentSetData?.reps || 10,
-        'intermediate'
-      );
-      return restRecommendation.recommended;
-    }
-  }
-  
-  // 6. Default
-  return 60;
-}
-
-/**
- * Calcula el tiempo de descanso entre ejercicios
- */
-export function calculateExerciseRestTime(params: {
-  currentExercise: Exercise;
-  nextExercise: Exercise;
-  routine: Routine;
-  restOverrides: Record<string, number>;
-  useSmartRest: boolean;
-}): number {
-  const { currentExercise, nextExercise, routine, restOverrides, useSmartRest } = params;
-  
-  // Override del ejercicio
-  if (restOverrides[currentExercise.id]) {
-    return restOverrides[currentExercise.id];
-  }
-  
-  // Configurado en la rutina
-  if (routine.restBetweenExercises) {
-    return routine.restBetweenExercises;
-  }
-  
-  // Descanso inteligente
-  if (useSmartRest) {
-    const currentTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-    const nextTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
-    
-    if (currentTemplate && nextTemplate) {
-      const restRecommendation = calculateRestBetweenExercises(
-        currentTemplate,
-        nextTemplate,
-        'intermediate'
-      );
-      return restRecommendation.recommended;
-    }
-  }
-  
-  // Default: 120 segundos
-  return 120;
-}
+// Re-export unified rest calculation functions
+export const calculateNextRestTime = unifiedCalculateNextRestTime;
+export const calculateExerciseRestTime = unifiedCalculateExerciseRestTime;
 
 /**
  * Determina si se debe avanzar automáticamente al siguiente ejercicio

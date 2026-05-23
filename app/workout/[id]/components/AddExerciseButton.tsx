@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { ExerciseSelector } from '@/components/ExerciseSelector';
+import { ExerciseSelector } from '@/components/features/exercises/ExerciseSelector';
 import { ExerciseTemplate } from '@/data/exercises';
 
 interface AddExerciseButtonProps {
@@ -33,6 +33,7 @@ export const AddExerciseButton: React.FC<AddExerciseButtonProps> = ({ onAddExerc
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         title="Agregar ejercicios a la rutina"
+        contentClassName="max-w-5xl w-full"
       >
         <ExerciseSelector
           onSelectExercises={handleSelectExercises}

@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { EQUIPMENT_LIST, EQUIPMENT_CATEGORIES, Equipment } from '@/data/equipment';
 import { useEquipment } from '@/context/EquipmentContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
+import { 
+  StatBadge,
+  CardGrid
+} from '@/components/shared';
 
 export default function EquipmentPage() {
   const { selectedEquipment, toggleEquipment, clearEquipment } = useEquipment();
@@ -28,26 +33,21 @@ export default function EquipmentPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              🏋️ Mi Equipamiento
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Selecciona el equipamiento que tienes disponible para filtrar ejercicios y rutinas
-            </p>
-          </div>
-
+      <PageLayout>
+        <PageHeader
+          title="Mi Equipamiento"
+          subtitle="Selecciona el equipamiento que tienes disponible"
+          icon={<span className="text-3xl">🏋️</span>}
+          gradient="from-indigo-600 to-violet-600"
+        >
           {/* Stats */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-8">
+          <div className="mt-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 shadow-md">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-blue-600 dark:text-blue-400 font-semibold mb-1">
+                <div className="text-sm text-white/80 font-semibold mb-1">
                   Equipamiento seleccionado
                 </div>
-                <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                <div className="text-2xl font-bold text-white">
                   {selectedCount} / {totalCount}
                 </div>
               </div>
@@ -57,6 +57,7 @@ export default function EquipmentPage() {
                   size="sm"
                   onClick={handleSelectAll}
                   disabled={selectedCount === totalCount}
+                  className="bg-white/20 text-white border-white/30 hover:bg-white/30"
                 >
                   ✅ Seleccionar todo
                 </Button>
@@ -65,20 +66,24 @@ export default function EquipmentPage() {
                   size="sm"
                   onClick={clearEquipment}
                   disabled={selectedCount === 0}
+                  className="bg-white/10 text-white border-white/20 hover:bg-white/20"
                 >
-                  🗑️ Limpiar selección
+                  🗑️ Limpiar
                 </Button>
               </div>
             </div>
             {selectedCount === 0 && (
-              <div className="mt-4 text-sm text-blue-700 dark:text-blue-300">
+              <div className="mt-4 text-sm text-white/80">
                 💡 Tip: Si no seleccionas ningún equipamiento, se mostrarán todos los ejercicios
               </div>
             )}
           </div>
+        </PageHeader>
+
+        <PageContent maxWidth="6xl">
 
           {/* Category Filters */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
             <Button
               variant={selectedCategory === 'all' ? 'primary' : 'secondary'}
               size="sm"
@@ -99,25 +104,25 @@ export default function EquipmentPage() {
           </div>
 
           {/* Equipment Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardGrid cols={3}>
             {filteredEquipment.map(equipment => {
               const isSelected = selectedEquipment.has(equipment.id);
               return (
                 <button
                   key={equipment.id}
                   onClick={() => toggleEquipment(equipment.id)}
-                  className={`text-left p-6 rounded-xl border-2 transition-all ${
+                  className={`text-left p-5 rounded-xl border-2 transition-all duration-300 ${
                     isSelected
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-lg scale-105'
-                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md'
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400 shadow-xl scale-105'
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-lg'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="text-4xl">{equipment.emoji}</div>
                     <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
                         isSelected
-                          ? 'bg-blue-600 border-blue-600'
+                          ? 'bg-blue-600 border-blue-600 shadow-md'
                           : 'border-gray-300 dark:border-gray-500'
                       }`}
                     >
@@ -136,24 +141,24 @@ export default function EquipmentPage() {
                       )}
                     </div>
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-lg">
                     {equipment.name}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {equipment.description}
                   </p>
                   <div className="mt-3">
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium">
                       {EQUIPMENT_CATEGORIES.find(c => c.id === equipment.category)?.name}
                     </span>
                   </div>
                 </button>
               );
             })}
-          </div>
+          </CardGrid>
 
           {/* Info Card */}
-          <Card className="mt-8 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+          <Card className="mt-4 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
             <CardHeader>
               <CardTitle>💡 ¿Cómo funciona?</CardTitle>
             </CardHeader>
@@ -178,8 +183,8 @@ export default function EquipmentPage() {
               </ul>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </PageContent>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

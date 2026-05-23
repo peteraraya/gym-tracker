@@ -1,5 +1,8 @@
 {
   "common": {
+    "selectRoutine": "Selecciona una rutina...",
+    "startWorkout": "Iniciar Entrenamiento",
+    "continueWorkout": "Continuar Entrenamiento",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
@@ -43,7 +46,11 @@
     "calculators": "Calculadoras",
     "data": "Datos",
     "profile": "Perfil",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "glossary": "Glosario",
+    "aiAssistant": "Asistente IA",
+    "settings": "Ajustes",
+    "planning": "Planificación"
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -80,6 +87,7 @@
     "totalExercises": "Ejercicios en total",
     "getStarted": "Comenzar",
     "getStartedDesc": "Crea tu primera rutina de entrenamiento y comienza a registrar tus progresos",
+    "recentSessions": "Entrenamientos Recientes",
     "viewRoutines": "Ver Rutinas",
     "recommendedRoutines": "Rutinas Recomendadas",
     "recommendedRoutinesDesc": "Explora rutinas profesionales como Push Pull Legs, Torso/Pierna y más",
@@ -96,16 +104,14 @@
     "welcomeMessage": "¡Bienvenido! Parece que aún no tienes rutinas",
     "startJourney": "Comienza tu viaje fitness con una rutina profesional",
     "exploreRecommended": "Explorar rutinas recomendadas",
-    "createFirstRoutine": "Crear mi primera rutina"
-    ,
+    "createFirstRoutine": "Crear mi primera rutina",
     "haveRoutines": {
       "title": "Listo para entrenar",
       "subtitle": "Tienes rutinas guardadas. Comienza tu siguiente entrenamiento ahora",
       "cta": "Ir a mis rutinas"
-    }
-    ,
+    },
     "cta": {
-      "train": "Ia a Entrenar",
+      "train": "Ir a Entrenar",
       "create": "Crear rutina"
     }
   },
@@ -130,6 +136,7 @@
     "weight": "Peso (kg)",
     "notes": "Notas (opcional)",
     "exerciseName": "Nombre del ejercicio",
+    "exerciseNameRequired": "El nombre del ejercicio es requerido",
     "createRoutineBtn": "Crear Rutina",
     "updateRoutineBtn": "Actualizar Rutina",
     "imageLabel": "Imagen (opcional)",
@@ -141,7 +148,7 @@
     "removeSetTitle": "Eliminar serie",
     "addSet": "Añadir serie",
     "selectExercisesTitle": "Seleccionar Ejercicios",
-    "saving": "⏳ Guardando...",
+    "saving": "Guardando...",
     "createSuccess": "Rutina creada exitosamente",
     "updateSuccess": "Rutina actualizada exitosamente",
     "saveError": "Error al guardar la rutina. Por favor intenta de nuevo.",
@@ -169,8 +176,14 @@
     "gluteos": "Glúteos",
     "hombros": "Hombros",
     "brazos": "Brazos",
-    "core": "Core/Abdomen",
-    "gemelos": "Gemelos"
+    "biceps": "Bíceps",
+    "triceps": "Tríceps",
+    "antebrazos": "Antebrazos",
+    "trapecio": "Trapecio",
+    "cuello": "Cuello",
+    "core": "Core",
+    "gemelos": "Gemelos",
+    "cardio": "Cardio"
   },
   "workout": {
     "exercise": "Ejercicio",
@@ -192,12 +205,44 @@
   },
   "sessions": {
     "title": "Historial de Sesiones",
-    "subtitle": "Revisa tus entrenamientos anteriores",
+    "subtitle": "Revisa y analiza tus entrenamientos anteriores",
     "noSessions": "No hay sesiones registradas",
     "noSessionsDesc": "Completa tu primera rutina para ver tu historial aquí",
+    "noResults": "No se encontraron sesiones",
+    "noResultsDesc": "Intenta cambiar los filtros de búsqueda",
     "routineDeleted": "Rutina eliminada",
     "exercisesCompleted": "Ejercicios completados",
-    "notes": "Notas"
+    "notes": "Notas",
+    "loading": "Cargando sesiones...",
+    "totalSessions": "Total Sesiones",
+    "filtered": "Filtradas",
+    "uniqueRoutines": "Rutinas Únicas",
+    "thisMonth": "Este Mes",
+    "hideDeletedRoutines": "Ocultar rutinas eliminadas",
+    "editSession": "Editar sesión",
+    "deleteSession": "Eliminar sesión",
+    "confirmDelete": {
+      "title": "¿Eliminar sesión?",
+      "message": "¿Estás seguro de que quieres eliminar la sesión de",
+      "suffix": "? Esta acción no se puede deshacer.",
+      "confirmText": "Eliminar",
+      "cancelText": "Cancelar"
+    },
+    "confirmSync": {
+      "title": "Sincronizar rutina",
+      "message": "¿Deseas actualizar la rutina \"{routineName}\" con los datos de esta sesión? Se actualizarán repeticiones y pesos de los ejercicios.",
+      "confirmText": "Sincronizar",
+      "cancelText": "Cancelar"
+    },
+    "noRoutineFound": "No se encontró la rutina asociada a esta sesión",
+    "toast": {
+      "updateSuccess": "✅ Sesión actualizada exitosamente",
+      "updateError": "Error al actualizar la sesión",
+      "syncSuccess": "Rutina sincronizada con la sesión",
+      "syncError": "Error al sincronizar la rutina",
+      "deleteSuccess": "🗑️ Sesión eliminada exitosamente",
+      "deleteError": "Error al eliminar la sesión"
+    }
   },
   "progress": {
     "title": "Progreso por Grupo Muscular",
@@ -288,11 +333,15 @@
     },
     "statsCards": {
       "totalSessions": "Total de Sesiones",
+      "totalSessionsSubtitle": "Sesiones registradas",
       "totalVolume": "Volumen Total",
+      "totalVolumeSubtitle": "Volumen acumulado",
       "vsLastMonth": "vs mes anterior",
       "currentStreak": "Racha Actual",
+      "currentStreakSubtitle": "Racha de entrenamiento",
       "days": "días",
-      "totalSets": "Sets Completados"
+      "totalSets": "Sets Completados",
+      "totalSetsSubtitle": "Series completadas"
     },
     "charts": {
       "volumeChartTitle": "Gráfica de Volumen",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { predictWeight, validateWeight } from '../utils/weightPrediction';
-import { generateWeightSuggestion } from '@/lib/weightSuggestions';
+import { generateWeightSuggestion } from '@/lib/data/weightSuggestions';
 
 interface UseWeightPredictionProps {
   currentExercise: any;

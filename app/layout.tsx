@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { GymProvider } from "@/context/GymContext";
-import { LocaleProvider } from "@/context/LocaleContext";
-import { AuthProvider } from "@/context/AuthContext";
-import { EquipmentProvider } from "@/context/EquipmentContext";
-import { WorkoutProvider } from "@/context/WorkoutContext";
-import { ToastProvider } from "@/context/ToastContext";
-import { ConfirmProvider } from "@/context/ConfirmContext";
-import { OnboardingProvider } from "@/context/OnboardingContext";
+import { Providers } from "@/components/layout/Providers";
 import { ThemeProvider } from "@/context/ThemeContext";
-import { ClientOnly } from "@/components/ClientOnly";
-import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
-import { PWAInstaller } from "@/components/PWAInstaller";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import GlobalUI from '@/components/GlobalUI';
-import Onboarding from '@/components/Onboarding';
+import { OnboardingProvider } from "@/context/OnboardingContext";
+import { ClientOnly } from "@/components/shared/ClientOnly";
+import { ServiceWorkerRegistration } from "@/components/layout/ServiceWorkerRegistration";
+import { PWAInstaller } from "@/components/layout/PWAInstaller";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import GlobalUI from '@/components/layout/GlobalUI';
+import Onboarding from '@/components/features/onboarding/Onboarding';
+import { ReactQueryProvider } from "@/components/layout/ReactQueryProvider";
+import DisableZoom from "@/components/layout/DisableZoom";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,17 +35,15 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  // `themeColor` and `viewport` moved to `generateViewport` below
 };
 
 export function generateViewport() {
   return {
-    viewport: {
-      width: "device-width",
-      initialScale: 1,
-      maximumScale: 1,
-      userScalable: false,
-    },
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    minimumScale: 1,
+    userScalable: false,
     themeColor: "#3b82f6",
   };
 }
@@ -96,34 +90,24 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ErrorBoundary>
-          <ThemeProvider>
-            <AuthProvider>
-              <LocaleProvider>
-                <EquipmentProvider>
-                  <GymProvider>
-                    <WorkoutProvider>
-                      <ToastProvider>
-                        <ConfirmProvider>
-                          <OnboardingProvider>
-                            {/* Global UI (Navbar + Floating CTA) se oculta en /auth - solo render en cliente para evitar deshidratación */}
-                            <ClientOnly>
-                              <ServiceWorkerRegistration />
-                              <PWAInstaller />
-                              <GlobalUI />
-                              <Onboarding />
-                            </ClientOnly>
-                            <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-                              {children}
-                            </main>
-                          </OnboardingProvider>
-                        </ConfirmProvider>
-                      </ToastProvider>
-                    </WorkoutProvider>
-                  </GymProvider>
-                </EquipmentProvider>
-              </LocaleProvider>
-            </AuthProvider>
-          </ThemeProvider>
+          <ReactQueryProvider>
+            <ThemeProvider>
+              <Providers>
+                <OnboardingProvider>
+                  <DisableZoom />
+                  <ClientOnly>
+                    <ServiceWorkerRegistration />
+                    <PWAInstaller />
+                    <GlobalUI />
+                    <Onboarding />
+                  </ClientOnly>
+                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-16 lg:pb-0">
+                    {children}
+                  </main>
+                </OnboardingProvider>
+              </Providers>
+            </ThemeProvider>
+          </ReactQueryProvider>
         </ErrorBoundary>
       </body>
     </html>

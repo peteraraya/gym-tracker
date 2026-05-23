@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workoutSuggestions';
+﻿import { useEffect, useState, useRef } from 'react';
+import { generateWorkoutSuggestions, generateLiveSuggestions, type WorkoutSuggestion } from '@/lib/workout/workoutSuggestions';
 import { calculateNextRestTime } from '../utils/workoutCalculations';
 import type { Exercise, Routine } from '@/types';
 import type { WorkoutSession } from '../types/workout.types';
@@ -47,10 +47,14 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
 
   const [suggestions, setSuggestions] = useState<WorkoutSuggestion[]>([]);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<number>>(new Set());
+  // CRITICAL BUG FIX: Use ref instead of state to track "already toasted" guard.
+  // Prevents infinite render-toast-dismiss loop caused by dismissedSuggestions in deps array.
+  const hasShownToastRef = useRef(false);
 
   // Resetear sugerencias descartadas cuando cambia el ejercicio
   useEffect(() => {
     setDismissedSuggestions(new Set());
+    hasShownToastRef.current = false;
   }, [currentExercise?.id]);
 
   // Generar sugerencias
@@ -89,9 +93,24 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     );
 
     const allSuggestions = [...generalSuggestions, ...liveSuggestions];
+
+    // Dedupe suggestions by a stable key (type + title + message)
+    const seen = new Set<string>();
+    const uniqueSuggestions: WorkoutSuggestion[] = [];
+    for (const s of allSuggestions) {
+      const key = `${s.type}::${s.title}::${s.message}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueSuggestions.push(s);
+      }
+    }
     
     // Mostrar sugerencias como toasts (solo las más importantes) - SOLO UNA VEZ
-    if (allSuggestions.length > 0 && !dismissedSuggestions.has(0)) {
+    // CRITICAL BUG FIX: Use ref instead of dismissedSuggestions to break render loop.
+    // dismissedSuggestions in the dependency array caused the effect to re-run every
+    // time a suggestion was dismissed, creating an infinite render-toast-dismiss loop.
+    if (allSuggestions.length > 0 && !hasShownToastRef.current) {
+      hasShownToastRef.current = true;
       // Mostrar solo la primera sugerencia de advertencia como toast
       const warningSuggestion = allSuggestions.find(
         s => s.type === 'rest_warning' || s.type === 'overtraining'
@@ -99,18 +118,16 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
       
       if (warningSuggestion) {
         onError(`⚠️ ${warningSuggestion.message}`, 5000);
-        setDismissedSuggestions(prev => new Set([...prev, 0]));
       } else {
         // Si no hay advertencias, mostrar la primera sugerencia positiva
         const positiveSuggestion = allSuggestions[0];
         if (positiveSuggestion) {
           onSuccess(`💡 ${positiveSuggestion.message}`, 4000);
-          setDismissedSuggestions(prev => new Set([...prev, 0]));
         }
       }
     }
     
-    setSuggestions(allSuggestions);
+    setSuggestions(uniqueSuggestions);
   }, [
     currentExercise?.id,
     currentSet,
@@ -121,7 +138,9 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
     showTimer,
     // ❌ Removido: showPreparation
     isExecutingSet,
-    dismissedSuggestions,
+    // ❌ CRITICAL BUG FIX: removed dismissedSuggestions from deps to break render loop.
+    // dismissedSuggestions is a Set (new reference every dismissal), causing re-render.
+    // The "already shown" guard is now managed via hasShownToastRef (a ref, no re-render).
     onSuccess,
     onError
   ]);

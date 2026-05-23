@@ -28,6 +28,7 @@ export interface ExerciseTemplate {
   restTime?: string; // Ej: "60-90 segundos"
 }
 const URL_STORAGE = 'https://hplrrjqgzefkdevbporx.supabase.co/storage/v1/object/public/routine-images/'
+import { BURNFIT_MISSING } from './exercises_burnfit_missing';
 export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   // PECHO
   {
@@ -191,6 +192,196 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '8-15 repeticiones',
     restTime: '60-90 segundos'
+  },
+  {
+    id: 'seated-cable-fly',
+    name: 'Aperturas en Polea Sentado',
+    muscleGroup: 'pecho',
+    equipment: 'Poleas',
+    description: 'Ejercicio de aislamiento que mantiene tensión constante en los pectorales',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-seated-cable-fly-front.gif',
+    technique: [
+      'Siéntate en un banco entre dos poleas ajustadas a la altura del pecho',
+      'Agarra las manijas con los brazos extendidos a los lados',
+      'Mantén una ligera flexión en los codos',
+      'Junta las manijas al frente en un movimiento de abrazo'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'incline-cable-fly',
+    name: 'Aperturas en Polea Inclinado',
+    muscleGroup: 'pecho',
+    equipment: 'Poleas',
+    description: 'Enfoca el trabajo en el pecho superior con tensión constante',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-incline-cable-fly-front.gif',
+    technique: [
+      'Ajusta las poleas en posición baja',
+      'Inclínate ligeramente hacia adelante',
+      'Junta las manijas hacia arriba y al centro',
+      'Enfoca el trabajo en el pecho superior'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'low-cable-fly',
+    name: 'Aperturas en Polea Baja',
+    muscleGroup: 'pecho',
+    equipment: 'Poleas',
+    description: 'Trabaja el pecho inferior con tensión constante',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-low-cable-fly-front.gif',
+    technique: [
+      'Ajusta las poleas en posición alta',
+      'Inclínate ligeramente hacia adelante',
+      'Junta las manijas hacia abajo y al centro',
+      'Enfoca el trabajo en el pecho inferior'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-press',
+    name: 'Press en Polea',
+    muscleGroup: 'pecho',
+    equipment: 'Poleas',
+    description: 'Variante del press que mantiene tensión constante',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-cable-press-front.gif',
+    technique: [
+      'Colócate de espaldas a las poleas',
+      'Agarra las manijas a la altura del pecho',
+      'Da un paso adelante para crear tensión',
+      'Empuja hacia adelante extendiendo los brazos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'incline-dumbbell-press',
+    name: 'Press Inclinado con Mancuernas',
+    muscleGroup: 'pecho',
+    equipment: 'Mancuernas',
+    description: 'Desarrolla el pecho superior con mayor rango de movimiento',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-incline-dumbbell-press-front.gif',
+    technique: [
+      'Ajusta el banco a 30-45 grados',
+      'Sostén las mancuernas a los lados del pecho',
+      'Empuja hacia arriba juntando las mancuernas al final',
+      'Baja con control hasta sentir estiramiento'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-12 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'decline-dumbbell-press',
+    name: 'Press Declinado con Mancuernas',
+    muscleGroup: 'pecho',
+    equipment: 'Mancuernas',
+    description: 'Enfoca el trabajo en el pecho inferior',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-decline-dumbbell-press-front.gif',
+    technique: [
+      'Ajusta el banco a 15-30 grados de decline',
+      'Asegura los pies en los soportes',
+      'Baja las mancuernas al pecho inferior',
+      'Empuja hacia arriba con control'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-12 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'dumbbell-press',
+    name: 'Press con Mancuernas',
+    muscleGroup: 'pecho',
+    equipment: 'Mancuernas',
+    description: 'Variante del press que permite mayor rango de movimiento',
+    defaultSets: 4,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-dumbbell-press-front.gif',
+    technique: [
+      'Acuéstate en banco plano con mancuernas',
+      'Comienza con las mancuernas a los lados del pecho',
+      'Empuja hacia arriba hasta extender los brazos',
+      'Baja con control más allá de la línea del pecho'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '8-12 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'incline-cable-press',
+    name: 'Press Inclinado en Polea',
+    muscleGroup: 'pecho',
+    equipment: 'Poleas',
+    description: 'Press inclinado con tensión constante para pecho superior',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-incline-cable-press-front.gif',
+    technique: [
+      'Ajusta las poleas en posición baja',
+      'Colócate de espaldas a las poleas',
+      'Empuja hacia arriba y adelante en ángulo',
+      'Mantén el core activado'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'chest-dips',
+    name: 'Fondos en Paralelas (Pecho)',
+    muscleGroup: 'pecho',
+    equipment: 'Peso corporal',
+    description: 'Ejercicio compuesto que enfatiza el pecho inferior',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-chest-dips-front.gif',
+    technique: [
+      'Agarra las barras paralelas e inclínate hacia adelante',
+      'Baja el cuerpo doblando los codos',
+      'Mantén los codos ligeramente abiertos',
+      'Empuja hacia arriba hasta extender los brazos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-15 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'svend-press',
+    name: 'Press Svend',
+    muscleGroup: 'pecho',
+    equipment: 'Discos',
+    description: 'Ejercicio de contracción isométrica para pecho interno',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-svend-press-front.gif',
+    technique: [
+      'Sostén un disco o dos discos juntos frente al pecho',
+      'Aprieta fuertemente los discos entre tus manos',
+      'Extiende los brazos hacia adelante manteniendo la presión',
+      'Regresa al pecho sin soltar la tensión'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '60 segundos'
   },
 
   // ESPALDA
@@ -391,6 +582,196 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '12-15 repeticiones',
     restTime: '60 segundos'
+  },
+  {
+    id: 'wide-grip-cable-row',
+    name: 'Remo en Polea Agarre Ancho',
+    muscleGroup: 'espalda',
+    equipment: 'Poleas',
+    description: 'Enfoca el trabajo en la espalda superior y media',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-wide-grip-cable-row-back.gif',
+    technique: [
+      'Usa una barra ancha en polea baja',
+      'Mantén el pecho elevado y espalda recta',
+      'Tira hacia el pecho superior',
+      'Contrae los omóplatos al final'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'one-arm-cable-row',
+    name: 'Remo Unilateral en Polea',
+    muscleGroup: 'espalda',
+    equipment: 'Poleas',
+    description: 'Permite trabajar cada lado independientemente corrigiendo desbalances',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-one-arm-cable-row-back.gif',
+    technique: [
+      'Usa una manija en polea baja',
+      'Mantén el core activado para estabilidad',
+      'Tira hacia el costado del abdomen',
+      'Permite rotación natural del torso'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones por lado',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-pullover',
+    name: 'Pullover en Polea',
+    muscleGroup: 'espalda',
+    equipment: 'Poleas',
+    description: 'Excelente para aislar los dorsales con tensión constante',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-pullover-back.gif',
+    technique: [
+      'Usa una barra recta en polea alta',
+      'Inclínate ligeramente hacia adelante',
+      'Tira de la barra hacia las caderas con brazos casi rectos',
+      'Enfoca en contraer los dorsales'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'reverse-grip-lat-pulldown',
+    name: 'Jalón Agarre Supino',
+    muscleGroup: 'espalda',
+    equipment: 'Máquina',
+    description: 'Variante que enfatiza la parte baja de los dorsales y bíceps',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-reverse-grip-lat-pulldown-back.gif',
+    technique: [
+      'Agarre con palmas hacia ti, ancho de hombros',
+      'Tira de la barra hacia el pecho superior',
+      'Mantén el pecho elevado',
+      'Mayor activación de bíceps que agarre prono'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'close-grip-lat-pulldown',
+    name: 'Jalón Agarre Cerrado',
+    muscleGroup: 'espalda',
+    equipment: 'Máquina',
+    description: 'Enfoca el trabajo en el grosor de la espalda',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-close-grip-lat-pulldown-back.gif',
+    technique: [
+      'Usa un agarre en V o agarre cerrado',
+      'Tira hacia el pecho superior',
+      'Enfoca en contraer los omóplatos',
+      'Permite mayor rango de movimiento'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'pendlay-row',
+    name: 'Remo Pendlay',
+    muscleGroup: 'espalda',
+    equipment: 'Barra',
+    description: 'Variante explosiva del remo con barra desde el suelo',
+    defaultSets: 4,
+    defaultReps: 8,
+    image: URL_STORAGE + 'male-pendlay-row-back.gif',
+    technique: [
+      'Torso paralelo al suelo',
+      'La barra toca el suelo entre repeticiones',
+      'Movimiento explosivo hacia el pecho',
+      'Pausa completa en el suelo'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '5-8 repeticiones',
+    restTime: '2-3 minutos'
+  },
+  {
+    id: 'meadows-row',
+    name: 'Remo Meadows',
+    muscleGroup: 'espalda',
+    equipment: 'Barra',
+    description: 'Remo unilateral con barra que permite gran estiramiento',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-meadows-row-back.gif',
+    technique: [
+      'Coloca la barra en esquina o landmine',
+      'Posición de pie, inclinado hacia adelante',
+      'Tira de la barra hacia la cadera',
+      'Permite rotación natural del torso'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '8-12 repeticiones por lado',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'seal-row',
+    name: 'Remo Seal',
+    muscleGroup: 'espalda',
+    equipment: 'Mancuernas',
+    description: 'Remo en banco elevado que elimina el impulso del cuerpo',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-seal-row-back.gif',
+    technique: [
+      'Acuéstate boca abajo en banco elevado',
+      'Deja que los brazos cuelguen perpendiculares al suelo',
+      'Tira de las mancuernas hacia las costillas',
+      'Elimina el impulso del cuerpo'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'cable-high-row',
+    name: 'Remo Alto en Polea',
+    muscleGroup: 'espalda',
+    equipment: 'Poleas',
+    description: 'Enfoca el trabajo en la espalda superior y trapecios medios',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-high-row-back.gif',
+    technique: [
+      'Ajusta la polea en posición alta',
+      'Tira hacia la cara/cuello',
+      'Mantén los codos altos',
+      'Contrae los omóplatos al final'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'rack-pulls',
+    name: 'Rack Pulls',
+    muscleGroup: 'espalda',
+    equipment: 'Barra',
+    description: 'Peso muerto parcial que enfoca la espalda superior y trapecios',
+    defaultSets: 4,
+    defaultReps: 6,
+    image: URL_STORAGE + 'male-rack-pulls-back.gif',
+    technique: [
+      'Coloca la barra en el rack a altura de rodillas',
+      'Ejecuta la parte superior del peso muerto',
+      'Permite usar más peso que peso muerto completo',
+      'Enfoca en contraer trapecios al final'
+    ],
+    recommendedSets: '3-5 series',
+    recommendedReps: '5-8 repeticiones',
+    restTime: '2-3 minutos'
   },
 
   // PIERNAS
@@ -681,6 +1062,82 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     ],
     recommendedSets: '3-4 series',
     recommendedReps: '8-12 por pierna',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'walking-lunges',
+    name: 'Zancadas Caminando',
+    muscleGroup: 'piernas',
+    equipment: 'Mancuernas',
+    description: 'Variante dinámica de zancadas que mejora equilibrio y coordinación',
+    defaultSets: 3,
+    defaultReps: 20,
+    image: URL_STORAGE + 'male-walking-lunges-front.gif',
+    technique: [
+      'Da un paso largo hacia adelante',
+      'Baja hasta que ambas rodillas formen 90 grados',
+      'Empuja con el pie delantero y avanza con la otra pierna',
+      'Continúa alternando piernas mientras caminas'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 pasos por pierna',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'sumo-squat',
+    name: 'Sentadilla Sumo',
+    muscleGroup: 'piernas',
+    equipment: 'Mancuernas',
+    description: 'Enfatiza los aductores y glúteos con stance amplio',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-sumo-squat-front.gif',
+    technique: [
+      'Stance muy amplio, pies apuntando hacia afuera 45 grados',
+      'Sostén una mancuerna con ambas manos entre las piernas',
+      'Baja manteniendo el torso erguido',
+      'Empuja con los talones para subir'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90 segundos'
+  },
+  {
+    id: 'nordic-curl',
+    name: 'Nordic Curl',
+    muscleGroup: 'piernas',
+    equipment: 'Peso corporal',
+    description: 'Ejercicio avanzado para isquiotibiales con control excéntrico',
+    defaultSets: 3,
+    defaultReps: 6,
+    image: URL_STORAGE + 'male-nordic-curl-front.gif',
+    technique: [
+      'Arrodíllate con los tobillos asegurados',
+      'Mantén el cuerpo recto desde rodillas hasta cabeza',
+      'Baja lentamente hacia adelante controlando con isquiotibiales',
+      'Usa las manos para amortiguar la caída si es necesario'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '5-10 repeticiones',
+    restTime: '2-3 minutos'
+  },
+  {
+    id: 'wall-sit',
+    name: 'Sentadilla Isométrica en Pared',
+    muscleGroup: 'piernas',
+    equipment: 'Peso corporal',
+    description: 'Ejercicio isométrico que desarrolla resistencia en cuádriceps',
+    defaultSets: 3,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-wall-sit-front.gif',
+    technique: [
+      'Apoya la espalda contra una pared',
+      'Deslízate hacia abajo hasta que muslos estén paralelos al suelo',
+      'Rodillas a 90 grados, directamente sobre los tobillos',
+      'Mantén la posición el tiempo indicado'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '30-60 segundos',
     restTime: '60-90 segundos'
   },
 
@@ -2259,6 +2716,168 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     recommendedReps: '10-15 repeticiones',
     restTime: '60-90 segundos'
   },
+  {
+    id: 'cable-squat',
+    name: 'Sentadilla en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 4,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-squat-front.gif',
+    technique: [
+      'Polea baja con cuerda o barra',
+      'Stance amplio con pies apuntando hacia afuera',
+      'Baja hasta que muslos estén paralelos al suelo',
+      'Empuja con los talones y aprieta glúteos arriba'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'cable-romanian-deadlift-glutes',
+    name: 'Peso Muerto Rumano en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 4,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-romanian-deadlift-glutes-front.gif',
+    technique: [
+      'Polea baja, de frente a la máquina',
+      'Rodillas ligeramente flexionadas',
+      'Empuja las caderas hacia atrás manteniendo espalda recta',
+      'Siente el estiramiento en glúteos e isquiotibiales'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'cable-single-leg-rdl',
+    name: 'Peso Muerto Rumano Unilateral en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-single-leg-rdl-front.gif',
+    technique: [
+      'Polea baja, equilibrio en una pierna',
+      'Empuja la cadera hacia atrás mientras inclinas el torso',
+      'Pierna libre se extiende hacia atrás',
+      'Excelente para estabilidad y corregir desbalances'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-12 por pierna',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-reverse-lunge-glutes',
+    name: 'Zancada Inversa en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-reverse-lunge-glutes-front.gif',
+    technique: [
+      'Polea baja, agarra con una mano',
+      'Da un paso hacia atrás en zancada',
+      'Baja hasta que rodilla trasera casi toque el suelo',
+      'Mayor activación de glúteos que zancada frontal'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por pierna',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-hip-abduction-standing',
+    name: 'Abducción de Cadera en Polea de Pie',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-hip-abduction-standing-front.gif',
+    technique: [
+      'Correa en tobillo, de lado a la máquina',
+      'Levanta la pierna hacia el lado',
+      'Trabaja el glúteo medio para estabilidad',
+      'Mantén la pierna relativamente recta'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-20 por pierna',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'lateral-lunge',
+    name: 'Zancada Lateral',
+    muscleGroup: 'gluteos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-lateral-lunge-front.gif',
+    technique: [
+      'Da un paso amplio hacia el lado',
+      'Baja doblando la pierna lateral, otra pierna recta',
+      'Empuja con el talón para volver al centro',
+      'Trabaja glúteos y aductores'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por pierna',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'curtsy-lunge-dumbbell',
+    name: 'Zancada Reverencia con Mancuernas',
+    muscleGroup: 'gluteos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-curtsy-lunge-dumbbell-front.gif',
+    technique: [
+      'Cruza una pierna detrás de la otra en diagonal',
+      'Baja como haciendo una reverencia',
+      'Enfatiza el glúteo medio y mayor',
+      'Mantén el torso erguido'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por pierna',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'good-morning-barbell',
+    name: 'Buenos Días con Barra',
+    muscleGroup: 'gluteos',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-good-morning-barbell-side.gif',
+    technique: [
+      'Barra en la espalda alta como sentadilla',
+      'Rodillas ligeramente flexionadas',
+      'Inclínate hacia adelante desde la cadera',
+      'Excelente para glúteos, isquiotibiales y espalda baja'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'kettlebell-swing',
+    name: 'Balanceo con Kettlebell',
+    muscleGroup: 'gluteos',
+    equipment: 'Kettlebell',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-kettlebell-swing-front.gif',
+    technique: [
+      'Balancea la kettlebell entre las piernas',
+      'Empuja explosivamente las caderas hacia adelante',
+      'La kettlebell sube por el impulso de cadera, no de brazos',
+      'Excelente para potencia de glúteos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-20 repeticiones',
+    restTime: '60-90 segundos'
+  },
 
   // ============================
   // HOMBROS - EJERCICIOS ADICIONALES
@@ -2664,6 +3283,63 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '45-60 segundos'
   },
   {
+    id: 'single-arm-cable-curl',
+    name: 'Curl Unilateral en Polea',
+    muscleGroup: 'biceps',
+    equipment: 'Poleas',
+    description: 'Permite enfocarse en cada bíceps independientemente',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-single-arm-cable-curl-front.gif',
+    technique: [
+      'Usa una manija en polea baja',
+      'De pie de lado a la máquina',
+      'Curl completo con contracción máxima',
+      'Corrige desbalances entre brazos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por brazo',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'seated-cable-curl',
+    name: 'Curl Sentado en Polea',
+    muscleGroup: 'biceps',
+    equipment: 'Poleas',
+    description: 'Elimina el impulso del cuerpo para aislamiento total',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-seated-cable-curl-front.gif',
+    technique: [
+      'Siéntate en banco frente a polea baja',
+      'Elimina completamente el impulso del cuerpo',
+      'Tensión constante en el bíceps',
+      'Ideal para finalizar el entrenamiento'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'chin-up-biceps',
+    name: 'Dominadas Supinas (Bíceps)',
+    muscleGroup: 'biceps',
+    equipment: 'Peso corporal',
+    description: 'Ejercicio compuesto que trabaja intensamente los bíceps',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-chin-up-biceps-back.gif',
+    technique: [
+      'Agarre supino (palmas hacia ti), ancho de hombros',
+      'Tira hasta que la barbilla supere la barra',
+      'Mayor activación de bíceps que dominadas pronadas',
+      'Excelente para fuerza y masa'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '6-12 repeticiones',
+    restTime: '2-3 minutos'
+  },
+  {
     id: 'kickback-tricep',
     name: 'Patada de Tríceps',
     muscleGroup: 'triceps',
@@ -2823,6 +3499,82 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     ],
     recommendedSets: '3-4 series',
     recommendedReps: '12-15 repeticiones',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'cable-lying-tricep-extension',
+    name: 'Extensión Acostado en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Mayor rango de movimiento que skull crushers tradicionales',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-lying-tricep-extension-front.gif',
+    technique: [
+      'Acuéstate en banco frente a polea baja',
+      'Agarra la barra con brazos extendidos hacia arriba',
+      'Baja la barra detrás de la cabeza flexionando codos',
+      'Extiende de vuelta manteniendo codos fijos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'incline-cable-tricep-extension',
+    name: 'Extensión Inclinado en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Ajusta el ángulo para enfatizar diferentes cabezas del tríceps',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-incline-cable-tricep-extension-front.gif',
+    technique: [
+      'Siéntate en banco inclinado frente a polea baja',
+      'Agarra la cuerda con ambas manos detrás de la cabeza',
+      'Extiende los brazos hacia arriba',
+      'Ángulo ajustable para variar el énfasis'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-high-cross-tricep-extension',
+    name: 'Extensión Cruzada Alta en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Híbrido entre pushdown y kickback con gran contracción',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-high-cross-tricep-extension-front.gif',
+    technique: [
+      'Coloca ambas poleas en posición alta',
+      'Agarra el cable derecho con mano izquierda y viceversa',
+      'Extiende los brazos cruzando al frente',
+      'Contracción intensa en la posición final'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-concentration-tricep-extension',
+    name: 'Extensión Concentrada en Polea',
+    muscleGroup: 'triceps',
+    equipment: 'Poleas',
+    description: 'Aislamiento total del tríceps con tensión constante',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-concentration-tricep-extension-front.gif',
+    technique: [
+      'Siéntate en banco, agarra manija de polea baja',
+      'Apoya el codo en la parte interna del muslo',
+      'Extiende el brazo completamente',
+      'Enfoque total en el tríceps trabajado'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por brazo',
     restTime: '45-60 segundos'
   },
 
@@ -3884,6 +4636,24 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     recommendedReps: '15-25 repeticiones',
     restTime: '30-45 segundos'
   },
+  {
+    id: 'squat-hold-calf-raise',
+    name: 'Gemelos en Posición de Sentadilla',
+    muscleGroup: 'gemelos',
+    equipment: 'Peso corporal',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-squat-hold-calf-raise-front.gif',
+    technique: [
+      'Mantén una posición de sentadilla (muslos paralelos al suelo)',
+      'Eleva los talones mientras mantienes la posición de sentadilla',
+      'Trabaja gemelos bajo tensión isométrica de piernas',
+      'Excelente para resistencia y estabilidad'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '15-20 repeticiones',
+    restTime: '60 segundos'
+  },
 
   // ============================
   // CARDIO
@@ -4430,6 +5200,109 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   }
 ];
 
+// Anexar ejercicios faltantes importados desde Burnfit
+// function translateBurnfitName(enName: string, id?: string): string {
+//   const name = enName || '';
+//   // Sufijos por equipment detectado (mejor que aparecer como texto entre paréntesis)
+//   let equipSuffix = '';
+//   if (/barbell/i.test(name)) equipSuffix = ' (Barra)';
+//   else if (/dumbbell/i.test(name)) equipSuffix = ' (Mancuernas)';
+//   else if (/kettlebell/i.test(name)) equipSuffix = ' (Kettlebell)';
+//   else if (/machine/i.test(name)) equipSuffix = ' (Máquina)';
+//   else if (/weighted/i.test(name)) equipSuffix = ' (Lastradas)';
+
+//   // Frases comunes con traducción preferente (revisar/añadir si hace falta)
+//   const phraseMap: Array<[RegExp, string]> = [
+//     [/barbell bench press/i, 'Press de Banca (Barra)'],
+//     [/incline bench press/i, 'Press Inclinado'],
+//     [/decline bench press/i, 'Press Declinado'],
+//     [/bench press/i, 'Press de Banca'],
+//     [/dumbbell fly/i, 'Aperturas con Mancuernas'],
+//     [/lat pull down/i, 'Jalón al Pecho'],
+//     [/lat pulldown/i, 'Jalón al Pecho'],
+//     [/pull up/i, 'Dominadas'],
+//     [/chin up/i, 'Dominadas (supinado)'],
+//     [/push up/i, 'Flexiones'],
+//     [/deadlift/i, 'Peso Muerto'],
+//     [/squat/i, 'Sentadilla'],
+//     [/lunge/i, 'Zancada'],
+//     [/row/i, 'Remo'],
+//     [/shoulder press/i, 'Press de Hombros'],
+//     [/bicep curl/i, 'Curl de Bíceps'],
+//     [/tricep extension/i, 'Extensión de Tríceps'],
+//     [/leg raise/i, 'Elevación de Piernas'],
+//     [/sit up/i, 'Sit Up'],
+//     [/crunch/i, 'Crunch'],
+//     [/burpee/i, 'Burpee'],
+//     [/box jump/i, 'Salto al Cajón'],
+//     [/plank/i, 'Plancha'],
+//     [/toes to bar/i, 'Pies a la Barra'],
+//     [/hang(ing)? knee raise/i, 'Elevación de Rodillas Colgado']
+//   ];
+//   for (const [re, tx] of phraseMap) if (re.test(name)) return tx;
+
+//   // Fallback por tokens (divide y mapea palabras individuales)
+//   const tokenMap: Record<string, string> = {
+//     barbell: 'Barra',
+//     dumbbell: 'Mancuernas',
+//     kettlebell: 'Kettlebell',
+//     machine: 'Máquina',
+//     bodyweight: 'Peso corporal',
+//     weighted: 'Lastradas',
+//     back: 'Trasera',
+//     front: 'Frontal',
+//     incline: 'Inclinado',
+//     decline: 'Declinado',
+//     reverse: 'Reverse',
+//     stiff: 'Stiff',
+//     single: 'Single',
+//     one: 'One',
+//     arm: 'Brazo',
+//     leg: 'Pierna',
+//     shrug: 'Encogimiento',
+//     press: 'Press',
+//     fly: 'Aperturas',
+//     squat: 'Sentadilla',
+//     deadlift: 'Peso Muerto',
+//     lunge: 'Zancada',
+//     row: 'Remo',
+//     pull: 'Jalón',
+//     push: 'Empuje',
+//     curl: 'Curl',
+//     extension: 'Extensión',
+//     calf: 'Gemelos',
+//     raise: 'Elevación',
+//     crunch: 'Crunch',
+//     plank: 'Plancha',
+//     burpee: 'Burpee',
+//     mobility: 'Movilidad'
+//   };
+
+//   const cleaned = name.replace(/[^\w\s]/g, ' ').trim();
+//   const parts = cleaned.split(/\s+/).filter(Boolean);
+//   const translatedParts = parts.map(p => {
+//     const low = p.toLowerCase();
+//     if (tokenMap[low]) return tokenMap[low];
+//     return p.charAt(0).toUpperCase() + p.slice(1);
+//   });
+//   let result = translatedParts.join(' ');
+//   if (equipSuffix) result = result + equipSuffix;
+//   return result.charAt(0).toUpperCase() + result.slice(1);
+// }
+
+// const normalizedMissing = BURNFIT_MISSING.map((e) => ({
+//   ...e,
+//   name: translateBurnfitName(e.name, e.id),
+//   image: URL_STORAGE + `${e.id}.gif`
+// }));
+
+// EXERCISE_DATABASE.push(...normalizedMissing); // Opcional: añadir ejercicios faltantes de Burnfit a la base de datos principal
+
+// Normalizar `image` para toda la base de datos al patrón solicitado
+// EXERCISE_DATABASE.forEach((ex) => {
+//   ex.image = URL_STORAGE + `${ex.id}.gif`;
+// });
+
 export const MUSCLE_GROUPS: { id: MuscleGroup; name: string }[] = [
   { id: 'pecho', name: 'Pecho' },
   { id: 'espalda', name: 'Espalda' },
@@ -4468,11 +5341,11 @@ export const getExerciseByName = (name: string): ExerciseTemplate | undefined =>
   );
 };
 
-// Fallback: asegurar que todos los ejercicios tengan una imagen válida
-const DEFAULT_PLACEHOLDER_IMAGE = '/images/not-available.svg';
+// Fallback: asegurar que todos los ejercicios tengan una imagen válida.
+// Si falta `image`, se genera por convención: `male-<id>-front.gif`.
 EXERCISE_DATABASE.forEach(ex => {
   if (!ex.image) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (ex as any).image = DEFAULT_PLACEHOLDER_IMAGE;
+    (ex as any).image = URL_STORAGE + `male-${ex.id}.gif`;
   }
 });

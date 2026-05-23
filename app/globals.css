@@ -48,7 +48,7 @@
 
 /* Dark mode - controlado por clase .dark en el elemento raíz */
 .dark {
-  --background: #09090b;
+  --background: #0a0a0f;
   --foreground: #fafafa;
   
   --primary: #3b82f6;
@@ -62,12 +62,12 @@
   --error: #ef4444;
   --info: #3b82f6;
   
-  --surface: #18181b;
-  --surface-alt: #27272a;
-  --surface-hover: #3f3f46;
+  --surface: #0f0f14;
+  --surface-alt: #141419;
+  --surface-hover: rgba(255, 255, 255, 0.05);
   
-  --border: #3f3f46;
-  --border-light: #27272a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.04);
 }
 
 body {
@@ -238,6 +238,20 @@ body.modal-open {
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-6px); }
+  30%       { transform: translateX(6px); }
+  45%       { transform: translateX(-5px); }
+  60%       { transform: translateX(5px); }
+  75%       { transform: translateX(-3px); }
+  90%       { transform: translateX(3px); }
+}
+
+.animate-shake {
+  animation: shake 0.55s ease-in-out;
 }
 
 /* Halo pulse for onboarding spotlight */

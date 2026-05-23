@@ -1,10 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+// Guard: retornar error si la base de datos está deshabilitada
+function dbDisabledResponse() {
+  if (process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
+    return NextResponse.json(
+      { error: 'Base de datos deshabilitada. Usa almacenamiento local.' },
+      { status: 503 }
+    );
+  }
+  return null;
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = dbDisabledResponse();
+  if (guard) return guard;
   try {
     const supabase = await createClient()
     const { id } = await params
@@ -20,9 +33,6 @@ export async function PUT(
     const body = await request.json()
     const { name, description, image, exercises, restBetweenSets, restBetweenExercises } = body
 
-    console.log('[Routines API] PUT - Updating routine:', id)
-    console.log('[Routines API] PUT - Exercises count:', exercises?.length)
-    console.log('[Routines API] PUT - First exercise:', JSON.stringify(exercises?.[0], null, 2))
 
     // Update routine
     const { error: routineError } = await supabase
@@ -65,7 +75,7 @@ export async function PUT(
         weight: ex.sets?.[0]?.weight || 0
       }))
 
-      console.log('[Routines API] PUT - Inserting exercises:', JSON.stringify(exercisesData[0], null, 2))
+      // console.log('[Routines API] PUT - Inserting exercises:', JSON.stringify(exercisesData[0], null, 2))
 
       const { error: exercisesError } = await supabase
         .from('exercises')
@@ -77,7 +87,7 @@ export async function PUT(
       }
     }
 
-    console.log('[Routines API] PUT - Update successful')
+    // console.log('[Routines API] PUT - Update successful')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[Routines API] PUT - Unexpected error:', error)
@@ -89,6 +99,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const guard = dbDisabledResponse();
+  if (guard) return guard;
   try {
     const supabase = await createClient()
     const { id } = await params

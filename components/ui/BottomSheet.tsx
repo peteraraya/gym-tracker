@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X } from '@/components/icons/lucide';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -137,7 +137,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           </h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0"
           >
             <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>

@@ -69,7 +69,7 @@ export function useAutoAdvance(params: UseAutoAdvanceParams) {
       // Prevenir procesamiento duplicado del mismo ejercicio
       const exerciseKey = `${currentExercise.id}-${currentExerciseIndex}`;
       if (lastProcessedExerciseRef.current === exerciseKey) {
-        console.log('[Auto-advance] Ya procesado este ejercicio, ignorando');
+        // console.log('[Auto-advance] Ya procesado este ejercicio, ignorando');
         return;
       }
       
@@ -78,10 +78,10 @@ export function useAutoAdvance(params: UseAutoAdvanceParams) {
       const isLastExercise = currentExerciseIndex >= routine.exercises.length - 1;
       
       if (isLastExercise) {
-        console.log('[Auto-advance] Último ejercicio, mostrando modal');
+        // console.log('[Auto-advance] Último ejercicio, mostrando modal');
         onShowFinishModal();
       } else {
-        console.log('[Auto-advance] Avanzando al siguiente ejercicio');
+        // console.log('[Auto-advance] Avanzando al siguiente ejercicio');
         onAdvanceToNextExercise();
       }
     }

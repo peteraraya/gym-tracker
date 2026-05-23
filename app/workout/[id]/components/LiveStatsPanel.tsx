@@ -61,7 +61,7 @@ export function LiveStatsPanel({
   }, [completedSets, actualReps, actualWeights, exercises]);
   
   return (
-    <Card className={`bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800 ${className}`}>
+    <Card className={`bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800 ${className}`}>
       <CardContent className="py-3 px-4">
         <div className="grid grid-cols-3 gap-4">
           {/* Volumen Total */}

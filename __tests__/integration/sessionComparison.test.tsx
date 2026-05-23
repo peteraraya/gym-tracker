@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@/__tests__/helpers/testUtils'
 import userEvent from '@testing-library/user-event'
-import { SessionComparison } from '@/components/SessionComparison'
+import { SessionComparison } from '@/components/features/sessions/SessionComparison'
 import { createMockSession, createMockRoutine } from '@/__tests__/helpers/mockData'
 
 describe('Session Comparison - Integration Tests', () => {

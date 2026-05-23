@@ -1,5 +1,10 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+﻿import { useState, useCallback, useRef, useEffect } from 'react';
 import { useWorkout } from '@/context/WorkoutContext';
+import {
+  startRestNotification,
+  updateRestNotification,
+  endRestNotification,
+} from '@/lib/notifications/restNotification';
 
 export interface TimerState {
   showTimer: boolean;
@@ -34,6 +39,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   
   const timerCompleteRef = useRef(onTimerComplete);
   const hasRestoredRef = useRef(false);
+  const currentTimeLeftRef = useRef(currentTimeLeft);
   
   // Update ref when callback changes
   useEffect(() => {
@@ -44,41 +50,60 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   useEffect(() => {
     if (hasRestoredRef.current || !activeWorkout) return;
     
-    if (activeWorkout.isResting && activeWorkout.restTimerStartedAt && activeWorkout.restTimerDuration) {
-      const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
-      const remaining = Math.max(0, activeWorkout.restTimerDuration - elapsed);
+    if (activeWorkout.isResting && activeWorkout.restTimerRemaining) {
+      // Calcular tiempo real restante descontando el tiempo transcurrido desde que se guardó
+      let remaining = activeWorkout.restTimerRemaining;
+      if (activeWorkout.restTimerStartedAt) {
+        const elapsed = Math.floor((Date.now() - activeWorkout.restTimerStartedAt) / 1000);
+        remaining = Math.max(0, remaining - elapsed);
+      }
+      
+      hasRestoredRef.current = true;
       
       if (remaining > 0) {
         setShowTimer(true);
-        setTimerDuration(activeWorkout.restTimerDuration);
-        setTimerStartTime(activeWorkout.restTimerStartedAt);
+        setTimerDuration(remaining);
+        setTimerStartTime(Date.now());
         setCurrentTimeLeft(remaining);
         setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
         setNextExerciseName(activeWorkout.restTimerNextExercise);
         setTimerMinimized(false);
         
-        hasRestoredRef.current = true;
+        // console.log('[useWorkoutTimer] ✅ Timer restaurado. Restante:', remaining, 's');
+      } else {
+        // El timer expiró mientras la página estaba cerrada
+        // console.log('[useWorkoutTimer] Timer expirado durante F5, ejecutando callback');
+        timerCompleteRef.current();
       }
     }
   }, [activeWorkout]);
   
+  // BUG FIX: Sync ref whenever currentTimeLeft changes
+  useEffect(() => {
+    currentTimeLeftRef.current = currentTimeLeft;
+  }, [currentTimeLeft]);
+
   // Countdown when minimized
   useEffect(() => {
     if (!showTimer || !timerMinimized || !timerStartTime) {
       return;
     }
-
-    const interval = setInterval(() => {
-      const remaining = Math.max(0, currentTimeLeft - 1);
+    const intervalId = setInterval(() => {
+      const remaining = Math.max(0, currentTimeLeftRef.current - 1);
       setCurrentTimeLeft(remaining);
-
-      if (remaining === 0 && timerCompleteRef.current) {
-        timerCompleteRef.current();
+      currentTimeLeftRef.current = remaining;
+      if (remaining === 0) {
+        // Asegurar que la notificación final se muestre antes de ejecutar el callback
+        try {
+          endRestNotification().catch(() => {});
+        } catch (e) {}
+        if (timerCompleteRef.current) {
+          timerCompleteRef.current();
+        }
       }
     }, 1000);
-
-    return () => clearInterval(interval);
-  }, [showTimer, timerMinimized, timerStartTime, currentTimeLeft]);
+    return () => clearInterval(intervalId);
+  }, [showTimer, timerMinimized, timerStartTime]); // Note: `currentTimeLeft` intentionally excluded from deps
   
   const startTimer = useCallback((duration: number, title: string, nextExercise?: string) => {
     const startTime = Date.now();
@@ -108,6 +133,10 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         }
       );
     }
+    // Iniciar notificación de descanso (no bloqueante)
+    try {
+      startRestNotification(duration, title, nextExercise).catch(() => {});
+    } catch (err) {}
   }, [activeWorkout, updateWorkoutProgress]);
   
   const stopTimer = useCallback(() => {
@@ -126,20 +155,41 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
+    // Terminar notificación
+    try { endRestNotification().catch(() => {}); } catch (e) {}
   }, [activeWorkout, updateWorkoutProgress]);
   
   const minimizeTimer = useCallback((timeLeft: number) => {
     setTimerMinimized(true);
     setCurrentTimeLeft(timeLeft);
     setTimerStartTime(Date.now());
-  }, []);
+    
+    // ✅ Persistir el tiempo restante y el timestamp cuando se minimiza
+    if (activeWorkout && updateWorkoutProgress) {
+      updateWorkoutProgress(
+        activeWorkout.currentExerciseIndex,
+        activeWorkout.currentSet,
+        activeWorkout.completedSets,
+        activeWorkout.actualReps,
+        activeWorkout.actualWeights,
+        {
+          isResting: true,
+          restTimerDuration: timeLeft, // ✅ Guardar tiempo restante
+          restTimerTitle: timerTitle,
+          restTimerNextExercise: nextExerciseName,
+          restTimerStartedAt: Date.now() // ✅ Guardar timestamp para calcular elapsed en F5
+        }
+      );
+    }
+    // Actualizar notificación con el tiempo restante
+    try { updateRestNotification(timeLeft).catch(() => {}); } catch (e) {}
+  }, [activeWorkout, updateWorkoutProgress, timerTitle, nextExerciseName]);
   
   const expandTimer = useCallback(() => {
     setTimerMinimized(false);
@@ -162,13 +212,14 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
+    // Terminar notificación
+    try { endRestNotification().catch(() => {}); } catch (e) {}
   }, [activeWorkout, updateWorkoutProgress]);
   
   const skipAndAdvance = useCallback(() => {
@@ -188,13 +239,14 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         activeWorkout.actualWeights,
         {
           isResting: false,
-          restTimerDuration: undefined,
+          restTimerDuration: undefined, // ✅ Limpiar tiempo restante
           restTimerTitle: undefined,
-          restTimerNextExercise: undefined,
-          restTimerStartedAt: undefined
+          restTimerNextExercise: undefined
         }
       );
     }
+    // Terminar notificación
+    try { endRestNotification().catch(() => {}); } catch (e) {}
     
     // Ejecutar el callback después de cerrar el timer
     if (timerCompleteRef.current) {

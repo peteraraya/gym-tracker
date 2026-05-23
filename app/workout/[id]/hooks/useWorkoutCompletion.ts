@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
-import { calculateAchievements, getRecentAchievements } from '@/lib/achievements';
+import { useAchievementManager } from '@/lib/achievements/achievementManager';
+import { useConfirm } from '@/context/NotificationContext';
+import type { CompleteSplashStats } from '@/components/features/workout/WorkoutCompleteSplash';
 
 interface UseWorkoutCompletionProps {
   routine: any;
@@ -7,7 +9,7 @@ interface UseWorkoutCompletionProps {
   totalPausedTime: number;
   sessions: any[];
   addSession: (session: any) => Promise<void>;
-  finishWorkoutContext: () => void;
+  finishWorkoutContext: () => Promise<void>;
   onSuccess: (message: string, duration?: number) => void;
   onError: (message: string) => void;
   router: any;
@@ -32,6 +34,12 @@ export function useWorkoutCompletion({
   const [proposedDuration, setProposedDuration] = useState<number>(0);
   const [sessionNotes, setSessionNotes] = useState('');
   const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
+  const [completeSplash, setCompleteSplash] = useState<CompleteSplashStats | null>(null);
+  const [pendingNavigate, setPendingNavigate] = useState(false);
+  
+  // ✨ Usar el nuevo sistema de logros
+  const achievementManager = useAchievementManager();
+  const { confirm } = useConfirm();
   
   const openCompletionModal = useCallback((duration?: number) => {
     const calculatedDuration = duration || Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
@@ -41,12 +49,31 @@ export function useWorkoutCompletion({
     setShowNotesModal(true);
   }, [workoutStartTime, totalPausedTime]);
   
-  const finishWorkout = useCallback(async (workoutData: any) => {
+  const finishWorkout = useCallback(async (workoutData: any, confirmedDuration?: number) => {
     if (!routine) return;
 
-    const totalDuration = proposedDuration && proposedDuration > 0
-      ? proposedDuration
-      : Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+    // Prioridad: duración pasada directamente desde el modal > proposedDuration > cálculo automático
+    const totalDuration = confirmedDuration && confirmedDuration > 0
+      ? confirmedDuration
+      : proposedDuration && proposedDuration > 0
+        ? proposedDuration
+        : Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
+
+    // Validación: más de 5 horas (18000 segundos)
+    if (totalDuration > 18000) {
+      const hours = Math.floor(totalDuration / 3600);
+      const minutes = Math.floor((totalDuration % 3600) / 60);
+      const confirmed = await confirm({
+        title: 'Duración inusualmente larga',
+        message: `Estás a punto de registrar ${hours}h ${minutes}m de entrenamiento. ¿Es correcto?`,
+        confirmText: 'Sí, guardar',
+        cancelText: 'Corregir duración',
+      });
+      if (!confirmed) return;
+    }
+
+    // Cerrar el modal antes de procesar para que no reaparezca tras el splash
+    setShowNotesModal(false);
 
     // Calculate total volume
     let totalVolume = 0;
@@ -58,8 +85,19 @@ export function useWorkoutCompletion({
       });
     });
 
-    const sessionExercises = routine.exercises.map((ex: any) => ({
-      exerciseId: ex.id,
+    type SessionExercise = {
+      exerciseId: string;
+      exerciseName: string;
+      completedSets: number;
+      actualReps: number[];
+      actualWeight: number[];
+      setDurations: number[];
+      pauseDurations: number[];
+      actualRestTimes: number[];
+    };
+
+    const sessionExercises: SessionExercise[] = routine.exercises.map((ex: any) => ({
+      exerciseId: String(ex.id),
       exerciseName: ex.name,
       completedSets: workoutData.completedSets[ex.id] || 0,
       actualReps: workoutData.actualReps[ex.id] || [],
@@ -69,55 +107,124 @@ export function useWorkoutCompletion({
       actualRestTimes: workoutData.actualRestTimes[ex.id] || []
     }));
 
-    try {
-      await addSession({
-        routineId: routine.id,
-        date: new Date(),
-        exercises: sessionExercises,
-        notes: sessionNotes.trim() || '',
-        totalDuration,
-        totalPausedTime,
-        totalVolume: Math.round(totalVolume)
-      });
-      
-      // Check for new achievements
-      const updatedSessions = [...sessions, {
-        routineId: routine.id,
-        date: new Date(),
-        exercises: sessionExercises,
-        notes: sessionNotes.trim() || '',
-        totalDuration,
-        totalPausedTime
-      } as any];
+    // ✨ Crear la nueva sesión
+    const newSession = {
+      id: `temp-${Date.now()}`, // ID temporal
+      routineId: routine.id,
+      routineName: routine.name,
+      date: new Date(),
+      exercises: sessionExercises,
+      notes: sessionNotes.trim() || '',
+      totalDuration,
+      totalPausedTime,
+      totalVolume: Math.round(totalVolume)
+    };
 
-      const achievements = calculateAchievements(updatedSessions);
-      const recentAchievements = getRecentAchievements(achievements);
-      
-      // Show achievement notifications
-      recentAchievements.forEach(achievement => {
-        if (achievement.unlocked && !shownAchievements.has(achievement.id)) {
-          onSuccess(`🏆 ¡Logro desbloqueado! ${achievement.name}`, 5000);
-          setShownAchievements(prev => new Set([...prev, achievement.id]));
-          // Haptic feedback para logro
-          onAchievementUnlocked?.();
-        }
-      });
-      
+    try {
+      // ✨ Procesar logros ANTES de guardar
+      const allSessionsWithNew = [...sessions, newSession];
+      const newAchievements = achievementManager.processNewSession(newSession, allSessionsWithNew);
+      const stats = achievementManager.getQuickStats(allSessionsWithNew);
+      const records = achievementManager.checkPersonalRecords(newSession, allSessionsWithNew);
+
+      // Guardar la sesión
+      await addSession(newSession);
+
+      // ✨ Mostrar notificaciones de logros
+      if (newAchievements.length > 0) {
+        newAchievements.forEach(({ achievement }) => {
+          if (!shownAchievements.has(achievement.id)) {
+            onSuccess(`🏆 ¡Logro desbloqueado! ${achievement.name}`, 5000);
+            setShownAchievements(prev => new Set([...prev, achievement.id]));
+            onAchievementUnlocked?.();
+          }
+        });
+      }
+
+      // ✨ Mostrar notificaciones de récords personales
+      if (records.volumeRecord) {
+        onSuccess(`💪 ¡Nuevo récord de volumen! ${Math.round(totalVolume)}kg`, 4000);
+      }
+      if (records.setsRecord) {
+        const totalSets = sessionExercises.reduce((sum, ex) => sum + ex.completedSets, 0);
+        onSuccess(`🔥 ¡Nuevo récord de series! ${totalSets} series`, 4000);
+      }
+
+      // ✨ Mensaje motivacional
+      const motivationalMessage = achievementManager.generateMotivationalMessage(newAchievements, stats);
+      if (newAchievements.length === 0) {
+        onSuccess(motivationalMessage, 3000);
+      }
+
       // Haptic feedback al completar entrenamiento
       onWorkoutComplete?.();
-      
-      finishWorkoutContext();
+
+      // Esperar a que el activeWorkout se limpie correctamente antes de continuar
+      await finishWorkoutContext();
+
       onSuccess('Sesión guardada exitosamente');
-      
+
       await new Promise(resolve => setTimeout(resolve, 100));
-      
-      router.replace('/sessions');
-      router.refresh();
+
+      // Mostrar splash de completación antes de navegar
+      setCompleteSplash({
+        routineName: routine.name || 'Entrenamiento',
+        exerciseCount: sessionExercises.length,
+        totalSets: sessionExercises.reduce((sum: number, ex: any) => sum + ex.completedSets, 0),
+        totalVolume: Math.round(totalVolume),
+        durationSeconds: totalDuration,
+      });
+      setPendingNavigate(true);
     } catch (err) {
       console.error('Error saving session:', err);
-      onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
+
+      // Fallback: intentar guardar la sesión localmente para no perder datos
+      try {
+        const localSvc = await import('@/lib/storage/localStorage');
+        await localSvc.saveSession(newSession as any);
+        onSuccess('Sesión guardada localmente (sin conexión)', 4000);
+
+        // Asegurarnos de limpiar active workout aunque la subida fallara
+        try {
+          await finishWorkoutContext();
+        } catch (e) {
+          console.error('Error clearing active workout after local save fallback:', e);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setCompleteSplash({
+          routineName: routine?.name || 'Entrenamiento',
+          exerciseCount: 0,
+          totalSets: 0,
+          totalVolume: 0,
+          durationSeconds: 0,
+        });
+        setPendingNavigate(true);
+        return;
+      } catch (localErr) {
+        console.error('Error saving session locally as fallback:', localErr);
+        onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
+        return;
+      }
     }
-  }, [routine, proposedDuration, workoutStartTime, totalPausedTime, sessionNotes, addSession, finishWorkoutContext, onSuccess, onError, router, sessions, shownAchievements]);
+  }, [
+    routine, 
+    proposedDuration, 
+    workoutStartTime, 
+    totalPausedTime, 
+    sessionNotes, 
+    addSession, 
+    finishWorkoutContext, 
+    onSuccess, 
+    onError, 
+    router, 
+    sessions, 
+    shownAchievements,
+    achievementManager,
+    onWorkoutComplete,
+    onAchievementUnlocked,
+    confirm,
+  ]);
   
   return {
     showNotesModal,
@@ -127,6 +234,13 @@ export function useWorkoutCompletion({
     sessionNotes,
     setSessionNotes,
     openCompletionModal,
-    finishWorkout
+    finishWorkout,
+    completeSplash,
+    onCompleteSplashDone: useCallback(() => {
+      setCompleteSplash(null);
+      // El splash solo aparece tras completar exitosamente → siempre navegar a /sessions
+      router.replace('/sessions');
+      router.refresh();
+    }, [router]),
   };
 }

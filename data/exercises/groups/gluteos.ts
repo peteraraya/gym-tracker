@@ -204,5 +204,167 @@ export const exercises: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '15-25 repeticiones',
     restTime: '45-60 segundos'
+  },
+  {
+    id: 'cable-squat',
+    name: 'Sentadilla en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 4,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-squat-front.gif',
+    technique: [
+      'Polea baja con cuerda o barra',
+      'Stance amplio con pies apuntando hacia afuera',
+      'Baja hasta que muslos estén paralelos al suelo',
+      'Empuja con los talones y aprieta glúteos arriba'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'cable-romanian-deadlift',
+    name: 'Peso Muerto Rumano en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 4,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-romanian-deadlift-front.gif',
+    technique: [
+      'Polea baja, de frente a la máquina',
+      'Rodillas ligeramente flexionadas',
+      'Empuja las caderas hacia atrás manteniendo espalda recta',
+      'Siente el estiramiento en glúteos e isquiotibiales'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'cable-single-leg-rdl',
+    name: 'Peso Muerto Rumano Unilateral en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-single-leg-rdl-front.gif',
+    technique: [
+      'Polea baja, equilibrio en una pierna',
+      'Empuja la cadera hacia atrás mientras inclinas el torso',
+      'Pierna libre se extiende hacia atrás',
+      'Excelente para estabilidad y corregir desbalances'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-12 por pierna',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-reverse-lunge',
+    name: 'Zancada Inversa en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-reverse-lunge-front.gif',
+    technique: [
+      'Polea baja, agarra con una mano',
+      'Da un paso hacia atrás en zancada',
+      'Baja hasta que rodilla trasera casi toque el suelo',
+      'Mayor activación de glúteos que zancada frontal'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por pierna',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'cable-hip-abduction',
+    name: 'Abducción de Cadera en Polea',
+    muscleGroup: 'gluteos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-hip-abduction-front.gif',
+    technique: [
+      'Correa en tobillo, de lado a la máquina',
+      'Levanta la pierna hacia el lado',
+      'Trabaja el glúteo medio para estabilidad',
+      'Mantén la pierna relativamente recta'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-20 por pierna',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'lateral-lunge',
+    name: 'Zancada Lateral',
+    muscleGroup: 'gluteos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-lateral-lunge-front.gif',
+    technique: [
+      'Da un paso amplio hacia el lado',
+      'Baja doblando la pierna lateral, otra pierna recta',
+      'Empuja con el talón para volver al centro',
+      'Trabaja glúteos y aductores'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por pierna',
+    restTime: '60-90 segundos'
+  },
+  {
+    id: 'curtsy-lunge',
+    name: 'Zancada Reverencia',
+    muscleGroup: 'gluteos',
+    equipment: 'Mancuernas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-curtsy-lunge-front.gif',
+    technique: [
+      'Cruza una pierna detrás de la otra en diagonal',
+      'Baja como haciendo una reverencia',
+      'Enfatiza el glúteo medio y mayor',
+      'Mantén el torso erguido'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por pierna',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'good-morning',
+    name: 'Buenos Días',
+    muscleGroup: 'gluteos',
+    equipment: 'Barra',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-good-morning-front.gif',
+    technique: [
+      'Barra en la espalda alta como sentadilla',
+      'Rodillas ligeramente flexionadas',
+      'Inclínate hacia adelante desde la cadera',
+      'Excelente para glúteos, isquiotibiales y espalda baja'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '90-120 segundos'
+  },
+  {
+    id: 'kettlebell-swing',
+    name: 'Balanceo con Kettlebell',
+    muscleGroup: 'gluteos',
+    equipment: 'Kettlebell',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-kettlebell-swing-front.gif',
+    technique: [
+      'Balancea la kettlebell entre las piernas',
+      'Empuja explosivamente las caderas hacia adelante',
+      'La kettlebell sube por el impulso de cadera, no de brazos',
+      'Excelente para potencia de glúteos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-20 repeticiones',
+    restTime: '60-90 segundos'
   }
 ];

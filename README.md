@@ -78,6 +78,10 @@ Una aplicación web moderna y completa para el seguimiento de entrenamientos en 
   - Row Level Security - Seguridad a nivel de fila
 
 ### Optimizaciones
+- **React Query** - Caché inteligente y gestión de estado del servidor
+- **Virtualización** - Renderizado eficiente de listas largas
+- **Code Splitting** - Carga diferida de componentes pesados
+- **Memoización** - Prevención de re-renders innecesarios
 - **React Compiler** - Optimización automática de componentes
 - **Server Components** - Renderizado del lado del servidor
 - **Client Components** - Interactividad del cliente
@@ -380,6 +384,7 @@ const customSession = createMockSession({
 
 ## 📚 Documentación Adicional
 
+- 🚀 **[PERFORMANCE.md](./docs/PERFORMANCE.md)** - Guía de optimizaciones de performance
 - 📊 **[ANALISIS_Y_MEJORAS.md](./docs/ANALISIS_Y_MEJORAS.md)** - Análisis completo de la aplicación con recomendaciones
 - ✅ **[MEJORAS_IMPLEMENTADAS.md](./docs/MEJORAS_IMPLEMENTADAS.md)** - Resumen de mejoras y correcciones aplicadas
 - 🗄️ **[SUPABASE_SETUP.md](./docs/SUPABASE_SETUP.md)** - Guía de configuración de Supabase

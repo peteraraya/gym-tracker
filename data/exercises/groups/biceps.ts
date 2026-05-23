@@ -306,6 +306,75 @@ export const bicepsExercises: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '12-20 repeticiones',
     restTime: '45-60 segundos'
+  },
+  {
+    id: 'single-arm-cable-curl',
+    name: 'Curl Unilateral en Polea',
+    muscleGroup: 'biceps',
+    equipment: 'Poleas',
+    description: 'Permite enfocarse en cada bíceps independientemente',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-single-arm-cable-curl-front.gif',
+    difficulty: 'intermedio',
+    category: 'aislamiento',
+    primaryMuscles: ['Bíceps Braquial'],
+    secondaryMuscles: ['Braquial', 'Braquiorradial'],
+    technique: [
+      'Usa una manija en polea baja',
+      'De pie de lado a la máquina',
+      'Curl completo con contracción máxima',
+      'Corrige desbalances entre brazos'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 por brazo',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'seated-cable-curl',
+    name: 'Curl Sentado en Polea',
+    muscleGroup: 'biceps',
+    equipment: 'Poleas',
+    description: 'Elimina el impulso del cuerpo para aislamiento total',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-seated-cable-curl-front.gif',
+    difficulty: 'intermedio',
+    category: 'aislamiento',
+    primaryMuscles: ['Bíceps Braquial'],
+    secondaryMuscles: ['Braquial'],
+    technique: [
+      'Siéntate en banco frente a polea baja',
+      'Elimina completamente el impulso del cuerpo',
+      'Tensión constante en el bíceps',
+      'Ideal para finalizar el entrenamiento'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '12-20 repeticiones',
+    restTime: '45-60 segundos'
+  },
+  {
+    id: 'chin-up-biceps',
+    name: 'Dominadas Supinas (Bíceps)',
+    muscleGroup: 'biceps',
+    equipment: 'Peso corporal',
+    description: 'Ejercicio compuesto que trabaja intensamente los bíceps',
+    defaultSets: 3,
+    defaultReps: 10,
+    image: URL_STORAGE + 'male-chin-up-biceps-front.gif',
+    difficulty: 'intermedio',
+    category: 'compuesto',
+    primaryMuscles: ['Bíceps Braquial', 'Dorsal Ancho'],
+    secondaryMuscles: ['Braquial', 'Romboides'],
+    technique: [
+      'Agarre supino (palmas hacia ti), ancho de hombros',
+      'Tira hasta que la barbilla supere la barra',
+      'Mayor activación de bíceps que dominadas pronadas',
+      'Excelente para fuerza y masa'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '6-12 repeticiones',
+    restTime: '2-3 minutos'
   }
 ];
 

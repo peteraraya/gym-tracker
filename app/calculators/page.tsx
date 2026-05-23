@@ -1,19 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import OneRMCalculator from '@/components/OneRMCalculator';
-import PlateCalculator from '@/components/PlateCalculator';
-import UnitConverter from '@/components/UnitConverter';
-import TdeeCalculator from '@/components/TdeeCalculator';
-import PercentageRMCalculator from '@/components/PercentageRMCalculator';
-import VolumeCalculator from '@/components/VolumeCalculator';
-import RestTimeCalculator from '@/components/RestTimeCalculator';
-import BMICalculator from '@/components/BMICalculator';
-import CaloriesBurnedCalculator from '@/components/CaloriesBurnedCalculator';
-import ProgressionCalculator from '@/components/ProgressionCalculator';
-import WilksCalculator from '@/components/WilksCalculator';
-import TempoCalculator from '@/components/TempoCalculator';
+import ProtectedRoute from '@/components/layout/ProtectedRoute';
+import OneRMCalculator from '@/components/features/calculators/OneRMCalculator';
+import PlateCalculator from '@/components/features/calculators/PlateCalculator';
+import UnitConverter from '@/components/features/calculators/UnitConverter';
+import TdeeCalculator from '@/components/features/calculators/TdeeCalculator';
+import PercentageRMCalculator from '@/components/features/calculators/PercentageRMCalculator';
+import VolumeCalculator from '@/components/features/calculators/VolumeCalculator';
+import RestTimeCalculator from '@/components/features/calculators/RestTimeCalculator';
+import BMICalculator from '@/components/features/calculators/BMICalculator';
+import CaloriesBurnedCalculator from '@/components/features/calculators/CaloriesBurnedCalculator';
+import ProgressionCalculator from '@/components/features/progress/ProgressionCalculator';
+import WilksCalculator from '@/components/features/calculators/WilksCalculator';
+import TempoCalculator from '@/components/features/calculators/TempoCalculator';
 import { Button } from '@/components/ui/Button';
 import { 
   Calculator, 
@@ -178,8 +178,8 @@ export default function CalculatorsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="p-4 max-w-7xl mx-auto space-y-4">
           {/* Header */}
           <div className="flex items-center gap-4">
             {selectedCalculator && (
@@ -197,52 +197,52 @@ export default function CalculatorsPage() {
           {!selectedCalculator && (
             <>
               {/* Hero Section */}
-              <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-6 md:p-8 text-white shadow-2xl">
+              <div className="relative overflow-hidden bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
                 <div className="relative z-10">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="p-4 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <Calculator className="w-10 h-10" />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <Calculator className="w-8 h-8" />
                     </div>
                     <div>
-                      <h1 className="text-4xl md:text-5xl font-bold">
+                      <h1 className="text-2xl md:text-3xl font-bold">
                         Calculadoras de Entrenamiento
                       </h1>
-                      <p className="text-lg text-white/90 mt-2">
+                      <p className="text-sm text-white/90 mt-1">
                         12 herramientas profesionales para optimizar tu progreso
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-4 mt-6">
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
-                      <span className="text-2xl">🎯</span>
-                      <span className="text-sm">Precisión Científica</span>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                      <span className="text-lg">🎯</span>
+                      <span className="text-xs">Precisión Científica</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
-                      <span className="text-2xl">⚡</span>
-                      <span className="text-sm">Resultados Instantáneos</span>
+                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                      <span className="text-lg">⚡</span>
+                      <span className="text-xs">Resultados Instantáneos</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
-                      <span className="text-2xl">📱</span>
-                      <span className="text-sm">100% Gratis</span>
+                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                      <span className="text-lg">📱</span>
+                      <span className="text-xs">100% Gratis</span>
                     </div>
                   </div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-br from-white/5 to-transparent" />
               </div>
 
               {/* Categorías */}
-              <div className="flex gap-3 overflow-x-auto pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-2">
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setCategory(cat.id as any)}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold transition-all whitespace-nowrap text-sm ${
                       category === cat.id
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105'
+                        ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-md'
                         : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md'
                     }`}
                   >
-                    <span className="text-xl">{cat.emoji}</span>
+                    <span>{cat.emoji}</span>
                     <span>{cat.name}</span>
                     <span className="text-xs opacity-75">
                       ({calculators.filter(c => cat.id === 'all' || c.category === cat.id).length})
@@ -252,31 +252,30 @@ export default function CalculatorsPage() {
               </div>
 
               {/* Grid de Calculadoras */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredCalculators.map((calc) => {
                   const Icon = calc.icon;
                   return (
                     <button
                       key={calc.id}
                       onClick={() => setSelectedCalculator(calc.id)}
-                      className={`group relative overflow-hidden bg-gradient-to-br ${calc.bgColor} border-2 ${calc.borderColor} rounded-2xl p-6 text-left hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:-translate-y-1`}
+                      className={`group relative overflow-hidden bg-linear-to-br ${calc.bgColor} border-2 ${calc.borderColor} rounded-2xl p-4 text-left hover:shadow-xl transition-all duration-300 hover:scale-102 hover:-translate-y-0.5`}
                     >
                       <div className="relative z-10">
-                        <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${calc.color} mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
-                          <Icon className="w-8 h-8 text-white" />
+                        <div className={`inline-flex p-3 rounded-xl bg-linear-to-br ${calc.color} mb-3 shadow-md group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-6 h-6 text-white" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">
                           {calc.name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
                           {calc.description}
                         </p>
-                        <div className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:gap-2 transition-all">
-                          Abrir calculadora
-                          <span className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">→</span>
+                        <div className="flex items-center text-xs font-medium text-blue-600 dark:text-blue-400">
+                          Abrir calculadora →
                         </div>
                       </div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-linear-to-br from-white/50 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </button>
                   );
                 })}

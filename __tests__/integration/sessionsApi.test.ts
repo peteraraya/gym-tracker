@@ -2,19 +2,20 @@ import { GET, POST } from '@/app/api/sessions/route'
 import { NextRequest } from 'next/server'
 import { createMockSession } from '@/__tests__/helpers/mockData'
 
-// Mock de Supabase
+const createMockChain = (finalResult: any) => ({
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockReturnThis(),
+  delete: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  order: jest.fn().mockReturnValue(Promise.resolve(finalResult)),
+  single: jest.fn().mockReturnValue(Promise.resolve(finalResult)),
+})
+
 const mockSupabase = {
   auth: {
     getUser: jest.fn(),
   },
-  from: jest.fn(() => ({
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    delete: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis(),
-    single: jest.fn(),
-  })),
+  from: jest.fn(),
 }
 
 jest.mock('@/lib/supabase/server', () => ({
@@ -66,11 +67,10 @@ describe('Sessions API - Integration Tests', () => {
         error: null,
       })
 
-      const fromMock = mockSupabase.from()
-      fromMock.single = jest.fn().mockResolvedValue({
+      mockSupabase.from.mockReturnValue(createMockChain({
         data: mockSessionsData,
         error: null,
-      })
+      }))
 
       const response = await GET()
       const data = await response.json()
@@ -87,17 +87,16 @@ describe('Sessions API - Integration Tests', () => {
         error: null,
       })
 
-      const fromMock = mockSupabase.from()
-      fromMock.single = jest.fn().mockResolvedValue({
+      mockSupabase.from.mockReturnValue(createMockChain({
         data: null,
         error: { message: 'Database error' },
-      })
+      }))
 
       const response = await GET()
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toContain('error')
+      expect(data.error.toLowerCase()).toContain('error')
     })
   })
 
@@ -176,18 +175,27 @@ describe('Sessions API - Integration Tests', () => {
         error: null,
       })
 
-      const fromMock = mockSupabase.from()
-      
-      // Mock para insert de session
-      fromMock.single = jest.fn()
-        .mockResolvedValueOnce({
-          data: { id: 'session-1', user_id: 'user-123', routine_id: 'routine-1' },
-          error: null,
-        })
-        .mockResolvedValueOnce({
-          data: null,
-          error: null,
-        })
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'workout_sessions') {
+          const insertResult = {
+            data: { id: 'session-1', user_id: 'user-123', routine_id: 'routine-1' },
+            error: null,
+          }
+          return {
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockReturnValue(Promise.resolve(insertResult)),
+              }),
+            }),
+          }
+        }
+        return {
+          insert: jest.fn().mockReturnValue(Promise.resolve({
+            data: null,
+            error: null,
+          })),
+        }
+      })
 
       const request = new NextRequest('http://localhost:3000/api/sessions', {
         method: 'POST',
@@ -219,31 +227,37 @@ describe('Sessions API - Integration Tests', () => {
         error: null,
       })
 
-      const fromMock = mockSupabase.from()
       const deleteMock = jest.fn().mockReturnThis()
-      
-      // Mock insert exitoso de session
-      fromMock.single = jest.fn().mockResolvedValueOnce({
-        data: { id: 'session-1' },
-        error: null,
-      })
-      
-      // Mock de from que retorna el objeto con delete
-      mockSupabase.from = jest.fn((table) => {
+
+      mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'session_exercises') {
           return {
-            insert: jest.fn().mockResolvedValue({
+            insert: jest.fn().mockReturnValue(Promise.resolve({
               data: null,
               error: { message: 'Insert failed' },
+            })),
+          }
+        }
+        if (table === 'workout_sessions') {
+          const insertResult = {
+            data: { id: 'session-1' },
+            error: null,
+          }
+          return {
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockReturnValue(Promise.resolve(insertResult)),
+              }),
             }),
+            delete: deleteMock,
+            eq: jest.fn().mockReturnThis(),
           }
         }
         return {
-          select: jest.fn().mockReturnThis(),
-          insert: jest.fn().mockReturnThis(),
-          delete: deleteMock,
-          eq: jest.fn().mockReturnThis(),
-          single: fromMock.single,
+          insert: jest.fn().mockReturnValue(Promise.resolve({
+            data: null,
+            error: null,
+          })),
         }
       })
 
@@ -265,7 +279,6 @@ describe('Sessions API - Integration Tests', () => {
 
       expect(response.status).toBe(500)
       expect(data.error).toContain('ejercicios')
-      // Verificar que se llamó delete para rollback
       expect(deleteMock).toHaveBeenCalled()
     })
   })

@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { WeightSelector } from '@/components/WeightSelector';
-import SetTypeSelector, { SetTypeBadge } from '@/components/SetTypeSelector';
-import SetTypeCycleButton from '@/components/SetTypeCycleButton';
+import { NumericInput } from '@/components/ui/NumericInput';
+import { WeightSelector } from '@/components/features/workout/WeightSelector';
+import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
+import SetTypeCycleButton from '@/components/features/workout/SetTypeCycleButton';
 import { Plus } from '@/components/icons/lucide';
 import type { Exercise, SetType, Routine } from '@/types';
 import { calculateNextRestTime } from '../utils/workoutCalculations';
@@ -69,8 +71,11 @@ export function SeriesTable({
   // ✅ State for mobile editing - one state for all sets
   const [mobileEditingField, setMobileEditingField] = useState<{setIndex: number, field: 'reps' | 'weight'} | null>(null);
 
-  // Calcular series completadas correctamente desde actualReps
-  const actualCompletedSets = actualReps.filter(r => typeof r === 'number' && r > 0).length;
+  // Mostrar series completadas basadas en el contador explícito `completedSets`.
+  // Como fallback, usar el cálculo por `actualReps` si `completedSets` no está disponible.
+  const actualCompletedSets = typeof completedSets === 'number'
+    ? completedSets
+    : actualReps.filter(r => typeof r === 'number' && r > 0).length;
 
   // Calculate correct rest time for each set using the same logic as the timer
   const getRestTimeForSet = (setIndex: number): number => {
@@ -112,11 +117,12 @@ export function SeriesTable({
         <div className="space-y-3">
           {/* Mobile set controls - shown above table */}
           <div className="sm:hidden space-y-2">
-            {exercise.sets.map((set, idx) => {
-              const setType = setTypes[idx] || 'normal';
-              const doneReps = actualReps[idx] ?? null;
-              const doneWeight = actualWeights[idx] ?? set.weight ?? '';
-              const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+              {exercise.sets.map((set, idx) => {
+                const setType = setTypes[idx] || 'normal';
+                const doneReps = actualReps[idx] ?? null;
+                const doneWeight = actualWeights[idx] ?? set.weight ?? '';
+                // Marcar completada solo si el índice está dentro del contador explícito
+                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
               
               // Skip completed sets in mobile view
               if (isCompleted) return null;
@@ -126,11 +132,11 @@ export function SeriesTable({
               const isEditingWeight = mobileEditingField?.setIndex === idx && mobileEditingField?.field === 'weight';
               
               return (
-                <div key={`mobile-controls-${idx}`} className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg space-y-3">
+                <div key={`mobile-controls-${idx}`} className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg space-y-3">
                   {/* Serie header with number and info */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 ${
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${
                         idx === currentSet - 1 ? 'bg-blue-600' : 'bg-gray-400 dark:bg-gray-600'
                       }`}>
                         {idx + 1}
@@ -138,12 +144,11 @@ export function SeriesTable({
                       <div className="flex items-center gap-1 min-w-0">
                         {/* Reps - clickable */}
                         {isEditingReps ? (
-                          <input
-                            type="number"
+                          <NumericInput
                             value={doneReps ?? set.reps}
-                            onChange={(e) => onEditReps(idx, parseInt(e.target.value) || 0)}
+                            onChange={(v) => onEditReps(idx, v)}
                             onBlur={() => setMobileEditingField(null)}
-                            onKeyDown={(e) => e.key === 'Enter' && setMobileEditingField(null)}
+                            onKeyDown={(e) => (e as React.KeyboardEvent).key === 'Enter' && setMobileEditingField(null)}
                             autoFocus
                             className="w-10 px-1 py-0.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-semibold border border-blue-500 text-center"
                           />
@@ -155,7 +160,7 @@ export function SeriesTable({
                             {doneReps ?? set.reps}
                           </button>
                         )}
-                        <span className="text-xs text-gray-600 dark:text-gray-400 flex-shrink-0">reps ×</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">reps ×</span>
                         
                         {/* Weight - using WeightSelector */}
                         {isEditingWeight ? (
@@ -171,20 +176,28 @@ export function SeriesTable({
                             />
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setMobileEditingField({setIndex: idx, field: 'weight'})}
-                            className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
-                          >
-                            {doneWeight || set.weight || 0}
-                          </button>
+                          <div>
+                            <button
+                              onClick={() => setMobileEditingField({setIndex: idx, field: 'weight'})}
+                              className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
+                            >
+                              {doneWeight || set.weight || 0}
+                            </button>
+                            {/* Hint cuando no hay peso (simplificado) */}
+                            {!(typeof doneWeight === 'number' && doneWeight > 0) && (
+                              <div className="mt-1 text-[11px] text-gray-500">
+                                <span>Toca para editar el peso</span>
+                              </div>
+                            )}
+                          </div>
                         )}
-                        <span className="text-xs text-gray-600 dark:text-gray-400 flex-shrink-0">kg</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">kg</span>
                       </div>
                     </div>
                     {/* Status checkbox */}
                     <button
                       onClick={() => onToggleSetComplete(idx, !isCompleted)}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all shrink-0 ${
                         isCompleted
                           ? 'bg-green-500 hover:bg-green-600 text-white'
                           : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400'
@@ -282,7 +295,8 @@ export function SeriesTable({
                 const doneReps = actualReps[idx] ?? null;
                 const doneWeight = actualWeights[idx] ?? set.weight ?? '';
                 const setType = setTypes[idx] || 'normal';
-                const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                // Marcar completada solo si el índice es menor que el contador explícito
+                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
                 const isCurrent = idx === currentSet - 1;
 
                 return (
@@ -317,14 +331,13 @@ export function SeriesTable({
                     {/* Reps */}
                     <td className="py-3 px-2">
                       {editingSetIndex === idx ? (
-                        <Input
-                          type="number"
+                        <NumericInput
                           value={doneReps ?? set.reps}
-                          onChange={(e) => onEditReps(idx, parseInt(e.target.value) || 0)}
+                          onChange={(v) => onEditReps(idx, v)}
                           onBlur={() => setEditingSetIndex(null)}
                           autoFocus
-                          min="0"
-                          max="100"
+                          min={0}
+                          max={100}
                           className="w-16 text-center"
                         />
                       ) : (
@@ -343,11 +356,28 @@ export function SeriesTable({
 
                     {/* Peso */}
                     <td className="py-3 px-2">
-                      <WeightSelector
-                        value={doneWeight}
-                        onChange={(weight) => onEditWeight(idx, weight)}
-                        exerciseId={exerciseId}
-                      />
+                      <div className="flex flex-col">
+                        <WeightSelector
+                          value={doneWeight}
+                          onChange={(weight) => onEditWeight(idx, weight)}
+                          exerciseId={exerciseId}
+                        />
+                        {/* Hint cuando no hay peso */}
+                        {!(typeof doneWeight === 'number' && doneWeight > 0) && (
+                          <div className="mt-1 text-[11px] text-gray-500">
+                            {idx > 0 && (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) ? (
+                              <button
+                                onClick={() => onEditWeight(idx, (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) as number)}
+                                className="text-blue-600 dark:text-blue-400 underline text-[11px]"
+                              >
+                                Usar anterior {(actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight)}kg
+                              </button>
+                            ) : (
+                              <span>Toca para editar el peso</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     {/* Descanso personalizado - Hidden on mobile */}
@@ -410,26 +440,62 @@ export function SeriesTable({
                       )}
                     </td>
 
-                    {/* Checkbox */}
+                    {/* Checkbox animado */}
                     <td className="py-3 px-2 text-center">
-                      <button
+                      <motion.button
                         onClick={() => onToggleSetComplete(idx, !isCompleted)}
-                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        whileTap={{ scale: 0.8 }}
+                        animate={isCompleted
+                          ? { scale: [1, 1.3, 1], backgroundColor: '#22c55e' }
+                          : { scale: 1, backgroundColor: '' }
+                        }
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center ${
                           isCompleted
-                            ? 'bg-green-500 hover:bg-green-600 text-white'
-                            : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500'
+                            ? 'bg-green-500 text-white shadow-md shadow-green-400/40'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
                         }`}
                       >
-                        {isCompleted ? (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </button>
+                        <AnimatePresence mode="wait">
+                          {isCompleted ? (
+                            <motion.svg
+                              key="checked"
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              transition={{ duration: 0.18, type: 'spring', stiffness: 400 }}
+                            >
+                              <motion.path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 0.22, ease: 'easeOut' }}
+                              />
+                            </motion.svg>
+                          ) : (
+                            <motion.svg
+                              key="unchecked"
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.12 }}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </motion.svg>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
                     </td>
 
                     {/* Delete button */}

@@ -8,7 +8,8 @@ const config: CapacitorConfig = {
   // Remove or keep as runtime option if needed. Commenting out to satisfy types.
   // bundledWebRuntime: false,
   server: {
-    // Allow clear text traffic for local development
+    // Usar la URL remota para que el APK cargue la web publicada
+    url: 'https://gym-tracker-eta-amber.vercel.app',
     androidScheme: 'https',
   },
   plugins: {

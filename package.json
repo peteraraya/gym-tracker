@@ -25,14 +25,20 @@
     "mobile:build": "npm run build:mobile && cap sync",
     "mobile:open": "cap open android",
     "vercel:deploy": "npx vercel --prod",
-    "analyze": "cross-env ANALYZE=true next build"
+    "analyze": "cross-env ANALYZE=true next build",
+    "clean:next": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\""
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^6.0.1",
     "@capacitor/core": "^6.2.0",
+    "@hookform/resolvers": "^5.2.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.0",
-    "formik": "^2.4.0",
+    "@tanstack/react-query": "^5.95.2",
+    "@tanstack/react-query-devtools": "^5.95.2",
+    "@tanstack/react-virtual": "^3.13.23",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.555.0",
     "next": "^16.1.4",
@@ -41,12 +47,14 @@
     "puppeteer": "^24.15.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-hook-form": "^7.74.0",
+    "recharts": "^3.8.1",
     "web-push": "^3.6.7",
-    "yup": "^1.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.5",
+    "@fast-check/jest": "^2.2.0",
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.44.0",
     "@tailwindcss/postcss": "^4",
@@ -59,6 +67,7 @@
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.3",
     "babel-plugin-react-compiler": "1.0.0",
+    "baseline-browser-mapping": "^2.10.29",
     "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "^16.1.4",
@@ -66,6 +75,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "undici": "^7.25.0"
   }
 }

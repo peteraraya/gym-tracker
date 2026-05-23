@@ -1,22 +1,22 @@
 import { render, screen } from '@/__tests__/helpers/testUtils'
 import { within } from '@testing-library/dom'
-import { SessionFilters } from '@/components/SessionFilters'
+import { SessionFilters } from '@/components/features/sessions/SessionFilters'
 import userEvent from '@testing-library/user-event'
 import { createMockSession, createMockRoutine } from '@/__tests__/helpers/mockData'
 
 describe('SessionFilters Component - Unit Tests', () => {
   const mockSessions = [
-    createMockSession({ 
+    createMockSession({
       id: 'session-1',
       routineId: 'routine-1',
       notes: 'Great workout',
     }),
-    createMockSession({ 
+    createMockSession({
       id: 'session-2',
       routineId: 'routine-2',
       notes: 'Feeling tired',
     }),
-    createMockSession({ 
+    createMockSession({
       id: 'session-3',
       routineId: 'routine-1',
       date: new Date('2025-10-15'),
@@ -28,161 +28,137 @@ describe('SessionFilters Component - Unit Tests', () => {
     createMockRoutine({ id: 'routine-2', name: 'Pull Day' }),
   ]
 
-  const mockOnFilteredSessionsChange = jest.fn()
+  const defaultFilters = {
+    searchTerm: '',
+    selectedRoutine: 'all',
+    dateRange: 'all' as const,
+  }
+
+  const mockOnFilterChange = jest.fn()
 
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('should render filter component', () => {
-    render(
+  function renderFilters(overrides = {}) {
+    return render(
       <SessionFilters
-        sessions={mockSessions}
         routines={mockRoutines}
-        onFilteredSessionsChange={mockOnFilteredSessionsChange}
+        totalSessions={mockSessions.length}
+        filteredCount={mockSessions.length}
+        filters={{ ...defaultFilters, ...overrides }}
+        onFilterChange={mockOnFilterChange}
       />
     )
+  }
+
+  it('should render filter component', () => {
+    renderFilters()
 
     expect(screen.getByText('Filtros')).toBeInTheDocument()
     expect(screen.getByPlaceholderText(/buscar por rutina/i)).toBeInTheDocument()
   })
 
-  it('should filter sessions by search term', async () => {
+  it('should call onFilterChange when search term changes', async () => {
     const user = userEvent.setup()
-    
-    render(
-      <SessionFilters
-        sessions={mockSessions}
-        routines={mockRoutines}
-        onFilteredSessionsChange={mockOnFilteredSessionsChange}
-      />
-    )
+
+    renderFilters()
 
     const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
-    await user.type(searchInput, 'Great')
+    await user.type(searchInput, 'test')
 
-    // Wait for useEffect to trigger
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(mockOnFilteredSessionsChange).toHaveBeenCalled()
-    const lastCall = mockOnFilteredSessionsChange.mock.calls[mockOnFilteredSessionsChange.mock.calls.length - 1]
-    expect(lastCall[0]).toHaveLength(1)
-    expect(lastCall[0][0].notes).toBe('Great workout')
+    expect(mockOnFilterChange).toHaveBeenCalled()
+    const callSearchTerms = mockOnFilterChange.mock.calls.map(c => c[0].searchTerm)
+    expect(callSearchTerms).toContain('t')
   })
 
-  it('should filter sessions by routine', async () => {
+  it('should reflect filter values from parent', () => {
+    renderFilters({ searchTerm: 'existing' })
+
+    const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
+    expect(searchInput).toHaveValue('existing')
+  })
+
+  it('should call onFilterChange when routine changes', async () => {
     const user = userEvent.setup()
-    
-    render(
-      <SessionFilters
-        sessions={mockSessions}
-        routines={mockRoutines}
-        onFilteredSessionsChange={mockOnFilteredSessionsChange}
-      />
-    )
+
+    renderFilters()
 
     const routineSelect = screen.getAllByRole('combobox')[0]
     await user.selectOptions(routineSelect, 'routine-1')
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    const lastCall = mockOnFilteredSessionsChange.mock.calls[mockOnFilteredSessionsChange.mock.calls.length - 1]
-    expect(lastCall[0]).toHaveLength(2)
-    expect(lastCall[0].every((s: any) => s.routineId === 'routine-1')).toBe(true)
+    expect(mockOnFilterChange).toHaveBeenCalledWith(
+      expect.objectContaining({ selectedRoutine: 'routine-1' })
+    )
   })
 
-  it('should filter sessions by date range', async () => {
+  it('should call onFilterChange when date range changes', async () => {
     const user = userEvent.setup()
-    
-    render(
-      <SessionFilters
-        sessions={mockSessions}
-        routines={mockRoutines}
-        onFilteredSessionsChange={mockOnFilteredSessionsChange}
-      />
-    )
+
+    renderFilters()
 
     const weekButton = screen.getByRole('button', { name: /7 días/i })
     await user.click(weekButton)
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    const lastCall = mockOnFilteredSessionsChange.mock.calls[mockOnFilteredSessionsChange.mock.calls.length - 1]
-    // Solo las sesiones de los últimos 7 días
-    expect(lastCall[0].length).toBeLessThan(mockSessions.length)
+    expect(mockOnFilterChange).toHaveBeenCalledWith(
+      expect.objectContaining({ dateRange: 'week' })
+    )
   })
 
-  it('should show active filters count', async () => {
-    const user = userEvent.setup()
-    
-    render(
+  it('should show active filters count', () => {
+    const { rerender } = renderFilters()
+
+    const filtersHeading = screen.getByRole('heading', { name: /filtros/i })
+    const { queryByText: queryWithin } = within(filtersHeading)
+    expect(queryWithin('0')).not.toBeInTheDocument()
+
+    // Simulate parent updating filter state
+    rerender(
       <SessionFilters
-        sessions={mockSessions}
         routines={mockRoutines}
-        onFilteredSessionsChange={mockOnFilteredSessionsChange}
+        totalSessions={mockSessions.length}
+        filteredCount={1}
+        filters={{ ...defaultFilters, searchTerm: 'Great' }}
+        onFilterChange={mockOnFilterChange}
       />
     )
 
-    // Aplicar filtro de búsqueda
-    const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
-    await user.type(searchInput, 'Great')
+    expect(within(screen.getByRole('heading', { name: /filtros/i })).getByText('1')).toBeInTheDocument()
 
-    // Debe mostrar contador de 1 filtro activo (badge dentro del encabezado 'Filtros')
-    const filtersHeading = screen.getByRole('heading', { name: /filtros/i })
-    const { getByText: getByTextWithin } = within(filtersHeading)
-    expect(getByTextWithin('1')).toBeInTheDocument()
+    // Simulate adding a second filter
+    rerender(
+      <SessionFilters
+        routines={mockRoutines}
+        totalSessions={mockSessions.length}
+        filteredCount={1}
+        filters={{ ...defaultFilters, searchTerm: 'Great', selectedRoutine: 'routine-1' }}
+        onFilterChange={mockOnFilterChange}
+      />
+    )
 
-    // Aplicar filtro de rutina (select por índice para evitar dependencias de accesibilidad)
-    const routineSelect = screen.getAllByRole('combobox')[0]
-    await user.selectOptions(routineSelect, 'routine-1')
-
-    // Debe mostrar contador de 2 filtros activos
-    expect(getByTextWithin('2')).toBeInTheDocument()
+    expect(within(screen.getByRole('heading', { name: /filtros/i })).getByText('2')).toBeInTheDocument()
   })
 
   it('should clear all filters', async () => {
     const user = userEvent.setup()
-    
-    render(
-      <SessionFilters
-        sessions={mockSessions}
-        routines={mockRoutines}
-        onFilteredSessionsChange={mockOnFilteredSessionsChange}
-      />
-    )
 
-    // Aplicar filtros
-    const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
-    await user.type(searchInput, 'Great')
+    renderFilters({ searchTerm: 'test', selectedRoutine: 'routine-1' })
 
-    const routineSelect = screen.getAllByRole('combobox')[0]
-    await user.selectOptions(routineSelect, 'routine-1')
-
-    // Limpiar filtros
     const clearButton = screen.getByRole('button', { name: /limpiar/i })
     await user.click(clearButton)
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    // Verificar que se resetean los filtros
-    expect(searchInput).toHaveValue('')
-    expect(routineSelect).toHaveValue('all')
-    
-    // Debe devolver todas las sesiones
-    const lastCall = mockOnFilteredSessionsChange.mock.calls[mockOnFilteredSessionsChange.mock.calls.length - 1]
-    expect(lastCall[0]).toHaveLength(mockSessions.length)
+    expect(mockOnFilterChange).toHaveBeenCalledWith({
+      searchTerm: '',
+      selectedRoutine: 'all',
+      dateRange: 'all',
+    })
   })
 
   it('should show results count', () => {
-    const { container } = render(
-      <SessionFilters
-        sessions={mockSessions}
-        routines={mockRoutines}
-        onFilteredSessionsChange={mockOnFilteredSessionsChange}
-      />
-    )
+    renderFilters()
 
-    const p = container.querySelector('p')
-    expect(p && p.textContent && p.textContent.includes('sesiones encontradas')).toBe(true)
+    const p = screen.getByText(/sesiones encontradas/i)
+    expect(p).toBeInTheDocument()
+    expect(p.textContent).toContain('3')
   })
 })

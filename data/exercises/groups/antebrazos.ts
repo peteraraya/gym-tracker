@@ -270,6 +270,96 @@ export const antebrazosExercises: ExerciseTemplate[] = [
     recommendedSets: '2-3 series',
     recommendedReps: '12-20 repeticiones por lado',
     restTime: '30-45 segundos'
+  },
+  {
+    id: 'cable-wrist-curl',
+    name: 'Curl de Muñeca en Polea',
+    muscleGroup: 'antebrazos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-wrist-curl-front.gif',
+    technique: [
+      'Polea baja con barra recta',
+      'Antebrazos apoyados o brazos extendidos',
+      'Flexiona las muñecas hacia arriba',
+      'Tensión constante en los flexores del antebrazo'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-25 repeticiones',
+    restTime: '45 segundos'
+  },
+  {
+    id: 'cable-reverse-wrist-curl',
+    name: 'Curl de Muñeca Inverso en Polea',
+    muscleGroup: 'antebrazos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-reverse-wrist-curl-front.gif',
+    technique: [
+      'Polea baja con barra, agarre prono',
+      'Extiende las muñecas hacia arriba',
+      'Trabaja los extensores del antebrazo',
+      'Tensión constante durante todo el movimiento'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '15-25 repeticiones',
+    restTime: '45 segundos'
+  },
+  {
+    id: 'cable-ulnar-deviation',
+    name: 'Desviación Ulnar en Polea',
+    muscleGroup: 'antebrazos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 15,
+    image: URL_STORAGE + 'male-cable-ulnar-deviation-front.gif',
+    technique: [
+      'Polea baja, manija en una mano',
+      'Mueve la muñeca llevando el meñique hacia el antebrazo',
+      'Trabaja el lado ulnar del antebrazo',
+      'Mejora movilidad y estabilidad de muñeca'
+    ],
+    recommendedSets: '2-3 series',
+    recommendedReps: '12-20 repeticiones por lado',
+    restTime: '30-45 segundos'
+  },
+  {
+    id: 'cable-zottman-curl',
+    name: 'Curl Zottman en Polea',
+    muscleGroup: 'antebrazos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 12,
+    image: URL_STORAGE + 'male-cable-zottman-curl-front.gif',
+    technique: [
+      'Polea baja, curl con palmas arriba',
+      'Rota las muñecas arriba (palmas abajo)',
+      'Baja con palmas hacia abajo',
+      'Trabaja supinación y pronación del antebrazo'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '10-15 repeticiones',
+    restTime: '60 segundos'
+  },
+  {
+    id: 'cable-static-hold',
+    name: 'Agarre Estático en Polea',
+    muscleGroup: 'antebrazos',
+    equipment: 'Poleas',
+    defaultSets: 3,
+    defaultReps: 1,
+    image: URL_STORAGE + 'male-cable-static-hold-front.gif',
+    technique: [
+      'Polea baja con cuerda o barra',
+      'Sostén el peso con brazos extendidos',
+      'Mantén el tiempo que puedas',
+      'Excelente para fuerza de agarre y resistencia'
+    ],
+    recommendedSets: '3-4 series',
+    recommendedReps: '30-60 segundos',
+    restTime: '90 segundos'
   }
 ];
 
