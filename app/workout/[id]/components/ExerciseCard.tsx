@@ -9,6 +9,7 @@ import { WeightSuggestionBanner } from "@/components/features/workout/WeightSugg
 import { EditValueModal } from "@/components/shared/EditValueModal";
 import { useToast } from "@/context/NotificationContext";
 import { formatRestTime } from "@/lib/utils/formatTime";
+import { soundManager } from "@/lib/audio/soundSystem";
 import type { Exercise } from "@/types";
 import type { WeightSuggestion } from "@/lib/data/weightSuggestions";
 
@@ -116,6 +117,28 @@ export function ExerciseCard({
   const [tempoInputs, setTempoInputs] = useState({ e: 3, p1: 1, c: 2, p2: 0 });
   const metronomRef = React.useRef<NodeJS.Timeout | null>(null);
   const [metronomActive, setMetronomActive] = useState(false);
+  // Ref para guardar la fase actual dentro del intervalo sin closure stale
+  // Se inicializa en null y se sincroniza en un useEffect después de declarar tempoPhaseInfo
+  const tempoPhaseInfoRef = React.useRef<typeof tempoPhaseInfo>(null);
+  // NOTA: el useEffect de sincronización está justo después de tempoPhaseInfo (más abajo)
+
+  /**
+   * Activa/desactiva el metrónomo.
+   * DEBE ejecutarse desde un gesto del usuario para que AudioContext pueda
+   * reanudarse (política de autoplay de Chrome/Safari/Firefox).
+   */
+  const handleMetronomToggle = React.useCallback(async () => {
+    const newActive = !metronomActive;
+    if (newActive) {
+      // Inicializar/reanudar AudioContext desde el gesto del usuario
+      await soundManager.resumeContext();
+      // Emitir un tick de prueba para confirmar que el audio funciona
+      soundManager.playMetronomeTick(false);
+    } else {
+      if (metronomRef.current) clearInterval(metronomRef.current);
+    }
+    setMetronomActive(newActive);
+  }, [metronomActive]);
 
   // Parse del tempo del ejercicio
   const parsedTempo = useMemo(() => {
@@ -156,20 +179,26 @@ export function ExerciseCard({
     return { ...phases[0], remaining: phases[0].duration };
   }, [parsedTempo, elapsedTime, isSetStarted]);
 
-  // Metrónomo háptico
+  // Sincronizar ref de fase para acceso desde el intervalo del metrónomo
+  React.useEffect(() => { tempoPhaseInfoRef.current = tempoPhaseInfo; }, [tempoPhaseInfo]);
+
+  // Metrónomo: háptico + audio
   React.useEffect(() => {
     if (metronomActive && isSetStarted) {
       metronomRef.current = setInterval(() => {
+        const isPhaseChange = tempoPhaseInfoRef.current?.remaining === 1;
+        // Háptico
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          const isPhaseChange = tempoPhaseInfo?.remaining === 1;
           navigator.vibrate(isPhaseChange ? [80, 30, 80] : 40);
         }
+        // Audio (AudioContext ya reanudado desde el gesto del toggle)
+        soundManager.playMetronomeTick(isPhaseChange);
       }, 1000);
     } else {
       if (metronomRef.current) clearInterval(metronomRef.current);
     }
     return () => { if (metronomRef.current) clearInterval(metronomRef.current); };
-  }, [metronomActive, isSetStarted, tempoPhaseInfo?.remaining]);
+  }, [metronomActive, isSetStarted]);
 
   // Resetear showSuggestion cuando cambia weightSuggestion
   React.useEffect(() => {
@@ -177,15 +206,6 @@ export function ExerciseCard({
       setShowSuggestion(true);
     }
   }, [weightSuggestion]);
-
-  // (elapsedTime y su timer se inicializaron antes, junto a los hooks de tempo)
-
-    if (!setStartTime) {
-      setElapsedTime(0);
-      return;
-    }
-
-
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -333,8 +353,8 @@ export function ExerciseCard({
                 <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest">Tiempo Bajo Tensión</span>
                 {/* Toggle metrónomo */}
                 <button
-                  onClick={() => setMetronomActive(v => !v)}
-                  title={metronomActive ? 'Desactivar metrónomo' : 'Activar metrónomo háptico'}
+                  onClick={handleMetronomToggle}
+                  title={metronomActive ? 'Desactivar metrónomo' : 'Activar metrónomo (háptico + sonido)'}
                   className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-all ${
                     metronomActive
                       ? 'bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-500/40'

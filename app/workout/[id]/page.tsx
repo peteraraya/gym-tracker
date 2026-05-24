@@ -3140,6 +3140,15 @@ export default function WorkoutPage() {
             autoAdvance={autoAdvance}
             onAutoAdvanceChange={setAutoAdvance}
             hideHeader
+            activeSet={
+              setExecution.isExecutingSet && setExecution.setStartTime
+                ? {
+                    exerciseId: currentExercise?.id ?? '',
+                    setIndex: workoutState.currentSet - 1,
+                    startTime: setExecution.setStartTime,
+                  }
+                : null
+            }
           />
         ) : (
           /* Modo guiado - Flujo normal */

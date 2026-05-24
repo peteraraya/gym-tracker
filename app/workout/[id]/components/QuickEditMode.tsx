@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Timer, ArrowRight, Plus, Check } from "lucide-react";
@@ -54,6 +55,8 @@ interface QuickEditModeProps {
   onAddExercises?: (exercises: ExerciseTemplate[]) => void; // Callback para agregar ejercicios durante el entrenamiento
   /** Cuando es true, no renderiza el sticky header interno (el padre lo muestra en su bloque sticky) */
   hideHeader?: boolean;
+  /** Info de la serie actualmente en ejecución (para mostrar TUT en modo Quick) */
+  activeSet?: { exerciseId: string; setIndex: number; startTime: number } | null;
 }
 
 /**
@@ -84,6 +87,7 @@ export function QuickEditMode({
   onAddExercises,
   togglingKeys = {},
   hideHeader = false,
+  activeSet = null,
 }: QuickEditModeProps) {
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
@@ -123,6 +127,18 @@ export function QuickEditMode({
   
   // Estado para la celebración de PR
   const [prInfo, setPrInfo] = useState<{ show: boolean; title: string; subtitle: string }>({ show: false, title: '', subtitle: '' });
+
+  // ── TUT (Tiempo Bajo Tensión) para la serie activa en modo Quick ──────────
+  const [tutElapsed, setTutElapsed] = useState(0);
+  useEffect(() => {
+    if (!activeSet?.startTime) { setTutElapsed(0); return; }
+    const tick = () => setTutElapsed(Math.floor((Date.now() - activeSet.startTime) / 1000));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [activeSet?.startTime]);
+
+  const formatTUT = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   const autoAdvance =
     autoAdvanceProp !== undefined ? autoAdvanceProp : autoAdvanceLocal;
   const setAutoAdvance = (value: boolean) => {
@@ -1488,9 +1504,41 @@ export function QuickEditMode({
                       const isReadyToComplete =
                         displayReps > 0 && displayWeight > 0 && !isCompleted;
 
+                      const isActiveSet =
+                        activeSet?.exerciseId === exerciseId &&
+                        activeSet?.setIndex === setIdx;
+
                       return (
-                        <div
-                          key={`${exerciseId}-${setIdx}`}
+                        <div key={`${exerciseId}-${setIdx}`}>
+                          {/* ── TUT inline sobre la serie activa ── */}
+                          <AnimatePresence>
+                            {isActiveSet && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.25 }}
+                                className="mx-2 mb-1 overflow-hidden"
+                              >
+                                <div className="flex items-center justify-between bg-indigo-900/80 border border-indigo-500/40 rounded-xl px-3 py-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                                    <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
+                                      Serie en curso
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-slate-400 uppercase tracking-wide">TUT</span>
+                                    <span className="text-xl font-black tabular-nums text-white drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]">
+                                      {formatTUT(tutElapsed)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          <div
                           className={`flex items-center gap-1 px-2 py-1.5 transition-colors ${
                             isCompleted
                               ? "bg-green-50/60 dark:bg-green-900/10"
@@ -1916,6 +1964,8 @@ export function QuickEditMode({
                             </div>
                           )}
                         </div>
+                        {/* end set row */}
+                      </div>
                       );
                     })}
                   </div>
