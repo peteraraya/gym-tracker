@@ -205,6 +205,31 @@ export function usePlanning() {
     }));
   }, []);
 
+  /**
+   * Archiva las series reales ejecutadas en una semana concreta del mesociclo.
+   * Llamado automáticamente desde la página de planificación cuando la semana avanza,
+   * para preservar el historial de volumen real de semanas pasadas.
+   */
+  const archiveWeekActualSets = useCallback((
+    mesocycleId: string,
+    weekNumber: number,
+    sets: Record<string, number>
+  ) => {
+    setData(prev => ({
+      ...prev,
+      mesocycles: prev.mesocycles.map(m => {
+        if (m.id !== mesocycleId) return m;
+        return {
+          ...m,
+          updatedAt: new Date().toISOString(),
+          weeklyPlans: m.weeklyPlans.map(w =>
+            w.weekNumber === weekNumber ? { ...w, actualSets: sets } : w
+          ),
+        };
+      }),
+    }));
+  }, []);
+
   const setActiveMesocycle = useCallback((id: string | null) => {
     setData(prev => {
       const updated = { ...prev, activeMesocycleId: id };
@@ -529,6 +554,7 @@ export function usePlanning() {
     updateMesocycle,
     deleteMesocycle,
     setActiveMesocycle,
+    archiveWeekActualSets,
     // Planes semanales
     updateWeeklyPlan,
     updateMuscleGroupTarget,

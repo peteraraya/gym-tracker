@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
@@ -944,9 +944,23 @@ export default function PlanningPage() {
       >,
   );
 
-  // Calcular series reales de esta semana
+  // Semana actual del mesociclo activo (debe calcularse antes de actualSets)
+  const currentWeekPlan = planning.getCurrentWeekPlan();
+
+  // Inicio de semana alineado con el mesociclo activo (Bug 4).
+  // Si no hay mesociclo activo se usa undefined → getActualSetsThisWeek usará el lunes de calendario.
+  const currentMesoWeekStart = (() => {
+    if (!planning.activeMesocycle || !currentWeekPlan) return undefined;
+    const mesoStart = new Date(planning.activeMesocycle.startDate);
+    const ws = new Date(mesoStart);
+    ws.setDate(mesoStart.getDate() + (currentWeekPlan.weekNumber - 1) * 7);
+    ws.setHours(0, 0, 0, 0);
+    return ws;
+  })();
+
+  // Calcular series reales de la semana actual del mesociclo
   const tMuscles = useTranslations("muscles");
-  const actualSets = getActualSetsThisWeek(sessions, EXERCISE_DATABASE);
+  const actualSets = getActualSetsThisWeek(sessions, EXERCISE_DATABASE, currentMesoWeekStart);
 
   // Mesociclo seleccionado para ver detalle
   const viewMeso = selectedMesoId
@@ -956,8 +970,38 @@ export default function PlanningPage() {
   const weekPlan =
     viewMeso?.weeklyPlans.find((w) => w.weekNumber === selectedWeek) ?? null;
 
-  // Semana actual del mesociclo activo
-  const currentWeekPlan = planning.getCurrentWeekPlan();
+  // Auto-archivo: cuando la semana del mesociclo activo avanza, persiste las series
+  // reales de la semana anterior en weeklyPlan.actualSets (Bug 2 + 3).
+  const prevWeekNumberRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!planning.activeMesocycle || !currentWeekPlan) return;
+    const prevWeek = prevWeekNumberRef.current;
+    if (prevWeek !== null && prevWeek !== currentWeekPlan.weekNumber) {
+      // La semana avanzó: calcular y archivar series reales de la semana anterior
+      const prevPlan = planning.activeMesocycle.weeklyPlans.find(
+        (w) => w.weekNumber === prevWeek,
+      );
+      if (prevPlan && !prevPlan.actualSets) {
+        const mesoStart = new Date(planning.activeMesocycle.startDate);
+        const prevWeekStart = new Date(mesoStart);
+        prevWeekStart.setDate(mesoStart.getDate() + (prevWeek - 1) * 7);
+        prevWeekStart.setHours(0, 0, 0, 0);
+        const prevSets = getActualSetsThisWeek(
+          sessions,
+          EXERCISE_DATABASE,
+          prevWeekStart,
+        );
+        planning.archiveWeekActualSets(
+          planning.activeMesocycle.id,
+          prevWeek,
+          prevSets,
+        );
+      }
+    }
+    prevWeekNumberRef.current = currentWeekPlan.weekNumber;
+  // Solo disparar cuando el número de semana cambie
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWeekPlan?.weekNumber, planning.activeMesocycle?.id]);
 
   // Al hidratar y si existe un mesociclo activo, seleccionar automáticamente
   // el mesociclo activo y posicionar en la semana actual.
@@ -1613,8 +1657,8 @@ export default function PlanningPage() {
                           (planning.activeMesocycle?.id === viewMeso.id
                             ? planning.getCurrentWeekPlan()?.weekNumber
                             : -1)
-                            ? actualSets
-                            : {}
+                            ? actualSets          // semana en curso: datos reactivos
+                            : (weekPlan?.actualSets ?? {}) // semanas pasadas: datos archivados
                         }
                         routines={routines}
                         onUpdateTarget={(mg, field, value) =>
