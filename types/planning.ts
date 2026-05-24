@@ -141,7 +141,7 @@ export function getCurrentWeek(meso: Mesocycle): WeeklyPlan | null {
   const start = new Date(meso.startDate);
   const now = new Date();
   const diffDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const weekIdx = Math.min(Math.floor(diffDays / 7), meso.weeks - 1);
+  const weekIdx = Math.min(Math.max(Math.floor(diffDays / 7), 0), meso.weeks - 1);
   return meso.weeklyPlans.find(w => w.weekNumber === weekIdx + 1) ?? null;
 }
 
@@ -185,10 +185,13 @@ export function getActualSetsThisWeek(
     if (sessionDate < startOfWeek || sessionDate >= endOfWeek) continue;
 
     for (const ex of session.exercises) {
-      const template = exerciseDatabase.find(t => t.name === ex.exerciseName);
+      // Buscar por ID primero (más fiable), fallback a nombre si no hay match
+      const template =
+        exerciseDatabase.find((t) => t.id === ex.exerciseId) ||
+        exerciseDatabase.find((t) => t.name === ex.exerciseName);
       if (!template) continue;
       const group = template.muscleGroup;
-      result[group] = (result[group] ?? 0) + ex.completedSets;
+      result[group] = (result[group] ?? 0) + (ex.completedSets ?? 0);
     }
   }
   return result;

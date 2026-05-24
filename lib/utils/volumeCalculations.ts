@@ -84,7 +84,9 @@ export function calculateVolumeByPeriod(
 
     if (period === 'week') {
       const weekStart = new Date(date);
-      weekStart.setDate(date.getDate() - date.getDay());
+      // Ajustar para que la semana empiece el lunes (ISO 8601): (day+6)%7 => 0=lunes
+      weekStart.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+      weekStart.setHours(0, 0, 0, 0);
       key = weekStart.toISOString().split('T')[0];
     } else {
       key = date.toISOString().slice(0, 7); // YYYY-MM
