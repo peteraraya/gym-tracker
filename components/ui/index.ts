@@ -16,6 +16,7 @@ export { NumericInput } from './NumericInput';
 export { PasswordInput } from './PasswordInput';
 export { SearchInput } from './SearchInput';
 export { default as InfoTooltip } from './InfoTooltip';
+export { Skeleton, CardSkeleton, ListItemSkeleton, ChartSkeleton } from './Skeleton';
 
 // ─── Display / Feedback ──────────────────────────────────────────────────────
 export { EmptyState } from './EmptyState';

@@ -18,10 +18,10 @@ import { Calendar, Filter } from "@/components/icons/lucide";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
   EmptyStateCard,
-  LoadingSpinner,
   SessionCard as SharedSessionCard,
 } from "@/components/shared";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { ListItemSkeleton } from "@/components/ui/Skeleton";
 import type { WorkoutSession as WS } from "@/types";
 
 const SESSIONS_PER_PAGE = 10;
@@ -394,7 +394,12 @@ export default function SessionsPage() {
             gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
-            <LoadingSpinner size="lg" message="Cargando sesiones..." />
+            <div className="space-y-4 max-w-3xl mx-auto mt-4">
+              <ListItemSkeleton />
+              <ListItemSkeleton />
+              <ListItemSkeleton />
+              <ListItemSkeleton />
+            </div>
           </PageContent>
         </PageLayout>
       </ProtectedRoute>

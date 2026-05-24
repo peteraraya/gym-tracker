@@ -10,6 +10,7 @@ import { useWorkout } from "@/context/WorkoutContext";
 import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { CardSkeleton } from "@/components/ui/Skeleton";
 import { RoutineForm } from "@/components/features/routines/RoutineForm";
 import RoutineWizard from "@/components/features/routines/RoutineWizard";
 import WeeklyPlanner from "@/components/features/planning/WeeklyPlanner";
@@ -421,11 +422,14 @@ export default function RoutinesPage() {
           </div>
           {/* Content */}
           {loading ? (
-            <LoadingSpinner
-              size="lg"
-              message={t("loading")}
-              className="py-20"
-            />
+            <CardGrid cols={3}>
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </CardGrid>
           ) : routines.length === 0 ? (
             <EmptyStateCard
               icon={<ClipboardList className="w-12 h-12" />}

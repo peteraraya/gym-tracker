@@ -1626,12 +1626,12 @@ export function QuickEditMode({
                                   });
                                   setShowSetTypeSelector(true);
                                 }}
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                className={`w-10 h-11 rounded-lg flex items-center justify-center ${
                                   (SET_TYPE_INFO as any)[setType]?.color || 'bg-gray-200'
                                 }`}
                                 title={`Tipo: ${(SET_TYPE_INFO as any)[setType]?.label || setType}`}
                               >
-                                <span className="text-sm">{(SET_TYPE_INFO as any)[setType]?.icon ?? '•'}</span>
+                                <span className="text-base">{(SET_TYPE_INFO as any)[setType]?.icon ?? '•'}</span>
                               </button>
                             </div>
 
@@ -1968,38 +1968,34 @@ export function QuickEditMode({
         </div>
       )}
 
-      {/* Botón flotante compacto para finalizar - esquina inferior derecha */}
+      {/* Footer fijo para finalizar entrenamiento (Optimizado para pulgares) */}
       {onFinishWorkout && (
-        <button
-          onClick={onFinishWorkout}
-          disabled={completedSets === 0}
-          className={`fixed bottom-6 right-6 z-30 p-4 rounded-full shadow-2xl transition-all duration-200 flex items-center justify-center gap-2 ${
-            completedSets === 0
-              ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-50"
-              : "bg-linear-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transform hover:scale-110 active:scale-95"
-          }`}
-          title={`Finalizar entrenamiento (${completedSets} series)`}
-        >
-          <svg
-            className="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 z-30 pb-safe">
+          <button
+            onClick={onFinishWorkout}
+            disabled={completedSets === 0}
+            className={`w-full min-h-[56px] rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-3 font-bold text-lg ${
+              completedSets === 0
+                ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                : "bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white transform hover:scale-[1.02] active:scale-95"
+            }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-          {/* Badge con contador de series */}
-          {completedSets > 0 && (
-            <span className="absolute -top-1 -right-1 bg-white text-green-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg border-2 border-green-500">
-              {completedSets}
-            </span>
-          )}
-        </button>
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Finalizar Entrenamiento ({completedSets} series)
+          </button>
+        </div>
       )}
 
       {/* Modal de edición */}

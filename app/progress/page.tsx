@@ -12,6 +12,7 @@ import { TrendingUp } from "@/components/icons/lucide";
 import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { LoadingSpinner, EmptyStateCard } from "@/components/shared";
+import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { IntegratedProgressPanel } from "@/components/features/progress";
 
 const MUSCLE_GROUPS = Object.keys(
@@ -177,10 +178,15 @@ export default function ProgressPage() {
             gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
-            <LoadingSpinner
-              size="lg"
-              message="Cargando tus sesiones y rutinas"
-            />
+            <div className="space-y-6">
+              <ChartSkeleton />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
+                <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
+                <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
+              </div>
+              <ChartSkeleton />
+            </div>
           </PageContent>
         </PageLayout>
       </ProtectedRoute>
@@ -202,6 +208,8 @@ export default function ProgressPage() {
               icon="📊"
               title={t("progress.noData")}
               description={t("progress.noDataDesc")}
+              actionLabel="Empezar a entrenar"
+              onAction={() => window.location.href = '/routines'}
             />
           </PageContent>
         </PageLayout>
