@@ -83,8 +83,8 @@ export function calculateExerciseRestTime({
 
   // 3. Smart rest
   if (useSmartRest) {
-    const currentTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-    const nextTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
+    const currentTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === currentExercise.name.toLowerCase());
+    const nextTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === nextExercise.name.toLowerCase());
 
     if (currentTemplate && nextTemplate) {
       const restRecommendation = calculateRestBetweenExercises(
@@ -104,7 +104,7 @@ export function calculateExerciseRestTime({
  * Calculate smart rest time based on exercise characteristics
  */
 export function calculateSmartRestTime(exercise: { name: string; sets: Array<{ reps: number; weight?: number }> }): number | undefined {
-  const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === exercise.name);
+  const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === exercise.name.toLowerCase());
 
   if (!exerciseTemplate) return undefined;
 

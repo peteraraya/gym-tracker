@@ -33,7 +33,35 @@ export function determineTrainingType(sets: number, reps: number): RestRecommend
 }
 
 /**
- * Calcula el tiempo de descanso recomendado entre series
+ * Parsea el campo restTime de un ejercicio (ej: "2-3 minutos", "90-120 segundos", "60 segundos")
+ * y devuelve min/max/recommended en segundos.
+ * Retorna null si el string no tiene un formato reconocido.
+ */
+export function parseRestTimeString(restTime: string): { min: number; max: number; recommended: number } | null {
+  const s = restTime.trim().toLowerCase();
+
+  // Formato "N-M minutos" o "N minutos"
+  const minMatch = s.match(/^(\d+)(?:-(\d+))?\s*minuto/);
+  if (minMatch) {
+    const lo = parseInt(minMatch[1], 10) * 60;
+    const hi = minMatch[2] ? parseInt(minMatch[2], 10) * 60 : lo;
+    return { min: lo, max: hi, recommended: Math.round((lo + hi) / 2) };
+  }
+
+  // Formato "N-M segundos" o "N segundos"
+  const secMatch = s.match(/^(\d+)(?:-(\d+))?\s*segundo/);
+  if (secMatch) {
+    const lo = parseInt(secMatch[1], 10);
+    const hi = secMatch[2] ? parseInt(secMatch[2], 10) : lo;
+    return { min: lo, max: hi, recommended: Math.round((lo + hi) / 2) };
+  }
+
+  return null;
+}
+
+/**
+ * Calcula el tiempo de descanso recomendado entre series.
+ * Prioridad: restTime del ejercicio (campo de la BD) → fórmula genérica por tipo de entrenamiento.
  */
 export function calculateRestBetweenSets(
   exercise: ExerciseTemplate,
@@ -42,17 +70,31 @@ export function calculateRestBetweenSets(
   fitnessLevel: 'beginner' | 'intermediate' | 'advanced' = 'intermediate'
 ): RestRecommendation {
   const trainingType = determineTrainingType(sets, reps);
-  
+
   // Factores de ajuste según nivel
   const levelMultiplier = {
     beginner: 1.2,      // Principiantes necesitan más descanso
     intermediate: 1.0,  // Tiempo estándar
     advanced: 0.8       // Avanzados pueden descansar menos
   };
-  
+
   const multiplier = levelMultiplier[fitnessLevel];
-  
-  // Tiempos base según tipo de entrenamiento
+
+  // Si el ejercicio tiene su propio restTime, usarlo como fuente primaria
+  if (exercise.restTime) {
+    const parsed = parseRestTimeString(exercise.restTime);
+    if (parsed) {
+      return {
+        min: Math.round(parsed.min * multiplier),
+        max: Math.round(parsed.max * multiplier),
+        recommended: Math.round(parsed.recommended * multiplier),
+        type: trainingType,
+        description: `Descanso recomendado para ${exercise.name}`
+      };
+    }
+  }
+
+  // Tiempos base según tipo de entrenamiento (fallback cuando el ejercicio no tiene restTime)
   const baseRecommendations: Record<RestRecommendationType, RestRecommendation> = {
     strength: {
       min: 180,
@@ -83,13 +125,13 @@ export function calculateRestBetweenSets(
       description: 'Descanso corto para mantener el ritmo cardíaco'
     }
   };
-  
+
   const base = baseRecommendations[trainingType];
-  
-  // Ajustar según equipamiento (ejercicios compuestos necesitan más descanso)
+
+  // Ajustar según si es compuesto (solo en el fallback genérico)
   const isCompound = isCompoundExercise(exercise);
   const compoundMultiplier = isCompound ? 1.2 : 1.0;
-  
+
   return {
     ...base,
     min: Math.round(base.min * multiplier),

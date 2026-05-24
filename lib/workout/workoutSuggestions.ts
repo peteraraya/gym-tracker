@@ -130,7 +130,7 @@ function checkRestTime(
   restTime: number,
   smartRestTime?: number
 ): WorkoutSuggestion | null {
-  const exercise = EXERCISE_DATABASE.find(e => e.name === exerciseName);
+  const exercise = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === exerciseName.toLowerCase());
   if (!exercise) return null;
 
   // Si hay smartRestTime, usar el criterio del 80%
