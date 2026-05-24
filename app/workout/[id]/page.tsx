@@ -1323,6 +1323,10 @@ export default function WorkoutPage() {
         (r: number) => typeof r === "number" && r > 0,
       ).length;
 
+      // Leer datos antes de completeSetAt (el estado queda stale tras el update)
+      const skippedIds = workoutState.workoutData.skippedExercises || [];
+      const { restOverrides, perSetRestOverrides: perSetOverrides } = workoutState.workoutData;
+
       // Now update state (async — won't be reflected until next render)
       workoutState.completeSetAt(exerciseId, setIndex, reps, weight);
 
@@ -1337,7 +1341,6 @@ export default function WorkoutPage() {
         (ex: Exercise) => ex.id === exerciseId,
       );
       // Encontrar el siguiente ejercicio activo (ignorando los omitidos)
-      const skippedIds = workoutState.workoutData.skippedExercises || [];
       let nextExerciseIdx: number | null = null;
       for (let i = exerciseIndex + 1; i < routine.exercises.length; i++) {
         if (!skippedIds.includes(routine.exercises[i].id)) {
@@ -1365,8 +1368,8 @@ export default function WorkoutPage() {
             currentExercise: exercise,
             nextExercise,
             routine,
-            restOverrides: workoutState.workoutData.restOverrides,
-            perSetOverrides: workoutState.workoutData.perSetRestOverrides,
+            restOverrides,
+            perSetOverrides,
             useSmartRest,
           });
           restTitle = "Descanso entre ejercicios";
@@ -1982,12 +1985,12 @@ export default function WorkoutPage() {
       // Persistir la rutina actualizada
       try {
         // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-        updateModifiedRoutine(updatedRoutine);
+        await updateModifiedRoutine(updatedRoutine);
         await updateRoutine(id, updatedRoutine);
-        success(`Ejercicio "${exerciseToDelete.name}" eliminado`, 2000);
+        success("Serie eliminada", 2000);
       } catch (err) {
-        error("Error al eliminar ejercicio");
-        console.error("Error deleting exercise:", err);
+        error("Error al eliminar serie");
+        console.error("Error deleting set:", err);
       }
 
       // Haptic feedback
@@ -2398,6 +2401,17 @@ export default function WorkoutPage() {
   // ==================== QUICK EDIT MODE HANDLERS ====================
   // ✅ CRÍTICO #8 FIX: Usar solo estado en lugar de ref manual para locks
   const [togglingKeys, setTogglingKeys] = useState<Record<string, boolean>>({});
+  const toggleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Limpiar timeouts pendientes al desmontar para evitar setState en unmounted component
+  useEffect(() => {
+    return () => {
+      if (toggleTimeoutRef.current) {
+        clearTimeout(toggleTimeoutRef.current);
+        toggleTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleQuickEditReps = useCallback(
     (exerciseId: string, setIndex: number, reps: number) => {
@@ -2463,7 +2477,9 @@ export default function WorkoutPage() {
           });
           return;
         }
-        setTimeout(() => {
+        if (toggleTimeoutRef.current) clearTimeout(toggleTimeoutRef.current);
+        toggleTimeoutRef.current = setTimeout(() => {
+          toggleTimeoutRef.current = null;
           setTogglingKeys((prev) => {
             const copy = { ...prev };
             delete copy[key];
@@ -2549,11 +2565,10 @@ export default function WorkoutPage() {
           workoutState.updateActualReps(exerciseId, newReps);
           // newWeights no se modifica intencionalmente para preservar ediciones del usuario
 
-          // Decrementar explícitamente desde el conteo actual, sin contar reps
-          // pre-editadas de otras series (que no fueron marcadas como completadas).
-          const prevCompletedCount =
-            workoutState.workoutData.completedSets[exerciseId] ?? 0;
-          const completedCount = Math.min(prevCompletedCount, setIndex);
+          // Recalcular conteo real desde las reps (mismo fix que handleToggleSetComplete)
+          const completedCount = newReps.filter(
+            (r: number) => typeof r === "number" && r > 0,
+          ).length;
           workoutState.updateCompletedSets(exerciseId, completedCount);
 
           // Si estamos en el ejercicio actual, actualizar también currentSet

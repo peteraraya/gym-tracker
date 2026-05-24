@@ -107,12 +107,8 @@ export function useFreeWorkoutState() {
     setExercises((prev) => {
       return [...prev, ...newItems];
     });
-    // BUG FIX: Move setActiveExerciseIndex outside of setExercises updater.
-    // Calling setState inside a state updater function causes React warnings
-    // and is considered a side effect inside a pure function.
-    const newCount = exercises.length + newItems.length;
-    setActiveExerciseIndex(newCount - newItems.length);
-  }, []);
+    setActiveExerciseIndex(exercises.length);
+  }, [exercises.length]);
 
   const addExerciseFromSuggestion = useCallback((rawExercises: any[], restBetweenSets: number) => {
     const flattened: any[] = Array.isArray(rawExercises)
@@ -131,11 +127,10 @@ export function useFreeWorkoutState() {
     }));
 
     setExercises((prev) => {
-      const firstNewIndex = prev.length;
-      setActiveExerciseIndex(firstNewIndex);
       return [...prev, ...toApply];
     });
-  }, []);
+    setActiveExerciseIndex(exercises.length);
+  }, [exercises.length]);
 
   const removeExercise = useCallback((index: number) => {
     setExercises((prev) => prev.filter((_, i) => i !== index));

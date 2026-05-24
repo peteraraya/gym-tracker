@@ -55,7 +55,7 @@ export function recommendWeightIncrease(exerciseId: string, sessions: WorkoutSes
     return { exerciseId, recommend: false, reason: 'No cumple 2-for-2', createdAt: new Date().toISOString() };
   }
 
-  const currentWeight = lastTwo[0].weight || lastTwo[1].weight || 0;
+  const currentWeight = lastTwo[0].weight ?? lastTwo[1].weight ?? 0;
   let suggested = currentWeight + absInc;
   suggested = roundToIncrement(suggested, 0.5);
 
