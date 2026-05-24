@@ -11,6 +11,8 @@ import { FloatingRestTimer } from "./FloatingRestTimer";
 import { AddExerciseButton } from "./AddExerciseButton";
 import { useConfirm } from "@/context/NotificationContext";
 import { useToast } from "@/context/NotificationContext";
+import { compareWithRecord } from "@/lib/exercises/personalRecords";
+import { PRCelebration } from "@/components/features/workout";
 import type { ExerciseTemplate } from "@/data/exercises";
 import type { SetType, Routine } from "@/types";
 
@@ -118,6 +120,9 @@ export function QuickEditMode({
   };
   // Auto-advance control (por defecto true)
   const [autoAdvanceLocal, setAutoAdvanceLocal] = useState(true);
+  
+  // Estado para la celebración de PR
+  const [prInfo, setPrInfo] = useState<{ show: boolean; title: string; subtitle: string }>({ show: false, title: '', subtitle: '' });
   const autoAdvance =
     autoAdvanceProp !== undefined ? autoAdvanceProp : autoAdvanceLocal;
   const setAutoAdvance = (value: boolean) => {
@@ -1716,6 +1721,21 @@ export function QuickEditMode({
                                         setPinnedExerciseId(null);
                                       }
 
+                                      // Validar si es un nuevo récord personal
+                                      if (displayWeight > 0) {
+                                        const comparison = compareWithRecord(exercise.id, displayWeight, sessions);
+                                        if (comparison.isNewRecord && comparison.previousRecord && comparison.previousRecord > 0) {
+                                          // Retrasamos la celebración un poquito para que la UI termine de actualizarse
+                                          setTimeout(() => {
+                                            setPrInfo({
+                                              show: true,
+                                              title: '¡Nuevo Récord!',
+                                              subtitle: `Superaste los ${comparison.previousRecord}kg en ${exercise.name} 🎉`
+                                            });
+                                          }, 200);
+                                        }
+                                      }
+
                                       // Mostrar snackbar "Deshacer" para revertir la marcación
                                       try {
                                         showToast(
@@ -1967,6 +1987,14 @@ export function QuickEditMode({
           <AddExerciseButton onAddExercises={onAddExercises} />
         </div>
       )}
+
+      {/* Celebración de PR */}
+      <PRCelebration 
+        show={prInfo.show} 
+        onComplete={() => setPrInfo(prev => ({ ...prev, show: false }))} 
+        title={prInfo.title}
+        subtitle={prInfo.subtitle}
+      />
 
       {/* Footer fijo para finalizar entrenamiento (Optimizado para pulgares) */}
       {onFinishWorkout && (

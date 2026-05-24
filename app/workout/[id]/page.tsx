@@ -67,6 +67,7 @@ import {
 } from "@/lib/exercises/personalRecords";
 import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSplash";
 import { WorkoutCompleteSplash } from "@/components/features/workout/WorkoutCompleteSplash";
+import { PRCelebration } from "@/components/features/workout/PRCelebration";
 import { updateRestNotification } from '@/lib/notifications/restNotification';
 
 // ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
@@ -235,6 +236,9 @@ export default function WorkoutPage() {
     minutes: 0,
     seconds: 0,
   });
+  
+  // Estado para celebración de récord personal (PR)
+  const [prInfo, setPrInfo] = useState<{ show: boolean; title: string; subtitle: string }>({ show: false, title: '', subtitle: '' });
 
   // ✅ CRÍTICO #2 FIX: Cargar info del ejercicio cuando se abre el panel
   useEffect(() => {
@@ -1163,28 +1167,41 @@ export default function WorkoutPage() {
 
         if (confirmed) {
           try {
+            const sessionReps = workoutState.workoutData.actualReps || {};
+            const sessionWeights = workoutState.workoutData.actualWeights || {};
+
             await updateRoutine(id, {
               name: routine.name,
               description: routine.description,
               image: routine.image,
-              exercises: routine.exercises.map((ex: any) => ({
-                id: ex.id,
-                name: ex.name,
-                sets: ex.sets.map((s: any) => ({
-                  reps: s.reps,
-                  weight: s.weight || 0,
-                  type: s.type,
-                  notes: s.notes,
-                })),
-                notes: ex.notes,
-                equipment: ex.equipment,
-                technique: ex.technique,
-                recommendedSets: ex.recommendedSets,
-                recommendedReps: ex.recommendedReps,
-                restTime: ex.restTime,
-                restBetweenSets: ex.restBetweenSets,
-                useSmartRest: ex.useSmartRest,
-              })),
+              exercises: routine.exercises.map((ex: any) => {
+                const exReps = sessionReps[ex.id] || [];
+                const exWeights = sessionWeights[ex.id] || [];
+                
+                return {
+                  id: ex.id,
+                  name: ex.name,
+                  sets: ex.sets.map((s: any, idx: number) => {
+                    const finalReps = exReps[idx] !== undefined && exReps[idx] > 0 ? exReps[idx] : s.reps;
+                    const finalWeight = exWeights[idx] !== undefined && exWeights[idx] > 0 ? exWeights[idx] : (s.weight || 0);
+                    
+                    return {
+                      reps: finalReps,
+                      weight: finalWeight,
+                      type: s.type,
+                      notes: s.notes,
+                    };
+                  }),
+                  notes: ex.notes,
+                  equipment: ex.equipment,
+                  technique: ex.technique,
+                  recommendedSets: ex.recommendedSets,
+                  recommendedReps: ex.recommendedReps,
+                  restTime: ex.restTime,
+                  restBetweenSets: ex.restBetweenSets,
+                  useSmartRest: ex.useSmartRest,
+                };
+              }),
               restBetweenSets: routine.restBetweenSets,
               restBetweenExercises: routine.restBetweenExercises,
             });
@@ -3336,6 +3353,14 @@ export default function WorkoutPage() {
           SetExecutionModal={SetExecutionModal}
           ExerciseInfoPanel={ExerciseInfoPanel}
           WorkoutStartSplash={WorkoutStartSplash}
+        />
+
+        {/* Celebración de récord personal (PR) */}
+        <PRCelebration 
+          show={prInfo.show} 
+          onComplete={() => setPrInfo(prev => ({ ...prev, show: false }))} 
+          title={prInfo.title}
+          subtitle={prInfo.subtitle}
         />
 
         {/* Splash animado de finalización de entrenamiento */}
