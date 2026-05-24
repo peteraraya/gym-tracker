@@ -15,14 +15,17 @@ interface FloatingRestTimerProps {
 export function FloatingRestTimer({ duration, onComplete, onDismiss }: FloatingRestTimerProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isVisible, setIsVisible] = useState(true);
+  const [ariaMessage, setAriaMessage] = useState("");
 
   useEffect(() => {
     setTimeLeft(duration);
+    setAriaMessage(`Descanso de ${duration} segundos iniciado.`);
   }, [duration]);
 
   useEffect(() => {
     if (timeLeft <= 0) {
       onComplete?.();
+      setAriaMessage("Descanso completado. Prepárate.");
       return;
     }
 
@@ -31,7 +34,11 @@ export function FloatingRestTimer({ duration, onComplete, onDismiss }: FloatingR
         if (prev <= 1) {
           clearInterval(interval);
           onComplete?.();
+          setAriaMessage("Descanso completado. Prepárate.");
           return 0;
+        }
+        if (prev === 11) {
+          setAriaMessage("Faltan 10 segundos de descanso.");
         }
         return prev - 1;
       });
@@ -53,6 +60,9 @@ export function FloatingRestTimer({ duration, onComplete, onDismiss }: FloatingR
 
   return (
     <div className="fixed top-20 right-4 z-40 animate-slide-in-right">
+      <div aria-live="polite" className="sr-only">
+        {ariaMessage}
+      </div>
       <div className="bg-linear-to-br from-blue-500 to-purple-600 text-white rounded-2xl shadow-2xl p-4 min-w-40">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">

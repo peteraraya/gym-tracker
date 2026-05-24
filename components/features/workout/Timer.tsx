@@ -52,6 +52,7 @@ export const Timer: React.FC<TimerProps> = ({
   const [actualDuration, setActualDuration] = useState(0);
   const [hasAdjusted, setHasAdjusted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [ariaMessage, setAriaMessage] = useState("");
   const onCompleteCalledRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
   const startTimeRef = useRef<number>(0);
@@ -180,6 +181,11 @@ export const Timer: React.FC<TimerProps> = ({
 
             return 0;
           }
+          
+          if (prev === 11) {
+            setAriaMessage("Faltan 10 segundos de descanso.");
+          }
+          
           return prev - 1;
         });
       }, 1000);
@@ -234,6 +240,8 @@ export const Timer: React.FC<TimerProps> = ({
   // ✨ NEW: Efecto mejorado para notificaciones y sonidos al completar
   useEffect(() => {
     if (isCompleted) {
+      setAriaMessage("Descanso completado. Prepárate.");
+      
       // Mostrar notificación de completado
       if (notificationPermission) {
         notifications.showRestComplete({
@@ -249,6 +257,13 @@ export const Timer: React.FC<TimerProps> = ({
       });
     }
   }, [isCompleted, notificationPermission, nextExerciseName, title, plannedDuration]);
+
+  // Anunciar inicio
+  useEffect(() => {
+    if (isRunning && timeLeft === plannedDuration) {
+      setAriaMessage(`Descanso de ${plannedDuration} segundos iniciado.`);
+    }
+  }, [isRunning, timeLeft, plannedDuration]);
 
   const handleStartPause = () => {
     if (!isRunning) {
@@ -325,6 +340,10 @@ export const Timer: React.FC<TimerProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div aria-live="polite" className="sr-only">
+        {ariaMessage}
+      </div>
+
       {/* Minimize button - top right */}
       {onMinimize && !isCompleted && (
         <div className="flex justify-end mb-2">
