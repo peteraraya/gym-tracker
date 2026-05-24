@@ -256,7 +256,23 @@
     "distribution": "Distribución del Entrenamiento",
     "sets": "series",
     "viewProgress": "Ver progreso",
-    "progressDesc": "Analiza tu volumen de entrenamiento por grupo muscular"
+    "progressDesc": "Analiza tu volumen de entrenamiento por grupo muscular",
+    "panel": {
+      "title": "Panel de Progreso",
+      "week": "Sem",
+      "month": "Mes",
+      "year": "Año",
+      "monthlyVolume": "Volumen",
+      "wilksScore": "Fuerza (1RM)",
+      "workoutDensity": "Densidad",
+      "consistency": "Entrenamientos",
+      "sessions": "sesiones",
+      "noData": "Sin datos aún",
+      "viewDetail": "Ver detalle",
+      "trendUp": "Tu volumen subió respecto al período anterior",
+      "trendDown": "Tu volumen bajó respecto al período anterior",
+      "trendStable": "Tu volumen se mantiene estable respecto al período anterior"
+    }
   },
   "profile": {
     "title": "Mi Perfil",

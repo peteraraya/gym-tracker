@@ -12,6 +12,7 @@ import { TrendingUp } from "@/components/icons/lucide";
 import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { LoadingSpinner, EmptyStateCard } from "@/components/shared";
+import { IntegratedProgressPanel } from "@/components/features/progress";
 
 const MUSCLE_GROUPS = Object.keys(
   APP_CONFIG.muscleGroupColors,
@@ -219,6 +220,9 @@ export default function ProgressPage() {
         />
 
         <PageContent>
+          {/* Panel integrado de progreso con métricas clave */}
+          <IntegratedProgressPanel />
+
           {/* Estadísticas generales */}
           <StatsGrid columns={3}>
             <StatCard
