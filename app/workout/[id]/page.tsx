@@ -1468,6 +1468,14 @@ export default function WorkoutPage() {
         return;
       }
 
+      // Guardar TUT (Tiempo Bajo Tensión) antes de resetear el timer
+      if (setExecution.setStartTime) {
+        const tut = Math.floor((Date.now() - setExecution.setStartTime) / 1000);
+        if (tut > 0) {
+          workoutState.updateSetDuration(exerciseId, setIndex, tut);
+        }
+      }
+
       // Resetear el timer de serie al completar
       setExecution.completeSet();
 
@@ -3231,6 +3239,15 @@ export default function WorkoutPage() {
                   }}
                 />
               }
+              onTempoChange={(tempo) => {
+                if (!routine) return;
+                const newExercises = routine.exercises.map((ex: Exercise, i: number) =>
+                  i === workoutState.currentExerciseIndex ? { ...ex, tempo: tempo || undefined } : ex
+                );
+                const updatedRoutine = { ...routine, exercises: newExercises };
+                setRoutine(updatedRoutine);
+                updateModifiedRoutine(updatedRoutine).catch(() => {});
+              }}
             />
 
             <div className="mb-4">

@@ -26,6 +26,7 @@ export interface Exercise {
   restTime?: string; // Ej: "60-90 segundos"
   restBetweenSets?: number; // Descanso entre series en segundos (override por ejercicio)
   useSmartRest?: boolean; // Usar descanso inteligente para este ejercicio
+  tempo?: string; // Tempo de ejecución, ej: "3-1-2-0" (excéntrica-pausa arriba-concéntrica-pausa abajo)
 }
 
 export interface Routine {

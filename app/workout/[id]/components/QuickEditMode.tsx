@@ -1413,8 +1413,8 @@ export function QuickEditMode({
 
                       const completedCount =
                         workoutData.completedSets?.[exerciseId] || 0;
-                      // Marcar completada solo si el índice es menor que el contador explícito
-                      const isCompleted = typeof completedCount === 'number' && setIdx < completedCount;
+                      // Marcar completada por valor real de reps (no por posición en el contador)
+                      const isCompleted = typeof doneReps === 'number' && doneReps > 0;
                       const togglingKey = `${exerciseId}:${setIdx}`;
                       const isToggling = Boolean(togglingKeys?.[togglingKey]);
 

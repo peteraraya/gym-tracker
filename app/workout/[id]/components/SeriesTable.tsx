@@ -121,8 +121,8 @@ export function SeriesTable({
                 const setType = setTypes[idx] || 'normal';
                 const doneReps = actualReps[idx] ?? null;
                 const doneWeight = actualWeights[idx] ?? set.weight ?? '';
-                // Marcar completada solo si el índice está dentro del contador explícito
-                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
+                // Marcar completada si esa serie específica tiene reps registradas (por valor, no por posición)
+                const isCompleted = typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
               
               // Skip completed sets in mobile view
               if (isCompleted) return null;
@@ -295,8 +295,8 @@ export function SeriesTable({
                 const doneReps = actualReps[idx] ?? null;
                 const doneWeight = actualWeights[idx] ?? set.weight ?? '';
                 const setType = setTypes[idx] || 'normal';
-                // Marcar completada solo si el índice es menor que el contador explícito
-                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
+                // Marcar completada si esa serie específica tiene reps registradas (por valor, no por posición)
+                const isCompleted = typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
                 const isCurrent = idx === currentSet - 1;
 
                 return (
