@@ -21,6 +21,7 @@ import {
 import MonthlyCalendar from "@/components/features/planning/MonthlyCalendar";
 import DayPlanModal from "@/components/features/planning/DayPlanModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { getDayKey } from '@/lib/utils/dateUtils';
 import { Plus, Play } from "lucide-react";
 
 type DayKey =
@@ -316,18 +317,7 @@ export default function WeeklyPlanner({
 
   // Obtener el día actual de la semana
   const getCurrentDayKey = (): DayKey | null => {
-    const today = new Date();
-    const dayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const dayMap: DayKey[] = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    return dayMap[dayIndex];
+    return getDayKey(new Date());
   };
 
   const handleStartRoutine = (routineId: string) => {

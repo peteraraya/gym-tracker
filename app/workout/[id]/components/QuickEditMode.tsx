@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Timer, ArrowRight, Plus, Check } from "lucide-react";
@@ -27,6 +26,8 @@ interface QuickEditModeProps {
     restOverrides?: { [key: string]: number };
     perSetRestOverrides?: { [key: string]: number[] };
     skippedExercises?: string[];
+    /** Flags explícitos de completado por serie: solo activados al pulsar el botón naranja. */
+    completedSetFlags?: { [exerciseId: string]: boolean[] };
   };
   onEditReps: (exerciseId: string, setIndex: number, reps: number) => void;
   onEditWeight: (exerciseId: string, setIndex: number, weight: number) => void;
@@ -309,6 +310,15 @@ export function QuickEditMode({
     currentValue: number,
     exerciseName: string,
   ) => {
+    // Prevenir edición si el ejercicio está omitido
+    const skippedExercises = workoutData.skippedExercises || [];
+    if (skippedExercises.includes(exerciseId)) {
+      try {
+        showToast?.('Ejercicio omitido. Restaura para editar.', 'info', 2000);
+      } catch {}
+      return;
+    }
+
     setEditingCell({ exerciseId, setIndex, field, currentValue, exerciseName });
     setTempValue(currentValue === 0 ? "" : String(currentValue));
   };
@@ -826,6 +836,31 @@ export function QuickEditMode({
             style={{ width: `${progressPercent}%` }}
           />
         </div>
+        {/* Serie en curso */}
+        {activeSet && (
+          <div className="mt-1.5 flex items-center justify-between bg-white/10 rounded-xl px-3 py-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest shrink-0">
+                Serie en curso
+              </span>
+              {(() => {
+                const ex = routine.exercises.find((e) => e.id === activeSet.exerciseId);
+                return ex ? (
+                  <span className="text-[10px] text-white/60 truncate">
+                    {ex.name} · #{activeSet.setIndex + 1}
+                  </span>
+                ) : null;
+              })()}
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] text-white/50 uppercase tracking-wide">TUT</span>
+              <span className="text-base font-black tabular-nums text-white leading-none">
+                {formatTUT(tutElapsed)}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       )}
 
@@ -1429,8 +1464,11 @@ export function QuickEditMode({
 
                       const completedCount =
                         workoutData.completedSets?.[exerciseId] || 0;
-                      // Marcar completada por valor real de reps (no por posición en el contador)
-                      const isCompleted = typeof doneReps === 'number' && doneReps > 0;
+                      // Usar flag explícito de completado si está disponible;
+                      // solo activado al pulsar el botón naranja (no por edición de reps).
+                      const isCompleted = workoutData.completedSetFlags
+                        ? Boolean(workoutData.completedSetFlags[exerciseId]?.[setIdx])
+                        : typeof doneReps === 'number' && doneReps > 0;
                       const togglingKey = `${exerciseId}:${setIdx}`;
                       const isToggling = Boolean(togglingKeys?.[togglingKey]);
 
@@ -1510,36 +1548,10 @@ export function QuickEditMode({
 
                       return (
                         <div key={`${exerciseId}-${setIdx}`}>
-                          {/* ── TUT inline sobre la serie activa ── */}
-                          <AnimatePresence>
-                            {isActiveSet && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.25 }}
-                                className="mx-2 mb-1 overflow-hidden"
-                              >
-                                <div className="flex items-center justify-between bg-indigo-900/80 border border-indigo-500/40 rounded-xl px-3 py-1.5">
-                                  <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                                    <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
-                                      Serie en curso
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] text-slate-400 uppercase tracking-wide">TUT</span>
-                                    <span className="text-xl font-black tabular-nums text-white drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]">
-                                      {formatTUT(tutElapsed)}
-                                    </span>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-
                           <div
                           className={`flex items-center gap-1 px-2 py-1.5 transition-colors ${
+                            isSkipped ? 'pointer-events-none opacity-60' : ''
+                          } ${
                             isCompleted
                               ? "bg-green-50/60 dark:bg-green-900/10"
                               : isReadyToComplete
@@ -1571,6 +1583,7 @@ export function QuickEditMode({
                                   ] = el;
                                 }}
                                 onClick={() =>
+                                  !isSkipped &&
                                   startEditing(
                                     exerciseId,
                                     setIdx,
@@ -1579,6 +1592,7 @@ export function QuickEditMode({
                                     exercise.name,
                                   )
                                 }
+                                disabled={isSkipped}
                                 aria-invalid={
                                   validation.reps ? "true" : "false"
                                 }
@@ -1618,6 +1632,7 @@ export function QuickEditMode({
                                   ] = el;
                                 }}
                                 onClick={() =>
+                                  !isSkipped &&
                                   startEditing(
                                     exerciseId,
                                     setIdx,
@@ -1626,6 +1641,7 @@ export function QuickEditMode({
                                     exercise.name,
                                   )
                                 }
+                                disabled={isSkipped}
                                 aria-invalid={
                                   validation.weight ? "true" : "false"
                                 }
@@ -1671,6 +1687,7 @@ export function QuickEditMode({
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  if (isSkipped) return;
                                   setSetTypeTarget({
                                     exerciseId,
                                     setIndex: setIdx,
@@ -1679,6 +1696,7 @@ export function QuickEditMode({
                                   });
                                   setShowSetTypeSelector(true);
                                 }}
+                                disabled={isSkipped}
                                 className={`w-10 h-11 rounded-lg flex items-center justify-center ${
                                   (SET_TYPE_INFO as any)[setType]?.color || 'bg-gray-200'
                                 }`}
@@ -1839,7 +1857,7 @@ export function QuickEditMode({
                                     }
                                   }}
                                   aria-disabled={
-                                    isToggling ||
+                                    isSkipped || isToggling ||
                                     (!isReadyToComplete && !isCompleted)
                                   }
                                   title={
@@ -1848,7 +1866,7 @@ export function QuickEditMode({
                                       : undefined
                                   }
                                   disabled={
-                                    isToggling ||
+                                    isSkipped || isToggling ||
                                     (!isReadyToComplete && !isCompleted)
                                   }
                                   className={`relative h-12 w-14 md:h-10 md:w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${

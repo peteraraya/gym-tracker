@@ -21,6 +21,8 @@ interface SeriesTableProps {
   actualWeights: number[];
   setTypes: string[];
   currentSet: number;
+  /** Flags explícitos de completado por serie. Solo se activan al pulsar el botón naranja. */
+  completedSetFlags?: boolean[];
   onEditReps: (setIndex: number, reps: number) => void;
   onEditWeight: (setIndex: number, weight: number) => void;
   onEditSetType: (setIndex: number, type: SetType) => void;
@@ -53,6 +55,7 @@ export function SeriesTable({
   actualWeights,
   setTypes,
   currentSet,
+  completedSetFlags,
   onEditReps,
   onEditWeight,
   onEditSetType,
@@ -121,8 +124,11 @@ export function SeriesTable({
                 const setType = setTypes[idx] || 'normal';
                 const doneReps = actualReps[idx] ?? null;
                 const doneWeight = actualWeights[idx] ?? set.weight ?? '';
-                // Marcar completada si esa serie específica tiene reps registradas (por valor, no por posición)
-                const isCompleted = typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
+                // Usar flag explícito de completado si está disponible;
+                // solo activado al pulsar el botón naranja.
+                const isCompleted = completedSetFlags
+                  ? Boolean(completedSetFlags[idx])
+                  : typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
               
               // Skip completed sets in mobile view
               if (isCompleted) return null;
@@ -295,8 +301,11 @@ export function SeriesTable({
                 const doneReps = actualReps[idx] ?? null;
                 const doneWeight = actualWeights[idx] ?? set.weight ?? '';
                 const setType = setTypes[idx] || 'normal';
-                // Marcar completada si esa serie específica tiene reps registradas (por valor, no por posición)
-                const isCompleted = typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
+                // Usar flag explícito de completado si está disponible;
+                // solo activado al pulsar el botón naranja.
+                const isCompleted = completedSetFlags
+                  ? Boolean(completedSetFlags[idx])
+                  : typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
                 const isCurrent = idx === currentSet - 1;
 
                 return (

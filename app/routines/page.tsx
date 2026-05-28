@@ -38,6 +38,7 @@ import {
   CardGrid,
 } from "@/components/shared";
 import { usePlanning } from "@/hooks/usePlanning";
+import { getDayKey } from '@/lib/utils/dateUtils';
 import { GOAL_LABELS, DAYS, DAY_LABELS_SHORT } from "@/types/planning";
 import Link from "next/link";
 
@@ -344,17 +345,7 @@ export default function RoutinesPage() {
           {planning.activeMesocycle &&
             (() => {
               const currentWeek = planning.getCurrentWeekPlan();
-              const todayKey = (
-                [
-                  "sunday",
-                  "monday",
-                  "tuesday",
-                  "wednesday",
-                  "thursday",
-                  "friday",
-                  "saturday",
-                ] as const
-              )[new Date().getDay()];
+              const todayKey = getDayKey(new Date());
               const todaySchedule = currentWeek?.dailySchedule?.[todayKey];
               const todayRoutines = (todaySchedule?.routineIds ?? [])
                 .map((id) => routines.find((r) => r.id === id))

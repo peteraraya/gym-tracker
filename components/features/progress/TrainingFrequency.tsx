@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
 import { Calendar } from '@/components/icons/lucide';
+import { getISOWeekdayIndex } from '@/lib/utils/dateUtils';
 import { useTranslations } from '@/context/LocaleContext';
 
 interface TrainingFrequencyProps {
@@ -51,13 +52,21 @@ export const TrainingFrequency: React.FC<TrainingFrequencyProps> = ({ sessions }
     const avgPerWeek = sessions.length / totalWeeks;
     const avgPerMonth = avgPerWeek * 4.33; // Promedio de semanas en un mes
 
-    // Día más activo
-    const dayNames = [t('daysOfWeek.0'), t('daysOfWeek.1'), t('daysOfWeek.2'), t('daysOfWeek.3'), t('daysOfWeek.4'), t('daysOfWeek.5'), t('daysOfWeek.6')];
+    // Día más activo (ISO: 0 = Monday)
+    const dayNames = [
+      t('daysOfWeek.1'),
+      t('daysOfWeek.2'),
+      t('daysOfWeek.3'),
+      t('daysOfWeek.4'),
+      t('daysOfWeek.5'),
+      t('daysOfWeek.6'),
+      t('daysOfWeek.0'),
+    ];
     const dayCount: Record<string, number> = {};
 
     sessions.forEach(s => {
-      const day = new Date(s.date).getDay();
-      const dayName = dayNames[day];
+      const dayIndex = getISOWeekdayIndex(new Date(s.date));
+      const dayName = dayNames[dayIndex];
       dayCount[dayName] = (dayCount[dayName] || 0) + 1;
     });
 

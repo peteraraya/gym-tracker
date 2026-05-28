@@ -7,6 +7,7 @@
 
 import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
+import { getWeekStart } from '@/lib/utils/dateUtils';
 
 /**
  * Calcula el volumen total (series × reps × peso) de una sesión
@@ -83,10 +84,7 @@ export function calculateVolumeByPeriod(
     let key: string;
 
     if (period === 'week') {
-      const weekStart = new Date(date);
-      // Ajustar para que la semana empiece el lunes (ISO 8601): (day+6)%7 => 0=lunes
-      weekStart.setDate(date.getDate() - ((date.getDay() + 6) % 7));
-      weekStart.setHours(0, 0, 0, 0);
+      const weekStart = getWeekStart(date, 'monday');
       key = weekStart.toISOString().split('T')[0];
     } else {
       key = date.toISOString().slice(0, 7); // YYYY-MM

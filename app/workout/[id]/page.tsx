@@ -180,6 +180,30 @@ export default function WorkoutPage() {
   const workoutState = useWorkoutState(routine || null, {
     onDataChange: (data) => handleWorkoutDataChangeRef.current(data),
   });
+
+  // Preparar la rutina que se va a guardar en backend: preservar los pesos
+  // editados durante el entrenamiento (actualWeights) para evitar sobrescribir
+  // con valores por defecto al persistir la rutina (replace semantics).
+  const prepareRoutineForSave = useCallback(
+    (r: any) => {
+      try {
+        const actualWeightsMap = workoutState?.workoutData?.actualWeights || {};
+        const exercises = (r?.exercises || []).map((ex: any) => {
+          const exWeights = actualWeightsMap[ex.id] || [];
+          const sets = (ex?.sets || []).map((s: any, idx: number) => {
+            const aw = exWeights[idx];
+            const mergedWeight = aw !== undefined && aw !== null && aw !== 0 ? aw : (s.weight ?? 0);
+            return { ...s, weight: mergedWeight };
+          });
+          return { ...ex, sets };
+        });
+        return { ...r, exercises };
+      } catch (e) {
+        return r;
+      }
+    },
+    [workoutState?.workoutData?.actualWeights],
+  );
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [selectedExerciseName, setSelectedExerciseName] = useState<string>("");
   const [exerciseInfo, setExerciseInfo] = useState<any | null>(null);
@@ -593,6 +617,19 @@ export default function WorkoutPage() {
   const setExecution = useSetExecution({
     onSetStart: () => haptic.setStart(),
   });
+
+  // TUT (Tiempo Bajo Tensión) para el header de Edición Rápida
+  const [tutElapsedQEM, setTutElapsedQEM] = useState(0);
+  useEffect(() => {
+    if (!isQuickEditMode || !setExecution.isExecutingSet || !setExecution.setStartTime) {
+      setTutElapsedQEM(0);
+      return;
+    }
+    const tick = () => setTutElapsedQEM(Math.floor((Date.now() - setExecution.setStartTime!) / 1000));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [isQuickEditMode, setExecution.isExecutingSet, setExecution.setStartTime]);
 
   // Debug: Log setExecution state changes
   // useEffect(() => {
@@ -1753,9 +1790,10 @@ export default function WorkoutPage() {
 
       try {
         // Persistir la rutina modificada (updateModifiedRoutine también actualiza Supabase)
-        await updateModifiedRoutine(updatedRoutine);
+        const routineToSave = prepareRoutineForSave(updatedRoutine);
+        await updateModifiedRoutine(routineToSave);
         // Redundancia: asegurar que la rutina esté en el backend
-        await updateRoutine(id, updatedRoutine);
+        await updateRoutine(id, routineToSave);
 
         success("Orden de ejercicios actualizado", 2000);
       } catch (err) {
@@ -1912,8 +1950,9 @@ export default function WorkoutPage() {
       // Persistir la rutina actualizada
       try {
         // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-        updateModifiedRoutine(updatedRoutine);
-        await updateRoutine(id, updatedRoutine);
+        const routineToSave = prepareRoutineForSave(updatedRoutine);
+        await updateModifiedRoutine(routineToSave);
+        await updateRoutine(id, routineToSave);
         success("Serie eliminada", 2000);
       } catch (err) {
         error("Error al eliminar serie");
@@ -2010,8 +2049,9 @@ export default function WorkoutPage() {
       // Persistir la rutina actualizada
       try {
         // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-        await updateModifiedRoutine(updatedRoutine);
-        await updateRoutine(id, updatedRoutine);
+        const routineToSave = prepareRoutineForSave(updatedRoutine);
+        await updateModifiedRoutine(routineToSave);
+        await updateRoutine(id, routineToSave);
         success("Serie eliminada", 2000);
       } catch (err) {
         error("Error al eliminar serie");
@@ -2085,8 +2125,9 @@ export default function WorkoutPage() {
       // Persistir la rutina actualizada
       try {
         // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
-        updateModifiedRoutine(updatedRoutine);
-        await updateRoutine(id, updatedRoutine);
+        const routineToSave = prepareRoutineForSave(updatedRoutine);
+        await updateModifiedRoutine(routineToSave);
+        await updateRoutine(id, routineToSave);
         success("Serie eliminada", 2000);
       } catch (err) {
         error("Error al eliminar serie");
@@ -2144,6 +2185,8 @@ export default function WorkoutPage() {
           setIndex + 1,
         );
         workoutState.updateCompletedSets(exerciseId, newCompletedCount);
+        // ✅ Marcar el flag explícito: solo se activa desde aquí (botón toggle)
+        workoutState.updateCompletedSetFlag(exerciseId, setIndex, true);
 
         const nextIncompleteSet = currentExercise.sets.findIndex(
           (_: any, idx: number) => {
@@ -2199,6 +2242,8 @@ export default function WorkoutPage() {
         // unchecking a middle set while higher-indexed sets remain completed.
         const newCompletedCount = newActualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
         workoutState.updateCompletedSets(exerciseId, newCompletedCount);
+        // ✅ Limpiar el flag explícito de completado para esta serie
+        workoutState.updateCompletedSetFlag(exerciseId, setIndex, false);
 
         if (setIndex + 1 < workoutState.currentSet) {
           workoutState.setCurrentSet(setIndex + 1);
@@ -2271,10 +2316,11 @@ export default function WorkoutPage() {
 
     // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
     try {
-      await updateModifiedRoutine(updatedRoutine);
+      const routineToSave = prepareRoutineForSave(updatedRoutine);
+      await updateModifiedRoutine(routineToSave);
 
       // Persistir la rutina actualizada
-      await updateRoutine(id, updatedRoutine);
+      await updateRoutine(id, routineToSave);
       // console.log("[handleAddSet] Successfully saved to storage");
       success("Serie agregada", 2000);
     } catch (err) {
@@ -2377,10 +2423,11 @@ export default function WorkoutPage() {
 
         try {
           // Persistir la rutina modificada (actualiza backend y activeWorkout)
-          await updateModifiedRoutine(updatedRoutine);
+          const routineToSave = prepareRoutineForSave(updatedRoutine);
+          await updateModifiedRoutine(routineToSave);
 
           // Asegurar sincronización adicional con backend por redundancia
-          await updateRoutine(id, updatedRoutine);
+          await updateRoutine(id, routineToSave);
 
           // IMPORTANTE: Actualizar el activeWorkout para mantener los registros existentes
           updateWorkoutProgress(
@@ -2595,6 +2642,8 @@ export default function WorkoutPage() {
             (r: number) => typeof r === "number" && r > 0,
           ).length;
           workoutState.updateCompletedSets(exerciseId, completedCount);
+          // ✅ Limpiar el flag explícito de completado para esta serie
+          workoutState.updateCompletedSetFlag(exerciseId, setIndex, false);
 
           // Si estamos en el ejercicio actual, actualizar también currentSet
           if (currentExercise && currentExercise.id === exerciseId) {
@@ -2709,10 +2758,11 @@ export default function WorkoutPage() {
 
       // ✅ Guardar la rutina modificada en el activeWorkout para que persista al refrescar
       try {
-        await updateModifiedRoutine(updatedRoutine);
+        const routineToSave = prepareRoutineForSave(updatedRoutine);
+        await updateModifiedRoutine(routineToSave);
 
         // Persistir la rutina actualizada
-        await updateRoutine(id, updatedRoutine);
+        await updateRoutine(id, routineToSave);
         success("Serie agregada", 2000);
       } catch (err) {
         console.error("[handleQuickAddSet] Error saving:", err);
@@ -2923,6 +2973,28 @@ export default function WorkoutPage() {
                   style={{ width: `${qemProgressPercent}%` }}
                 />
               </div>
+              {/* Serie en curso */}
+              {setExecution.isExecutingSet && (
+                <div className="mt-1.5 flex items-center justify-between bg-white/10 rounded-xl px-3 py-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                    <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest shrink-0">
+                      Serie en curso
+                    </span>
+                    {currentExercise && (
+                      <span className="text-[10px] text-white/60 truncate">
+                        {currentExercise.name} · #{workoutState.currentSet}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] text-white/50 uppercase tracking-wide">TUT</span>
+                    <span className="text-base font-black tabular-nums text-white leading-none">
+                      {`${Math.floor(tutElapsedQEM / 60)}:${String(tutElapsedQEM % 60).padStart(2, '0')}`}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -3255,7 +3327,7 @@ export default function WorkoutPage() {
                 );
                 const updatedRoutine = { ...routine, exercises: newExercises };
                 setRoutine(updatedRoutine);
-                updateModifiedRoutine(updatedRoutine).catch(() => {});
+                updateModifiedRoutine(prepareRoutineForSave(updatedRoutine)).catch(() => {});
               }}
             />
 
@@ -3298,6 +3370,9 @@ export default function WorkoutPage() {
                   }
                   setTypes={
                     workoutState.workoutData.setTypes[currentExercise.id] || []
+                  }
+                  completedSetFlags={
+                    workoutState.workoutData.completedSetFlags?.[currentExercise.id] || []
                   }
                   currentSet={workoutState.currentSet}
                   onEditReps={handleEditReps}

@@ -25,6 +25,8 @@ interface WorkoutData {
   actualPauseDurations: { [key: string]: number[] };
   actualRestTimes: { [key: string]: number[] };
   skippedExercises: string[]; // ✅ Array de exerciseIds omitidos
+  // ✅ Flags explícitos de completado por serie: solo se activan al pulsar el botón naranja
+  completedSetFlags: { [exerciseId: string]: boolean[] };
   // ✅ Timestamp para forzar re-renders cuando cambia el estado
   _lastUpdate?: number;
 }
@@ -63,6 +65,8 @@ interface UseWorkoutStateReturn {
   updateRestTime: (exerciseId: string, setIndex: number, duration: number) => void;
   skipExercise: (exerciseId: string) => void;
   unskipExercise: (exerciseId: string) => void;
+  // ✅ Actualiza el flag explícito de completado de una serie específica
+  updateCompletedSetFlag: (exerciseId: string, setIndex: number, flag: boolean) => void;
   
   // Utilidades
   reset: () => void;
@@ -95,6 +99,7 @@ export function useWorkoutState(
     actualPauseDurations: {},
     actualRestTimes: {},
     skippedExercises: [], // ✅ Inicializar array vacío
+    completedSetFlags: {}, // ✅ Flags explícitos de completado
   });
 
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -183,11 +188,17 @@ export function useWorkoutState(
           setIndex + 1,
         );
 
+        // ✅ Actualizar flag explícito de completado para este set
+        const prevFlags = [...((prev.completedSetFlags || {})[exerciseId] || [])];
+        while (prevFlags.length <= setIndex) prevFlags.push(false);
+        prevFlags[setIndex] = true;
+
         const newData = {
           ...prev,
           actualReps: { ...prev.actualReps, [exerciseId]: prevReps },
           actualWeights: { ...prev.actualWeights, [exerciseId]: prevWeights },
           completedSets: { ...prev.completedSets, [exerciseId]: completedCount },
+          completedSetFlags: { ...(prev.completedSetFlags || {}), [exerciseId]: prevFlags },
           _lastUpdate: Date.now(),
         };
 
@@ -462,6 +473,29 @@ export function useWorkoutState(
   }, []);
 
   /**
+   * Actualiza el flag explícito de completado de una serie.
+   * Solo debe llamarse al pulsar el botón naranja (completar/descompletar).
+   */
+  const updateCompletedSetFlag = useCallback((exerciseId: string, setIndex: number, flag: boolean) => {
+    setWorkoutData(prev => {
+      const prevFlags = [...((prev.completedSetFlags || {})[exerciseId] || [])];
+      while (prevFlags.length <= setIndex) prevFlags.push(false);
+      prevFlags[setIndex] = flag;
+      const newData = {
+        ...prev,
+        completedSetFlags: { ...(prev.completedSetFlags || {}), [exerciseId]: prevFlags },
+        _lastUpdate: Date.now(),
+      };
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+      return newData;
+    });
+  }, []);
+
+  /**
    * Desomite un ejercicio (lo remueve de la lista de omitidos)
    */
   const unskipExercise = useCallback((exerciseId: string) => {
@@ -554,6 +588,18 @@ export function useWorkoutState(
         sanitizedData.skippedExercises = [];
       }
     }
+
+    // ✅ Compatibilidad hacia atrás: si no hay completedSetFlags guardados,
+    // derivarlos desde actualReps (sets con reps > 0 se consideran completados)
+    if (!data.completedSetFlags && sanitizedData.actualReps) {
+      const derivedFlags: { [exerciseId: string]: boolean[] } = {};
+      for (const [exId, reps] of Object.entries(sanitizedData.actualReps)) {
+        if (Array.isArray(reps)) {
+          derivedFlags[exId] = reps.map(r => typeof r === 'number' && r > 0);
+        }
+      }
+      sanitizedData.completedSetFlags = derivedFlags;
+    }
     
     setWorkoutData(prev => ({
       ...prev,
@@ -578,6 +624,7 @@ export function useWorkoutState(
       actualPauseDurations: {},
       actualRestTimes: {},
       skippedExercises: [], // ✅ Resetear ejercicios omitidos
+      completedSetFlags: {}, // ✅ Resetear flags de completado
     });
     setCurrentExerciseIndex(0);
     setCurrentSet(1);
@@ -630,6 +677,7 @@ export function useWorkoutState(
     updateRestTime,
     skipExercise,
     unskipExercise,
+    updateCompletedSetFlag,
 
     // Utilidades
     reset,
@@ -655,6 +703,7 @@ export function useWorkoutState(
     updateRestTime,
     skipExercise,
     unskipExercise,
+    updateCompletedSetFlag,
     reset,
     restoreData,
     getExerciseData,

@@ -121,6 +121,8 @@ export interface Mesocycle {
   updatedAt: string;
 }
 
+import { getWeekStart } from '@/lib/utils/dateUtils';
+
 /** Estructura raíz persistida en localStorage */
 export interface PlanningData {
   mesocycles: Mesocycle[];
@@ -161,18 +163,9 @@ export function getActualSetsThisWeek(
   weekStart?: Date,
 ): Record<string, number> {
   const now = new Date();
-
   // Calcular inicio de semana: si se provee externamente se usa tal cual;
   // en caso contrario se usa el lunes de la semana de calendario actual.
-  const startOfWeek: Date = weekStart
-    ? new Date(weekStart)
-    : (() => {
-        const d = new Date(now);
-        // (day + 6) % 7 → 0=lunes, 1=martes, … 6=domingo
-        d.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-        d.setHours(0, 0, 0, 0);
-        return d;
-      })();
+  const startOfWeek: Date = weekStart ? new Date(weekStart) : getWeekStart(now, 'monday');
 
   // Límite superior: 7 días desde el inicio (no contar sesiones de la semana siguiente)
   const endOfWeek = new Date(startOfWeek);

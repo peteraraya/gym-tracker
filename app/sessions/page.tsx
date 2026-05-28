@@ -15,6 +15,7 @@ import { useConfirm } from "@/context/NotificationContext";
 import { useLocale } from "@/context/LocaleContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { Calendar, Filter } from "@/components/icons/lucide";
+import { getWeekStart } from '@/lib/utils/dateUtils';
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
   EmptyStateCard,
@@ -28,12 +29,7 @@ const SESSIONS_PER_PAGE = 10;
 
 // ── Timeline helpers ─────────────────────────────────────────────────────────
 function getMondayOf(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  return getWeekStart(date, 'monday');
 }
 
 function weekLabel(monday: Date): string {

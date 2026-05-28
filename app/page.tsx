@@ -11,6 +11,8 @@ import {
   calculateStreak,
   calculateTotalVolume,
   filterSessionsByMonth,
+  getWeekStart,
+  getDayKey,
 } from "@/lib/utils/dateUtils";
 import { getWeeklyPlan } from "@/lib/storage/storage";
 import type { WeeklyPlan } from "@/lib/storage/localStorage";
@@ -47,32 +49,32 @@ const DAY_LABELS: Record<DayKey, string> = {
 };
 
 function getTodayKey(): DayKey {
-  return DAY_MAP[new Date().getDay()];
+  return getDayKey(new Date());
 }
 
 function getThisWeekVolume(sessions: any[]): number {
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - mondayOffset);
-  monday.setHours(0, 0, 0, 0);
-  return calculateTotalVolume(sessions.filter((s) => new Date(s.date) >= monday));
+  const monday = getWeekStart(now, "monday");
+  const weekEnd = new Date(monday);
+  weekEnd.setDate(monday.getDate() + 7);
+  return calculateTotalVolume(
+    sessions.filter((s) => {
+      const d = new Date(s.date);
+      return d >= monday && d < weekEnd;
+    }),
+  );
 }
 
 function getLastWeekVolume(sessions: any[]): number {
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const thisMonday = new Date(now);
-  thisMonday.setDate(now.getDate() - mondayOffset);
-  thisMonday.setHours(0, 0, 0, 0);
+  const thisMonday = getWeekStart(now, "monday");
   const lastMonday = new Date(thisMonday);
   lastMonday.setDate(thisMonday.getDate() - 7);
-  const lastSunday = new Date(thisMonday);
-  lastSunday.setMilliseconds(-1);
   return calculateTotalVolume(
-    sessions.filter((s) => { const d = new Date(s.date); return d >= lastMonday && d <= lastSunday; })
+    sessions.filter((s) => {
+      const d = new Date(s.date);
+      return d >= lastMonday && d < thisMonday;
+    }),
   );
 }
 
