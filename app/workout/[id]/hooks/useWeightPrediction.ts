@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { predictWeight, validateWeight } from '../utils/weightPrediction';
-import { generateWeightSuggestion } from '@/lib/data/weightSuggestions';
+import { generateWeightSuggestion, WeightSuggestion } from '@/lib/data/weightSuggestions';
 
 interface UseWeightPredictionProps {
   currentExercise: any;
@@ -17,8 +17,9 @@ export function useWeightPrediction({
   actualWeights,
   isInitialized
 }: UseWeightPredictionProps) {
-  const [weightSuggestion, setWeightSuggestion] = useState<any>(null);
+  const [weightSuggestion, setWeightSuggestion] = useState<WeightSuggestion | null>(null);
   const [dismissedWeightSuggestion, setDismissedWeightSuggestion] = useState(false);
+  const lastWeightSuggestionKeyRef = useRef<string | null>(null);
   
   // Reset dismissed state when exercise changes
   useEffect(() => {
@@ -38,7 +39,11 @@ export function useWeightPrediction({
       currentExercise.sets[currentSet - 1]?.reps || 10
     );
 
-    setWeightSuggestion(suggestion);
+    const key = suggestion ? `${suggestion.suggested ?? ''}::${suggestion.confidence ?? ''}::${suggestion.reason ?? ''}` : 'null';
+    if (key !== lastWeightSuggestionKeyRef.current) {
+      lastWeightSuggestionKeyRef.current = key;
+      setWeightSuggestion(suggestion);
+    }
   }, [currentExercise, currentSet, sessions]);
   
   // Predict weight for current set

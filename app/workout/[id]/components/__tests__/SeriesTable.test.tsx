@@ -167,7 +167,7 @@ describe('SeriesTable', () => {
         smartRestTime={90}
       />
     );
-    expect(screen.getByText(/90s/)).toBeInTheDocument();
+    expect(screen.getByText(/1m 30s/)).toBeInTheDocument();
   });
 
   it('debe mostrar selector de descanso si onEditRestTime está definido', () => {

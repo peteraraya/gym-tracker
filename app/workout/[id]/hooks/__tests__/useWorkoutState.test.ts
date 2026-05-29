@@ -140,6 +140,29 @@ describe('useWorkoutState', () => {
     expect(result.current.workoutData.actualWeights['ex-1']).toEqual([60]);
   });
 
+  it('should preserve undefined entries when restoring arrays', () => {
+    const { result } = renderHook(() => useWorkoutState(mockRoutine, {}));
+
+    act(() => {
+      result.current.restoreData({
+        actualReps: { 'ex-1': [10, undefined, 8] },
+        actualWeights: { 'ex-1': [undefined, 70] },
+      });
+    });
+
+    const reps = result.current.workoutData.actualReps['ex-1'];
+    const weights = result.current.workoutData.actualWeights['ex-1'];
+
+    expect(Array.isArray(reps)).toBe(true);
+    expect(reps[0]).toBe(10);
+    expect(reps[1]).toBeUndefined();
+    expect(reps[2]).toBe(8);
+
+    expect(Array.isArray(weights)).toBe(true);
+    expect(weights[0]).toBeUndefined();
+    expect(weights[1]).toBe(70);
+  });
+
   it('should return memoized object', () => {
     const { result, rerender } = renderHook(
       (props) => useWorkoutState(props.routine, {}),

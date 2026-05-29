@@ -566,7 +566,12 @@ export function useWorkoutState(
       sanitizedData.actualReps = {};
       for (const [key, value] of Object.entries(data.actualReps)) {
         if (Array.isArray(value)) {
-          sanitizedData.actualReps[key] = value.map(r => validateNumber(r, 999));
+          sanitizedData.actualReps[key] = value.map(r => {
+            const num = Number(r);
+            // Preserve missing/invalid entries as undefined instead of coercing to 0
+            if (!Number.isFinite(num)) return undefined as unknown as number;
+            return validateNumber(r, 999);
+          });
         }
       }
     }
@@ -575,7 +580,12 @@ export function useWorkoutState(
       sanitizedData.actualWeights = {};
       for (const [key, value] of Object.entries(data.actualWeights)) {
         if (Array.isArray(value)) {
-          sanitizedData.actualWeights[key] = value.map(w => validateNumber(w, 9999));
+          sanitizedData.actualWeights[key] = value.map(w => {
+            const num = Number(w);
+            // Preserve missing/invalid entries as undefined instead of coercing to 0
+            if (!Number.isFinite(num)) return undefined as unknown as number;
+            return validateNumber(w, 9999);
+          });
         }
       }
     }

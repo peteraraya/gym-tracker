@@ -43,6 +43,11 @@ export function CompactWorkoutHeader({
   onDeleteExercise,
   onOpenSoundSettings, // ✨ NEW: Receive callback
 }: CompactWorkoutHeaderProps) {
+  if (process.env.NODE_ENV === 'test') {
+    // Minimal test-only marker; avoid noisy repeated logs
+    // eslint-disable-next-line no-console
+    console.log('[CompactWorkoutHeader Debug] mounted')
+  }
   
   // Calcular progreso basado en series completadas vs total de series
   const progress = useMemo(() => {
@@ -108,7 +113,7 @@ export function CompactWorkoutHeader({
   const currentExercise = routine.exercises[currentExerciseIndex];
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b-2 border-blue-200 dark:border-blue-800 shadow-md">
+    <div data-testid="workout-header" className="bg-white dark:bg-gray-900 border-b-2 border-blue-200 dark:border-blue-800 shadow-md">
       {/* Fila 1: Título y botón cancelar */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="flex-1 min-w-0">

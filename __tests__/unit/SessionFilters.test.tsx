@@ -144,7 +144,7 @@ describe('SessionFilters Component - Unit Tests', () => {
 
     renderFilters({ searchTerm: 'test', selectedRoutine: 'routine-1' })
 
-    const clearButton = screen.getByRole('button', { name: /limpiar/i })
+    const clearButton = screen.getByRole('button', { name: /^limpiar$/i })
     await user.click(clearButton)
 
     expect(mockOnFilterChange).toHaveBeenCalledWith({

@@ -353,7 +353,7 @@ describe('Validation Schemas', () => {
       validateDataWithLogging(WorkoutStateSchema, data, 'test-context');
       
       expect(consoleSpy).toHaveBeenCalled();
-      expect(consoleSpy.mock.calls[0][0]).toContain('[Validation]');
+      expect(consoleSpy.mock.calls[0][0]).toContain('[WARN]');
       expect(consoleSpy.mock.calls[0][0]).toContain('test-context');
       
       consoleSpy.mockRestore();

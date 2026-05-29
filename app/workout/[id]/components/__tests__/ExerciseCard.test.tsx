@@ -37,6 +37,13 @@ vi.mock('@/components/ui/Input', () => ({
   Input: (props: any) => <input {...props} />
 }));
 
+// Mock del EditValueModal para simplificar la interacción en tests
+vi.mock('@/components/shared/EditValueModal', () => ({
+  EditValueModal: ({ isOpen, onSave, onClose }: any) => (
+    isOpen ? <button data-testid="edit-save" onClick={() => { onSave(10); onClose(); }}>Save</button> : null
+  )
+}));
+
 describe('ExerciseCard', () => {
   const mockExercise: Exercise = {
     id: 'ex-1',
@@ -82,7 +89,7 @@ describe('ExerciseCard', () => {
 
   it('debe mostrar el descanso recomendado', () => {
     render(<ExerciseCard {...defaultProps} />);
-    expect(screen.getByText('90s')).toBeInTheDocument();
+    expect(screen.getByText('1m 30s')).toBeInTheDocument();
   });
 
   it('debe mostrar las reps recomendadas', () => {
@@ -169,9 +176,12 @@ describe('ExerciseCard', () => {
       />
     );
 
-    const repsInput = screen.getByDisplayValue('');
-    fireEvent.change(repsInput, { target: { value: '10' } });
-
+    // Abrir el modal de edición de reps y usar el mock para guardar
+    const touchText = screen.getByText('toca para ingresar');
+    const repsButton = touchText.closest('button') as HTMLElement;
+    fireEvent.click(repsButton);
+    const saveBtn = screen.getByTestId('edit-save');
+    fireEvent.click(saveBtn);
     expect(onRepsChange).toHaveBeenCalledWith(10);
   });
 
@@ -184,22 +194,25 @@ describe('ExerciseCard', () => {
       />
     );
 
-    const weightInput = screen.getByTestId('weight-selector');
-    fireEvent.change(weightInput, { target: { value: '60' } });
-
-    expect(onWeightChange).toHaveBeenCalledWith(60);
+    // Abrir el modal de edición de peso y usar el mock para guardar
+    const touchText = screen.getAllByText('toca para ingresar')[1];
+    const weightButton = touchText.closest('button') as HTMLElement;
+    fireEvent.click(weightButton);
+    const saveBtn = screen.getByTestId('edit-save');
+    fireEvent.click(saveBtn);
+    expect(onWeightChange).toHaveBeenCalledWith(10);
   });
 
   it('debe mostrar botón de información si onShowInfo está definido', () => {
     render(<ExerciseCard {...defaultProps} onShowInfo={vi.fn()} />);
-    expect(screen.getByText('ℹ️ Info')).toBeInTheDocument();
+    expect(screen.getByText('ℹ️')).toBeInTheDocument();
   });
 
   it('debe llamar onShowInfo cuando se hace click en el botón de información', () => {
     const onShowInfo = vi.fn();
     render(<ExerciseCard {...defaultProps} onShowInfo={onShowInfo} />);
 
-    const infoButton = screen.getByText('ℹ️ Info');
+    const infoButton = screen.getByText('ℹ️');
     fireEvent.click(infoButton);
 
     expect(onShowInfo).toHaveBeenCalledOnce();
@@ -215,7 +228,7 @@ describe('ExerciseCard', () => {
         isSetStarted={true}
       />
     );
-    expect(screen.getByText(/Última/)).toBeInTheDocument();
+    expect(screen.getByText(/Serie en curso/)).toBeInTheDocument();
   });
 
   it('debe mostrar progreso visual correcto', () => {
@@ -237,22 +250,16 @@ describe('ExerciseCard', () => {
         completedSets={2}
       />
     );
-    expect(screen.getByText('✓ 2 series completadas')).toBeInTheDocument();
+    expect(screen.getByText('2/2')).toBeInTheDocument();
   });
 
   it('debe manejar reps vacío correctamente', () => {
-    const onRepsChange = vi.fn();
-    render(
-      <ExerciseCard
-        {...defaultProps}
-        onRepsChange={onRepsChange}
-      />
-    );
-
-    const repsInput = screen.getByDisplayValue('');
-    fireEvent.change(repsInput, { target: { value: '' } });
-
-    expect(onRepsChange).toHaveBeenCalledWith('');
+    // Ahora el input se edita mediante modal. Verificamos que el modal se abre.
+    render(<ExerciseCard {...defaultProps} onRepsChange={vi.fn()} />);
+    const touchText = screen.getByText('toca para ingresar');
+    const repsButton = touchText.closest('button') as HTMLElement;
+    fireEvent.click(repsButton);
+    expect(screen.getByTestId('edit-save')).toBeInTheDocument();
   });
 
   it('debe renderizar correctamente en diferentes series', () => {

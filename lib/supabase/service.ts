@@ -187,34 +187,62 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
     .eq('user_id', user.id);
 
   if (routineError) throw new Error(`Error al actualizar rutina: ${routineError.message}`);
+  // Upsert/update existing exercises and insert new ones without deleting first.
+  // This avoids losing data if an insertion fails mid-way.
+  const upsertPayload: any[] = [];
+  const insertPayload: any[] = [];
 
-  // Delete old exercises
-  await supabase.from('exercises').delete().eq('routine_id', id);
+  data.exercises.forEach((ex, index) => {
+    const payload = {
+      routine_id: id,
+      name: ex.name,
+      sets_data: ex.sets,
+      equipment: ex.equipment,
+      notes: ex.notes,
+      order_index: index,
+      rest_between_sets: ex.restBetweenSets,
+      use_smart_rest: ex.useSmartRest,
+    } as any;
+
+    if (ex.id) {
+      payload.id = ex.id;
+      upsertPayload.push(payload);
+    } else {
+      insertPayload.push(payload);
+    }
+  });
+
+  // Perform upsert for exercises that already have an id
+  if (upsertPayload.length > 0) {
+    const { error: upsertError } = await supabase
+      .from('exercises')
+      .upsert(upsertPayload, { onConflict: 'id' });
+    if (upsertError) {
+      throw new Error(`Error al actualizar ejercicios existentes: ${upsertError.message}`);
+    }
+  }
 
   // Insert new exercises
-  const exercisesWithOrder = data.exercises.map((ex, index) => ({
-    routine_id: id,
-    name: ex.name,
-    sets_data: ex.sets,
-    equipment: ex.equipment,
-    notes: ex.notes,
-    order_index: index,
-    rest_between_sets: ex.restBetweenSets, // ✅ Preservar tiempo de descanso del ejercicio
-    use_smart_rest: ex.useSmartRest // ✅ Preservar flag de descanso inteligente
-  }));
-
-  const { error: exercisesError } = await supabase
-    .from('exercises')
-    .insert(exercisesWithOrder);
-
-  if (exercisesError) {
-    // ROLLBACK: Restore old exercises if insert failed
-    if (oldExercises && oldExercises.length > 0) {
-      const { logger } = await import('@/lib/logger');
-      logger.warn('Rolling back exercises after insert failure', { module: 'supabase-service', operation: 'updateRoutine' });
-      await supabase.from('exercises').insert(oldExercises);
+  if (insertPayload.length > 0) {
+    const { error: insertError } = await supabase
+      .from('exercises')
+      .insert(insertPayload);
+    if (insertError) {
+      throw new Error(`Error al insertar nuevos ejercicios: ${insertError.message}`);
     }
-    throw new Error(`Error al actualizar ejercicios: ${exercisesError.message}`);
+  }
+
+  // Delete exercises that were removed in the new payload
+  try {
+    const incomingIds = new Set(data.exercises.filter(e => e.id).map(e => e.id));
+    const toDelete = (oldExercises || []).filter((ex: any) => !incomingIds.has(ex.id)).map((ex: any) => ex.id);
+    if (toDelete.length > 0) {
+      await supabase.from('exercises').delete().in('id', toDelete).eq('routine_id', id);
+    }
+  } catch (delErr) {
+    // Log but don't fail the whole update if deletion fails; the DB still reflects upserts/inserts
+    const { logger } = await import('@/lib/logger');
+    logger.warn('Failed to delete removed exercises after updateRoutine', { module: 'supabase-service', error: delErr });
   }
 
   // Return updated routine

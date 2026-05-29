@@ -182,8 +182,8 @@ describe('Session Comparison - Integration Tests', () => {
 
     expect(screen.getByRole('heading', { name: /comparar sesiones/i })).toBeInTheDocument()
 
-    // Buscar botón de cerrar (X) por su nombre accesible
-    const closeButton = screen.getByRole('button', { name: '×' })
+    // Buscar botón de cerrar por su etiqueta accesible
+    const closeButton = screen.getByRole('button', { name: /cerrar/i })
     await user.click(closeButton)
 
     await waitFor(() => {

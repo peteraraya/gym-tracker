@@ -99,6 +99,9 @@ function debounce<T extends (...args: any[]) => any>(
   return executedFunction;
 }
 
+// Named export for tests that render the page without the default wrapper
+export const WorkoutPageImpl = WorkoutPage;
+
 // Lazy load componentes pesados que no se usan inmediatamente
 const SeriesTable = lazy(() =>
   import("./components/SeriesTable").then((m) => ({ default: m.SeriesTable })),
