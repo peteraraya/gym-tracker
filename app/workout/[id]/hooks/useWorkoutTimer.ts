@@ -5,6 +5,7 @@ import {
   updateRestNotification,
   endRestNotification,
 } from '@/lib/notifications/restNotification';
+import logger from '@/lib/logger';
 
 export interface TimerState {
   showTimer: boolean;
@@ -40,6 +41,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   const timerCompleteRef = useRef(onTimerComplete);
   const hasRestoredRef = useRef(false);
   const currentTimeLeftRef = useRef(currentTimeLeft);
+  const lastStartAtRef = useRef<number | null>(null);
   
   // Update ref when callback changes
   useEffect(() => {
@@ -69,7 +71,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
         setNextExerciseName(activeWorkout.restTimerNextExercise);
         setTimerMinimized(false);
         
-        // console.log('[useWorkoutTimer] ✅ Timer restaurado. Restante:', remaining, 's');
+        logger.debug('[useWorkoutTimer] restored timer', { remaining, title: activeWorkout.restTimerTitle, nextExercise: activeWorkout.restTimerNextExercise });
       } else {
         // El timer expiró mientras la página estaba cerrada
         // console.log('[useWorkoutTimer] Timer expirado durante F5, ejecutando callback');
@@ -98,6 +100,8 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
           endRestNotification().catch(() => {});
         } catch (e) {}
         if (timerCompleteRef.current) {
+          // Limpiar guard para que futuros starts no sean bloqueados por este timestamp antiguo
+          lastStartAtRef.current = null;
           timerCompleteRef.current();
         }
       }
@@ -107,7 +111,32 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   
   const startTimer = useCallback((duration: number, title: string, nextExercise?: string) => {
     const startTime = Date.now();
-    
+
+    // Evitar arranques duplicados muy cercanos (p.ej. doble click/handler)
+    if (lastStartAtRef.current && startTime - lastStartAtRef.current < 800) {
+      // Si ya existe un inicio reciente, actualizar persistencia pero no reiniciar notificaciones
+      logger.warn('[useWorkoutTimer] prevented duplicate startTimer', { startTime, lastStartAt: lastStartAtRef.current });
+      if (activeWorkout && updateWorkoutProgress) {
+        updateWorkoutProgress(
+          activeWorkout.currentExerciseIndex,
+          activeWorkout.currentSet,
+          activeWorkout.completedSets,
+          activeWorkout.actualReps,
+          activeWorkout.actualWeights,
+          {
+            isResting: true,
+            restTimerDuration: duration,
+            restTimerTitle: title,
+            restTimerNextExercise: nextExercise,
+            restTimerStartedAt: startTime
+          }
+        );
+      }
+      return;
+    }
+
+    lastStartAtRef.current = startTime;
+
     setShowTimer(true);
     setTimerDuration(duration);
     setTimerStartTime(startTime);
@@ -115,7 +144,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setTimerTitle(title);
     setNextExerciseName(nextExercise);
     setTimerMinimized(false);
-    
+
     // Persistir estado del temporizador
     if (activeWorkout && updateWorkoutProgress) {
       updateWorkoutProgress(
@@ -137,6 +166,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     try {
       startRestNotification(duration, title, nextExercise).catch(() => {});
     } catch (err) {}
+    logger.debug('[useWorkoutTimer] startTimer', { duration, title, nextExercise, startTime });
   }, [activeWorkout, updateWorkoutProgress]);
   
   const stopTimer = useCallback(() => {
@@ -144,6 +174,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setTimerMinimized(false);
     setTimerDuration(0);
     setCurrentTimeLeft(0);
+    lastStartAtRef.current = null;
     
     // Limpiar estado persistido
     if (activeWorkout && updateWorkoutProgress) {
@@ -201,6 +232,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setTimerMinimized(false);
     setTimerDuration(0);
     setCurrentTimeLeft(0);
+    lastStartAtRef.current = null;
     
     // Limpiar estado persistido
     if (activeWorkout && updateWorkoutProgress) {
@@ -228,6 +260,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setTimerMinimized(false);
     setTimerDuration(0);
     setCurrentTimeLeft(0);
+    lastStartAtRef.current = null;
     
     // Limpiar estado persistido
     if (activeWorkout && updateWorkoutProgress) {

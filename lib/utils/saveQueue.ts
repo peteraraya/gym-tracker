@@ -38,9 +38,20 @@ class SaveQueue {
         await storageService.saveActiveWorkout(data);
         this.lastSaveTime = Date.now();
         logger.debug(`[SaveQueue] Completed save #${saveId}`);
+        try {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('gym:activeWorkout:saved', { detail: { saveId } }));
+          }
+        } catch (e) {}
       })
       .catch(error => {
         logger.error(`[SaveQueue] Failed save #${saveId}`, {}, error instanceof Error ? error : undefined);
+        // Emitir evento para que la UI pueda reaccionar (mostrar toast / reintento)
+        try {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('gym:activeWorkout:save-failed', { detail: { saveId, error: (error && (error as any).message) ? (error as any).message : String(error) } }));
+          }
+        } catch (e) {}
         // No lanzar error para no romper la cola
       });
     

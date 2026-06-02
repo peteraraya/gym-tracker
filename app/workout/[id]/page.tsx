@@ -69,6 +69,7 @@ import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSp
 import { WorkoutCompleteSplash } from "@/components/features/workout/WorkoutCompleteSplash";
 import { PRCelebration } from "@/components/features/workout/PRCelebration";
 import { updateRestNotification } from '@/lib/notifications/restNotification';
+import logger from '@/lib/logger';
 
 // ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
 function debounce<T extends (...args: any[]) => any>(
@@ -161,6 +162,40 @@ export default function WorkoutPage() {
     cancelWorkout,
   } = useWorkout();
   const { success, error } = useToast();
+  // Escuchar fallos de persistencia globales emitidos por la cola de guardado
+  useEffect(() => {
+    const onSaveFailed = (ev: any) => {
+      try {
+        error('No se pudo guardar el progreso del entrenamiento', 6000, {
+          label: 'Reintentar',
+          onClick: () => {
+            try {
+              if (!activeWorkout) {
+                error('No hay entrenamiento activo para reintentar');
+                return;
+              }
+              saveQueue.save(activeWorkout as any).then(() => {
+                success('Reintento de guardado iniciado');
+              }).catch(() => {
+                error('Reintento fallido');
+              });
+            } catch (e) {}
+          },
+        });
+      } catch (e) {}
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('gym:activeWorkout:save-failed', onSaveFailed as any);
+    }
+    return () => {
+      try {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('gym:activeWorkout:save-failed', onSaveFailed as any);
+        }
+      } catch (e) {}
+    };
+  }, [error, success, activeWorkout]);
   const { confirm } = useConfirm();
 
   // ==================== STATE ====================
@@ -550,10 +585,11 @@ export default function WorkoutPage() {
           return;
         }
 
-        // console.log("[Workout] 💾 Saving workout data (debounced):", data);
+        logger.debug('[Workout] debouncedSave saving data', { keys: Object.keys(data || {}), hasTimer: !!timerHandlersRef.current?.showTimer });
 
         const th = timerHandlersRef.current;
-        updateWorkoutProgress(
+        try {
+          updateWorkoutProgress(
           currentExerciseIndexRef.current,
           currentSetRef.current,
           data.completedSets,
@@ -576,6 +612,9 @@ export default function WorkoutPage() {
             skippedExercises: data.skippedExercises,
           },
         );
+          } catch (err) {
+            logger.error('[Workout] debouncedSave updateWorkoutProgress failed', err instanceof Error ? err : undefined);
+          }
       }, 500), // Guardar máximo cada 500ms
     [
       routine,
@@ -1340,7 +1379,7 @@ export default function WorkoutPage() {
         isFromQuickMode = false,
       } = params;
 
-      // console.log("[completeSetLogic] Completing set:", params);
+      logger.debug('[completeSetLogic] start', params);
 
       // Validar datos: exigir al menos repeticiones (peso puede ser 0 para ejercicios corporales)
       if (!(reps > 0)) {
@@ -1463,7 +1502,7 @@ export default function WorkoutPage() {
         haptic.restStart();
       }
 
-      return {
+      const result = {
         success: true,
         nextAction,
         restTime,
@@ -1474,6 +1513,10 @@ export default function WorkoutPage() {
         exerciseIndex,
         nextExerciseIndex: nextExerciseIdx,
       };
+
+      logger.debug('[completeSetLogic] result', { exerciseId, setIndex, result });
+
+      return result;
     },
     [workoutState, routine, error, haptic, useSmartRest],
   );
@@ -1493,6 +1536,7 @@ export default function WorkoutPage() {
     setIsCompletingSet(true);
 
     try {
+      logger.debug('[handleCompleteSet] start', { exerciseId: currentExercise?.id, targetSetNumber });
       const exerciseId = currentExercise.id;
       const setNumber =
         typeof targetSetNumber === "number"
@@ -1536,6 +1580,8 @@ export default function WorkoutPage() {
         weight: weightValue,
         isFromQuickMode: false,
       });
+
+      logger.debug('[handleCompleteSet] completeSetLogic result', { exerciseId, setIndex, result });
 
       if (!result.success) {
         return;
@@ -2536,6 +2582,7 @@ export default function WorkoutPage() {
       // ✅ Bloquear si ya hay una operación en curso para este índice (usando solo estado)
       if (togglingKeys[key]) {
 
+        logger.debug('[handleQuickToggleSetComplete] already toggling', { key });
         return;
       }
 
@@ -2564,6 +2611,7 @@ export default function WorkoutPage() {
       };
 
       try {
+        logger.debug('[handleQuickToggleSetComplete] start', { key, exerciseId, setIndex, isComplete });
         const exercise = routine?.exercises.find(
           (ex: Exercise) => ex.id === exerciseId,
         );
@@ -2601,6 +2649,8 @@ export default function WorkoutPage() {
             isFromQuickMode: true,
           });
 
+          logger.debug('[handleQuickToggleSetComplete] completeSetLogic result', { key, exerciseId, setIndex, result });
+
           if (!result.success) {
             clearToggle(0);
             return;
@@ -2631,6 +2681,7 @@ export default function WorkoutPage() {
               result.restTitle,
               result.nextExerciseName,
             );
+            logger.debug('[handleQuickToggleSetComplete] started rest timer', { key, restTime: result.restTime, restTitle: result.restTitle });
           }
         } else {
           // Desmarcar - solo quitar la completación, preservar el peso editado
@@ -2664,6 +2715,7 @@ export default function WorkoutPage() {
           try {
             timerHandlers.stopTimer();
             clearRestState();
+            logger.debug('[handleQuickToggleSetComplete] stopped rest timer', { key });
           } catch (err) {
             console.warn("[handleQuickToggleSetComplete] stopTimer error", err);
           }

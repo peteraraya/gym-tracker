@@ -678,6 +678,34 @@ export function QuickEditMode({
     ];
   }, [routine.exercises, pinnedExerciseId]);
 
+  // Auto-collapse: mover la lógica de auto-collapse fuera del render a un efecto
+  // para evitar llamar a setState durante la fase de renderizado.
+  useEffect(() => {
+    if (!routine || !routine.exercises) return;
+
+    setCollapsedExercises((prev) => {
+      const updated = new Set(prev);
+      let changed = false;
+
+      for (const ex of routine.exercises) {
+        const exerciseId = ex.id;
+        const completedCount = workoutData.completedSets?.[exerciseId] || 0;
+        const isFullyCompleted = completedCount === ex.sets.length;
+
+        if (
+          isFullyCompleted &&
+          !updated.has(exerciseId) &&
+          !manuallyExpandedExercises.has(exerciseId)
+        ) {
+          updated.add(exerciseId);
+          changed = true;
+        }
+      }
+
+      return changed ? updated : prev;
+    });
+  }, [routine.exercises, workoutData.completedSets, manuallyExpandedExercises]);
+
   // Elapsed timer local para encabezado compacto (desde el montaje)
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   useEffect(() => {
@@ -893,21 +921,7 @@ export function QuickEditMode({
           : exIdx === firstIncompleteIndex;
         const isNext = exIdx === firstIncompleteIndex + 1;
 
-        // BUG FIX: Auto-collapse on completion using a ref guard to prevent
-        // multiple setTimeout calls. The old inline setTimeout during render
-        // caused cascading state updates and unnecessary re-renders.
-        if (
-          isFullyCompleted &&
-          !isCollapsed &&
-          completedCount > 0 &&
-          !isManuallyExpanded
-        ) {
-          setCollapsedExercises((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(exerciseId);
-            return newSet;
-          });
-        }
+        // Auto-collapse handled by useEffect (moved out of render)
 
         return (
           <div

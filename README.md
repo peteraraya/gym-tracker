@@ -258,6 +258,37 @@ Para información más detallada, consulta los documentos en el directorio [`./d
 - [Guía de Performance](./docs/PERFORMANCE.md) - Optimizaciones y mejores prácticas de rendimiento
 - [Guía de Testing](./docs/__tests__/README.md) - Estrategias y ejemplos de pruebas
 
+## 🗂️ Documentación del Proyecto (Generación)
+
+La documentación principal está en [./docs/](./docs/). Para generar documentación de la API y del código TypeScript, se recomiendan estas herramientas y pasos:
+
+- Documentación de la API (TypeScript) con `typedoc`:
+  ```bash
+  npm install --save-dev typedoc typedoc-plugin-markdown
+  npx typedoc --entryPoints app lib components --out docs/api --plugin typedoc-plugin-markdown --tsconfig tsconfig.json
+  ```
+
+- Sitio estático de documentación (opcional) con `Docusaurus` o `MkDocs`:
+  ```bash
+  npx create-docusaurus@latest docs-site classic
+  cd docs-site
+  npm run build
+  # Copia o enlaza ./docs/ en docs-site/docs
+  ```
+
+- Sugerencia de scripts a añadir en `package.json`:
+  ```json
+  {
+    "scripts": {
+      "docs:api": "typedoc --entryPoints app lib components --out docs/api --plugin typedoc-plugin-markdown --tsconfig tsconfig.json",
+      "docs:site:init": "npx create-docusaurus@latest docs-site classic",
+      "docs:site:build": "cd docs-site && npm run build"
+    }
+  }
+  ```
+
+Mantén la documentación manual en `./docs/` y añade nuevas páginas siguiendo la estructura existente.
+
 ## 📝 Licencia
 
 Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](./LICENSE) para más detalles.

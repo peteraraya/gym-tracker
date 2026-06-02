@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { Routine, Exercise } from '@/types';
+import logger from '@/lib/logger';
 
 /**
  * Hook que centraliza todo el estado del workout
@@ -170,6 +171,7 @@ export function useWorkoutState(
    */
   const completeSetAt = useCallback(
     (exerciseId: string, setIndex: number, reps: number, weight: number) => {
+      logger.debug('[useWorkoutState] completeSetAt called', { exerciseId, setIndex, reps, weight });
       setWorkoutData((prev) => {
         const prevReps = [...(prev.actualReps[exerciseId] || [])];
         const prevWeights = [...(prev.actualWeights[exerciseId] || [])];
@@ -204,7 +206,7 @@ export function useWorkoutState(
 
         if (!isInitializingRef.current && onDataChangeRef.current) {
           queueMicrotask(() => {
-            // console.log('[useWorkoutState] 💾 Saving after completeSetAt');
+            logger.debug('[useWorkoutState] saving after completeSetAt', { exerciseId, setIndex });
             onDataChangeRef.current?.(newData);
           });
         }
@@ -551,7 +553,7 @@ export function useWorkoutState(
    * Restaura datos desde storage
    */
   const restoreData = useCallback((data: Partial<WorkoutData>) => {
-    // console.log('[useWorkoutState] 🔄 Restoring data:', data);
+    logger.debug('[useWorkoutState] restoreData called', { keys: Object.keys(data || {}) });
     
     // ✅ Validar estructura antes de restaurar
     if (!validateWorkoutData(data)) {
@@ -611,11 +613,15 @@ export function useWorkoutState(
       sanitizedData.completedSetFlags = derivedFlags;
     }
     
-    setWorkoutData(prev => ({
-      ...prev,
-      ...sanitizedData,
-      _lastUpdate: Date.now()
-    }));
+    setWorkoutData(prev => {
+      const merged = {
+        ...prev,
+        ...sanitizedData,
+        _lastUpdate: Date.now()
+      };
+      logger.debug('[useWorkoutState] restoreData applied', { exerciseCount: Object.keys(merged.actualReps || {}).length });
+      return merged;
+    });
   }, []);
 
   /**
