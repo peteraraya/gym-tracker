@@ -23,12 +23,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import * as storageService from "@/lib/storage/storage";
-import { useWorkoutState } from "./hooks/useWorkoutState";
+import type { ActiveWorkout } from "@/lib/storage/storage";
+import { useWorkoutState, type WorkoutData } from "./hooks/useWorkoutState";
 import { useWorkoutTimer } from "./hooks/useWorkoutTimer";
 import { useWeightPrediction } from "./hooks/useWeightPrediction";
 import { useSetExecution } from "./hooks/useSetExecution";
 import { useWorkoutCompletion } from "./hooks/useWorkoutCompletion";
 import { useWorkoutSuggestions } from "./hooks/useWorkoutSuggestions";
+import type { WorkoutSession } from "./types/workout.types";
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useHapticFeedback } from "./hooks/useHapticFeedback";
 import { CompactWorkoutHeader } from "./components/CompactWorkoutHeader";
@@ -44,8 +46,8 @@ import {
   SoundSettings,
   useSoundSettingsModal,
 } from "@/components/features/settings/SoundSettings";
+import type { Routine, Exercise, Set, SetType } from "@/types";
 import type { ExerciseTemplate } from "@/data/exercises";
-import type { Exercise } from "@/types";
 import type { UserProfile } from "@/types";
 import { getExerciseRecommendations } from '@/lib/exercises/exerciseRecommendations';
 import { getProfileLocally } from '@/lib/user/localProfile';
@@ -59,12 +61,6 @@ import {
   applySmartRestToAllSets,
 } from "./services/restCalculationService";
 import { saveQueue } from '@/lib/utils/saveQueue';
-import {
-  getPersonalRecord,
-  compareWithRecord,
-  type PersonalRecord,
-  type RecordComparison,
-} from "@/lib/exercises/personalRecords";
 import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSplash";
 import { WorkoutCompleteSplash } from "@/components/features/workout/WorkoutCompleteSplash";
 import { PRCelebration } from "@/components/features/workout/PRCelebration";
@@ -72,6 +68,7 @@ import { updateRestNotification } from '@/lib/notifications/restNotification';
 import logger from '@/lib/logger';
 
 // ✅ CRÍTICO #1 FIX: Utility para debounce con soporte de cancelación
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
@@ -125,18 +122,26 @@ import { EXERCISE_DATABASE } from "@/data/exercises";
 const ExerciseCard = memo(ExerciseCardBase);
 const QuickEditMode = memo(QuickEditModeBase);
 
-/**
- * ✅ FASE 2 - Problema #6: Función centralizada para calcular completedSets
- *
- * Calcula el número de series completadas basándose ÚNICAMENTE en actualReps.
- * Una serie está completada si tiene reps > 0.
- *
- * Esto elimina la inconsistencia entre Quick Edit Mode y Guided Mode.
- */
-function calculateCompletedSets(actualReps: number[]): number {
-  if (!Array.isArray(actualReps)) return 0;
-  return actualReps.filter((r: number) => typeof r === "number" && r > 0)
-    .length;
+function countCompletedFlags(flags: boolean[] = [], totalSets = flags.length): number {
+  return flags.slice(0, totalSets).filter(Boolean).length;
+}
+
+function getCompletionFlagsForExercise(params: {
+  completedSetFlags?: Record<string, boolean[]>;
+  completedSets?: Record<string, number>;
+  exerciseId: string;
+  totalSets: number;
+}): boolean[] {
+  const explicitFlags = params.completedSetFlags?.[params.exerciseId];
+  if (Array.isArray(explicitFlags)) {
+    return explicitFlags.slice(0, params.totalSets).map(Boolean);
+  }
+
+  const completedCount = Math.min(
+    params.completedSets?.[params.exerciseId] ?? 0,
+    params.totalSets,
+  );
+  return Array.from({ length: params.totalSets }, (_, idx) => idx < completedCount);
 }
 
 export default function WorkoutPage() {
@@ -151,7 +156,7 @@ export default function WorkoutPage() {
     loading: gymLoading,
     updateRoutine,
   } = useGym();
-  const [originalRoutine, setOriginalRoutine] = useState<any | null>(null);
+  const [originalRoutine, setOriginalRoutine] = useState<Routine | null>(null);
   const {
     activeWorkout,
     startWorkout,
@@ -164,7 +169,7 @@ export default function WorkoutPage() {
   const { success, error } = useToast();
   // Escuchar fallos de persistencia globales emitidos por la cola de guardado
   useEffect(() => {
-    const onSaveFailed = (ev: any) => {
+    const onSaveFailed = (ev: Event) => {
       try {
         error('No se pudo guardar el progreso del entrenamiento', 6000, {
           label: 'Reintentar',
@@ -174,7 +179,7 @@ export default function WorkoutPage() {
                 error('No hay entrenamiento activo para reintentar');
                 return;
               }
-              saveQueue.save(activeWorkout as any).then(() => {
+              saveQueue.save(activeWorkout as unknown as ActiveWorkout).then(() => {
                 success('Reintento de guardado iniciado');
               }).catch(() => {
                 error('Reintento fallido');
@@ -186,12 +191,12 @@ export default function WorkoutPage() {
     };
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('gym:activeWorkout:save-failed', onSaveFailed as any);
+      window.addEventListener('gym:activeWorkout:save-failed', onSaveFailed as EventListener);
     }
     return () => {
       try {
         if (typeof window !== 'undefined') {
-          window.removeEventListener('gym:activeWorkout:save-failed', onSaveFailed as any);
+          window.removeEventListener('gym:activeWorkout:save-failed', onSaveFailed as EventListener);
         }
       } catch (e) {}
     };
@@ -199,7 +204,7 @@ export default function WorkoutPage() {
   const { confirm } = useConfirm();
 
   // ==================== STATE ====================
-  const [routine, setRoutine] = useState<any>(null);
+  const [routine, setRoutine] = useState<Routine | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   // Splash animado al iniciar un nuevo entrenamiento (no al restaurar uno guardado)
   const [showStartSplash, setShowStartSplash] = useState(false);
@@ -212,7 +217,7 @@ export default function WorkoutPage() {
   const [autoAdvance, setAutoAdvance] = useState(true);
 
   // ✅ CRÍTICO #1 FIX: Placeholder para el callback (se define después)
-  const handleWorkoutDataChangeRef = useRef<(data: any) => void>(() => {});
+  const handleWorkoutDataChangeRef = useRef<(data: WorkoutData) => void>(() => {});
 
   // Inicializar workoutState con callback desde ref
   const workoutState = useWorkoutState(routine || null, {
@@ -223,28 +228,28 @@ export default function WorkoutPage() {
   // editados durante el entrenamiento (actualWeights) para evitar sobrescribir
   // con valores por defecto al persistir la rutina (replace semantics).
   const prepareRoutineForSave = useCallback(
-    (r: any) => {
+    (r: Routine): Routine => {
       try {
         const actualWeightsMap = workoutState?.workoutData?.actualWeights || {};
-        const exercises = (r?.exercises || []).map((ex: any) => {
+        const exercises = (r.exercises || []).map((ex: Exercise) => {
           const exWeights = actualWeightsMap[ex.id] || [];
-          const sets = (ex?.sets || []).map((s: any, idx: number) => {
+          const sets = (ex.sets || []).map((s: Set, idx: number) => {
             const aw = exWeights[idx];
             const mergedWeight = aw !== undefined && aw !== null && aw !== 0 ? aw : (s.weight ?? 0);
             return { ...s, weight: mergedWeight };
           });
-          return { ...ex, sets };
+          return { ...ex, sets } as Exercise;
         });
-        return { ...r, exercises };
-      } catch (e) {
-        return r;
+        return { ...r, exercises } as Routine;
+      } catch (_e) {
+        return r as Routine;
       }
     },
-    [workoutState?.workoutData?.actualWeights],
+    [workoutState],
   );
   const [showExerciseInfo, setShowExerciseInfo] = useState(false);
   const [selectedExerciseName, setSelectedExerciseName] = useState<string>("");
-  const [exerciseInfo, setExerciseInfo] = useState<any | null>(null);
+  const [exerciseInfo, setExerciseInfo] = useState<ExerciseTemplate | null>(null);
   const [loadingExerciseInfo, setLoadingExerciseInfo] = useState(false);
   const [isSeriesTableExpanded, setIsSeriesTableExpanded] = useState(false);
   // ✅ CÓDIGO NO USADO: useSmartRest siempre es true, eliminado el setter
@@ -255,7 +260,7 @@ export default function WorkoutPage() {
   } | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const equipment = useEquipment();
-  const [suggestedRoutines, setSuggestedRoutines] = useState<any[]>([]);
+  const [suggestedRoutines, setSuggestedRoutines] = useState<Routine[]>([]);
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const [preMinutesPerSession, setPreMinutesPerSession] = useState<number>(45);
@@ -312,13 +317,15 @@ export default function WorkoutPage() {
         (e) => e.name === selectedExerciseName || e.id === selectedExerciseName,
       );
       if (local) {
-        setExerciseInfo(local);
-        setLoadingExerciseInfo(false);
+        setTimeout(() => {
+          setExerciseInfo(local);
+          setLoadingExerciseInfo(false);
+        }, 0);
         return;
       }
 
-      // Si no está, cargar dinámicamente usando los helpers asíncronos
-      setLoadingExerciseInfo(true);
+// Si no está, cargar dinámicamente usando los helpers asíncronos
+       setTimeout(() => setLoadingExerciseInfo(true), 0);
       (async () => {
         try {
           const mod = await import("@/data/exercises");
@@ -342,8 +349,12 @@ export default function WorkoutPage() {
       })();
     } else {
       // Limpiar cuando se cierra
-      setExerciseInfo(null);
-      setLoadingExerciseInfo(false);
+      setTimeout(() => {
+        if (mounted) {
+          setExerciseInfo(null);
+          setLoadingExerciseInfo(false);
+        }
+      }, 0);
     }
 
     return () => {
@@ -360,6 +371,7 @@ export default function WorkoutPage() {
       try {
         const profile = userProfile ?? getProfileLocally();
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const level = (profile?.fitnessLevel as any) || 'intermedio';
         const days = profile?.weeklyWorkouts ?? 3;
         const goals = profile?.fitnessGoal ? [profile.fitnessGoal] : ['general'];
@@ -375,6 +387,7 @@ export default function WorkoutPage() {
           name: profile?.fitnessGoal ? `${profile.fitnessGoal} - Sugerida` : 'Entrenamiento sugerido',
           daysPerWeek: days,
           minutesPerSession: preMinutesPerSession,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           level: level as any,
           equipment: mappedEquip,
           goal: goals,
@@ -493,16 +506,6 @@ export default function WorkoutPage() {
     lastSessionForExercise,
   ]);
 
-  // ✅ CRÍTICO #4 FIX: Eliminar JSON.stringify y usar conteo directo
-  const completedSetsCount = useMemo(
-    () =>
-      Object.values(workoutState.workoutData.completedSets).reduce(
-        (sum: number, count: any) => sum + (count || 0),
-        0,
-      ),
-    [workoutState.workoutData.completedSets],
-  );
-
   // ✅ CRÍTICO #10 FIX: Memoizar cálculo de progreso total con dependencias específicas
   const workoutProgress = useMemo(() => {
     if (!exercises.length) {
@@ -522,7 +525,7 @@ export default function WorkoutPage() {
       totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
     return { totalSets, completedSets, percentage };
-  }, [exercises.length, completedSetsCount]); // ✅ Dependencias optimizadas
+  }, [exercises, workoutState.workoutData.completedSets]); // ✅ Dependencias optimizadas
 
   // ==================== CUSTOM HOOKS ====================
   const handleTimerCompleteRef = useRef(() => {});
@@ -538,7 +541,7 @@ export default function WorkoutPage() {
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    const onMessage = (event: any) => {
+    const onMessage = (event: MessageEvent) => {
       const data = event.data;
       if (!data || data.type !== 'notification-action') return;
 
@@ -559,8 +562,8 @@ export default function WorkoutPage() {
       }
     };
 
-    navigator.serviceWorker.addEventListener('message', onMessage as any);
-    return () => navigator.serviceWorker.removeEventListener('message', onMessage as any);
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
   }, []);
 
   // ✅ Refs para currentExerciseIndex y currentSet (evitan que debouncedSave se
@@ -574,22 +577,20 @@ export default function WorkoutPage() {
     currentSetRef.current = workoutState.currentSet;
   }, [workoutState.currentSet]);
 
-  // ✅ CRÍTICO #1 FIX: Debounced save para evitar guardados excesivos
-  const debouncedSave = useMemo(
-    () =>
-      debounce((data: any) => {
-        if (!routine || !isInitialized) {
-          // console.log(
-          //   "[Workout] ⏸️ Skipping save - not initialized or no routine",
-          // );
-          return;
-        }
+  const performSave = useCallback(
+    (data: WorkoutData) => {
+      if (!routine || !isInitialized) {
+        // console.log(
+        //   "[Workout] ⏸️ Skipping save - not initialized or no routine",
+        // );
+        return;
+      }
 
-        logger.debug('[Workout] debouncedSave saving data', { keys: Object.keys(data || {}), hasTimer: !!timerHandlersRef.current?.showTimer });
+      logger.debug('[Workout] debouncedSave saving data', { keys: Object.keys(data || {}), hasTimer: !!timerHandlersRef.current?.showTimer });
 
-        const th = timerHandlersRef.current;
-        try {
-          updateWorkoutProgress(
+      const th = timerHandlersRef.current;
+      try {
+        updateWorkoutProgress(
           currentExerciseIndexRef.current,
           currentSetRef.current,
           data.completedSets,
@@ -612,35 +613,45 @@ export default function WorkoutPage() {
             skippedExercises: data.skippedExercises,
           },
         );
-          } catch (err) {
-            logger.error('[Workout] debouncedSave updateWorkoutProgress failed', err instanceof Error ? err : undefined);
-          }
-      }, 500), // Guardar máximo cada 500ms
-    [
-      routine,
-      isInitialized,
-      updateWorkoutProgress,
-      totalPausedTime,
-      // currentExerciseIndex y currentSet eliminados de deps — se leen via refs
-      // para evitar que debouncedSave se recree (y cancele timers de persistencia)
-      // al completar una serie en modo rápido
-      // timerHandlers eliminado de deps — se lee via timerHandlersRef para evitar recreaciones en cada render
-    ],
+      } catch (err) {
+        logger.error('[Workout] debouncedSave updateWorkoutProgress failed', err instanceof Error ? err : undefined);
+      }
+    },
+    [routine, isInitialized, updateWorkoutProgress, totalPausedTime]
   );
 
-  // ✅ Cancelar timer pendiente cuando debouncedSave es recreado (evita guardar datos obsoletos)
+  const performSaveRef = useRef(performSave);
+  
   useEffect(() => {
+    performSaveRef.current = performSave;
+  }, [performSave]);
+
+  const saveWrapper = useCallback((data: WorkoutData) => {
+    if (performSaveRef.current) {
+      performSaveRef.current(data);
+    }
+  }, []);
+
+  const debouncedSaveRef = useRef<ReturnType<typeof debounce> | null>(null);
+
+  // ✅ CRÍTICO #1 FIX: Debounced save para evitar guardados excesivos
+  useEffect(() => {
+    debouncedSaveRef.current = debounce(saveWrapper, 500); // Guardar máximo cada 500ms
     return () => {
-      debouncedSave.cancel();
+      if (debouncedSaveRef.current) {
+        debouncedSaveRef.current.cancel();
+      }
     };
-  }, [debouncedSave]);
+  }, [saveWrapper]);
 
   // ✅ Crear el callback de guardado usando useCallback
   const handleWorkoutDataChange = useCallback(
-    (data: any) => {
-      debouncedSave(data);
+    (data: WorkoutData) => {
+      if (debouncedSaveRef.current) {
+        debouncedSaveRef.current(data);
+      }
     },
-    [debouncedSave],
+    [],
   );
 
   // ✅ CRÍTICO #1 FIX: Actualizar la ref para que workoutState use el callback actualizado
@@ -664,7 +675,7 @@ export default function WorkoutPage() {
   const [tutElapsedQEM, setTutElapsedQEM] = useState(0);
   useEffect(() => {
     if (!isQuickEditMode || !setExecution.isExecutingSet || !setExecution.setStartTime) {
-      setTutElapsedQEM(0);
+      setTimeout(() => setTutElapsedQEM(0), 0);
       return;
     }
     const tick = () => setTutElapsedQEM(Math.floor((Date.now() - setExecution.setStartTime!) / 1000));
@@ -703,7 +714,7 @@ export default function WorkoutPage() {
     routine,
     currentSet: workoutState.currentSet,
     currentWeight: workoutState.currentWeight,
-    sessions: sessions as any,
+    sessions: sessions as unknown as WorkoutSession[],
     restOverrides: workoutState.workoutData.restOverrides,
     perSetRestOverrides: workoutState.workoutData.perSetRestOverrides,
     useSmartRest,
@@ -758,11 +769,13 @@ export default function WorkoutPage() {
 
     // ✅ Resetear el estado cuando cambia el id del workout
     if (initState.lastRoutineId !== id) {
-      setInitState({
-        lastRoutineId: id,
-        hasLoadedModified: false,
-        isInitialized: false,
-      });
+      setTimeout(() => {
+        setInitState({
+          lastRoutineId: id,
+          hasLoadedModified: false,
+          isInitialized: false,
+        });
+      }, 0);
     }
 
     let mounted = true;
@@ -799,7 +812,7 @@ export default function WorkoutPage() {
       // Optimización: Preparar rutina con defaults de forma más eficiente
       const routineWithDefaults = {
         ...foundRoutine,
-        exercises: foundRoutine.exercises.map((ex: any) => ({
+        exercises: foundRoutine.exercises.map((ex: Exercise) => ({
           ...ex,
           useSmartRest: ex.useSmartRest ?? true,
         })),
@@ -813,6 +826,7 @@ export default function WorkoutPage() {
       if (!mounted) return;
 
       if (storedWorkout && storedWorkout.routineId === id) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const s = storedWorkout as any;
 
         // console.log("[Init] 📦 Restoring workout from storage:", s);
@@ -986,13 +1000,20 @@ export default function WorkoutPage() {
     if (!isQuickEditMode && currentExercise && isInitialized && !timerHandlers.showTimer) {
       const exerciseId = currentExercise.id;
       const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
-      const completedCount = actualReps.filter(
-        (r: number) => typeof r === "number" && r > 0,
-      ).length;
+      const completionFlags = getCompletionFlagsForExercise({
+        completedSetFlags: workoutState.workoutData.completedSetFlags,
+        completedSets: workoutState.workoutData.completedSets,
+        exerciseId,
+        totalSets: currentExercise.sets.length,
+      });
+      const completedCount = countCompletedFlags(
+        completionFlags,
+        currentExercise.sets.length,
+      );
 
       // Sincronizar currentSet con la primera serie incompleta
-      const nextIncompleteIndex = actualReps.findIndex(
-        (r: number) => !r || r === 0,
+      const nextIncompleteIndex = currentExercise.sets.findIndex(
+        (_s: Set, _idx: number) => !completionFlags[_idx],
       );
       const nextSet =
         nextIncompleteIndex !== -1
@@ -1029,6 +1050,8 @@ export default function WorkoutPage() {
     workoutState.currentSet,
     workoutState.workoutData.actualReps,
     workoutState.workoutData.actualWeights,
+    workoutState.workoutData.completedSetFlags,
+    workoutState.workoutData.completedSets,
   ]);
 
   // Efecto 2: Manejar completación de ejercicio en modo guiado
@@ -1036,10 +1059,16 @@ export default function WorkoutPage() {
   useEffect(() => {
     if (!isQuickEditMode && currentExercise && isInitialized && routine && !timerHandlers.showTimer) {
       const exerciseId = currentExercise.id;
-      const actualReps = workoutState.workoutData.actualReps[exerciseId] || [];
-      const completedCount = actualReps.filter(
-        (r: number) => typeof r === "number" && r > 0,
-      ).length;
+      const completionFlags = getCompletionFlagsForExercise({
+        completedSetFlags: workoutState.workoutData.completedSetFlags,
+        completedSets: workoutState.workoutData.completedSets,
+        exerciseId,
+        totalSets: currentExercise.sets.length,
+      });
+      const completedCount = countCompletedFlags(
+        completionFlags,
+        currentExercise.sets.length,
+      );
       const hasCompletedAllSets = completedCount >= currentExercise.sets.length;
 
       if (hasCompletedAllSets) {
@@ -1083,7 +1112,8 @@ export default function WorkoutPage() {
     isInitialized,
     routine?.exercises,
     workoutState.currentExerciseIndex,
-    workoutState.workoutData.actualReps,
+    workoutState.workoutData.completedSetFlags,
+    workoutState.workoutData.completedSets,
     workoutStartTime,
     totalPausedTime,
     timerHandlers.showTimer,
@@ -1125,6 +1155,19 @@ export default function WorkoutPage() {
         );
         hasChanges = true;
       }
+
+      const currentFlags = workoutState.workoutData.completedSetFlags?.[exerciseId];
+      const completedCount = workoutState.workoutData.completedSets?.[exerciseId] ?? 0;
+      if (currentFlags && (currentFlags.length > maxSets || completedCount !== countCompletedFlags(currentFlags, maxSets))) {
+        workoutState.updateCompletedSetFlags(
+          exerciseId,
+          currentFlags.slice(0, maxSets),
+        );
+        hasChanges = true;
+      } else if (!currentFlags && completedCount > maxSets) {
+        workoutState.updateCompletedSets(exerciseId, maxSets);
+        hasChanges = true;
+      }
     });
 
     if (hasChanges) {
@@ -1136,6 +1179,8 @@ export default function WorkoutPage() {
     currentExercise?.id,
     workoutState.workoutData.actualReps,
     workoutState.workoutData.actualWeights,
+    workoutState.workoutData.completedSetFlags,
+    workoutState.workoutData.completedSets,
   ]);
 
   // ✅ CRÍTICO #7 FIX: Efecto 4 - Corregir currentSet si está fuera de rango
@@ -1196,7 +1241,7 @@ export default function WorkoutPage() {
   
   // Detectar si la rutina actual difiere de la original (cambios en sets/pesos/orden)
   // Ahora también considera los valores editados durante la sesión (`workoutState.workoutData`)
-  const hasRoutineChanges = useCallback((orig: any | null, curr: any | null) => {
+  const hasRoutineChanges = useCallback((orig: Routine | null, curr: Routine | null) => {
     if (!orig || !curr) return false;
     const origEx = orig.exercises || [];
     const currEx = curr.exercises || [];
@@ -1206,7 +1251,7 @@ export default function WorkoutPage() {
     const sessionWeights = workoutState.workoutData.actualWeights || {};
 
     for (const ce of currEx) {
-      const oe = origEx.find((e: any) => e.id === ce.id);
+      const oe = origEx.find((e: Exercise) => e.id === ce.id);
       if (!oe) return true; // ejercicio nuevo
 
       const origSets = oe.sets || [];
@@ -1214,8 +1259,8 @@ export default function WorkoutPage() {
       if (origSets.length !== currSets.length) return true;
 
       for (let i = 0; i < currSets.length; i++) {
-        const os = origSets[i] || {};
-        const cs = currSets[i] || {};
+        const os: Set = origSets[i] || {};
+        const cs: Set = currSets[i] || {};
 
         // Preferir valores editados en sesión si existen, sino usar los de la rutina `curr`
         const sr = sessionReps[ce.id] && typeof sessionReps[ce.id][i] !== 'undefined'
@@ -1249,41 +1294,41 @@ export default function WorkoutPage() {
             const sessionReps = workoutState.workoutData.actualReps || {};
             const sessionWeights = workoutState.workoutData.actualWeights || {};
 
-            await updateRoutine(id, {
-              name: routine.name,
-              description: routine.description,
-              image: routine.image,
-              exercises: routine.exercises.map((ex: any) => {
-                const exReps = sessionReps[ex.id] || [];
-                const exWeights = sessionWeights[ex.id] || [];
+await updateRoutine(id, {
+               name: routine.name,
+               description: routine.description,
+               image: routine.image,
+               exercises: routine.exercises.map((ex: Exercise) => {
+                 const exReps = sessionReps[ex.id] || [];
+                 const exWeights = sessionWeights[ex.id] || [];
                 
-                return {
-                  id: ex.id,
-                  name: ex.name,
-                  sets: ex.sets.map((s: any, idx: number) => {
-                    const finalReps = exReps[idx] !== undefined && exReps[idx] > 0 ? exReps[idx] : s.reps;
-                    const finalWeight = exWeights[idx] !== undefined && exWeights[idx] > 0 ? exWeights[idx] : (s.weight || 0);
+                 return {
+                   id: ex.id,
+                   name: ex.name,
+                   sets: ex.sets.map((s: Set, idx: number) => {
+                     const finalReps = exReps[idx] !== undefined && exReps[idx] > 0 ? exReps[idx] : s.reps;
+                     const finalWeight = exWeights[idx] !== undefined && exWeights[idx] > 0 ? exWeights[idx] : (s.weight || 0);
                     
-                    return {
-                      reps: finalReps,
-                      weight: finalWeight,
-                      type: s.type,
-                      notes: s.notes,
-                    };
-                  }),
-                  notes: ex.notes,
-                  equipment: ex.equipment,
-                  technique: ex.technique,
-                  recommendedSets: ex.recommendedSets,
-                  recommendedReps: ex.recommendedReps,
-                  restTime: ex.restTime,
-                  restBetweenSets: ex.restBetweenSets,
-                  useSmartRest: ex.useSmartRest,
-                };
-              }),
-              restBetweenSets: routine.restBetweenSets,
-              restBetweenExercises: routine.restBetweenExercises,
-            });
+                     return {
+                       reps: finalReps,
+                       weight: finalWeight,
+                       type: s.type,
+                       notes: s.notes,
+                     };
+                   }),
+                   notes: ex.notes,
+                   equipment: ex.equipment,
+                   technique: ex.technique,
+                   recommendedSets: ex.recommendedSets,
+                   recommendedReps: ex.recommendedReps,
+                   restTime: ex.restTime,
+                   restBetweenSets: ex.restBetweenSets,
+                   useSmartRest: ex.useSmartRest,
+                 };
+               }),
+               restBetweenSets: routine.restBetweenSets,
+               restBetweenExercises: routine.restBetweenExercises,
+             });
             success("Rutina actualizada", 2000);
           } catch (err) {
             console.error("Error updating routine:", err);
@@ -1297,7 +1342,7 @@ export default function WorkoutPage() {
       } catch (e) {
         // No bloquear la finalización si el flush falla
         // Log en consola para diagnóstico
-        // eslint-disable-next-line no-console
+         
         console.warn('[workout] saveQueue.flush failed', e);
       }
       await completion.finishWorkout(workoutState.workoutData, confirmedDuration);
@@ -1330,10 +1375,12 @@ export default function WorkoutPage() {
 
   // Refs para leer valores sin incluirlos como dependencias del efecto de predicción.
   // Esto evita que la predicción sobreescriba el peso editado manualmente por el usuario.
+  // Note: These refs are intentionally initialized with current values to avoid stale closure issues
+  // in the weight prediction effect. Reading refs during render is safe for initialization.
+   
   const currentWeightRef = useRef<number | ''>(workoutState.currentWeight);
-  currentWeightRef.current = workoutState.currentWeight;
+   
   const weightPredictionRef = useRef(weightPrediction);
-  weightPredictionRef.current = weightPrediction;
 
   useEffect(() => {
     if (!currentExercise || !isInitialized) return;
@@ -1408,16 +1455,13 @@ export default function WorkoutPage() {
 
       // Capture pre-update state and simulate the local data we need
       const prevExerciseData = workoutState.getExerciseData(exerciseId);
-      const actualRepsLocal = Array.isArray(prevExerciseData.actualReps)
-        ? [...prevExerciseData.actualReps]
-        : [];
-      // Asegurar longitud suficiente
-      while (actualRepsLocal.length <= setIndex) actualRepsLocal.push(0);
-      actualRepsLocal[setIndex] = reps;
-
-      const completedCount = actualRepsLocal.filter(
-        (r: number) => typeof r === "number" && r > 0,
-      ).length;
+      const completedFlagsLocal = [...(prevExerciseData.completedSetFlags || [])];
+      while (completedFlagsLocal.length <= setIndex) completedFlagsLocal.push(false);
+      completedFlagsLocal[setIndex] = true;
+      const completedCount = countCompletedFlags(
+        completedFlagsLocal,
+        exercise.sets.length,
+      );
 
       // Leer datos antes de completeSetAt (el estado queda stale tras el update)
       const skippedIds = workoutState.workoutData.skippedExercises || [];
@@ -1486,8 +1530,8 @@ export default function WorkoutPage() {
 
         if (isFromQuickMode) {
           // Para quick mode, calcular el número de la siguiente serie usando la copia local
-          const nextIncompleteIndex = actualRepsLocal.findIndex(
-            (r, idx) => idx > setIndex && (!r || r === 0),
+          const nextIncompleteIndex = exercise.sets.findIndex(
+            (_s: Set, idx: number) => idx > setIndex && !completedFlagsLocal[idx],
           );
           const nextSetNumber =
             nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : setIndex + 2;
@@ -1545,9 +1589,10 @@ export default function WorkoutPage() {
       const setIndex = setNumber - 1;
 
       // Verificar si esta serie ya está completada
-      const existingReps =
-        workoutState.workoutData.actualReps[exerciseId]?.[setIndex];
-      if (existingReps && existingReps > 0) {
+      const isSetAlreadyCompleted = Boolean(
+        workoutState.workoutData.completedSetFlags?.[exerciseId]?.[setIndex],
+      );
+      if (isSetAlreadyCompleted) {
         // console.log("[Workout] Serie ya completada, ignorando");
         return;
       }
@@ -1680,9 +1725,15 @@ export default function WorkoutPage() {
     // RC-3: Leer desde ref (no desde estado React) para obtener el valor más reciente.
     // workoutData.completedSets puede estar desactualizado si el estado cambió
     // mientras el timer estaba corriendo (e.g. usuario marcó sets manualmente).
-    const { completedSets: completedCount } =
-      workoutState.getExerciseData(exerciseId);
     const totalSets = currentExercise.sets.length;
+    const exerciseData = workoutState.getExerciseData(exerciseId);
+    const completionFlags = getCompletionFlagsForExercise({
+      completedSetFlags: { [exerciseId]: exerciseData.completedSetFlags },
+      completedSets: { [exerciseId]: exerciseData.completedSets },
+      exerciseId,
+      totalSets,
+    });
+    const completedCount = countCompletedFlags(completionFlags, totalSets);
     const isLastSet = completedCount >= totalSets;
     // Verificar si hay algún ejercicio activo (no omitido) después del actual
     const skippedIdsTimer = workoutState.workoutData.skippedExercises || [];
@@ -1720,11 +1771,10 @@ export default function WorkoutPage() {
         setExecution.startSet();
       }
     } else if (!isLastSet) {
-      // ✅ FIX: usar completedCount + 1 en lugar de currentSet + 1.
-      // En modo Quick, handleQuickToggleSetComplete ya avanzó currentSet
-      // al próximo incompleto, así que currentSet + 1 sobrepassaría por uno.
-      // completedCount + 1 siempre apunta a la siguiente serie sin importar el modo.
-      const newSet = completedCount + 1;
+      const nextIncompleteIndex = currentExercise.sets.findIndex(
+        (_set: Set, idx: number) => !completionFlags[idx],
+      );
+      const newSet = nextIncompleteIndex !== -1 ? nextIncompleteIndex + 1 : totalSets;
       workoutState.setCurrentSet(newSet);
       const nextSetData = currentExercise.sets[newSet - 1];
       if (nextSetData) {
@@ -1911,7 +1961,7 @@ export default function WorkoutPage() {
   );
 
   const handleEditSetType = useCallback(
-    (setIndex: number, type: any) => {
+    (setIndex: number, type: SetType) => {
       if (!currentExercise) return;
       const exerciseId = currentExercise.id;
       workoutState.updateSetType(exerciseId, setIndex, type);
@@ -1956,7 +2006,7 @@ export default function WorkoutPage() {
 
       // Eliminar la serie del ejercicio
       const updatedSets = currentExercise.sets.filter(
-        (_: any, idx: number) => idx !== setIndex,
+        (_: Set, idx: number) => idx !== setIndex,
       );
       const updatedExercise = { ...currentExercise, sets: updatedSets };
 
@@ -1984,12 +2034,13 @@ export default function WorkoutPage() {
         currentWeights.filter((_, idx) => idx !== setIndex),
       );
 
-      // Recalcular series completadas
-      const newReps = currentReps.filter((_, idx) => idx !== setIndex);
-      const completedCount = newReps.filter(
-        (r: number) => typeof r === "number" && r > 0,
-      ).length;
-      workoutState.updateCompletedSets(exerciseId, completedCount);
+      const completionFlags = getCompletionFlagsForExercise({
+        completedSetFlags: workoutState.workoutData.completedSetFlags,
+        completedSets: workoutState.workoutData.completedSets,
+        exerciseId,
+        totalSets: currentExercise.sets.length,
+      }).filter((_, idx) => idx !== setIndex);
+      workoutState.updateCompletedSetFlags(exerciseId, completionFlags);
 
       // Ajustar currentSet si es necesario
       if (workoutState.currentSet > updatedSets.length) {
@@ -2136,7 +2187,7 @@ export default function WorkoutPage() {
 
       // Eliminar la serie del ejercicio
       const updatedSets = exercise.sets.filter(
-        (_: any, idx: number) => idx !== setIndex,
+        (_: Set, idx: number) => idx !== setIndex,
       );
       const updatedExercise = { ...exercise, sets: updatedSets };
 
@@ -2164,12 +2215,13 @@ export default function WorkoutPage() {
         currentWeights.filter((_, idx) => idx !== setIndex),
       );
 
-      // Recalcular series completadas
-      const newReps = currentReps.filter((_, idx) => idx !== setIndex);
-      const completedCount = newReps.filter(
-        (r: number) => typeof r === "number" && r > 0,
-      ).length;
-      workoutState.updateCompletedSets(exerciseId, completedCount);
+      const completionFlags = getCompletionFlagsForExercise({
+        completedSetFlags: workoutState.workoutData.completedSetFlags,
+        completedSets: workoutState.workoutData.completedSets,
+        exerciseId,
+        totalSets: exercise.sets.length,
+      }).filter((_, idx) => idx !== setIndex);
+      workoutState.updateCompletedSetFlags(exerciseId, completionFlags);
 
       // Persistir la rutina actualizada
       try {
@@ -2228,18 +2280,23 @@ export default function WorkoutPage() {
         workoutState.updateActualReps(exerciseId, newActualReps);
         workoutState.updateActualWeights(exerciseId, newActualWeights);
 
-        // Incrementar explícitamente hasta setIndex+1; no contar reps pre-editadas futuras.
-        const newCompletedCount = Math.max(
-          workoutState.workoutData.completedSets[exerciseId] ?? 0,
-          setIndex + 1,
+        const completionFlags = getCompletionFlagsForExercise({
+          completedSetFlags: workoutState.workoutData.completedSetFlags,
+          completedSets: workoutState.workoutData.completedSets,
+          exerciseId,
+          totalSets: currentExercise.sets.length,
+        });
+        completionFlags[setIndex] = true;
+        const newCompletedCount = countCompletedFlags(
+          completionFlags,
+          currentExercise.sets.length,
         );
-        workoutState.updateCompletedSets(exerciseId, newCompletedCount);
         // ✅ Marcar el flag explícito: solo se activa desde aquí (botón toggle)
         workoutState.updateCompletedSetFlag(exerciseId, setIndex, true);
 
         const nextIncompleteSet = currentExercise.sets.findIndex(
-          (_: any, idx: number) => {
-            return idx > setIndex && !newActualReps[idx];
+          (_: Set, idx: number) => {
+            return idx > setIndex && !completionFlags[idx];
           },
         );
 
@@ -2284,13 +2341,6 @@ export default function WorkoutPage() {
         // Dejar actualWeights sin cambios evita que el UI pierda el peso mostrado.
         workoutState.updateActualReps(exerciseId, newActualReps);
 
-        // Decrementar explícitamente sin contar reps pre-editadas de otras series.
-        // BUG FIX: Recount actual completed sets from the reps array instead of
-        // using Math.min(prevCount, setIndex), which incorrectly assumes all sets
-        // above setIndex are also unchecked. This broke completion counts when
-        // unchecking a middle set while higher-indexed sets remain completed.
-        const newCompletedCount = newActualReps.filter((r: number) => typeof r === 'number' && r > 0).length;
-        workoutState.updateCompletedSets(exerciseId, newCompletedCount);
         // ✅ Limpiar el flag explícito de completado para esta serie
         workoutState.updateCompletedSetFlag(exerciseId, setIndex, false);
 
@@ -2336,17 +2386,16 @@ export default function WorkoutPage() {
     const lastWeightFromState = workoutState.workoutData.actualWeights[exerciseId]?.[lastIdx];
 
     // Crear nueva serie con los mismos valores que la última
-    const newSet = {
-      reps:
-        typeof lastRepsFromState === 'number' && lastRepsFromState > 0
-          ? lastRepsFromState
-          : lastSet.reps,
-      weight:
-        typeof lastWeightFromState === 'number' && lastWeightFromState >= 0
-          ? lastWeightFromState
-          : lastSet.weight || 0,
-      restAfter: lastSet.restAfter || currentExercise.restBetweenSets || 90,
-    };
+      const newSet = {
+        reps:
+          typeof lastRepsFromState === 'number' && lastRepsFromState > 0
+            ? lastRepsFromState
+            : lastSet.reps,
+        weight:
+          typeof lastWeightFromState === 'number' && lastWeightFromState >= 0
+            ? lastWeightFromState
+            : lastSet.weight || 0,
+      };
 
     // Agregar la serie al ejercicio
     const updatedSets = [...currentExercise.sets, newSet];
@@ -2570,7 +2619,7 @@ export default function WorkoutPage() {
   );
 
   const handleQuickEditSetType = useCallback(
-    (exerciseId: string, setIndex: number, type: any) => {
+    (exerciseId: string, setIndex: number, type: SetType) => {
       workoutState.updateSetType(exerciseId, setIndex, type);
     },
     [workoutState],
@@ -2663,10 +2712,19 @@ export default function WorkoutPage() {
           if (!newWeights[setIndex]) {
             newWeights[setIndex] = exercise.sets[setIndex]?.weight || 0;
           }
+          const completionFlags = getCompletionFlagsForExercise({
+            completedSetFlags: workoutState.workoutData.completedSetFlags,
+            completedSets: workoutState.workoutData.completedSets,
+            exerciseId,
+            totalSets: exercise.sets.length,
+          });
+          completionFlags[setIndex] = true;
 
           // Actualizar currentSet en UI basándonos en la copia local
           if (currentExercise && currentExercise.id === exerciseId) {
-            const nextIncompleteSet = newReps.findIndex((r, idx) => !r || r === 0);
+            const nextIncompleteSet = exercise.sets.findIndex(
+              (_set: Set, idx: number) => !completionFlags[idx],
+            );
             if (nextIncompleteSet !== -1) {
               workoutState.setCurrentSet(nextIncompleteSet + 1);
             } else {
@@ -2691,18 +2749,20 @@ export default function WorkoutPage() {
           workoutState.updateActualReps(exerciseId, newReps);
           // newWeights no se modifica intencionalmente para preservar ediciones del usuario
 
-          // Recalcular conteo real desde las reps (mismo fix que handleToggleSetComplete)
-          const completedCount = newReps.filter(
-            (r: number) => typeof r === "number" && r > 0,
-          ).length;
-          workoutState.updateCompletedSets(exerciseId, completedCount);
           // ✅ Limpiar el flag explícito de completado para esta serie
           workoutState.updateCompletedSetFlag(exerciseId, setIndex, false);
 
           // Si estamos en el ejercicio actual, actualizar también currentSet
           if (currentExercise && currentExercise.id === exerciseId) {
-            const nextIncompleteSet = newReps.findIndex(
-              (r, idx) => !r || r === 0,
+            const completionFlags = getCompletionFlagsForExercise({
+              completedSetFlags: workoutState.workoutData.completedSetFlags,
+              completedSets: workoutState.workoutData.completedSets,
+              exerciseId,
+              totalSets: exercise.sets.length,
+            });
+            completionFlags[setIndex] = false;
+            const nextIncompleteSet = exercise.sets.findIndex(
+              (_set: Set, idx: number) => !completionFlags[idx],
             );
             if (nextIncompleteSet !== -1) {
               workoutState.setCurrentSet(nextIncompleteSet + 1);
@@ -2793,7 +2853,6 @@ export default function WorkoutPage() {
           typeof lastWeightFromState === 'number' && lastWeightFromState >= 0
             ? lastWeightFromState
             : lastSet.weight || 0,
-        restAfter: lastSet.restAfter || exercise.restBetweenSets || 90,
       };
 
       // Agregar la serie al ejercicio
@@ -3159,7 +3218,7 @@ export default function WorkoutPage() {
                             ...sel,
                             restBetweenSets: preRestBetweenSets,
                             restBetweenExercises: preRestBetweenExercises,
-                            exercises: (sel.exercises || []).map((ex: any) => ({
+                            exercises: (sel.exercises || []).map((ex: Exercise) => ({
                               ...ex,
                               restBetweenSets: ex.restBetweenSets ?? preRestBetweenSets,
                             })),
@@ -3487,7 +3546,7 @@ export default function WorkoutPage() {
           setExecution={{
             showSetExecution: setExecution.showSetExecution,
             exerciseName: currentExercise.name,
-            equipment: currentExercise.equipment,
+            equipment: currentExercise.equipment || "Ninguno",
             currentSet: workoutState.currentSet,
             totalSets: currentExercise.sets.length,
             currentReps: workoutState.currentReps,
@@ -3501,7 +3560,7 @@ export default function WorkoutPage() {
           showStartSplash={showStartSplash}
           routineName={routine?.name || "Entrenamiento"}
           exerciseCount={routine?.exercises?.length || 0}
-          totalSets={(routine?.exercises || []).reduce((sum: number, ex: any) => sum + (ex.sets?.length || 0), 0)}
+          totalSets={(routine?.exercises || []).reduce((sum: number, ex: Exercise) => sum + (ex.sets?.length || 0), 0)}
           onStartSplashComplete={() => setShowStartSplash(false)}
           WorkoutCompleteSplash={WorkoutCompleteSplash}
           completeSplashProps={completion.completeSplash}

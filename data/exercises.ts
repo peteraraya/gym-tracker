@@ -2497,24 +2497,6 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     restTime: '90-120 segundos'
   },
   {
-    id: 'walking-lunges',
-    name: 'Zancadas Caminando',
-    muscleGroup: 'piernas',
-    equipment: 'Mancuernas',
-    defaultSets: 3,
-    defaultReps: 12,
-    image: URL_STORAGE + 'male-dumbbell-walking-lunge-front.gif',
-    technique: [
-      'Da pasos amplios hacia adelante sin detenerte',
-      'Cada paso es una zancada completa',
-      'Rodilla trasera casi toca el suelo',
-      'Excelente para resistencia y coordinación'
-    ],
-    recommendedSets: '3-4 series',
-    recommendedReps: '10-15 por pierna',
-    restTime: '90 segundos'
-  },
-  {
     id: 'pendulum-squat',
     name: 'Sentadilla Péndulo',
     muscleGroup: 'piernas',

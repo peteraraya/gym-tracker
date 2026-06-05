@@ -14,7 +14,7 @@ import logger from '@/lib/logger';
  * - Notas de sesión
  */
 
-interface WorkoutData {
+export interface WorkoutData {
   completedSets: { [key: string]: number };
   actualReps: { [key: string]: number[] };
   actualWeights: { [key: string]: number[] };
@@ -68,6 +68,7 @@ interface UseWorkoutStateReturn {
   unskipExercise: (exerciseId: string) => void;
   // ✅ Actualiza el flag explícito de completado de una serie específica
   updateCompletedSetFlag: (exerciseId: string, setIndex: number, flag: boolean) => void;
+  updateCompletedSetFlags: (exerciseId: string, flags: boolean[]) => void;
   
   // Utilidades
   reset: () => void;
@@ -78,7 +79,12 @@ interface UseWorkoutStateReturn {
     actualWeights: number[];
     setTypes: string[];
     lastWeights: number[];
+    completedSetFlags: boolean[];
   };
+}
+
+function countCompletedSetFlags(flags: boolean[] = []): number {
+  return flags.filter(Boolean).length;
 }
 
 export function useWorkoutState(
@@ -144,12 +150,14 @@ export function useWorkoutState(
     setWorkoutData(prev => {
       const newReps = [...(prev.actualReps[exerciseId] || []), reps];
       const newWeights = [...(prev.actualWeights[exerciseId] || []), weight];
+      const newFlags = [...((prev.completedSetFlags || {})[exerciseId] || []), true];
       
       const newData = {
         ...prev,
         actualReps: { ...prev.actualReps, [exerciseId]: newReps },
         actualWeights: { ...prev.actualWeights, [exerciseId]: newWeights },
-        completedSets: { ...prev.completedSets, [exerciseId]: newReps.length },
+        completedSets: { ...prev.completedSets, [exerciseId]: countCompletedSetFlags(newFlags) },
+        completedSetFlags: { ...(prev.completedSetFlags || {}), [exerciseId]: newFlags },
         _lastUpdate: Date.now() // ✅ Forzar detección de cambios
       };
       
@@ -183,17 +191,11 @@ export function useWorkoutState(
         prevReps[setIndex] = reps;
         prevWeights[setIndex] = weight;
 
-        // Usar el conteo previo como base y sólo incrementar hasta setIndex+1.
-        // Esto evita que reps pre-editadas de series futuras inflen el contador.
-        const completedCount = Math.max(
-          prev.completedSets[exerciseId] ?? 0,
-          setIndex + 1,
-        );
-
         // ✅ Actualizar flag explícito de completado para este set
         const prevFlags = [...((prev.completedSetFlags || {})[exerciseId] || [])];
         while (prevFlags.length <= setIndex) prevFlags.push(false);
         prevFlags[setIndex] = true;
+        const completedCount = countCompletedSetFlags(prevFlags);
 
         const newData = {
           ...prev,
@@ -243,7 +245,7 @@ export function useWorkoutState(
   /**
    * Valida un número para asegurar que sea válido y esté en rango
    */
-  const validateNumber = (value: any, max: number): number => {
+  const validateNumber = (value: number | string, max: number): number => {
     const num = Number(value);
     if (!Number.isFinite(num) || num < 0) {
       return 0;
@@ -485,6 +487,7 @@ export function useWorkoutState(
       prevFlags[setIndex] = flag;
       const newData = {
         ...prev,
+        completedSets: { ...prev.completedSets, [exerciseId]: countCompletedSetFlags(prevFlags) },
         completedSetFlags: { ...(prev.completedSetFlags || {}), [exerciseId]: prevFlags },
         _lastUpdate: Date.now(),
       };
@@ -493,6 +496,27 @@ export function useWorkoutState(
           onDataChangeRef.current?.(newData);
         });
       }
+      return newData;
+    });
+  }, []);
+
+  const updateCompletedSetFlags = useCallback((exerciseId: string, flags: boolean[]) => {
+    const normalizedFlags = Array.isArray(flags) ? flags.map(Boolean) : [];
+
+    setWorkoutData(prev => {
+      const newData = {
+        ...prev,
+        completedSets: { ...prev.completedSets, [exerciseId]: countCompletedSetFlags(normalizedFlags) },
+        completedSetFlags: { ...(prev.completedSetFlags || {}), [exerciseId]: normalizedFlags },
+        _lastUpdate: Date.now(),
+      };
+
+      if (!isInitializingRef.current && onDataChangeRef.current) {
+        queueMicrotask(() => {
+          onDataChangeRef.current?.(newData);
+        });
+      }
+
       return newData;
     });
   }, []);
@@ -523,8 +547,9 @@ export function useWorkoutState(
   /**
    * Valida la estructura de WorkoutData
    */
-  const validateWorkoutData = (data: any): boolean => {
+  const validateWorkoutData = (data: unknown): boolean => {
     if (!data || typeof data !== 'object') return false;
+    const record = data as Record<string, unknown>;
     
     // Validar que los campos requeridos sean objetos
     const requiredFields = [
@@ -534,14 +559,14 @@ export function useWorkoutState(
     ];
     
     for (const field of requiredFields) {
-      if (data[field] && typeof data[field] !== 'object') {
+      if (record[field] && typeof record[field] !== 'object') {
         console.warn(`[useWorkoutState] Invalid field type: ${field}`);
         return false;
       }
     }
     
     // Validar que skippedExercises sea un array si existe
-    if (data.skippedExercises && !Array.isArray(data.skippedExercises)) {
+    if (record.skippedExercises && !Array.isArray(record.skippedExercises)) {
       console.warn(`[useWorkoutState] Invalid field type: skippedExercises must be array`);
       return false;
     }
@@ -612,6 +637,24 @@ export function useWorkoutState(
       }
       sanitizedData.completedSetFlags = derivedFlags;
     }
+
+    if (sanitizedData.completedSetFlags) {
+      sanitizedData.completedSetFlags = Object.fromEntries(
+        Object.entries(sanitizedData.completedSetFlags).map(([exId, flags]) => [
+          exId,
+          Array.isArray(flags) ? flags.map(Boolean) : [],
+        ]),
+      );
+      sanitizedData.completedSets = {
+        ...(sanitizedData.completedSets || {}),
+        ...Object.fromEntries(
+          Object.entries(sanitizedData.completedSetFlags).map(([exId, flags]) => [
+            exId,
+            countCompletedSetFlags(flags),
+          ]),
+        ),
+      };
+    }
     
     setWorkoutData(prev => {
       const merged = {
@@ -659,6 +702,7 @@ export function useWorkoutState(
       actualWeights: workoutDataRef.current.actualWeights[exerciseId] || [],
       setTypes: workoutDataRef.current.setTypes[exerciseId] || [],
       lastWeights: workoutDataRef.current.lastWeights[exerciseId] || [],
+      completedSetFlags: workoutDataRef.current.completedSetFlags?.[exerciseId] || [],
     };
   }, []);
 
@@ -694,6 +738,7 @@ export function useWorkoutState(
     skipExercise,
     unskipExercise,
     updateCompletedSetFlag,
+    updateCompletedSetFlags,
 
     // Utilidades
     reset,
@@ -720,6 +765,7 @@ export function useWorkoutState(
     skipExercise,
     unskipExercise,
     updateCompletedSetFlag,
+    updateCompletedSetFlags,
     reset,
     restoreData,
     getExerciseData,
