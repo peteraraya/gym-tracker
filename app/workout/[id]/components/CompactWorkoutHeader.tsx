@@ -4,7 +4,8 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Clock, Weight, ListChecks, Repeat, Settings } from '@/components/icons/lucide';
-import type { Routine } from '@/types';
+import type { Routine, Exercise } from '@/types';
+import type { WorkoutSession, SessionExercise } from '../types/workout.types';
 
 interface CompactWorkoutHeaderProps {
   routine: Routine;
@@ -14,7 +15,7 @@ interface CompactWorkoutHeaderProps {
   completedSets: Record<string, number>;
   actualReps: Record<string, number[]>;
   actualWeights: Record<string, number[]>;
-  exercises: any[];
+  exercises: Exercise[];
   onCancel?: () => void;
   isPaused?: boolean;
   onPauseToggle?: () => void;
@@ -42,10 +43,11 @@ export function CompactWorkoutHeader({
   onEditTime,
   onDeleteExercise,
   onOpenSoundSettings, // ✨ NEW: Receive callback
-}: CompactWorkoutHeaderProps) {
+  lastSession, // 🔥 NEW: Ghost Mode data
+}: CompactWorkoutHeaderProps & { lastSession?: WorkoutSession | null }) {
   if (process.env.NODE_ENV === 'test') {
     // Minimal test-only marker; avoid noisy repeated logs
-    // eslint-disable-next-line no-console
+     
     console.log('[CompactWorkoutHeader Debug] mounted')
   }
   
@@ -79,6 +81,34 @@ export function CompactWorkoutHeader({
     }
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }, [elapsedTime]);
+
+  // 👻 Ghost Mode Logic
+  const ghostData = useMemo(() => {
+    if (!lastSession || !lastSession.totalDuration || lastSession.totalDuration <= 0) return null;
+    
+    // El fantasma progresa linealmente basado en el tiempo
+    const ghostPercent = Math.min(100, Math.round((elapsedTime / lastSession.totalDuration) * 100));
+    
+    let ghostTotalVolume = 0;
+    let ghostTotalSets = 0;
+    
+    lastSession.exercises.forEach((ex: SessionExercise) => {
+      ghostTotalSets += ex.completedSets || 0;
+      for (let i = 0; i < (ex.completedSets || 0); i++) {
+        const r = ex.actualReps[i] || 0;
+        const w = ex.actualWeight[i] || 0;
+        ghostTotalVolume += r * w;
+      }
+    });
+
+    const expectedGhostVolume = (ghostPercent / 100) * ghostTotalVolume;
+
+    return {
+      percent: ghostPercent,
+      expectedVolume: expectedGhostVolume,
+      totalVolume: ghostTotalVolume
+    };
+  }, [lastSession, elapsedTime]);
 
   // Calcular estadísticas en tiempo real
   const stats = useMemo(() => {
@@ -272,10 +302,33 @@ export function CompactWorkoutHeader({
         </div>
       </div>
 
-      {/* Barra de progreso */}
-      <div className="h-1.5 bg-gray-200 dark:bg-gray-700">
+      {/* 👻 Ghost Mode Feedback */}
+      {ghostData && progress > 0 && (
+        <div className="px-4 pb-1.5 flex items-center justify-between text-[10px] uppercase font-bold tracking-wider">
+          <span className={`${progress >= ghostData.percent ? 'text-green-500' : 'text-gray-500'}`}>
+            TÚ: {progress}%
+          </span>
+          <span className="text-gray-400 flex items-center gap-1">
+            {progress >= ghostData.percent ? '🔥 ¡VAS GANANDO!' : '👻 EL FANTASMA TE ALCANZA'} 
+          </span>
+          <span className={`${ghostData.percent > progress ? 'text-indigo-400' : 'text-gray-500'}`}>
+            FANTASMA: {ghostData.percent}%
+          </span>
+        </div>
+      )}
+
+      {/* Barra de progreso múltiple */}
+      <div className="relative h-1.5 bg-gray-200 dark:bg-gray-800 overflow-hidden">
+        {/* Barra del fantasma (fondo gris/azulado) */}
+        {ghostData && (
+          <div
+            className="absolute top-0 left-0 h-full bg-slate-400/50 dark:bg-slate-500/50 transition-all duration-1000"
+            style={{ width: `${ghostData.percent}%` }}
+          />
+        )}
+        {/* Barra de progreso actual */}
         <div
-          className="h-full bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-300 shadow-sm"
+          className="absolute top-0 left-0 h-full bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-300 shadow-sm"
           style={{ width: `${progress}%` }}
         />
       </div>

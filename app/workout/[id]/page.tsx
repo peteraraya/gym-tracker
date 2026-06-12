@@ -22,6 +22,7 @@ import { Timer as TimerIcon, ArrowRight, Plus, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { SwipeButton } from "@/components/ui/SwipeButton";
 import * as storageService from "@/lib/storage/storage";
 import type { ActiveWorkout } from "@/lib/storage/storage";
 import { useWorkoutState, type WorkoutData } from "./hooks/useWorkoutState";
@@ -454,6 +455,14 @@ export default function WorkoutPage() {
 
     return relevantSessions[0] || null;
   }, [currentExercise, sessions]);
+
+  // 🔥 NEW: Session for Ghost Mode
+  const lastSessionForRoutine = useMemo(() => {
+    if (!sessions || sessions.length === 0 || !routine) return null;
+    const routineSessions = sessions.filter(s => s.routineId === routine.id);
+    routineSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return routineSessions[0] || null;
+  }, [sessions, routine]);
 
   const smartRestTime = useMemo(() => {
     if (!currentExercise) return undefined;
@@ -1032,12 +1041,14 @@ export default function WorkoutPage() {
           const savedReps = actualReps[nextSet - 1];
           const savedWeight =
             workoutState.workoutData.actualWeights[exerciseId]?.[nextSet - 1];
+          const prevWeight =
+            workoutState.workoutData.actualWeights[exerciseId]?.[nextSet - 2];
 
           workoutState.setCurrentReps(
             savedReps && savedReps > 0 ? savedReps : nextSetData.reps,
           );
           workoutState.setCurrentWeight(
-            savedWeight !== undefined ? savedWeight : nextSetData.weight || 0,
+            savedWeight !== undefined && savedWeight > 0 ? savedWeight : (prevWeight !== undefined && prevWeight > 0 ? prevWeight : nextSetData.weight || 0),
           );
         }
       }
@@ -1687,8 +1698,12 @@ await updateRoutine(id, {
           workoutState.setCurrentSet(newSet);
           const nextSetData = currentExercise.sets[newSet - 1];
           if (nextSetData) {
+            const savedWeight = workoutState.workoutData.actualWeights[exerciseId]?.[newSet - 1];
+            const prevWeight = workoutState.workoutData.actualWeights[exerciseId]?.[newSet - 2];
             workoutState.setCurrentReps(nextSetData.reps);
-            workoutState.setCurrentWeight(nextSetData.weight || 0);
+            workoutState.setCurrentWeight(
+              savedWeight !== undefined && savedWeight > 0 ? savedWeight : (prevWeight !== undefined && prevWeight > 0 ? prevWeight : nextSetData.weight || 0)
+            );
           }
         }
       }
@@ -1778,8 +1793,12 @@ await updateRoutine(id, {
       workoutState.setCurrentSet(newSet);
       const nextSetData = currentExercise.sets[newSet - 1];
       if (nextSetData) {
+        const savedWeight = workoutState.workoutData.actualWeights[exerciseId]?.[newSet - 1];
+        const prevWeight = workoutState.workoutData.actualWeights[exerciseId]?.[newSet - 2];
         workoutState.setCurrentReps(nextSetData.reps);
-        workoutState.setCurrentWeight(nextSetData.weight || 0);
+        workoutState.setCurrentWeight(
+            savedWeight !== undefined && savedWeight > 0 ? savedWeight : (prevWeight !== undefined && prevWeight > 0 ? prevWeight : nextSetData.weight || 0)
+        );
       }
 
       // ✅ Iniciar preparación automáticamente después del descanso
@@ -2943,6 +2962,7 @@ await updateRoutine(id, {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.18 }}
+              className="flex flex-col gap-4 max-w-sm mx-auto"
             >
               <Timer
                 duration={timerHandlers.timerDuration}
@@ -2955,6 +2975,46 @@ await updateRoutine(id, {
                 showMotivation={true}
                 onMinimize={timerHandlers.minimizeTimer}
               />
+              
+              {/* Autorregulación por RPE (Rate of Perceived Exertion) */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-2xl border border-gray-200 dark:border-gray-700 text-center animate-fade-in-up">
+                <p className="text-sm font-bold text-gray-600 dark:text-gray-400 mb-3">¿Cómo sentiste la serie anterior?</p>
+                <div className="flex gap-2 justify-center">
+                  <button 
+                    onClick={() => {
+                      const currentW = Number(workoutState.currentWeight) || 0;
+                      const newWeight = Math.max(0, currentW + 2.5);
+                      workoutState.setCurrentWeight(newWeight);
+                      success(`💪 Fácil: Peso ajustado a ${newWeight}kg para la siguiente serie`, 3000);
+                      haptic.success();
+                    }}
+                    className="flex-1 py-2 px-1 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold border border-green-200 dark:border-green-800 active:scale-95 transition-transform"
+                  >
+                    🥱 Fácil<br/>(+2.5kg)
+                  </button>
+                  <button 
+                    onClick={() => {
+                      success(`👍 Normal: Mantenemos el peso`, 2000);
+                      haptic.success();
+                    }}
+                    className="flex-1 py-2 px-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg text-xs font-bold border border-blue-200 dark:border-blue-800 active:scale-95 transition-transform"
+                  >
+                    😐 Normal<br/>(Igual)
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const currentW = Number(workoutState.currentWeight) || 0;
+                      const newWeight = Math.max(0, currentW - 2.5);
+                      workoutState.setCurrentWeight(newWeight);
+                      success(`🔥 Difícil: Peso ajustado a ${newWeight}kg para evitar fallos`, 3000);
+                      haptic.success();
+                    }}
+                    className="flex-1 py-2 px-1 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-xs font-bold border border-red-200 dark:border-red-800 active:scale-95 transition-transform"
+                  >
+                    🥵 Difícil<br/>(-2.5kg)
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -2991,6 +3051,8 @@ await updateRoutine(id, {
               onPauseToggle={handlePauseWorkout}
               onEditTime={handleOpenEditTime}
               onOpenSoundSettings={soundSettingsModal.openSettings} // ✨ NEW: Callback para abrir configuración
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              lastSession={lastSessionForRoutine as any} // 🔥 NEW: Ghost Mode Session
             />
           </div>
           {/* Toggle entre Modo Guiado y Edición Rápida */}
@@ -3367,30 +3429,32 @@ await updateRoutine(id, {
                   </div>
                 </Button>
               ) : (
-                <Button
-                  variant="primary"
-                  onClick={() => handleCompleteSet(workoutState.currentSet)}
-                  disabled={
-                    workoutState.currentReps === "" ||
-                    workoutState.currentWeight === ""
-                  }
-                  className="w-full py-6 text-lg font-bold bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="text-2xl">✅</span>
-                  <div className="flex flex-col items-start">
-                    <span>
-                      Completar Serie{" "}
-                      {Math.min(
-                        workoutState.currentSet,
-                        currentExercise.sets.length,
-                      )}
-                    </span>
-                    <span className="text-xs font-normal opacity-90">
-                      {workoutState.currentReps} reps ×{" "}
-                      {workoutState.currentWeight}kg
-                    </span>
-                  </div>
-                </Button>
+                <div className="px-4 pb-4">
+                  <SwipeButton
+                    key={`complete-set-${workoutState.currentSet}-${currentExercise.id}`}
+                    onComplete={() => handleCompleteSet(workoutState.currentSet)}
+                    disabled={
+                      workoutState.currentReps === "" ||
+                      workoutState.currentWeight === ""
+                    }
+                    text={
+                      <div className="flex flex-col items-start leading-tight">
+                        <span className="text-[17px]">
+                          Desliza para completar serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}
+                        </span>
+                        <span className="text-xs font-normal text-white/90">
+                          {workoutState.currentReps} reps × {workoutState.currentWeight}kg
+                        </span>
+                      </div>
+                    }
+                    completedText={
+                      <div className="flex flex-col items-start leading-tight">
+                        <span className="text-[17px]">¡Completada!</span>
+                        <span className="text-xs font-normal text-white/90">Iniciando descanso...</span>
+                      </div>
+                    }
+                  />
+                </div>
               )}
             </div>
 
@@ -3403,8 +3467,22 @@ await updateRoutine(id, {
               }
               currentReps={workoutState.currentReps}
               currentWeight={workoutState.currentWeight}
-              onRepsChange={workoutState.setCurrentReps}
-              onWeightChange={workoutState.setCurrentWeight}
+              onRepsChange={(reps) => {
+                workoutState.setCurrentReps(reps);
+                if (currentExercise) {
+                  const newReps = [...(workoutState.workoutData.actualReps[currentExercise.id] || [])];
+                  newReps[workoutState.currentSet - 1] = reps === "" ? 0 : reps;
+                  workoutState.updateActualReps(currentExercise.id, newReps);
+                }
+              }}
+              onWeightChange={(weight) => {
+                workoutState.setCurrentWeight(weight);
+                if (currentExercise) {
+                  const newWeights = [...(workoutState.workoutData.actualWeights[currentExercise.id] || [])];
+                  newWeights[workoutState.currentSet - 1] = weight || 0;
+                  workoutState.updateActualWeights(currentExercise.id, newWeights);
+                }
+              }}
               onCompleteSet={() => handleCompleteSet(workoutState.currentSet)}
               onShowInfo={() => {
                 // Asegurarnos de pasar el nombre del ejercicio antes de abrir el panel
