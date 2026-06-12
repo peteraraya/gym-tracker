@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import SetTypeCycleButton from "@/components/features/workout/SetTypeCycleButton";
 import { EditValueModal } from "@/components/shared/EditValueModal";
 import { FloatingRestTimer } from "./FloatingRestTimer";
+import { SwipeButton } from "@/components/ui/SwipeButton";
 import { AddExerciseButton } from "./AddExerciseButton";
 import { useConfirm } from "@/context/NotificationContext";
 import { useToast } from "@/context/NotificationContext";
@@ -15,6 +16,7 @@ import { compareWithRecord } from "@/lib/exercises/personalRecords";
 import { PRCelebration } from "@/components/features/workout";
 import type { ExerciseTemplate } from "@/data/exercises";
 import type { SetType, Routine } from "@/types";
+import type { WorkoutSession, SessionExercise } from "../types/workout.types";
 
 interface QuickEditModeProps {
   routine: Routine;
@@ -52,7 +54,7 @@ interface QuickEditModeProps {
   onAutoAdvanceChange?: (value: boolean) => void;
   autoAdvance?: boolean;
   onShowExerciseInfo?: (exerciseName: string) => void; // ✅ NUEVO: Callback para mostrar info del ejercicio
-  sessions?: any[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
+  sessions?: WorkoutSession[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
   onAddExercises?: (exercises: ExerciseTemplate[]) => void; // Callback para agregar ejercicios durante el entrenamiento
   /** Cuando es true, no renderiza el sticky header interno (el padre lo muestra en su bloque sticky) */
   hideHeader?: boolean;
@@ -132,7 +134,10 @@ export function QuickEditMode({
   // ── TUT (Tiempo Bajo Tensión) para la serie activa en modo Quick ──────────
   const [tutElapsed, setTutElapsed] = useState(0);
   useEffect(() => {
-    if (!activeSet?.startTime) { setTutElapsed(0); return; }
+    if (!activeSet?.startTime) { 
+      setTimeout(() => setTutElapsed(0), 0); 
+      return; 
+    }
     const tick = () => setTutElapsed(Math.floor((Date.now() - activeSet.startTime) / 1000));
     tick();
     const id = setInterval(tick, 1000);
@@ -683,27 +688,30 @@ export function QuickEditMode({
   useEffect(() => {
     if (!routine || !routine.exercises) return;
 
-    setCollapsedExercises((prev) => {
-      const updated = new Set(prev);
-      let changed = false;
+    const timer = setTimeout(() => {
+      setCollapsedExercises((prev) => {
+        const updated = new Set(prev);
+        let changed = false;
 
-      for (const ex of routine.exercises) {
-        const exerciseId = ex.id;
-        const completedCount = workoutData.completedSets?.[exerciseId] || 0;
-        const isFullyCompleted = completedCount === ex.sets.length;
+        for (const ex of routine.exercises) {
+          const exerciseId = ex.id;
+          const completedCount = workoutData.completedSets?.[exerciseId] || 0;
+          const isFullyCompleted = completedCount === ex.sets.length;
 
-        if (
-          isFullyCompleted &&
-          !updated.has(exerciseId) &&
-          !manuallyExpandedExercises.has(exerciseId)
-        ) {
-          updated.add(exerciseId);
-          changed = true;
+          if (
+            isFullyCompleted &&
+            !updated.has(exerciseId) &&
+            !manuallyExpandedExercises.has(exerciseId)
+          ) {
+            updated.add(exerciseId);
+            changed = true;
+          }
         }
-      }
 
-      return changed ? updated : prev;
-    });
+        return changed ? updated : prev;
+      });
+    }, 0);
+    return () => clearTimeout(timer);
   }, [routine.exercises, workoutData.completedSets, manuallyExpandedExercises]);
 
   // Elapsed timer local para encabezado compacto (desde el montaje)
@@ -1514,7 +1522,7 @@ export function QuickEditMode({
                           ? sessions
                               .filter((s) =>
                                 s.exercises.some(
-                                  (e: any) => e.exerciseName === exercise.name,
+                                  (e: SessionExercise) => e.exerciseName === exercise.name,
                                 ),
                               )
                               .sort(
@@ -1525,7 +1533,7 @@ export function QuickEditMode({
                           : null;
 
                       const lastExerciseData = lastSession?.exercises.find(
-                        (e: any) => e.exerciseName === exercise.name,
+                        (e: SessionExercise) => e.exerciseName === exercise.name,
                       );
                       const lastReps = lastExerciseData?.actualReps?.[setIdx];
                       const lastWeight =
@@ -1803,7 +1811,8 @@ export function QuickEditMode({
 
                                       // Validar si es un nuevo récord personal
                                       if (displayWeight > 0) {
-                                        const comparison = compareWithRecord(exercise.id, displayWeight, sessions);
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        const comparison = compareWithRecord(exercise.id, displayWeight, sessions as any);
                                         if (comparison.isNewRecord && comparison.previousRecord && comparison.previousRecord > 0) {
                                           // Retrasamos la celebración un poquito para que la UI termine de actualizarse
                                           setTimeout(() => {
@@ -2078,33 +2087,101 @@ export function QuickEditMode({
         subtitle={prInfo.subtitle}
       />
 
-      {/* Footer fijo para finalizar entrenamiento (Optimizado para pulgares) */}
+      {/* Footer fijo (SwipeButton para completar serie o Finalizar entrenamiento) */}
       {onFinishWorkout && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 z-30 pb-safe">
-          <button
-            onClick={onFinishWorkout}
-            disabled={completedSets === 0}
-            className={`w-full min-h-[56px] rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-3 font-bold text-lg ${
-              completedSets === 0
-                ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                : "bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white transform hover:scale-[1.02] active:scale-95"
-            }`}
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            Finalizar Entrenamiento ({completedSets} series)
-          </button>
+          {(() => {
+            const skippedExercises = workoutData.skippedExercises || [];
+            let nextIncompleteExId: string | null = null;
+            let nextIncompleteSetIdx: number | null = null;
+            let nextIncompleteExName: string = "";
+            let nextIncompleteReps: number = 0;
+            let nextIncompleteWeight: number = 0;
+            
+            for (const ex of routine.exercises) {
+              if (skippedExercises.includes(ex.id)) continue;
+              
+              const completedCount = workoutData.completedSets?.[ex.id] || 0;
+              
+              // Buscar la primera serie que no esté completada usando la misma lógica que la UI
+              const firstIncompleteIdx = ex.sets.findIndex((_, idx) => {
+                const doneReps = workoutData.actualReps[ex.id]?.[idx];
+                const isCompleted = workoutData.completedSetFlags
+                  ? Boolean(workoutData.completedSetFlags[ex.id]?.[idx])
+                  : typeof doneReps === 'number' && doneReps > 0;
+                return !isCompleted;
+              });
+              
+              if (firstIncompleteIdx !== -1) {
+                nextIncompleteExId = ex.id;
+                nextIncompleteSetIdx = firstIncompleteIdx;
+                nextIncompleteExName = ex.name;
+                nextIncompleteReps = workoutData.actualReps[ex.id]?.[firstIncompleteIdx] || ex.sets[firstIncompleteIdx].reps || 0;
+                nextIncompleteWeight = workoutData.actualWeights[ex.id]?.[firstIncompleteIdx] || ex.sets[firstIncompleteIdx].weight || 0;
+                break;
+              } else if (completedCount < ex.sets.length) {
+                // Fallback por si hay discrepancia entre completedSets y los flags individuales
+                nextIncompleteExId = ex.id;
+                nextIncompleteSetIdx = completedCount;
+                nextIncompleteExName = ex.name;
+                nextIncompleteReps = workoutData.actualReps[ex.id]?.[completedCount] || ex.sets[completedCount].reps || 0;
+                nextIncompleteWeight = workoutData.actualWeights[ex.id]?.[completedCount] || ex.sets[completedCount].weight || 0;
+                break;
+              }
+            }
+
+            if (nextIncompleteExId !== null && nextIncompleteSetIdx !== null) {
+              return (
+                <SwipeButton
+                  key={`quick-swipe-${nextIncompleteExId}-${nextIncompleteSetIdx}`}
+                  onComplete={() => onToggleSetComplete(nextIncompleteExId!, nextIncompleteSetIdx!, true)}
+                  disabled={!nextIncompleteReps || !nextIncompleteWeight}
+                  text={
+                    <div className="flex flex-col items-start leading-tight">
+                      <span className="text-[16px] truncate max-w-[250px]">
+                        {nextIncompleteExName}
+                      </span>
+                      <span className="text-[14px]">
+                        Completar serie {nextIncompleteSetIdx + 1}
+                      </span>
+                    </div>
+                  }
+                  completedText={
+                    <div className="flex flex-col items-start leading-tight">
+                      <span className="text-[17px]">¡Completada!</span>
+                    </div>
+                  }
+                />
+              );
+            }
+
+            return (
+              <button
+                onClick={onFinishWorkout}
+                disabled={completedSets === 0}
+                className={`w-full min-h-[56px] rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-3 font-bold text-lg ${
+                  completedSets === 0
+                    ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                    : "bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white transform hover:scale-[1.02] active:scale-95"
+                }`}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Finalizar Entrenamiento ({completedSets} series)
+              </button>
+            );
+          })()}
         </div>
       )}
 
