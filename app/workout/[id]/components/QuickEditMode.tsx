@@ -15,8 +15,8 @@ import { useToast } from "@/context/NotificationContext";
 import { compareWithRecord } from "@/lib/exercises/personalRecords";
 import { PRCelebration } from "@/components/features/workout";
 import type { ExerciseTemplate } from "@/data/exercises";
-import type { SetType, Routine } from "@/types";
-import type { WorkoutSession, SessionExercise } from "../types/workout.types";
+import type { SetType, Routine, WorkoutSession } from "@/types";
+import type { SessionExercise } from "../types/workout.types";
 
 interface QuickEditModeProps {
   routine: Routine;
@@ -482,27 +482,11 @@ export function QuickEditMode({
     setTempValue("");
   };
 
-  // Función para cancelar edición (ahora también guarda si hay cambios)
+  // Función para cancelar edición (cierra el modal sin sobreescribir con valores obsoletos)
   const cancelEdit = () => {
     // Limpiar timer de auto-cierre
     if (autoCloseTimerRef.current) {
       clearTimeout(autoCloseTimerRef.current);
-    }
-
-    // Si hay un valor válido, guardarlo antes de cerrar
-    if (editingCell && tempValue) {
-      const value =
-        editingCell.field === "reps"
-          ? parseInt(tempValue)
-          : parseFloat(tempValue);
-
-      if (!isNaN(value) && value >= 0) {
-        if (editingCell.field === "reps") {
-          onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
-        } else {
-          onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
-        }
-      }
     }
 
     setEditingCell(null);
@@ -1522,7 +1506,8 @@ export function QuickEditMode({
                           ? sessions
                               .filter((s) =>
                                 s.exercises.some(
-                                  (e: SessionExercise) => e.exerciseName === exercise.name,
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                  (e: any) => e.exerciseName === exercise.name,
                                 ),
                               )
                               .sort(
@@ -1533,7 +1518,8 @@ export function QuickEditMode({
                           : null;
 
                       const lastExerciseData = lastSession?.exercises.find(
-                        (e: SessionExercise) => e.exerciseName === exercise.name,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (e: any) => e.exerciseName === exercise.name,
                       );
                       const lastReps = lastExerciseData?.actualReps?.[setIdx];
                       const lastWeight =
@@ -1720,11 +1706,11 @@ export function QuickEditMode({
                                 }}
                                 disabled={isSkipped}
                                 className={`w-10 h-11 rounded-lg flex items-center justify-center ${
-                                  (SET_TYPE_INFO as any)[setType]?.color || 'bg-gray-200'
+                                  SET_TYPE_INFO[setType as SetType]?.color || 'bg-gray-200'
                                 }`}
-                                title={`Tipo: ${(SET_TYPE_INFO as any)[setType]?.label || setType}`}
+                                title={`Tipo: ${SET_TYPE_INFO[setType as SetType]?.label || setType}`}
                               >
-                                <span className="text-base">{(SET_TYPE_INFO as any)[setType]?.icon ?? '•'}</span>
+                                <span className="text-base">{SET_TYPE_INFO[setType as SetType]?.icon ?? '•'}</span>
                               </button>
                             </div>
 
@@ -1811,8 +1797,7 @@ export function QuickEditMode({
 
                                       // Validar si es un nuevo récord personal
                                       if (displayWeight > 0) {
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        const comparison = compareWithRecord(exercise.id, displayWeight, sessions as any);
+                                        const comparison = compareWithRecord(exercise.id, displayWeight, sessions);
                                         if (comparison.isNewRecord && comparison.previousRecord && comparison.previousRecord > 0) {
                                           // Retrasamos la celebración un poquito para que la UI termine de actualizarse
                                           setTimeout(() => {
@@ -2192,6 +2177,11 @@ export function QuickEditMode({
         title={getEditingCellTitle()}
         field={editingCell?.field ?? "reps"}
         currentValue={editingCell?.currentValue ?? ""}
+        equipment={
+          editingCell
+            ? routine.exercises.find((ex) => ex.id === editingCell.exerciseId)?.equipment
+            : undefined
+        }
         onSave={(value) => {
           if (!editingCell) return;
           if (editingCell.field === "reps") {
