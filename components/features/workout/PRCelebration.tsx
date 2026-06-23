@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy } from '@/components/icons/lucide';
 import { soundManager } from '@/lib/audio/soundSystem';
@@ -43,6 +43,12 @@ export const PRCelebration: React.FC<{
   title?: string;
   subtitle?: string;
 }> = ({ show, onComplete, title = '¡Nuevo Récord!', subtitle = 'Superaste tu marca anterior' }) => {
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, []); 
+
   useEffect(() => {
     if (show) {
       try {
@@ -51,12 +57,12 @@ export const PRCelebration: React.FC<{
       } catch {}
 
       const t = setTimeout(() => {
-        onComplete();
+        onCompleteRef.current();
       }, 3000); // Se oculta en 3 segundos
 
       return () => clearTimeout(t);
     }
-  }, [show, onComplete]);
+  }, [show]);
 
   return (
     <AnimatePresence>
