@@ -52,37 +52,70 @@ export async function PUT(
       return NextResponse.json({ error: routineError.message }, { status: 500 })
     }
 
-    // Delete existing exercises
-    const { error: deleteError } = await supabase.from('exercises').delete().eq('routine_id', id)
-    
-    if (deleteError) {
-      console.error('[Routines API] PUT - Delete exercises error:', deleteError)
-      return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    // Update exercises (diff-based)
+    // 1. Obtener los ejercicios actuales
+    const { data: existingExercises, error: fetchError } = await supabase
+      .from('exercises')
+      .select('id')
+      .eq('routine_id', id)
+
+    if (fetchError) {
+      console.error('[Routines API] PUT - Fetch existing exercises error:', fetchError)
+      return NextResponse.json({ error: fetchError.message }, { status: 500 })
     }
 
-    // Create new exercises
-    if (exercises && exercises.length > 0) {
-      const exercisesData = exercises.map((ex: any, index: number) => ({
-        routine_id: id,
-        name: ex.name,
-        sets_data: ex.sets, // Array de objetos {reps, weight}
-        equipment: ex.equipment,
-        notes: ex.notes,
-        order_index: index,
-        // Valores por defecto para compatibilidad con columnas antiguas
-        sets: ex.sets?.length || 0,
-        reps: ex.sets?.[0]?.reps || 0,
-        weight: ex.sets?.[0]?.weight || 0
-      }))
+    const existingIds = existingExercises.map(ex => ex.id)
+    const incomingExercises = exercises || []
+    const incomingIds = incomingExercises.map((ex: Record<string, unknown>) => ex.id).filter(Boolean)
 
-      // console.log('[Routines API] PUT - Inserting exercises:', JSON.stringify(exercisesData[0], null, 2))
+    // 2. Eliminar los ejercicios que ya no están
+    const idsToDelete = existingIds.filter(existingId => !incomingIds.includes(existingId))
+    if (idsToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('exercises')
+        .delete()
+        .in('id', idsToDelete)
+        
+      if (deleteError) {
+        console.error('[Routines API] PUT - Delete exercises error:', deleteError)
+        return NextResponse.json({ error: deleteError.message }, { status: 500 })
+      }
+    }
+
+    // 3. Upsert de los ejercicios entrantes (crear nuevos y actualizar existentes)
+    if (incomingExercises.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const exercisesData = incomingExercises.map((ex: any, index: number) => {
+        const payload: Record<string, unknown> = {
+          routine_id: id,
+          name: ex.name,
+          sets_data: ex.sets, // Array de objetos {reps, weight}
+          equipment: ex.equipment,
+          notes: ex.notes,
+          order_index: index,
+          // Valores por defecto para compatibilidad con columnas antiguas
+          sets: ex.sets?.length || 0,
+          reps: ex.sets?.[0]?.reps || 0,
+          weight: ex.sets?.[0]?.weight || 0
+        }
+        
+        // Solo incluimos el ID si es un UUID válido.
+        // Si es un ID temporal generado por el cliente (ej: "exercise_12345"),
+        // lo ignoramos para que Supabase genere un nuevo UUID válido al insertar.
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ex.id || '');
+        if (ex.id && isUUID) {
+          payload.id = ex.id
+        }
+        
+        return payload
+      })
 
       const { error: exercisesError } = await supabase
         .from('exercises')
-        .insert(exercisesData)
+        .upsert(exercisesData, { onConflict: 'id' })
 
       if (exercisesError) {
-        console.error('[Routines API] PUT - Exercises insert error:', exercisesError)
+        console.error('[Routines API] PUT - Exercises upsert error:', exercisesError)
         return NextResponse.json({ error: exercisesError.message }, { status: 500 })
       }
     }

@@ -1,6 +1,5 @@
-'use client';
-
-import { useState } from 'react';
+import { Metadata } from 'next';
+import Link from 'next/link';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import OneRMCalculator from '@/components/features/calculators/OneRMCalculator';
 import PlateCalculator from '@/components/features/calculators/PlateCalculator';
@@ -29,13 +28,21 @@ import {
   TrendingUp,
   Trophy,
   Activity
-} from '@/components/icons/lucide';
+} from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Calculadoras | Gym Tracker',
+  description: 'Calculadoras de entrenamiento y composición corporal',
+};
 
 type CalculatorType = '1rm' | 'plates' | 'units' | 'tdee' | 'percentage' | 'volume' | 'rest' | 'bmi' | 'calories' | 'progression' | 'wilks' | 'tempo' | null;
 
-export default function CalculatorsPage() {
-  const [selectedCalculator, setSelectedCalculator] = useState<CalculatorType>(null);
-  const [category, setCategory] = useState<'all' | 'strength' | 'body' | 'planning'>('all');
+export default async function CalculatorsPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const searchParams = await props.searchParams;
+  const selectedCalculator = (typeof searchParams.calc === 'string' ? searchParams.calc : null) as CalculatorType;
+  const category = (typeof searchParams.cat === 'string' ? searchParams.cat : 'all') as 'all' | 'strength' | 'body' | 'planning';
 
   const calculators = [
     // Fuerza y Rendimiento
@@ -183,14 +190,15 @@ export default function CalculatorsPage() {
           {/* Header */}
           <div className="flex items-center gap-4">
             {selectedCalculator && (
-              <Button
-                variant="ghost"
-                onClick={() => setSelectedCalculator(null)}
-                className="gap-2 hover:bg-white/50 dark:hover:bg-gray-800/50"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Volver
-              </Button>
+              <Link href={`?cat=${category}`} scroll={false}>
+                <Button
+                  variant="ghost"
+                  className="gap-2 hover:bg-white/50 dark:hover:bg-gray-800/50 pointer-events-none"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Volver
+                </Button>
+              </Link>
             )}
           </div>
 
@@ -233,21 +241,21 @@ export default function CalculatorsPage() {
               {/* Categorías */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategory(cat.id as any)}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold transition-all whitespace-nowrap text-sm ${
-                      category === cat.id
-                        ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md'
-                    }`}
-                  >
-                    <span>{cat.emoji}</span>
-                    <span>{cat.name}</span>
-                    <span className="text-xs opacity-75">
-                      ({calculators.filter(c => cat.id === 'all' || c.category === cat.id).length})
-                    </span>
-                  </button>
+                  <Link key={cat.id} href={`?cat=${cat.id}`} scroll={false}>
+                    <button
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold transition-all whitespace-nowrap text-sm ${
+                        category === cat.id
+                          ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md'
+                      }`}
+                    >
+                      <span>{cat.emoji}</span>
+                      <span>{cat.name}</span>
+                      <span className="text-xs opacity-75">
+                        ({calculators.filter(c => cat.id === 'all' || c.category === cat.id).length})
+                      </span>
+                    </button>
+                  </Link>
                 ))}
               </div>
 
@@ -256,10 +264,11 @@ export default function CalculatorsPage() {
                 {filteredCalculators.map((calc) => {
                   const Icon = calc.icon;
                   return (
-                    <button
+                    <Link
                       key={calc.id}
-                      onClick={() => setSelectedCalculator(calc.id)}
-                      className={`group relative overflow-hidden bg-linear-to-br ${calc.bgColor} border-2 ${calc.borderColor} rounded-2xl p-4 text-left hover:shadow-xl transition-all duration-300 hover:scale-102 hover:-translate-y-0.5`}
+                      href={`?cat=${category}&calc=${calc.id}`}
+                      scroll={false}
+                      className={`group relative overflow-hidden bg-linear-to-br ${calc.bgColor} border-2 ${calc.borderColor} rounded-2xl p-4 text-left hover:shadow-xl transition-all duration-300 hover:scale-102 hover:-translate-y-0.5 block w-full`}
                     >
                       <div className="relative z-10">
                         <div className={`inline-flex p-3 rounded-xl bg-linear-to-br ${calc.color} mb-3 shadow-md group-hover:scale-110 transition-transform`}>
@@ -276,7 +285,7 @@ export default function CalculatorsPage() {
                         </div>
                       </div>
                       <div className="absolute inset-0 bg-linear-to-br from-white/50 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
+                    </Link>
                   );
                 })}
               </div>

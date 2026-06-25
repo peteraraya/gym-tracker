@@ -742,7 +742,7 @@ export function QuickEditMode({
 
       {/* Header compacto - sticky (omitido cuando hideHeader=true, el padre lo gestiona) */}
       {!hideHeader && (
-      <div className="bg-linear-to-r from-blue-600 to-violet-600 text-white px-3 py-2.5 rounded-b-xl shadow-lg sticky top-0 z-10">
+      <div className="bg-linear-to-r from-blue-600 to-violet-600 text-white px-3 py-2.5 rounded-b-xl shadow-lg sticky top-16 z-30">
         <div className="flex items-center gap-2">
 
           {/* Título + tiempo */}
