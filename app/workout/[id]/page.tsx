@@ -449,15 +449,6 @@ export default function WorkoutPage() {
           title={state.prInfo.title}
           subtitle={state.prInfo.subtitle}
         />
-
-        <AnimatePresence>
-          {state.completion.completeSplash && (
-            <WorkoutCompleteSplash
-              {...state.completion.completeSplash}
-              onComplete={state.completion.onCompleteSplashDone}
-            />
-          )}
-        </AnimatePresence>
       </div>
     </ProtectedRoute>
   );

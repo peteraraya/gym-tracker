@@ -39,6 +39,7 @@ export function useWorkoutCompletion({
   const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
   const [completeSplash, setCompleteSplash] = useState<CompleteSplashStats | null>(null);
   const [pendingNavigate, setPendingNavigate] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // ✨ Usar el nuevo sistema de logros
   const achievementManager = useAchievementManager();
@@ -77,8 +78,7 @@ export function useWorkoutCompletion({
       if (!confirmed) return;
     }
 
-    // Cerrar el modal antes de procesar para que no reaparezca tras el splash
-    setShowNotesModal(false);
+    setIsSaving(true);
 
     // Calculate total volume
     let totalVolume = 0;
@@ -192,6 +192,10 @@ export function useWorkoutCompletion({
 
       onSuccess('Sesión guardada exitosamente');
 
+      // Cerrar el modal antes del splash
+      setShowNotesModal(false);
+      setIsSaving(false);
+
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Mostrar splash de completación antes de navegar
@@ -219,6 +223,9 @@ export function useWorkoutCompletion({
           console.error('Error clearing active workout after local save fallback:', e);
         }
 
+        setShowNotesModal(false);
+        setIsSaving(false);
+
         await new Promise(resolve => setTimeout(resolve, 100));
         setCompleteSplash({
           routineName: routine?.name || 'Entrenamiento',
@@ -232,6 +239,7 @@ export function useWorkoutCompletion({
       } catch (localErr) {
         console.error('Error saving session locally as fallback:', localErr);
         onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
+        setIsSaving(false);
         return;
       }
     }
@@ -264,6 +272,7 @@ export function useWorkoutCompletion({
     openCompletionModal,
     finishWorkout,
     completeSplash,
+    isSaving,
     onCompleteSplashDone: useCallback(() => {
       setCompleteSplash(null);
       // El splash solo aparece tras completar exitosamente → siempre navegar a /sessions
