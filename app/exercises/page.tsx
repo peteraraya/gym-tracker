@@ -11,6 +11,7 @@ import {
   WarmupCategory,
 } from "@/data/warmupExercises";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { MuscleGroupIcon } from "@/components/icons/MuscleGroupIcons";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { ExercisesClientList } from "./ExercisesClientList";
 import { ExercisesFilters } from "./ExercisesFilters";
@@ -110,15 +111,8 @@ export default async function ExercisesPage(props: {
                     >
                       <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       
-                      <div className="relative z-10 text-4xl mb-3 group-hover:scale-110 transition-transform duration-300 text-blue-500 dark:text-blue-400">
-                        {muscle.id === "pecho" && "💪"}
-                        {muscle.id === "espalda" && "🏋️"}
-                        {muscle.id === "piernas" && "🦵"}
-                        {muscle.id === "hombros" && "🤷"}
-                        {muscle.id === "biceps" && "🦾"}
-                        {muscle.id === "triceps" && "🦾"}
-                        {muscle.id === "core" && "🎯"}
-                        {muscle.id === "cardio" && "🏃"}
+                      <div className="relative z-10 mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <MuscleGroupIcon muscleGroup={muscle.id} size={56} className="text-blue-500 dark:text-blue-400" />
                       </div>
                       
                       <span className="relative z-10 text-base font-bold text-gray-900 dark:text-gray-100 text-center mb-2">
