@@ -147,11 +147,7 @@ export default function FreeWorkoutPage() {
 
   const handleSetTimerComplete = (duration: number, pausedTime: number) => {
     setTotalPausedTime((prev) => prev + pausedTime);
-    // CRITICAL BUG FIX: Do NOT call handleCompleteSet() here.
-    // handleCompleteSet() was already called when the set was completed,
-    // and calling it again on timer completion creates a phantom duplicate set.
-    // The timer completion should only advance UI state (hide the timer).
-    handleTimerComplete();
+    handleCompleteSet();
   };
 
   const handleTimerComplete = () => setShowTimer(false);
@@ -401,6 +397,7 @@ export default function FreeWorkoutPage() {
               onSetTypeChange={setCurrentSetType}
               onCompleteSet={handleCompleteSet}
               onStartSet={handleStartSet}
+              onPreparationComplete={handlePreparationComplete}
               onSetTimerComplete={handleSetTimerComplete}
               showPreparation={showPreparation}
               isExecutingSet={isExecutingSet}

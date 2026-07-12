@@ -530,21 +530,28 @@ export const Timer: React.FC<TimerProps> = ({
 
             {/* Botones principales - Centrados y espaciados */}
             <div className="flex items-center justify-center gap-3">
-              <Button
-                variant={isRunning ? 'secondary' : 'primary'}
-                onClick={handleStartPause}
-                size="lg"
-                className="px-8 py-3 text-base font-semibold flex items-center justify-center gap-2"
-              >
-                {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                <span>{isRunning ? 'Pausar' : 'Iniciar'}</span>
-              </Button>
+              <div className="relative group">
+                {!isRunning && <div className="absolute -inset-1 bg-blue-400/30 rounded-lg blur-md group-hover:bg-blue-400/50 transition-all duration-300"></div>}
+                <Button
+                  variant={isRunning ? 'secondary' : 'primary'}
+                  onClick={handleStartPause}
+                  size="lg"
+                  className={`relative px-8 py-3 text-base font-bold flex items-center justify-center gap-2 transition-all ${
+                    isRunning 
+                      ? 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700' 
+                      : 'bg-blue-600 hover:bg-blue-500 shadow-lg transform group-hover:scale-105'
+                  }`}
+                >
+                  {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  <span>{isRunning ? 'Pausar' : 'Iniciar'}</span>
+                </Button>
+              </div>
               
               <Button
                 variant="secondary"
                 onClick={handleSkip}
                 size="lg"
-                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-2"
+                className="px-8 py-3 text-base font-semibold bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white flex items-center gap-2 shadow-md transition-all hover:scale-105 border-0"
               >
                 <ArrowRight className="w-5 h-5" />
                 <span>Saltar</span>
@@ -552,26 +559,29 @@ export const Timer: React.FC<TimerProps> = ({
             </div>
           </>
         ) : (
-          <div className="space-y-2">
-            <Button 
-              variant="primary" 
-              onClick={() => { 
-                if (onComplete && !onCompleteCalledRef.current) {
-                  onCompleteCalledRef.current = true;
-                  onComplete();
-                }
-              }} 
-              size="lg" 
-              className="w-full py-4 text-lg font-bold flex items-center justify-center gap-2"
-            >
-              <Check className="w-5 h-5" />
-              <span>Continuar</span>
-            </Button>
+          <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="relative group z-10">
+              <div className="absolute -inset-1 bg-green-400/40 rounded-xl blur-md group-hover:bg-green-400/60 transition-all duration-300 animate-pulse pointer-events-none -z-10"></div>
+              <Button 
+                variant="primary" 
+                onClick={() => { 
+                  if (onComplete && !onCompleteCalledRef.current) {
+                    onCompleteCalledRef.current = true;
+                    onComplete();
+                  }
+                }} 
+                size="lg" 
+                className="relative w-full py-4 text-xl font-black bg-green-500 hover:bg-green-600 text-white flex items-center justify-center gap-2 shadow-xl transform transition-all group-hover:scale-[1.02] active:scale-95 border border-green-400"
+              >
+                <Check className="w-6 h-6" />
+                <span>Continuar</span>
+              </Button>
+            </div>
             <Button 
               variant="ghost" 
               onClick={handleReset} 
               size="lg" 
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
               <span>Más descanso</span>
