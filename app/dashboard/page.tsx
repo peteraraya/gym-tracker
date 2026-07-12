@@ -34,6 +34,7 @@ import { useValidSessions } from "@/hooks/useValidSessions";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { StatsGrid, EmptyStateCard } from "@/components/shared";
 import { StatCard } from "@/components/shared/StatsGrid";
+import { motion } from "framer-motion";
 
 // Lazy loaded components
 import {
@@ -275,6 +276,11 @@ export default function DashboardPage() {
 
       <PageContent>
         {/* Stats Cards Grid */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
         <StatsGrid className="mb-6 p-4">
           <StatCard
             title={t("statsCards.totalSessions")}
@@ -327,8 +333,14 @@ export default function DashboardPage() {
             loading={sessionsLoading}
           />
         </StatsGrid>
+        </motion.div>
 
         {/* Volume Chart */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -351,8 +363,11 @@ export default function DashboardPage() {
           </div>
         </div>
         <LazyErrorBoundary>
-          <VolumeChart sessions={validSessions} period={period} />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-2">
+            <VolumeChart sessions={validSessions} period={period} />
+          </div>
         </LazyErrorBoundary>
+        </motion.div>
 
         {/* Activity Heatmap */}
         <div>

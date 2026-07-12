@@ -29,6 +29,7 @@ import type { Routine } from "@/types";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
+import Link from 'next/link';
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
@@ -743,9 +744,9 @@ function WeeklyScheduleEditor({
       {routines.length === 0 && (
         <p className="text-xs text-gray-400 text-center py-2">
           Aún no tienes rutinas.{" "}
-          <a href="/routines" className="text-blue-500 underline">
+          <Link href="/routines" className="text-blue-500 underline">
             Crea una rutina
-          </a>{" "}
+          </Link>{" "}
           primero.
         </p>
       )}
@@ -1006,7 +1007,7 @@ export default function PlanningPage() {
   // Al hidratar y si existe un mesociclo activo, seleccionar automáticamente
   // el mesociclo activo y posicionar en la semana actual.
   // Inicialización post-hidratación: sin riesgo de loop (selectedMesoId se asigna solo si es null)
-  /* eslint-disable react-hooks/set-state-in-effect */
+   
   useEffect(() => {
     if (!planning.hydrated) return;
     if (planning.activeMesocycle && !selectedMesoId) {
@@ -1015,7 +1016,7 @@ export default function PlanningPage() {
       setSelectedWeek(cw?.weekNumber ?? 1);
     }
   }, [planning.hydrated, planning.activeMesocycle?.id, planning.getCurrentWeekPlan]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+   
 
   return (
     <ProtectedRoute>

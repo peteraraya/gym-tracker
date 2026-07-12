@@ -12,6 +12,7 @@ import {
 } from "@/data/warmupExercises";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { MuscleGroupIcon } from "@/components/icons/MuscleGroupIcons";
+import Link from 'next/link';
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { ExercisesClientList } from "./ExercisesClientList";
 import { ExercisesFilters } from "./ExercisesFilters";
@@ -103,7 +104,7 @@ export default async function ExercisesPage(props: {
                   const warmupCount = getWarmupsByMuscleGroup(muscle.id).length;
                   
                   return (
-                    <a
+                    <Link
                       key={muscle.id}
                       href={`?muscle=${muscle.id}`}
                       className="group relative flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
@@ -130,7 +131,7 @@ export default async function ExercisesPage(props: {
                           </span>
                         )}
                       </div>
-                    </a>
+                    </Link>
                   );
                 })}
               </div>
