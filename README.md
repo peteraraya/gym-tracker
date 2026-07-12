@@ -7,6 +7,7 @@ Una aplicación web moderna y completa para el seguimiento de entrenamientos en 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-green)
+[![CI Pipeline](https://github.com/peteraraya/gym-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/peteraraya/gym-tracker/actions/workflows/ci.yml)
 
 ## 📋 Descripción del Proyecto
 
@@ -75,7 +76,7 @@ Antes de comenzar, asegúrate de tener instalado:
      NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
      ```
 
-4. **Ejecutar la aplicación**
+4. **Ejecutar la aplicación (Local)**
    ```bash
    # Desarrollo
    npm run dev
@@ -84,6 +85,18 @@ Antes de comenzar, asegúrate de tener instalado:
    npm run build
    npm start
    ```
+
+### 🐳 Despliegue rápido con Docker
+
+Si prefieres no instalar dependencias localmente, puedes levantar la aplicación lista para producción usando Docker:
+
+```bash
+# Construir y levantar el contenedor en segundo plano
+docker-compose up -d --build
+
+# Para detener los contenedores
+docker-compose down
+```
 
 La aplicación estará disponible en [http://localhost:3000](http://localhost:3000)
 

@@ -240,7 +240,7 @@ export const Timer: React.FC<TimerProps> = ({
   // ✨ NEW: Efecto mejorado para notificaciones y sonidos al completar
   useEffect(() => {
     if (isCompleted) {
-      setAriaMessage("Descanso completado. Prepárate.");
+      setTimeout(() => setAriaMessage("Descanso completado. Prepárate."), 0);
       
       // Mostrar notificación de completado
       if (notificationPermission) {
@@ -255,13 +255,23 @@ export const Timer: React.FC<TimerProps> = ({
       soundManager.playRestCompleteSound().catch(error => {
         console.warn('Error reproduciendo sonido:', error);
       });
+      
+      // Feedback háptico (vibración)
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          // Patrón: vibración corta, pausa, vibración corta, pausa, vibración larga
+          navigator.vibrate([200, 100, 200, 100, 500]);
+        } catch (e) {
+          // Ignorar si falla
+        }
+      }
     }
   }, [isCompleted, notificationPermission, nextExerciseName, title, plannedDuration]);
 
   // Anunciar inicio
   useEffect(() => {
     if (isRunning && timeLeft === plannedDuration) {
-      setAriaMessage(`Descanso de ${plannedDuration} segundos iniciado.`);
+      setTimeout(() => setAriaMessage(`Descanso de ${plannedDuration} segundos iniciado.`), 0);
     }
   }, [isRunning, timeLeft, plannedDuration]);
 

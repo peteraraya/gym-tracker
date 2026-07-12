@@ -123,7 +123,8 @@ export function SeriesTable({
               {exercise.sets.map((set, idx) => {
                 const setType = setTypes[idx] || 'normal';
                 const doneReps = actualReps[idx] ?? null;
-                const doneWeight = actualWeights[idx] ?? set.weight ?? '';
+                const previousWeight = idx > 0 ? (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) : undefined;
+                const doneWeight = actualWeights[idx] ?? set.weight ?? previousWeight ?? '';
                 // Usar flag explícito de completado si está disponible;
                 // solo activado al pulsar el botón naranja.
                 const isCompleted = completedSetFlags
@@ -299,7 +300,8 @@ export function SeriesTable({
             <tbody>
               {exercise.sets.map((set, idx) => {
                 const doneReps = actualReps[idx] ?? null;
-                const doneWeight = actualWeights[idx] ?? set.weight ?? '';
+                const previousWeight = idx > 0 ? (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) : undefined;
+                const doneWeight = actualWeights[idx] ?? set.weight ?? previousWeight ?? '';
                 const setType = setTypes[idx] || 'normal';
                 // Usar flag explícito de completado si está disponible;
                 // solo activado al pulsar el botón naranja.
