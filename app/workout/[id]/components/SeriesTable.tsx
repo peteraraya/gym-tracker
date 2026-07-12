@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { NumericInput } from '@/components/ui/NumericInput';
 import { WeightSelector } from '@/components/features/workout/WeightSelector';
+import { EditValueModal } from '@/components/shared/EditValueModal';
 import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
 import SetTypeCycleButton from '@/components/features/workout/SetTypeCycleButton';
 import { Plus } from '@/components/icons/lucide';
@@ -73,6 +74,27 @@ export function SeriesTable({
   const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
   // ✅ State for mobile editing - one state for all sets
   const [mobileEditingField, setMobileEditingField] = useState<{setIndex: number, field: 'reps' | 'weight'} | null>(null);
+  
+  // State for EditValueModal
+  const [modalEditState, setModalEditState] = useState<{
+    setIndex: number;
+    field: 'reps' | 'weight';
+    currentValue: number | '';
+  } | null>(null);
+  const [weightHistory, setWeightHistory] = React.useState<number[]>([]);
+  
+  React.useEffect(() => {
+    if (exerciseId) {
+      try {
+        const stored = localStorage.getItem(`weight-history-${exerciseId}`);
+        if (stored) {
+          setWeightHistory(JSON.parse(stored) as number[]);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [exerciseId]);
 
   // Mostrar series completadas basadas en el contador explícito `completedSets`.
   // Como fallback, usar el cálculo por `actualReps` si `completedSets` no está disponible.
@@ -150,54 +172,29 @@ export function SeriesTable({
                       </div>
                       <div className="flex items-center gap-1 min-w-0">
                         {/* Reps - clickable */}
-                        {isEditingReps ? (
-                          <NumericInput
-                            value={doneReps ?? set.reps}
-                            onChange={(v) => onEditReps(idx, v)}
-                            onBlur={() => setMobileEditingField(null)}
-                            onKeyDown={(e) => (e as React.KeyboardEvent).key === 'Enter' && setMobileEditingField(null)}
-                            autoFocus
-                            className="w-10 px-1 py-0.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-semibold border border-blue-500 text-center"
-                          />
-                        ) : (
-                          <button
-                            onClick={() => setMobileEditingField({setIndex: idx, field: 'reps'})}
-                            className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
-                          >
-                            {doneReps ?? set.reps}
-                          </button>
-                        )}
+                        <button
+                          onClick={() => setModalEditState({setIndex: idx, field: 'reps', currentValue: doneReps ?? set.reps})}
+                          className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
+                        >
+                          {doneReps ?? set.reps}
+                        </button>
                         <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">reps ×</span>
                         
-                        {/* Weight - using WeightSelector */}
-                        {isEditingWeight ? (
-                          <div className="w-14">
-                            <WeightSelector
-                              value={doneWeight || set.weight || 0}
-                              onChange={(weight) => {
-                                onEditWeight(idx, weight);
-                                setMobileEditingField(null);
-                              }}
-                              exerciseId={exerciseId}
-                              className="text-xs py-0.5"
-                            />
-                          </div>
-                        ) : (
-                          <div>
-                            <button
-                              onClick={() => setMobileEditingField({setIndex: idx, field: 'weight'})}
-                              className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
-                            >
-                              {doneWeight || set.weight || 0}
-                            </button>
-                            {/* Hint cuando no hay peso (simplificado) */}
-                            {!(typeof doneWeight === 'number' && doneWeight > 0) && (
-                              <div className="mt-1 text-[11px] text-gray-500">
-                                <span>Toca para editar el peso</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {/* Weight - clickable */}
+                        <div>
+                          <button
+                            onClick={() => setModalEditState({setIndex: idx, field: 'weight', currentValue: doneWeight || set.weight || 0})}
+                            className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
+                          >
+                            {doneWeight || set.weight || 0}
+                          </button>
+                          {/* Hint cuando no hay peso (simplificado) */}
+                          {!(typeof doneWeight === 'number' && doneWeight > 0) && (
+                            <div className="mt-1 text-[11px] text-gray-500">
+                              <span>Toca para editar el peso</span>
+                            </div>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">kg</span>
                       </div>
                     </div>
@@ -568,6 +565,25 @@ export function SeriesTable({
         </button>
         </div>
       </CardContent>
+      <EditValueModal
+        isOpen={modalEditState !== null}
+        onClose={() => setModalEditState(null)}
+        title={`${exercise.name} · Serie ${modalEditState ? modalEditState.setIndex + 1 : ''}`}
+        field={modalEditState?.field || 'reps'}
+        currentValue={modalEditState?.currentValue ?? ''}
+        onSave={(v) => {
+          if (modalEditState) {
+            if (modalEditState.field === 'reps') {
+              onEditReps(modalEditState.setIndex, v);
+            } else {
+              onEditWeight(modalEditState.setIndex, v);
+            }
+          }
+          setModalEditState(null);
+        }}
+        equipment={exercise.equipment}
+        historicalWeights={weightHistory}
+      />
     </Card>
   );
 }

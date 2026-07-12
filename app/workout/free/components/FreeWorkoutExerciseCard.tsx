@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { NumericInput } from '@/components/ui/NumericInput';
 import { WeightSelector } from '@/components/features/workout/WeightSelector';
+import { EditValueModal } from '@/components/shared/EditValueModal';
 import { SetTimer } from '@/components/features/workout/SetTimer';
 import { PreparationCountdown } from '@/components/features/workout/PreparationCountdown';
 import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
@@ -53,6 +54,27 @@ export function FreeWorkoutExerciseCard({
   onDeleteSet,
   onToggleSetChecked,
 }: FreeWorkoutExerciseCardProps) {
+  const [modalEditState, setModalEditState] = React.useState<{
+    setIndex: number; // -1 para actual, 0+ para completadas
+    field: 'reps' | 'weight';
+    currentValue: number | '';
+  } | null>(null);
+
+  const [weightHistory, setWeightHistory] = React.useState<number[]>([]);
+  
+  React.useEffect(() => {
+    if (exercise.id) {
+      try {
+        const stored = localStorage.getItem(`weight-history-${exercise.id}`);
+        if (stored) {
+          setWeightHistory(JSON.parse(stored) as number[]);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [exercise.id]);
+
   return (
     <Card className="mb-4 border-2 border-orange-400 dark:border-orange-600">
       <CardHeader className="pb-3">
@@ -87,21 +109,21 @@ export function FreeWorkoutExerciseCard({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Repeticiones</label>
-            <NumericInput
-              className="px-2 py-2 border rounded-md text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={currentReps}
-              onChange={(v) => onRepsChange(Math.max(0, v))}
-              placeholder="0"
-            />
+            <button
+              onClick={() => setModalEditState({setIndex: -1, field: 'reps', currentValue: currentReps})}
+              className="w-full px-2 py-2 border rounded-md text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+            >
+              {currentReps === '' ? '0' : currentReps}
+            </button>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Peso (kg)</label>
-            <WeightSelector
-              value={currentWeight === 0 ? '' : currentWeight}
-              onChange={(weight) => onWeightChange(Math.max(0, weight))}
-              exerciseId={exercise.id}
-              placeholder="0"
-            />
+            <button
+              onClick={() => setModalEditState({setIndex: -1, field: 'weight', currentValue: currentWeight})}
+              className="w-full px-2 py-2 border rounded-md text-sm font-medium text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+            >
+              {currentWeight === '' ? '0' : currentWeight}
+            </button>
           </div>
         </div>
 
@@ -175,21 +197,21 @@ export function FreeWorkoutExerciseCard({
                   <div className="grid grid-cols-2 gap-1.5">
                     <div>
                       <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">Reps</label>
-                      <NumericInput
-                        className="p-1.5 border rounded-md text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={set.reps}
-                        onChange={(v) => onUpdateSet(exerciseIndex, i, { reps: Math.max(0, v) })}
-                      />
+                      <button
+                        onClick={() => setModalEditState({setIndex: i, field: 'reps', currentValue: set.reps})}
+                        className="w-full p-1.5 border rounded-md text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+                      >
+                        {set.reps}
+                      </button>
                     </div>
                     <div>
                       <label className="block text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">Peso (kg)</label>
-                      <WeightSelector
-                        value={set.weight}
-                        onChange={(weight) => onUpdateSet(exerciseIndex, i, { weight: Math.max(0, weight) })}
-                        exerciseId={exercise.id}
-                        placeholder="0"
-                        className="p-1.5 text-xs"
-                      />
+                      <button
+                        onClick={() => setModalEditState({setIndex: i, field: 'weight', currentValue: set.weight})}
+                        className="w-full p-1.5 border rounded-md text-xs text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+                      >
+                        {set.weight}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -222,6 +244,33 @@ export function FreeWorkoutExerciseCard({
           })()
         )}
       </CardContent>
+      <EditValueModal
+        isOpen={modalEditState !== null}
+        onClose={() => setModalEditState(null)}
+        title={`${exercise.name} · Serie ${modalEditState ? (modalEditState.setIndex === -1 ? exercise.completedSets.length + 1 : modalEditState.setIndex + 1) : ''}`}
+        field={modalEditState?.field || 'reps'}
+        currentValue={modalEditState?.currentValue ?? ''}
+        onSave={(v) => {
+          if (modalEditState) {
+            if (modalEditState.setIndex === -1) {
+              if (modalEditState.field === 'reps') {
+                onRepsChange(v);
+              } else {
+                onWeightChange(v);
+              }
+            } else {
+              if (modalEditState.field === 'reps') {
+                onUpdateSet(exerciseIndex, modalEditState.setIndex, { reps: v });
+              } else {
+                onUpdateSet(exerciseIndex, modalEditState.setIndex, { weight: v });
+              }
+            }
+          }
+          setModalEditState(null);
+        }}
+        equipment={exercise.equipment}
+        historicalWeights={weightHistory}
+      />
     </Card>
   );
 }
