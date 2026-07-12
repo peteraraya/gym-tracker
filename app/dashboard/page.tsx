@@ -66,6 +66,7 @@ export default function DashboardPage() {
 
   const { routines } = useGym();
   const validSessions = useValidSessions();
+  const { loading: sessionsLoading } = useGym();
   const exerciseNameById = useMemo(
     () =>
       new Map(
@@ -284,7 +285,7 @@ export default function DashboardPage() {
             gradientClass="from-blue-500 to-indigo-500 dark:from-blue-900/30 dark:to-indigo-900/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
 
           <StatCard
@@ -296,7 +297,7 @@ export default function DashboardPage() {
             gradientClass="from-purple-500 to-pink-500 dark:from-purple-900/30 dark:to-pink-900/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
 
           <StatCard
@@ -311,7 +312,7 @@ export default function DashboardPage() {
             gradientClass="from-orange-400 to-orange-600 dark:from-orange-900/30 dark:to-orange-800/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
 
           <StatCard
@@ -323,7 +324,7 @@ export default function DashboardPage() {
             gradientClass="from-emerald-400 to-emerald-600 dark:from-emerald-900/30 dark:to-emerald-800/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
         </StatsGrid>
 

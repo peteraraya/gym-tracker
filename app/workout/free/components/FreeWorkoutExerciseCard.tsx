@@ -9,7 +9,7 @@ import { EditValueModal } from '@/components/shared/EditValueModal';
 import { SetTimer } from '@/components/features/workout/SetTimer';
 import { PreparationCountdown } from '@/components/features/workout/PreparationCountdown';
 import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
-import { Dumbbell, Trash2 } from 'lucide-react';
+import { Dumbbell, Trash2 } from '@/components/icons/lucide';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { calculateRestBetweenSets, formatRestTime } from '@/lib/workout/restCalculator';
 import type { SetType } from '@/types';

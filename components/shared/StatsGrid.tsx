@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface StatCardProps {
   title: string;
@@ -71,10 +72,14 @@ export function StatCard({
       <div className={`absolute inset-0 bg-linear-to-br ${gradient} opacity-15 group-hover:opacity-25 transition-opacity`} />
 
       <div className="relative">
-        <CardContent className="flex items-start justify-between p-6">
+        <CardContent className="flex items-start justify-between p-6 pb-2">
           <div className="flex-1">
-            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-0.5">{title}</p>
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{loading ? '...' : value}</p>
+            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">{title}</p>
+            {loading ? (
+              <Skeleton className="h-8 w-24 mb-1" />
+            ) : (
+              <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{value}</p>
+            )}
           </div>
 
           <div className={`text-3xl p-2.5 rounded-xl bg-linear-to-br ${gradient} bg-opacity-10 group-hover:scale-110 transition-transform ${iconClass}`}>
@@ -82,20 +87,28 @@ export function StatCard({
           </div>
         </CardContent>
 
-        {subtitle && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-2 px-6">{subtitle}</p>
-        )}
-
-        {trend !== undefined && (
-          <div className="px-6 pb-4">
-            <div className="flex items-center gap-1 text-sm">
-              <span className={trendIsPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
-                {trendIsPositive ? '↗' : '↘'} {trendVal}%
-              </span>
-              <span className="text-zinc-500 dark:text-zinc-500 text-xs">vs mes anterior</span>
+        <div className="px-6 pb-6 h-12 flex flex-col justify-end">
+          {loading ? (
+            <div className="space-y-2 mt-2">
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
             </div>
-          </div>
-        )}
+          ) : (
+            <>
+              {subtitle && (
+                <p className="text-xs text-zinc-500 dark:text-zinc-500 line-clamp-2">{subtitle}</p>
+              )}
+              {trend !== undefined && (
+                <div className="flex items-center gap-1 text-sm mt-1">
+                  <span className={trendIsPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+                    {trendIsPositive ? '↗' : '↘'} {trendVal}%
+                  </span>
+                  <span className="text-zinc-500 dark:text-zinc-500 text-xs">vs mes anterior</span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </Card>
   );
