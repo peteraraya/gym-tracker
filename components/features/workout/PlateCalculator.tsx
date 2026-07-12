@@ -85,11 +85,32 @@ export function PlateCalculator({
         <div className="flex flex-col items-center">
           {/* Visualización de la barra */}
           <div className="flex items-center justify-center h-16 w-full max-w-[280px]">
-            {/* Barra izquierda (invisible, solo para balance) */}
-            <div className="flex-1 h-3 bg-gray-300 dark:bg-gray-600 rounded-l-sm" />
+            {/* Barra izquierda (resto de barra) */}
+            <div className="flex-1 h-2 bg-gray-300 dark:bg-gray-600 rounded-l-sm min-w-[20px]" />
+
+            {/* Discos (lado izquierdo) */}
+            <div className="flex items-center">
+              <AnimatePresence>
+                {[...calculation.plates.flatMap((p, plateIdx) => 
+                  Array.from({ length: p.count }).map((_, i) => {
+                    const height = p.plateWeight >= 20 ? 'h-14' : p.plateWeight >= 10 ? 'h-10' : p.plateWeight >= 5 ? 'h-8' : 'h-6';
+                    const width = p.plateWeight >= 15 ? 'w-3' : 'w-2';
+                    return { key: `${p.plateWeight}-${plateIdx}-${i}`, height, width, color: p.color };
+                  })
+                )].reverse().map((p) => (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0, x: 10 }}
+                    animate={{ scale: 1, opacity: 1, x: 0 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    key={`left-${p.key}`}
+                    className={`${p.height} ${p.width} ${p.color} mx-[1px] rounded-sm shadow-sm flex items-center justify-center overflow-hidden border border-black/10 dark:border-white/10`}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
             
             {/* Tope izquierdo */}
-            <div className="w-1.5 h-6 bg-gray-400 dark:bg-gray-500 rounded-sm" />
+            <div className="w-1.5 h-6 bg-gray-400 dark:bg-gray-500 rounded-sm z-10" />
             
             {/* Espacio para la cabeza/manos (centro de la barra) */}
             <div className="w-12 h-3 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
@@ -104,7 +125,6 @@ export function PlateCalculator({
               <AnimatePresence>
                 {calculation.plates.flatMap((p, plateIdx) => 
                   Array.from({ length: p.count }).map((_, i) => {
-                    // Tamaño proporcional al peso
                     const height = p.plateWeight >= 20 ? 'h-14' : p.plateWeight >= 10 ? 'h-10' : p.plateWeight >= 5 ? 'h-8' : 'h-6';
                     const width = p.plateWeight >= 15 ? 'w-3' : 'w-2';
                     const key = `${p.plateWeight}-${plateIdx}-${i}`;
@@ -114,7 +134,7 @@ export function PlateCalculator({
                         initial={{ scale: 0, opacity: 0, x: -10 }}
                         animate={{ scale: 1, opacity: 1, x: 0 }}
                         exit={{ scale: 0, opacity: 0 }}
-                        key={key}
+                        key={`right-${key}`}
                         className={`${height} ${width} ${p.color} mx-[1px] rounded-sm shadow-sm flex items-center justify-center overflow-hidden border border-black/10 dark:border-white/10`}
                       />
                     );
@@ -123,7 +143,7 @@ export function PlateCalculator({
               </AnimatePresence>
             </div>
             
-            {/* Resto de la barra */}
+            {/* Resto de la barra derecha */}
             <div className="flex-1 h-2 bg-gray-300 dark:bg-gray-600 rounded-r-sm min-w-[20px]" />
           </div>
           
