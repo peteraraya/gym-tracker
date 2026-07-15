@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { triggerHaptic } from '@/lib/utils/haptics';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'gradient' | 'info';
@@ -43,12 +46,27 @@ export const Button: React.FC<ButtonProps> = ({
   const centerClass = center ? 'block mx-auto' : '';
   const blockClass = block ? 'w-full' : '';
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!props.disabled && !loading) {
+      // Diferenciar la vibración según la importancia del botón
+      if (variant === 'primary' || variant === 'danger' || variant === 'gradient') {
+        triggerHaptic('medium');
+      } else {
+        triggerHaptic('light');
+      }
+    }
+    if (props.onPointerDown) {
+      props.onPointerDown(e);
+    }
+  };
+
   return (
     <button
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${centerClass} ${blockClass} ${className}`}
       aria-busy={loading}
       disabled={props.disabled || loading}
       {...props}
+      onPointerDown={handlePointerDown}
     >
       {loading && (
         <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">

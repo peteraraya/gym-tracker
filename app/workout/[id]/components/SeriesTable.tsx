@@ -13,6 +13,7 @@ import SetTypeCycleButton from '@/components/features/workout/SetTypeCycleButton
 import { Plus } from '@/components/icons/lucide';
 import type { Exercise, SetType, Routine } from '@/types';
 import { calculateNextRestTime } from '../utils/workoutCalculations';
+import { triggerHaptic } from '@/lib/utils/haptics';
 
 interface SeriesTableProps {
   exercise: Exercise;
@@ -209,7 +210,10 @@ export function SeriesTable({
                     </div>
                     {/* Status checkbox */}
                     <button
-                      onClick={() => onToggleSetComplete(idx, !isCompleted)}
+                      onClick={() => {
+                        triggerHaptic(!isCompleted ? 'success' : 'light');
+                        onToggleSetComplete(idx, !isCompleted);
+                      }}
                       className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 border-2 ${
                         isCompleted
                           ? 'bg-green-500 border-green-500 text-white shadow-md shadow-green-500/20'
@@ -460,7 +464,10 @@ export function SeriesTable({
                     {/* Checkbox animado */}
                     <td className="py-3 px-2 text-center">
                       <motion.button
-                        onClick={() => onToggleSetComplete(idx, !isCompleted)}
+                        onClick={() => {
+                          triggerHaptic(!isCompleted ? 'success' : 'light');
+                          onToggleSetComplete(idx, !isCompleted);
+                        }}
                         whileTap={{ scale: 0.8 }}
                         animate={isCompleted
                           ? { scale: [1, 1.3, 1], backgroundColor: '#22c55e' }

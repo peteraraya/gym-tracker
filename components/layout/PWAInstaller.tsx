@@ -76,7 +76,7 @@ export function PWAInstaller() {
   }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-40 animate-slide-in-right">
+    <div className="fixed top-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-slide-in-top">
       <div className="bg-linear-to-br from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl p-6 relative">
         <button
           onClick={handleDismiss}

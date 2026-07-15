@@ -260,7 +260,7 @@ export function ExercisesClientList({
             )}{" "}
             de {currentData.total}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() =>
                 currentData.setCurrentPage((prev: number) =>
@@ -272,22 +272,38 @@ export function ExercisesClientList({
             >
               ← Anterior
             </button>
-            {Array.from(
-              { length: currentData.totalPages },
-              (_, i) => i + 1,
-            ).map((page) => (
-              <button
-                key={page}
-                onClick={() => currentData.setCurrentPage(page)}
-                className={`w-10 h-10 rounded-xl font-semibold transition-all text-sm ${
-                  currentData.currentPage === page
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            {Array.from({ length: currentData.totalPages }, (_, i) => i + 1)
+              .filter(
+                (p) =>
+                  p === 1 ||
+                  p === currentData.totalPages ||
+                  Math.abs(p - currentData.currentPage) <= 1,
+              )
+              .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1)
+                  acc.push("...");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, idx) =>
+                p === "..." ? (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => currentData.setCurrentPage(p as number)}
+                    className={`w-9 h-9 rounded-xl font-semibold transition-all text-sm ${
+                      currentData.currentPage === p
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
             <button
               onClick={() =>
                 currentData.setCurrentPage((prev: number) =>

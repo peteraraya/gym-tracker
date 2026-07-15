@@ -55,7 +55,7 @@ interface QuickEditModeProps {
   autoAdvance?: boolean;
   onShowExerciseInfo?: (exerciseName: string) => void; // ✅ NUEVO: Callback para mostrar info del ejercicio
   sessions?: WorkoutSession[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
-  onAddExercises?: (exercises: ExerciseTemplate[]) => void; // Callback para agregar ejercicios durante el entrenamiento
+  onAddExercises?: (exercises: ExerciseTemplate[], insertIndex?: number) => void; // Callback para agregar ejercicios durante el entrenamiento
   /** Cuando es true, no renderiza el sticky header interno (el padre lo muestra en su bloque sticky) */
   hideHeader?: boolean;
   /** Info de la serie actualmente en ejecución (para mostrar TUT en modo Quick) */
@@ -262,6 +262,14 @@ export function QuickEditMode({
     setIndex: number;
     exerciseName?: string;
     currentType: SetType;
+  } | null>(null);
+
+  // Estado para opciones del ejercicio (•••)
+  const [exerciseOptionsTarget, setExerciseOptionsTarget] = useState<{
+    exerciseId: string;
+    exIdx: number;
+    exerciseName: string;
+    isSkipped: boolean;
   } | null>(null);
 
   // Mantener el foco en el input de descanso cuando se abre el modal
@@ -645,7 +653,7 @@ export function QuickEditMode({
       completedSets: completed,
       progressPercent: cappedPercent,
     };
-  }, [routine.exercises, workoutData.actualReps, workoutData.skippedExercises]);
+  }, [routine.exercises, workoutData.actualReps, workoutData.skippedExercises, workoutData.completedSets]);
 
   // ID del ejercicio «anclado» al tope — el último en el que el usuario marcó una serie
   const [pinnedExerciseId, setPinnedExerciseId] = useState<string | null>(null);
@@ -996,10 +1004,27 @@ export function QuickEditMode({
                     }
                   }}
                   aria-expanded={!isCollapsed}
-                  className="w-full p-3 hover:brightness-95 transition-all active:scale-[0.99]"
+                  className="w-full p-3 hover:brightness-95 transition-all active:scale-[0.99] cursor-pointer"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 sm:gap-3">
+                    {/* Drag Handle (indicador visual de que se puede arrastrar toda la tarjeta) */}
+                    {onMoveExercise && (
+                      <div 
+                        className="shrink-0 text-gray-300 dark:text-gray-600 mt-4 cursor-grab active:cursor-grabbing hover:text-gray-400 dark:hover:text-gray-500 transition-colors"
+                        title="Arrastra para reordenar"
+                      >
+                        <svg width="14" height="20" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="4" cy="4" r="1.5" />
+                          <circle cx="4" cy="8" r="1.5" />
+                          <circle cx="4" cy="12" r="1.5" />
+                          <circle cx="12" cy="4" r="1.5" />
+                          <circle cx="12" cy="8" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                        </svg>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                       {/* Número de ejercicio más grande y colorido */}
                       <div
                         className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-md shrink-0 ${
@@ -1112,6 +1137,8 @@ export function QuickEditMode({
                                 </span>
                               </button>
                             )}
+
+                            {/* Opciones Rápidas minimalistas movidas al menú de opciones (•••) */}
                           </div>
 
                           {/* Notas del ejercicio si existen */}
@@ -1363,68 +1390,6 @@ export function QuickEditMode({
                   </div>
                 </div>
 
-                {/* Botones de reordenar */}
-                {onMoveExercise && routine.exercises.length > 1 && (
-                  <div className="px-2.5 pb-2 flex items-center gap-2">
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
-                      Reordenar:
-                    </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (exIdx > 0) {
-                            onMoveExercise(exIdx, exIdx - 1);
-                          }
-                        }}
-                        disabled={exIdx === 0}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Mover arriba"
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 15l7-7 7 7"
-                          />
-                        </svg>
-                        Subir
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (exIdx < routine.exercises.length - 1) {
-                            onMoveExercise(exIdx, exIdx + 1);
-                          }
-                        }}
-                        disabled={exIdx === routine.exercises.length - 1}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Mover abajo"
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                        Bajar
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {!isCollapsed && (

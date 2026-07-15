@@ -458,7 +458,8 @@ export default function RoutinesPage() {
           )}
 
           {/* Floating Free Workout button */}
-          <div className="fixed bottom-20 right-4 sm:bottom-8 sm:right-6 z-40">
+          {/* Posicionado cuidadosamente para no chocar con el AI Assistant ni el menú inferior */}
+          <div className="fixed bottom-[104px] right-4 sm:bottom-8 sm:right-6 z-40 flex flex-col gap-3">
             <button
               onClick={() => router.push("/workout/free")}
               aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"

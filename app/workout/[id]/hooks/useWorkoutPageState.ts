@@ -1253,7 +1253,7 @@ export function useWorkoutPageState(id: string) {
     success(`Copiado: ${lastSetData.reps} reps × ${lastSetData.weight}kg`, 2000);
   }, [lastSetData, workoutState, success]);
 
-  const handleAddExercises = useCallback(async (exercisesToAdd: ExerciseTemplate[]) => {
+  const handleAddExercises = useCallback(async (exercisesToAdd: ExerciseTemplate[], insertIndex?: number) => {
     if (!routine || exercisesToAdd.length === 0) return;
     try {
       const profile = userProfile ?? getProfileLocally();
@@ -1295,7 +1295,14 @@ export function useWorkoutPageState(id: string) {
         };
       });
 
-      const updatedRoutine = { ...routine, exercises: [...routine.exercises, ...newExercises] };
+      let newRoutineExercises = [...routine.exercises];
+      if (typeof insertIndex === 'number' && insertIndex >= 0 && insertIndex <= newRoutineExercises.length) {
+        newRoutineExercises.splice(insertIndex, 0, ...newExercises);
+      } else {
+        newRoutineExercises = [...newRoutineExercises, ...newExercises];
+      }
+
+      const updatedRoutine = { ...routine, exercises: newRoutineExercises };
       const prevRoutine = routine;
       setRoutine(updatedRoutine);
 
