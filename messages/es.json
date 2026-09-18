@@ -61,6 +61,7 @@
     "required": "Requerido",
     "passwordsNoMatch": "Las contraseñas no coinciden",
     "accountCreated": "¡Cuenta creada! Revisa tu email para confirmar tu cuenta.",
+    "accountAlreadyExists": "Este correo ya está registrado. Inicia sesión.",
     "email": "Correo electrónico",
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña",
@@ -495,7 +496,10 @@
     "kgPerDay": "kg/día",
     "volume": "Volumen",
     "tooltipVolume": "Volumen",
-    "tooltipSessions": "Sesiones"
+    "tooltipSessions": "Sesiones",
+    "units": {
+      "kg": "kg"
+    }
   },
   "activityHeatmap": {
     "title": "Actividad de Entrenamiento",
@@ -580,6 +584,13 @@
     "subtitle": "Gestiona tus rutinas de entrenamiento",
     "loading": "Cargando rutinas...",
     "newRoutine": "Nueva Rutina",
+    "noRoutines": "Aún no tienes rutinas",
+    "noRoutinesDesc": "Crea tu primera rutina para comenzar a entrenar",
+    "createRoutine": "Crear Rutina",
+    "exercises": "Ejercicios",
+    "startRoutine": "Iniciar",
+    "editRoutine": "Editar",
+    "deleteRoutine": "Eliminar",
     "empty": {
       "title": "No tienes rutinas todavía",
       "description": "Crea tu primera rutina para comenzar a entrenar",

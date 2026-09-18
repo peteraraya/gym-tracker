@@ -4,7 +4,7 @@ import { Achievement } from '@/types';
 import { getTierColor } from '@/lib/achievements/achievements';
 import * as LucideIcons from '@/components/icons/lucide';
 import { useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '@/components/icons/lucide';
 
 interface AchievementBadgeProps {
   achievement: Achievement;

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { WeightSuggestion } from '@/lib/data/weightSuggestions';
-import { TrendingUp, Check, X } from 'lucide-react';
+import { TrendingUp, Check, X } from '@/components/icons/lucide';
 
 interface WeightSuggestionBannerProps {
   suggestion: WeightSuggestion;

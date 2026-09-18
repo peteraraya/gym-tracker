@@ -348,7 +348,7 @@ export function FloatingAIAssistant() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed ${isInWorkout ? 'bottom-[120px]' : 'bottom-[176px]'} right-4 sm:right-6 z-40 p-4 bg-linear-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 group`}
+        className={`fixed ${isInWorkout ? 'bottom-[120px]' : 'bottom-[176px]'} right-4 sm:right-6 z-40 p-4 bg-linear-to-br from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white rounded-full shadow-2xl shadow-blue-700/40 transition-all duration-300 hover:scale-110 group`}
         aria-label="Abrir asistente IA"
       >
         <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />

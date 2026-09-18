@@ -287,7 +287,6 @@ export default function DashboardPage() {
             value={stats.totalSessions}
             icon={<Calendar className="w-5 h-5" />}
             subtitle={t("statsCards.totalSessionsSubtitle")}
-            trend={{ isPositive: stats.totalSessions >= 0, value: 0 }}
             gradientClass="from-blue-500 to-indigo-500 dark:from-blue-900/30 dark:to-indigo-900/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
@@ -326,7 +325,6 @@ export default function DashboardPage() {
             value={stats.totalSets}
             icon={<Activity className="w-5 h-5" />}
             subtitle={t("statsCards.totalSetsSubtitle")}
-            trend={{ isPositive: stats.totalSets >= 0, value: 0 }}
             gradientClass="from-emerald-400 to-emerald-600 dark:from-emerald-900/30 dark:to-emerald-800/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"

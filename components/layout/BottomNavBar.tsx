@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -63,6 +63,27 @@ export const BottomNavBar: React.FC = () => {
   const t = useTranslations('nav');
   const { activeWorkout } = useWorkout();
   const [moreOpen, setMoreOpen] = useState(false);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Accesibilidad: enfocar el panel al abrir, cerrar con Escape, devolver el foco al cerrar
+  useEffect(() => {
+    if (!moreOpen) return;
+
+    const previousFocus =
+      (document.activeElement as HTMLElement | null) ?? moreBtnRef.current;
+    closeBtnRef.current?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previousFocus?.focus();
+    };
+  }, [moreOpen]);
 
   // Ocultar en auth y en workout (pantalla de entrenamiento activo)
   if (pathname.includes('/auth')) return null;
@@ -117,6 +138,9 @@ export const BottomNavBar: React.FC = () => {
             />
             <motion.div
               className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-49 mx-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Más secciones"
               initial={{ y: 24, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 24, opacity: 0, scale: 0.97 }}
@@ -126,7 +150,10 @@ export const BottomNavBar: React.FC = () => {
               <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
                 <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Más secciones</span>
                 <button
+                  ref={closeBtnRef}
+                  type="button"
                   onClick={() => setMoreOpen(false)}
+                  aria-label="Cerrar menú"
                   className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <X className="w-4 h-4" />
@@ -186,20 +213,24 @@ export const BottomNavBar: React.FC = () => {
             ))}
 
             {/* Botón central elevado */}
-            <Link href={centerHref} className="relative -mt-6 shrink-0 mx-2">
+            <Link
+              href={centerHref}
+              aria-label={activeWorkout ? 'Entrenamiento activo' : 'Entrenar'}
+              className="relative -mt-6 shrink-0 mx-2"
+            >
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.05 }}
                 className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg ${
                   activeWorkout
-                    ? 'bg-linear-to-br from-emerald-500 to-green-600 shadow-emerald-500/40'
-                    : 'bg-linear-to-br from-indigo-600 to-violet-600 shadow-indigo-500/40'
+                    ? 'bg-linear-to-br from-blue-700 to-blue-500 shadow-blue-600/40'
+                    : 'bg-blue-600 shadow-blue-700/40'
                 }`}
               >
-                <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.2} />
+                <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.4} />
               </motion.div>
               {activeWorkout && (
-                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white dark:border-zinc-900 animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-blue-400 border-2 border-white dark:border-zinc-900 animate-pulse" />
               )}
             </Link>
 
@@ -216,7 +247,12 @@ export const BottomNavBar: React.FC = () => {
 
             {/* Tab "Más" */}
             <button
+              ref={moreBtnRef}
+              type="button"
               onClick={() => setMoreOpen((v) => !v)}
+              aria-expanded={moreOpen}
+              aria-haspopup="dialog"
+              aria-label="Más"
               className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 min-w-0"
             >
               <motion.div

@@ -300,7 +300,7 @@ export const IntegratedProgressPanel: React.FC = () => {
       rawValue: metrics.volumeCurrent,
       change: metrics.volumeChange,
       history: metrics.volumeHistory,
-      color: '#6366f1',
+      color: '#1e8fff',
       href: '/calculators',
       unit: 'kg',
     },

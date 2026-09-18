@@ -11,7 +11,6 @@ import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 
 import { CompactWorkoutHeader } from "./components/CompactWorkoutHeader";
-import { QuickEditMode as QuickEditModeBase } from "./components/QuickEditMode";
 import { WorkoutModals } from "./components/WorkoutModals";
 import { WorkoutGuidedView } from "./components/WorkoutGuidedView";
 import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSplash";
@@ -34,7 +33,11 @@ const SetExecutionModal = lazy(() =>
   }))
 );
 
-const QuickEditMode = memo(QuickEditModeBase);
+const QuickEditMode = lazy(() =>
+  import("./components/QuickEditMode").then((m) => ({
+    default: memo(m.QuickEditMode),
+  }))
+);
 
 export default function WorkoutPage() {
   const params = useParams();
@@ -212,7 +215,16 @@ export default function WorkoutPage() {
 
         {state.isQuickEditMode && (
           <div className="relative z-20">
-            <QuickEditMode
+            <Suspense
+              fallback={
+                <div className="space-y-3 animate-pulse">
+                  <div className="h-12 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                  <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                  <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+                </div>
+              }
+            >
+              <QuickEditMode
               routine={state.routine}
               workoutData={state.workoutState.workoutData}
               sessions={state.sessions}
@@ -279,6 +291,7 @@ export default function WorkoutPage() {
                   : null
               }
             />
+            </Suspense>
           </div>
         )}
 

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { useGym } from "@/context/GymContext"; // ✨ Usar el contexto existente
 import type { WorkoutSession } from "@/types";
 import { calculateAchievements, calculateStreak } from "@/lib/achievements/achievements";
-import { calculateTotalVolume } from "@/lib/utils/dateUtils";
+import { calculateTotalVolume, formatVolume } from "@/lib/utils/volumeCalculations";
 import {
   Trophy,
   Flame,
@@ -130,7 +130,7 @@ export default function AchievementsPage() {
                     Volumen Total
                   </p>
                   <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    {(totalVolume / 1000).toFixed(0)}t
+                    {formatVolume(totalVolume)}
                   </p>
                 </div>
               </div>

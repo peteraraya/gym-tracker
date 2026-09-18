@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronLeft, BookOpen, AlertCircle, Lightbulb, Zap } from 'lucide-react';
+import { ChevronLeft, BookOpen, AlertCircle, Lightbulb, Zap } from '@/components/icons/lucide';
 import type { ExerciseTemplate } from '@/data/exercises/types';
 import YouTubeEmbed from '@/components/shared/YouTubeEmbed';
 

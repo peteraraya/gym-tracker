@@ -61,6 +61,7 @@
     "required": "Required",
     "passwordsNoMatch": "Passwords do not match",
     "accountCreated": "Account created! Check your email to confirm your account.",
+    "accountAlreadyExists": "This email is already registered. Sign in instead.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "email": "Email",

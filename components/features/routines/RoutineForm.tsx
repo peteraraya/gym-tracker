@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   Copy,
   Timer,
-} from "lucide-react";
+} from "@/components/icons/lucide";
 import { useRoutineForm } from "@/hooks/useRoutineForm";
 import { Input, TextArea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";

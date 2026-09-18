@@ -152,8 +152,8 @@ export function WorkoutStartSplash({
             />
             <defs>
               <linearGradient id="splashGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#60a5fa" />
-                <stop offset="100%" stopColor="#a78bfa" />
+                <stop offset="0%" stopColor="#85bfff" />
+                <stop offset="100%" stopColor="#0a6dff" />
               </linearGradient>
             </defs>
           </svg>

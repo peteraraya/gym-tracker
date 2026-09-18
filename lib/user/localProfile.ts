@@ -35,6 +35,7 @@ export function saveProfileLocally(profile: Partial<Omit<UserProfile, 'id' | 'us
     weight: normalizeValue(profile.weight ?? existingProfile?.weight),
     currentWeight: normalizeValue(profile.currentWeight ?? existingProfile?.currentWeight),
     targetWeight: normalizeValue(profile.targetWeight ?? existingProfile?.targetWeight),
+    weightHistory: profile.weightHistory ?? existingProfile?.weightHistory,
     fitnessGoal: normalizeValue(profile.fitnessGoal ?? existingProfile?.fitnessGoal),
     fitnessLevel: normalizeValue(profile.fitnessLevel ?? existingProfile?.fitnessLevel),
     weeklyWorkouts: normalizeValue(profile.weeklyWorkouts ?? existingProfile?.weeklyWorkouts),

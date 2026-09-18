@@ -4,7 +4,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { SearchInput } from '@/components/shared';
 import { GLOSSARY_CATEGORIES, type GlossaryCategory } from '@/data/glossary';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb } from '@/components/icons/lucide';
 
 interface GlossaryFiltersProps {
   totalTermsCount: number;

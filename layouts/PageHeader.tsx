@@ -10,7 +10,7 @@ export interface PageHeaderProps {
   children?: ReactNode;
 }
 
-const BRAND_GRADIENT = 'from-indigo-600 to-violet-600';
+const BRAND_GRADIENT = 'from-zinc-950 via-zinc-900 to-zinc-800';
 
 export function PageHeader({
   title,
@@ -29,7 +29,7 @@ export function PageHeader({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {icon && (
-                <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
+                <div className="p-3 bg-blue-500/15 backdrop-blur-sm rounded-xl shadow-lg border border-blue-400/30">
                   {icon}
                 </div>
               )}

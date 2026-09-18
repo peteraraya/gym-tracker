@@ -164,7 +164,7 @@ export function ExerciseCard({
     if (cycle === 0) return null;
     const timeInCycle = elapsedTime % cycle;
     const phases = [
-      { name: 'BAJANDO', label: 'Excéntrica', color: '#60a5fa', bg: 'bg-blue-500/20', border: 'border-blue-500', duration: ecc, scale: 1.35 },
+      { name: 'BAJANDO', label: 'Excéntrica', color: '#4da6ff', bg: 'bg-blue-500/20', border: 'border-blue-500', duration: ecc, scale: 1.35 },
       { name: 'PAUSA', label: 'Sostén arriba', color: '#fbbf24', bg: 'bg-amber-500/20', border: 'border-amber-500', duration: p1, scale: 1.35 },
       { name: 'SUBIENDO', label: 'Concéntrica', color: '#34d399', bg: 'bg-emerald-500/20', border: 'border-emerald-500', duration: con, scale: 0.8 },
       { name: 'PAUSA', label: 'Sostén abajo', color: '#94a3b8', bg: 'bg-slate-500/20', border: 'border-slate-500', duration: p2, scale: 0.8 },
@@ -343,7 +343,7 @@ export function ExerciseCard({
             {/* Fondo animado por fase */}
             <motion.div
               className="absolute inset-0"
-              animate={{ backgroundColor: tempoPhaseInfo ? `${tempoPhaseInfo.color}18` : '#6366f118' }}
+              animate={{ backgroundColor: tempoPhaseInfo ? `${tempoPhaseInfo.color}18` : '#1e8fff18' }}
               transition={{ duration: 0.6, ease: 'easeInOut' }}
             />
 

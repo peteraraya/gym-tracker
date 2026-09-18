@@ -14,11 +14,11 @@ import ProgressionCalculator from '@/components/features/progress/ProgressionCal
 import WilksCalculator from '@/components/features/calculators/WilksCalculator';
 import TempoCalculator from '@/components/features/calculators/TempoCalculator';
 import { Button } from '@/components/ui/Button';
-import { 
-  Calculator, 
-  Dumbbell, 
-  Circle, 
-  Scale, 
+import {
+  Calculator,
+  Dumbbell,
+  Circle,
+  Scale,
   ArrowLeft,
   Target,
   BarChart3,
@@ -28,7 +28,7 @@ import {
   TrendingUp,
   Trophy,
   Activity
-} from 'lucide-react';
+} from '@/components/icons/lucide';
 
 export const metadata: Metadata = {
   title: 'Calculadoras | Gym Tracker',
@@ -245,7 +245,7 @@ export default async function CalculatorsPage(props: {
                     <button
                       className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold transition-all whitespace-nowrap text-sm ${
                         category === cat.id
-                          ? 'bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                          ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md'
                           : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md'
                       }`}
                     >

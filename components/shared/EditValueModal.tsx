@@ -210,7 +210,7 @@ export function EditValueModal({
                   onClick={() => handleShortcut(val)}
                   className={`py-2.5 rounded-xl font-bold text-sm active:scale-95 touch-manipulation select-none ${
                     String(val) === display
-                      ? 'bg-blue-500 text-white shadow-md'
+                      ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -270,7 +270,7 @@ export function EditValueModal({
         <button
           onClick={handleConfirm}
           disabled={!isValid}
-          className="w-full py-4 text-xl font-bold rounded-2xl bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation select-none"
+          className="w-full py-4 text-xl font-bold rounded-2xl bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 shadow-lg active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation select-none"
         >
           ✓ Guardar{isValid ? ` (${display}${field === 'weight' ? ' kg' : ' reps'})` : ''}
         </button>

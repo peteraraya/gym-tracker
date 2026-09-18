@@ -24,7 +24,7 @@ import {
   type DayKey,
 } from "@/types/planning";
 import { APP_CONFIG } from "@/config/app.config";
-import { useToast } from "@/context/NotificationContext";
+import { useConfirm, useToast } from "@/context/NotificationContext";
 import type { Routine } from "@/types";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { Modal } from "@/components/ui/Modal";
@@ -382,6 +382,15 @@ function CreateMesocycleModal({
   const [preset, setPreset] = useState<"none" | PlanningGoal>("none");
   const [presetManuallyChanged, setPresetManuallyChanged] = useState(false);
 
+  // Cerrar con Escape (accesibilidad) sin perder el borrador del formulario
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   // Patrón "setState durante render": sincronizar preset con goal sin useEffect
   const [lastGoal, setLastGoal] = useState(goal);
   if (lastGoal !== goal && !presetManuallyChanged) {
@@ -390,7 +399,15 @@ function CreateMesocycleModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Nuevo mesociclo"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           Nuevo mesociclo
@@ -921,6 +938,7 @@ export default function PlanningPage() {
   const planning = usePlanning();
   const { sessions, routines } = useGym();
   const { success, warning } = useToast();
+  const { confirm } = useConfirm();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedMesoId, setSelectedMesoId] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
@@ -1521,9 +1539,16 @@ export default function PlanningPage() {
                               </button>
                             )}
                             <button
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                if (confirm(`¿Eliminar "${meso.name}"?`))
+                                const confirmed = await confirm({
+                                  title: "Eliminar mesociclo",
+                                  message: `¿Eliminar "${meso.name}"? Esta acción no se puede deshacer.`,
+                                  confirmText: "Eliminar",
+                                  cancelText: "Cancelar",
+                                  variant: "danger",
+                                });
+                                if (confirmed)
                                   planning.deleteMesocycle(meso.id);
                               }}
                               className="text-xs px-2 py-1 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 font-medium"

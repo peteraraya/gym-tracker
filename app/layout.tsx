@@ -11,7 +11,6 @@ import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import GlobalUI from '@/components/layout/GlobalUI';
 import Onboarding from '@/components/features/onboarding/Onboarding';
 import { ReactQueryProvider } from "@/components/layout/ReactQueryProvider";
-import DisableZoom from "@/components/layout/DisableZoom";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,10 +40,7 @@ export function generateViewport() {
   return {
     width: "device-width",
     initialScale: 1,
-    maximumScale: 1,
-    minimumScale: 1,
-    userScalable: false,
-    themeColor: "#3b82f6",
+    themeColor: "#000000",
   };
 }
 
@@ -94,14 +90,13 @@ export default function RootLayout({
             <ThemeProvider>
               <Providers>
                 <OnboardingProvider>
-                  <DisableZoom />
                   <ClientOnly>
                     <ServiceWorkerRegistration />
                     <PWAInstaller />
                     <GlobalUI />
                     <Onboarding />
                   </ClientOnly>
-                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-16 lg:pb-0">
+                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-950 dark:to-black pb-16 lg:pb-0">
                     {children}
                   </main>
                 </OnboardingProvider>

@@ -44,6 +44,7 @@ export async function GET() {
       gender: profile.gender,
       height: profile.height,
       weight: profile.weight,
+      weightHistory: profile.weight_history ?? [],
       fitnessGoal: profile.fitness_goal,
       fitnessLevel: profile.fitness_level,
       weeklyWorkouts: profile.weekly_workouts,
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { age, gender, height, weight, fitnessGoal, fitnessLevel, weeklyWorkouts } = body
+    const { age, gender, height, weight, weightHistory, fitnessGoal, fitnessLevel, weeklyWorkouts } = body
 
     // Check if profile exists
     const { data: existingProfile } = await supabase
@@ -92,6 +93,7 @@ export async function POST(request: Request) {
           gender,
           height,
           weight,
+          weight_history: weightHistory ?? undefined,
           fitness_goal: fitnessGoal,
           fitness_level: fitnessLevel,
           weekly_workouts: weeklyWorkouts,
@@ -115,6 +117,7 @@ export async function POST(request: Request) {
           gender,
           height,
           weight,
+          weight_history: weightHistory ?? [],
           fitness_goal: fitnessGoal,
           fitness_level: fitnessLevel,
           weekly_workouts: weeklyWorkouts
@@ -137,6 +140,7 @@ export async function POST(request: Request) {
         gender: result.gender,
         height: result.height,
         weight: result.weight,
+        weightHistory: result.weight_history ?? [],
         fitnessGoal: result.fitness_goal,
         fitnessLevel: result.fitness_level,
         weeklyWorkouts: result.weekly_workouts,

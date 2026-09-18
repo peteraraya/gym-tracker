@@ -167,7 +167,7 @@ const TodayWorkoutCard: React.FC<{
     const first = planned[0] as any;
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-purple-700 p-5 shadow-xl shadow-indigo-500/25"
+        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-800 p-5 shadow-xl shadow-black/25"
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/40" />

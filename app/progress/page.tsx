@@ -6,12 +6,13 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { EXERCISE_DATABASE, type MuscleGroup } from "@/data/exercises";
 import { useValidSessions } from "@/hooks/useValidSessions";
+import { useSessions, useRoutines } from "@/context/GymContext";
 import { APP_CONFIG } from "@/config/app.config";
 import { StatsGrid, StatCard } from "@/components/shared/StatsGrid";
 import { TrendingUp } from "@/components/icons/lucide";
 import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
-import { LoadingSpinner, EmptyStateCard } from "@/components/shared";
+import { EmptyStateCard } from "@/components/shared";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
 import { IntegratedProgressPanel } from "@/components/features/progress";
 
@@ -22,7 +23,9 @@ const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
 
 export default function ProgressPage() {
   const validSessions = useValidSessions();
-  const loading = false;
+  const { loading: sessionsLoading } = useSessions();
+  const { loading: routinesLoading } = useRoutines();
+  const loading = sessionsLoading || routinesLoading;
   const { t } = useLocale();
   const tMuscles = useTranslations("muscles");
   const exerciseById = useMemo(

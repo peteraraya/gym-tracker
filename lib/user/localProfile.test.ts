@@ -78,4 +78,26 @@ describe('localProfile', () => {
 
     expect(getProfileLocally()).toBeNull();
   });
+
+  it('persists weightHistory when saving profile', () => {
+    getItemSpy.mockReturnValue(JSON.stringify({
+      id: 'existing-profile',
+      name: 'Paula',
+      email: 'paula@example.com',
+      weightHistory: [{ date: '2026-08-01', weight: 80.5 }],
+    }));
+
+    const saved = saveProfileLocally({
+      weightHistory: [
+        { date: '2026-08-01', weight: 80.5 },
+        { date: '2026-09-01', weight: 79.9 },
+      ],
+    });
+
+    expect(saved.weightHistory).toHaveLength(2);
+    expect(saved.weightHistory?.[1]).toEqual({ date: '2026-09-01', weight: 79.9 });
+
+    const storedValue = setItemSpy.mock.calls[0][1];
+    expect(JSON.parse(storedValue).weightHistory).toHaveLength(2);
+  });
 });

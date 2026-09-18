@@ -15,7 +15,7 @@ import { ExerciseSelector } from "@/components/features/exercises/ExerciseSelect
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { generateRoutine } from "@/lib/routines/routineGenerator";
 import { getRoutineStats } from "@/lib/routines/routineEstimation";
-import { Zap } from "lucide-react";
+import { Zap } from "@/components/icons/lucide";
 import { useFreeWorkoutState, clearFreeWorkoutStorage } from "./hooks/useFreeWorkoutState";
 import { FreeWorkoutExerciseCard } from "./components/FreeWorkoutExerciseCard";
 import { FreeWorkoutExerciseList } from "./components/FreeWorkoutExerciseList";

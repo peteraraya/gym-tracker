@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       .footer{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 28px;border-top:1px solid #eee;font-size:12px;color:#6b7280}
       @media print{body{background:#fff} .header, .footer{position:fixed}}
     </style></head><body>
-      <div class="header"><div style="display:flex;align-items:center;gap:10px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" fill="#0ea5a4"/><path d="M7 12h10M7 16h10M7 8h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Gym Tracker</strong></div><div>${new Date().toLocaleString()}</div></div>
+      <div class="header"><div style="display:flex;align-items:center;gap:10px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" fill="#000000"/><path d="M7 12h10M7 16h10M7 8h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Gym Tracker</strong></div><div>${new Date().toLocaleString()}</div></div>
       <main>${content}</main>
       <div class="footer"><div>Gym Tracker</div><div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div></div>
     </body></html>`;

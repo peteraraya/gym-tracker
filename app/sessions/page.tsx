@@ -16,6 +16,7 @@ import { useLocale } from "@/context/LocaleContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { Calendar, Filter } from "@/components/icons/lucide";
 import { getWeekStart } from '@/lib/utils/dateUtils';
+import { formatVolume } from '@/lib/utils/volumeCalculations';
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
   EmptyStateCard,
@@ -139,7 +140,7 @@ function SessionDetailContent({ session, routines }: { session: WS; routines: Ro
       <div className="flex flex-wrap gap-2 text-sm text-zinc-500 dark:text-zinc-400">
         <span>{new Date(session.date).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
         {dur && <span>· {dur}</span>}
-        {vol > 0 && <span>· {vol >= 1000 ? `${(vol / 1000).toFixed(1)}t` : `${vol}kg`}</span>}
+        {vol > 0 && <span>· {formatVolume(vol)}</span>}
         {!routine && <span className="text-red-500">· Rutina eliminada</span>}
       </div>
 

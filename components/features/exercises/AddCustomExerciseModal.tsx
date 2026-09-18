@@ -98,7 +98,7 @@ export const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">✨ Crear Ejercicio Personalizado</h2>

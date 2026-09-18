@@ -36,7 +36,7 @@ export default function TempoCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-linear-to-r from-violet-500 to-purple-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <Clock className="w-6 h-6" />
           Calculadora de Tempo de Repetición

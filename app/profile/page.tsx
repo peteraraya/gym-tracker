@@ -10,7 +10,8 @@ import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import { RestSettings } from '@/components/features/workout/RestSettings';
 import { ThemeSettings } from '@/components/features/settings/ThemeSettings';
 import RestartOnboardingButton from '@/components/features/onboarding/RestartOnboardingButton';
-import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
+import type { UserProfile, FitnessGoal, FitnessLevel, Gender, WeightEntry } from '@/types';
+import { WeightHistoryCard } from '@/components/features/profile/WeightHistoryCard';
 import { usePageData } from '@/hooks/usePageData';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
 import { 
@@ -37,6 +38,8 @@ export default function ProfilePage() {
   const [fitnessGoal, setFitnessGoal] = useState<FitnessGoal | ''>('');
   const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel | ''>('');
   const [weeklyWorkouts, setWeeklyWorkouts] = useState<number | ''>('');
+  const [weightHistory, setWeightHistory] = useState<WeightEntry[]>([]);
+  const [weightSaving, setWeightSaving] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -62,6 +65,7 @@ export default function ProfilePage() {
             setFitnessGoal(localProfile.fitnessGoal || '');
             setFitnessLevel(localProfile.fitnessLevel || '');
             setWeeklyWorkouts(localProfile.weeklyWorkouts || '');
+            setWeightHistory(localProfile.weightHistory || []);
             setProfileLoading(false);
             return;
           }
@@ -81,6 +85,7 @@ export default function ProfilePage() {
             setFitnessGoal(profile.fitnessGoal || '');
             setFitnessLevel(profile.fitnessLevel || '');
             setWeeklyWorkouts(profile.weeklyWorkouts || '');
+            setWeightHistory(profile.weightHistory || []);
           }
         }
       }
@@ -105,7 +110,8 @@ export default function ProfilePage() {
         weight: weight || undefined,
         fitnessGoal: fitnessGoal || undefined,
         fitnessLevel: fitnessLevel || undefined,
-        weeklyWorkouts: weeklyWorkouts || undefined
+        weeklyWorkouts: weeklyWorkouts || undefined,
+        weightHistory
       };
 
       // Verificar modo de almacenamiento
@@ -153,6 +159,72 @@ export default function ProfilePage() {
       return bmi.toFixed(1);
     }
     return null;
+  };
+
+  const persistWeightHistory = async (history: WeightEntry[], latestKg: number | '') => {
+    const payload = {
+      age: age || undefined,
+      gender: gender || undefined,
+      height: height || undefined,
+      weight: latestKg !== '' ? latestKg : undefined,
+      fitnessGoal: fitnessGoal || undefined,
+      fitnessLevel: fitnessLevel || undefined,
+      weeklyWorkouts: weeklyWorkouts || undefined,
+      weightHistory: history
+    };
+
+    const { isLocalStorageMode } = await import('@/lib/storageConfig');
+    if (isLocalStorageMode()) {
+      if (typeof window === 'undefined') return;
+      const { saveProfileLocally } = await import('@/lib/user/localProfile');
+      saveProfileLocally(payload);
+    } else {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error('Error al guardar el historial de peso');
+      }
+    }
+  };
+
+  const handleAddWeight = async (date: string, weightKg: number) => {
+    const next = [...weightHistory.filter((e) => e.date !== date), { date, weight: weightKg }]
+      .sort((a, b) => a.date.localeCompare(b.date));
+    setWeightHistory(next);
+    setWeight(weightKg);
+    setWeightSaving(true);
+    setProfileError('');
+    setProfileMessage('');
+    try {
+      await persistWeightHistory(next, weightKg);
+      setProfileMessage('✓ Peso registrado correctamente');
+    } catch (e) {
+      setProfileError('Error al guardar el historial de peso');
+    } finally {
+      setWeightSaving(false);
+    }
+  };
+
+  const handleDeleteWeight = async (date: string) => {
+    const next = weightHistory.filter((e) => e.date !== date)
+      .sort((a, b) => a.date.localeCompare(b.date));
+    setWeightHistory(next);
+    const latest = next.length ? next[next.length - 1].weight : '';
+    setWeight(latest);
+    setWeightSaving(true);
+    setProfileError('');
+    setProfileMessage('');
+    try {
+      await persistWeightHistory(next, latest);
+      setProfileMessage('✓ Pesaje eliminado');
+    } catch (e) {
+      setProfileError('Error al guardar el historial de peso');
+    } finally {
+      setWeightSaving(false);
+    }
   };
 
   const isDatabaseEnabled = process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true';
@@ -416,6 +488,14 @@ export default function ProfilePage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Historial de Peso */}
+            <WeightHistoryCard
+              entries={weightHistory}
+              saving={weightSaving}
+              onAdd={handleAddWeight}
+              onDelete={handleDeleteWeight}
+            />
 
             {/* Información del usuario - solo en modo database */}
             {isDatabaseEnabled && (

@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Timer, ArrowRight, Plus, Check } from "lucide-react";
+import { Timer, ArrowRight, Plus, Check } from "@/components/icons/lucide";
 import { Spinner } from "@/components/ui/Spinner";
 import SetTypeCycleButton from "@/components/features/workout/SetTypeCycleButton";
 import { EditValueModal } from "@/components/shared/EditValueModal";

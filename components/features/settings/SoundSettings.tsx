@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useSoundSettings, SoundType, AVAILABLE_SOUNDS } from '@/lib/audio/soundSystem';
 import { useRestNotifications } from '@/lib/notifications/pwaNotifications';
-import { 
-  Volume2, 
-  VolumeX, 
-  Play, 
-  Bell, 
+import {
+  Volume2,
+  VolumeX,
+  Play,
+  Bell,
   Check,
   AlertCircle
-} from 'lucide-react';
+} from '@/components/icons/lucide';
 
 interface SoundSettingsProps {
   isOpen: boolean;

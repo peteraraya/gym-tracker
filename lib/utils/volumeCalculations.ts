@@ -113,6 +113,14 @@ export function calculateMaxSessionVolume(sessions: WorkoutSession[]): number {
 }
 
 /**
+ * Formatea un volumen en kg a un string legible (kg o toneladas).
+ */
+export function formatVolume(volumeKg: number): string {
+  if (volumeKg < 1000) return `${Math.round(volumeKg)}kg`;
+  return `${(volumeKg / 1000).toFixed(1)}t`;
+}
+
+/**
  * Calcula el volumen mínimo en una sesión
  */
 export function calculateMinSessionVolume(sessions: WorkoutSession[]): number {

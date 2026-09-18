@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { BookOpen, Link as LinkIcon, Lightbulb } from 'lucide-react';
+import { BookOpen, Link as LinkIcon, Lightbulb } from '@/components/icons/lucide';
 import { glossaryTerms, GLOSSARY_CATEGORIES } from '@/data/glossary';
 
 export function GlossaryTermModal() {

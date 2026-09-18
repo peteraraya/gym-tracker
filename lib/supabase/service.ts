@@ -546,7 +546,8 @@ export async function getProfile(): Promise<UserProfile> {
     avatarUrl: profile?.avatar_url,
     currentWeight: profile?.current_weight,
     targetWeight: profile?.target_weight,
-    height: profile?.height
+    height: profile?.height,
+    weightHistory: profile?.weight_history ?? []
   };
 }
 
@@ -568,6 +569,7 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
       current_weight: data.currentWeight,
       target_weight: data.targetWeight,
       height: data.height,
+      weight_history: data.weightHistory,
       updated_at: new Date().toISOString()
     });
 

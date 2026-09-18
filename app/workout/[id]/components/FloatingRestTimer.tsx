@@ -63,7 +63,7 @@ export function FloatingRestTimer({ duration, onComplete, onDismiss }: FloatingR
       <div aria-live="polite" className="sr-only">
         {ariaMessage}
       </div>
-      <div className="bg-linear-to-br from-blue-500 to-purple-600 text-white rounded-2xl shadow-2xl p-4 min-w-40">
+      <div className="bg-linear-to-br from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-2xl shadow-2xl p-4 min-w-40">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">

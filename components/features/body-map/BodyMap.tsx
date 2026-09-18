@@ -58,11 +58,11 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           aria-label="Mapa del cuerpo humano - vista frontal"
         >
           <defs>
-            {/* Gradiente azul moderno para músculos activos */}
+            {/* Gradiente volt lima para músculos activos */}
             <linearGradient id="muscleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
-              <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="#2563eb" stopOpacity="1" />
+<stop offset="0%" stopColor="#1e8fff" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#0d469c" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#a6c700" stopOpacity="1" />
             </linearGradient>
             
             {/* Efecto de brillo/glow */}
@@ -356,10 +356,10 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           <defs>
             {/* Usar los mismos gradientes que la vista frontal */}
             <linearGradient id="muscleGradBack" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
-              <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="#2563eb" stopOpacity="1" />
-            </linearGradient>
+<stop offset="0%" stopColor="#1e8fff" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#0d469c" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#a6c700" stopOpacity="1" />
+              </linearGradient>
             
             <filter id="glowBack">
               <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>

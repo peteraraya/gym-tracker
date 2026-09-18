@@ -6,16 +6,18 @@ import { ThemeSettings } from '@/components/features/settings/ThemeSettings';
 import { SoundSettingsContent } from '@/components/features/settings/SoundSettings';
 import { PushNotificationTester } from '@/components/shared/PushNotificationTester';
 import { DevTools } from '@/components/shared/DevTools';
-import { PageLayout } from '@/components/layout/PageLayout';
+import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
 export default function SettingsPage() {
   return (
     <ProtectedRoute>
-      <PageLayout
-        title="Configuración"
-        description="Personaliza tu experiencia"
-        icon={<Settings className="w-6 h-6 text-blue-500" />}
-      >
+      <PageLayout>
+        <PageHeader
+          title="Configuración"
+          subtitle="Personaliza tu experiencia"
+          icon={<Settings className="w-6 h-6 text-white" />}
+        />
+        <PageContent>
         {/* Secciones */}
         <div className="space-y-4">
           {/* Sonidos y Notificaciones */}
@@ -98,7 +100,8 @@ export default function SettingsPage() {
             {/* Herramientas de Desarrollo - Solo visible en dev */}
             <DevTools />
           </div>
-        </PageLayout>
-      </ProtectedRoute>
-    );
-  }
+        </PageContent>
+      </PageLayout>
+    </ProtectedRoute>
+  );
+}

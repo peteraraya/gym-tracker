@@ -7,7 +7,7 @@ import {
   searchTerms 
 } from '@/data/glossary';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { BookOpen } from 'lucide-react';
+import { BookOpen } from '@/components/icons/lucide';
 import { EmptyStateCard } from '@/components/shared';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
 import { GlossaryFilters } from './GlossaryFilters';

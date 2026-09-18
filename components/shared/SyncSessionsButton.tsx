@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/context/NotificationContext";
 import * as storageService from "@/lib/storage/storage";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw } from "@/components/icons/lucide";
 
 export function SyncSessionsButton() {
   const [syncing, setSyncing] = useState(false);

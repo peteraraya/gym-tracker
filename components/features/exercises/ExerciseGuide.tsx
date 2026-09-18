@@ -61,7 +61,7 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="w-full max-w-4xl my-8 shadow-2xl animate-fadeIn">
         {/* Header */}
-        <CardHeader className="bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6">
+        <CardHeader className="bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-t-lg p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-2xl font-bold text-white mb-2">

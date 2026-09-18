@@ -76,6 +76,7 @@ export type {
   FitnessLevel,
   Gender,
   UserProfile,
+  WeightEntry,
 } from './userProfile';
 
 // Sistema de Logros/Badges

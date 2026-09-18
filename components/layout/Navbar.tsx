@@ -308,7 +308,7 @@ const NavLink: React.FC<NavLinkProps> = ({
       data-tour={dataTour}
       className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
         isActive
-          ? `bg-linear-to-r ${colorClasses[color as keyof typeof colorClasses]} text-white shadow-lg`
+          ? `bg-linear-to-r ${colorClasses[color as keyof typeof colorClasses]} text-zinc-950 shadow-lg`
           : "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
       }`}
     >
@@ -360,7 +360,7 @@ const DropdownNav: React.FC<DropdownNavProps> = ({
         onClick={() => setOpen((v) => !v)}
         className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
           {
-            true: "bg-linear-to-r from-cyan-600 to-cyan-500 text-white shadow-lg",
+            true: "bg-linear-to-r from-cyan-600 to-cyan-500 text-zinc-950 shadow-lg",
           }[String(parentActive)] ||
           "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
         }`}
@@ -415,7 +415,7 @@ const MobileNavLink: React.FC<MobileNavLinkProps> = ({
       onClick={onClick}
       className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
         isActive
-          ? "bg-linear-to-br from-blue-600 to-purple-600 text-white shadow-lg"
+          ? "bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-lg"
           : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
       }`}
     >

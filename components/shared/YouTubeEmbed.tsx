@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play } from 'lucide-react';
+import { Play } from '@/components/icons/lucide';
 
 interface YouTubeEmbedProps {
   videoId: string;

@@ -25,16 +25,16 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyles = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-sm hover:shadow-md whitespace-nowrap';
   
   const variants = {
-    // Acción principal: gradiente inspirado en el icono de la app
-    primary: 'bg-linear-to-r from-[#0ea5a4] via-[#8D37FC] to-[#4F46E5] dark:from-[#0ea5a4] dark:via-[#8D37FC] dark:to-[#4F46E5] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-purple-500/20',
-    // Secundario: gris suave en degradado (y versión dark)
-    secondary: 'bg-linear-to-r from-[#f3f4f6] via-[#e6e7ea] to-[#d1d5db] dark:from-[#374151] dark:via-[#1f2937] dark:to-[#111827] text-zinc-900 dark:text-zinc-100 border border-transparent dark:border-transparent bg-[length:200%_auto] hover:bg-right shadow-sm',
+    // Acción principal: azul moderno (cobalt → eléctrico)
+    primary: 'bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-blue-700/30',
+    // Secundario: gris neutro en degradado (y versión dark)
+    secondary: 'bg-linear-to-r from-[#f4f4f5] via-[#e4e4e7] to-[#d4d4d8] dark:from-[#3f3f46] dark:via-[#262626] dark:to-[#131313] text-zinc-900 dark:text-zinc-100 border border-transparent dark:border-transparent bg-[length:200%_auto] hover:bg-right shadow-sm',
     // Error: degradado rojo profesional (incluye dark)
-    danger: 'bg-linear-to-r from-[#ef4444] via-[#dc2626] to-[#b91c1c] dark:from-[#b91c1c] dark:via-[#991b1b] dark:to-[#7f1d1d] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-red-500/20',
-    // Información: degradado azul (incluye dark)
-    info: 'bg-linear-to-r from-[#3b82f6] via-[#0ea5ff] to-[#06b6d4] dark:from-[#1e40af] dark:via-[#0ea5ff] dark:to-[#0891b2] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-sky-500/20',
+    danger: 'bg-linear-to-r from-[#ff4d5e] via-[#e11d48] to-[#b91c1c] dark:from-[#b91c1c] dark:via-[#991b1b] dark:to-[#7f1d1d] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-red-500/20',
+    // Información: azul eléctrico
+    info: 'bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-blue-600/30',
     ghost: 'bg-transparent text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 shadow-none',
-    gradient: 'bg-linear-to-r from-teal-500 via-emerald-500 to-teal-500 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-teal-500/30',
+    gradient: 'bg-linear-to-r from-indigo-600 via-blue-500 to-blue-400 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-blue-700/30',
   };
 
   const sizes = {
@@ -69,7 +69,7 @@ export const Button: React.FC<ButtonProps> = ({
       onPointerDown={handlePointerDown}
     >
       {loading && (
-        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
         </svg>
