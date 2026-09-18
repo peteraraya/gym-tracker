@@ -144,6 +144,7 @@ export default function AuthPage() {
               {...register("password")}
               label={t("password")}
               placeholder="••••••••"
+              autoComplete={isLogin ? "current-password" : "new-password"}
               error={errors.password?.message as string}
             />
 
@@ -153,6 +154,7 @@ export default function AuthPage() {
                   {...register("confirmPassword")}
                   label={t("confirmPassword")}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   error={errors.confirmPassword?.message as string}
                 />
                 <PasswordRequirements password={password} />
