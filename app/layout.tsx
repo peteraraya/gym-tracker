@@ -41,6 +41,7 @@ export function generateViewport() {
     width: "device-width",
     initialScale: 1,
     themeColor: "#000000",
+    viewportFit: "cover",
   };
 }
 
