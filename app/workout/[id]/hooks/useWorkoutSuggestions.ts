@@ -50,6 +50,8 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
   // CRITICAL BUG FIX: Use ref instead of state to track "already toasted" guard.
   // Prevents infinite render-toast-dismiss loop caused by dismissedSuggestions in deps array.
   const hasShownToastRef = useRef(false);
+  // Guard para evitar actualizaciones redundantes de `suggestions` que provoquen render loops
+  const lastSuggestionsKeyRef = useRef<string | null>(null);
 
   // Resetear sugerencias descartadas cuando cambia el ejercicio
   useEffect(() => {
@@ -127,7 +129,11 @@ export function useWorkoutSuggestions(params: UseWorkoutSuggestionsParams) {
       }
     }
     
-    setSuggestions(uniqueSuggestions);
+    const key = uniqueSuggestions.map(s => `${s.type}::${s.title}::${s.message}`).join('||');
+    if (key !== lastSuggestionsKeyRef.current) {
+      lastSuggestionsKeyRef.current = key;
+      setSuggestions(uniqueSuggestions);
+    }
   }, [
     currentExercise?.id,
     currentSet,

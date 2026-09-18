@@ -52,6 +52,7 @@ export const Timer: React.FC<TimerProps> = ({
   const [actualDuration, setActualDuration] = useState(0);
   const [hasAdjusted, setHasAdjusted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [ariaMessage, setAriaMessage] = useState("");
   const onCompleteCalledRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
   const startTimeRef = useRef<number>(0);
@@ -180,6 +181,11 @@ export const Timer: React.FC<TimerProps> = ({
 
             return 0;
           }
+          
+          if (prev === 11) {
+            setAriaMessage("Faltan 10 segundos de descanso.");
+          }
+          
           return prev - 1;
         });
       }, 1000);
@@ -234,6 +240,8 @@ export const Timer: React.FC<TimerProps> = ({
   // ✨ NEW: Efecto mejorado para notificaciones y sonidos al completar
   useEffect(() => {
     if (isCompleted) {
+      setTimeout(() => setAriaMessage("Descanso completado. Prepárate."), 0);
+      
       // Mostrar notificación de completado
       if (notificationPermission) {
         notifications.showRestComplete({
@@ -247,8 +255,25 @@ export const Timer: React.FC<TimerProps> = ({
       soundManager.playRestCompleteSound().catch(error => {
         console.warn('Error reproduciendo sonido:', error);
       });
+      
+      // Feedback háptico (vibración)
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          // Patrón: vibración corta, pausa, vibración corta, pausa, vibración larga
+          navigator.vibrate([200, 100, 200, 100, 500]);
+        } catch (e) {
+          // Ignorar si falla
+        }
+      }
     }
   }, [isCompleted, notificationPermission, nextExerciseName, title, plannedDuration]);
+
+  // Anunciar inicio
+  useEffect(() => {
+    if (isRunning && timeLeft === plannedDuration) {
+      setTimeout(() => setAriaMessage(`Descanso de ${plannedDuration} segundos iniciado.`), 0);
+    }
+  }, [isRunning, timeLeft, plannedDuration]);
 
   const handleStartPause = () => {
     if (!isRunning) {
@@ -325,6 +350,10 @@ export const Timer: React.FC<TimerProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div aria-live="polite" className="sr-only">
+        {ariaMessage}
+      </div>
+
       {/* Minimize button - top right */}
       {onMinimize && !isCompleted && (
         <div className="flex justify-end mb-2">
@@ -501,21 +530,28 @@ export const Timer: React.FC<TimerProps> = ({
 
             {/* Botones principales - Centrados y espaciados */}
             <div className="flex items-center justify-center gap-3">
-              <Button
-                variant={isRunning ? 'secondary' : 'primary'}
-                onClick={handleStartPause}
-                size="lg"
-                className="px-8 py-3 text-base font-semibold flex items-center justify-center gap-2"
-              >
-                {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                <span>{isRunning ? 'Pausar' : 'Iniciar'}</span>
-              </Button>
+              <div className="relative group">
+                {!isRunning && <div className="absolute -inset-1 bg-blue-400/30 rounded-lg blur-md group-hover:bg-blue-400/50 transition-all duration-300"></div>}
+                <Button
+                  variant={isRunning ? 'secondary' : 'primary'}
+                  onClick={handleStartPause}
+                  size="lg"
+                  className={`relative px-8 py-3 text-base font-bold flex items-center justify-center gap-2 transition-all ${
+                    isRunning 
+                      ? 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700' 
+                      : 'bg-blue-600 hover:bg-blue-500 shadow-lg transform group-hover:scale-105'
+                  }`}
+                >
+                  {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  <span>{isRunning ? 'Pausar' : 'Iniciar'}</span>
+                </Button>
+              </div>
               
               <Button
                 variant="secondary"
                 onClick={handleSkip}
                 size="lg"
-                className="px-8 py-3 text-base font-semibold bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-2"
+                className="px-8 py-3 text-base font-semibold bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white flex items-center gap-2 shadow-md transition-all hover:scale-105 border-0"
               >
                 <ArrowRight className="w-5 h-5" />
                 <span>Saltar</span>
@@ -523,26 +559,29 @@ export const Timer: React.FC<TimerProps> = ({
             </div>
           </>
         ) : (
-          <div className="space-y-2">
-            <Button 
-              variant="primary" 
-              onClick={() => { 
-                if (onComplete && !onCompleteCalledRef.current) {
-                  onCompleteCalledRef.current = true;
-                  onComplete();
-                }
-              }} 
-              size="lg" 
-              className="w-full py-4 text-lg font-bold flex items-center justify-center gap-2"
-            >
-              <Check className="w-5 h-5" />
-              <span>Continuar</span>
-            </Button>
+          <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="relative group z-10">
+              <div className="absolute -inset-1 bg-green-400/40 rounded-xl blur-md group-hover:bg-green-400/60 transition-all duration-300 animate-pulse pointer-events-none -z-10"></div>
+              <Button 
+                variant="primary" 
+                onClick={() => { 
+                  if (onComplete && !onCompleteCalledRef.current) {
+                    onCompleteCalledRef.current = true;
+                    onComplete();
+                  }
+                }} 
+                size="lg" 
+                className="relative w-full py-4 text-xl font-black bg-green-500 hover:bg-green-600 text-white flex items-center justify-center gap-2 shadow-xl transform transition-all group-hover:scale-[1.02] active:scale-95 border border-green-400"
+              >
+                <Check className="w-6 h-6" />
+                <span>Continuar</span>
+              </Button>
+            </div>
             <Button 
               variant="ghost" 
               onClick={handleReset} 
               size="lg" 
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
               <span>Más descanso</span>

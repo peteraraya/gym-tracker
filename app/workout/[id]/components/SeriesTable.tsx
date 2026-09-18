@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { NumericInput } from '@/components/ui/NumericInput';
 import { WeightSelector } from '@/components/features/workout/WeightSelector';
+import { EditValueModal } from '@/components/shared/EditValueModal';
 import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
 import SetTypeCycleButton from '@/components/features/workout/SetTypeCycleButton';
 import { Plus } from '@/components/icons/lucide';
 import type { Exercise, SetType, Routine } from '@/types';
 import { calculateNextRestTime } from '../utils/workoutCalculations';
+import { triggerHaptic } from '@/lib/utils/haptics';
 
 interface SeriesTableProps {
   exercise: Exercise;
@@ -21,6 +23,8 @@ interface SeriesTableProps {
   actualWeights: number[];
   setTypes: string[];
   currentSet: number;
+  /** Flags explícitos de completado por serie. Solo se activan al pulsar el botón naranja. */
+  completedSetFlags?: boolean[];
   onEditReps: (setIndex: number, reps: number) => void;
   onEditWeight: (setIndex: number, weight: number) => void;
   onEditSetType: (setIndex: number, type: SetType) => void;
@@ -53,6 +57,7 @@ export function SeriesTable({
   actualWeights,
   setTypes,
   currentSet,
+  completedSetFlags,
   onEditReps,
   onEditWeight,
   onEditSetType,
@@ -70,6 +75,27 @@ export function SeriesTable({
   const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
   // ✅ State for mobile editing - one state for all sets
   const [mobileEditingField, setMobileEditingField] = useState<{setIndex: number, field: 'reps' | 'weight'} | null>(null);
+  
+  // State for EditValueModal
+  const [modalEditState, setModalEditState] = useState<{
+    setIndex: number;
+    field: 'reps' | 'weight';
+    currentValue: number | '';
+  } | null>(null);
+  const [weightHistory, setWeightHistory] = React.useState<number[]>([]);
+  
+  React.useEffect(() => {
+    if (exerciseId) {
+      try {
+        const stored = localStorage.getItem(`weight-history-${exerciseId}`);
+        if (stored) {
+          setWeightHistory(JSON.parse(stored) as number[]);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [exerciseId]);
 
   // Mostrar series completadas basadas en el contador explícito `completedSets`.
   // Como fallback, usar el cálculo por `actualReps` si `completedSets` no está disponible.
@@ -120,9 +146,13 @@ export function SeriesTable({
               {exercise.sets.map((set, idx) => {
                 const setType = setTypes[idx] || 'normal';
                 const doneReps = actualReps[idx] ?? null;
-                const doneWeight = actualWeights[idx] ?? set.weight ?? '';
-                // Marcar completada solo si el índice está dentro del contador explícito
-                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
+                const previousWeight = idx > 0 ? (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) : undefined;
+                const doneWeight = actualWeights[idx] ?? set.weight ?? previousWeight ?? '';
+                // Usar flag explícito de completado si está disponible;
+                // solo activado al pulsar el botón naranja.
+                const isCompleted = completedSetFlags
+                  ? Boolean(completedSetFlags[idx])
+                  : typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
               
               // Skip completed sets in mobile view
               if (isCompleted) return null;
@@ -131,83 +161,70 @@ export function SeriesTable({
               const isEditingReps = mobileEditingField?.setIndex === idx && mobileEditingField?.field === 'reps';
               const isEditingWeight = mobileEditingField?.setIndex === idx && mobileEditingField?.field === 'weight';
               
+              const isCurrent = idx === currentSet - 1;
               return (
-                <div key={`mobile-controls-${idx}`} className="bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 p-3 rounded-lg space-y-3">
+                <div key={`mobile-controls-${idx}`} className={`p-4 rounded-xl space-y-4 border transition-all ${
+                  isCurrent 
+                    ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800 shadow-sm'
+                    : 'bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700/50'
+                }`}>
                   {/* Serie header with number and info */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${
-                        idx === currentSet - 1 ? 'bg-blue-600' : 'bg-gray-400 dark:bg-gray-600'
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-sm ${
+                        isCurrent ? 'bg-blue-600 ring-4 ring-blue-100 dark:ring-blue-900/50' : 'bg-gray-400 dark:bg-gray-600'
                       }`}>
                         {idx + 1}
                       </div>
-                      <div className="flex items-center gap-1 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         {/* Reps - clickable */}
-                        {isEditingReps ? (
-                          <NumericInput
-                            value={doneReps ?? set.reps}
-                            onChange={(v) => onEditReps(idx, v)}
-                            onBlur={() => setMobileEditingField(null)}
-                            onKeyDown={(e) => (e as React.KeyboardEvent).key === 'Enter' && setMobileEditingField(null)}
-                            autoFocus
-                            className="w-10 px-1 py-0.5 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs font-semibold border border-blue-500 text-center"
-                          />
-                        ) : (
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-medium text-gray-500 uppercase">Reps</span>
                           <button
-                            onClick={() => setMobileEditingField({setIndex: idx, field: 'reps'})}
-                            className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
+                            onClick={() => setModalEditState({setIndex: idx, field: 'reps', currentValue: doneReps ?? set.reps})}
+                            className={`px-3 py-1.5 rounded-lg border text-base font-bold transition-colors ${
+                              isCurrent 
+                                ? 'bg-white dark:bg-gray-900 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300' 
+                                : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200'
+                            }`}
                           >
                             {doneReps ?? set.reps}
                           </button>
-                        )}
-                        <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">reps ×</span>
+                        </div>
                         
-                        {/* Weight - using WeightSelector */}
-                        {isEditingWeight ? (
-                          <div className="w-14">
-                            <WeightSelector
-                              value={doneWeight || set.weight || 0}
-                              onChange={(weight) => {
-                                onEditWeight(idx, weight);
-                                setMobileEditingField(null);
-                              }}
-                              exerciseId={exerciseId}
-                              className="text-xs py-0.5"
-                            />
-                          </div>
-                        ) : (
-                          <div>
-                            <button
-                              onClick={() => setMobileEditingField({setIndex: idx, field: 'weight'})}
-                              className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-semibold text-gray-900 dark:text-gray-100"
-                            >
-                              {doneWeight || set.weight || 0}
-                            </button>
-                            {/* Hint cuando no hay peso (simplificado) */}
-                            {!(typeof doneWeight === 'number' && doneWeight > 0) && (
-                              <div className="mt-1 text-[11px] text-gray-500">
-                                <span>Toca para editar el peso</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        <span className="text-xs text-gray-600 dark:text-gray-400 shrink-0">kg</span>
+                        {/* Weight - clickable */}
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-medium text-gray-500 uppercase">Peso (kg)</span>
+                          <button
+                            onClick={() => setModalEditState({setIndex: idx, field: 'weight', currentValue: doneWeight || set.weight || 0})}
+                            className={`px-3 py-1.5 rounded-lg border text-base font-bold transition-colors ${
+                              isCurrent 
+                                ? 'bg-white dark:bg-gray-900 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300' 
+                                : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200'
+                            }`}
+                          >
+                            {doneWeight || set.weight || 0}
+                          </button>
+                        </div>
                       </div>
                     </div>
                     {/* Status checkbox */}
                     <button
-                      onClick={() => onToggleSetComplete(idx, !isCompleted)}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                      onClick={() => {
+                        triggerHaptic(!isCompleted ? 'success' : 'light');
+                        onToggleSetComplete(idx, !isCompleted);
+                      }}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 border-2 ${
                         isCompleted
-                          ? 'bg-green-500 hover:bg-green-600 text-white'
-                          : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400'
+                          ? 'bg-green-500 border-green-500 text-white shadow-md shadow-green-500/20'
+                          : isCurrent
+                          ? 'bg-white dark:bg-gray-800 border-blue-400 text-transparent hover:bg-blue-50'
+                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-transparent'
                       }`}
                     >
-                      {isCompleted ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : null}
+                      <svg className={`w-5 h-5 transition-opacity ${isCompleted ? 'opacity-100' : 'opacity-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
                     </button>
                   </div>
                   
@@ -293,10 +310,14 @@ export function SeriesTable({
             <tbody>
               {exercise.sets.map((set, idx) => {
                 const doneReps = actualReps[idx] ?? null;
-                const doneWeight = actualWeights[idx] ?? set.weight ?? '';
+                const previousWeight = idx > 0 ? (actualWeights[idx - 1] || exercise.sets[idx - 1]?.weight) : undefined;
+                const doneWeight = actualWeights[idx] ?? set.weight ?? previousWeight ?? '';
                 const setType = setTypes[idx] || 'normal';
-                // Marcar completada solo si el índice es menor que el contador explícito
-                const isCompleted = typeof actualCompletedSets === 'number' && idx < actualCompletedSets;
+                // Usar flag explícito de completado si está disponible;
+                // solo activado al pulsar el botón naranja.
+                const isCompleted = completedSetFlags
+                  ? Boolean(completedSetFlags[idx])
+                  : typeof actualReps[idx] === 'number' && (actualReps[idx] ?? 0) > 0;
                 const isCurrent = idx === currentSet - 1;
 
                 return (
@@ -443,7 +464,10 @@ export function SeriesTable({
                     {/* Checkbox animado */}
                     <td className="py-3 px-2 text-center">
                       <motion.button
-                        onClick={() => onToggleSetComplete(idx, !isCompleted)}
+                        onClick={() => {
+                          triggerHaptic(!isCompleted ? 'success' : 'light');
+                          onToggleSetComplete(idx, !isCompleted);
+                        }}
                         whileTap={{ scale: 0.8 }}
                         animate={isCompleted
                           ? { scale: [1, 1.3, 1], backgroundColor: '#22c55e' }
@@ -550,13 +574,32 @@ export function SeriesTable({
         {/* Botón para agregar serie */}
         <button
           onClick={onAddSet}
-          className="w-full mt-4 py-3 px-4 bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all font-medium flex items-center justify-center gap-2"
+          className="w-full mt-4 py-3.5 px-4 bg-blue-50/50 dark:bg-blue-900/10 border-2 border-dashed border-blue-200 dark:border-blue-800/50 rounded-xl text-blue-600 dark:text-blue-400 hover:border-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all font-bold flex items-center justify-center gap-2 shadow-sm"
         >
           <Plus className="w-5 h-5" />
-          Agregar Serie
+          Agregar Nueva Serie
         </button>
         </div>
       </CardContent>
+      <EditValueModal
+        isOpen={modalEditState !== null}
+        onClose={() => setModalEditState(null)}
+        title={`${exercise.name} · Serie ${modalEditState ? modalEditState.setIndex + 1 : ''}`}
+        field={modalEditState?.field || 'reps'}
+        currentValue={modalEditState?.currentValue ?? ''}
+        onSave={(v) => {
+          if (modalEditState) {
+            if (modalEditState.field === 'reps') {
+              onEditReps(modalEditState.setIndex, v);
+            } else {
+              onEditWeight(modalEditState.setIndex, v);
+            }
+          }
+          setModalEditState(null);
+        }}
+        equipment={exercise.equipment}
+        historicalWeights={weightHistory}
+      />
     </Card>
   );
 }

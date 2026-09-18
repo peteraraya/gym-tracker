@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { PlateCalculator } from '@/components/features/workout/PlateCalculator';
 
 interface EditValueModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface EditValueModalProps {
   currentValue: number | '';
   onSave: (value: number) => void;
   historicalWeights?: number[];
+  equipment?: string;
 }
 
 function haptic(intensity: 'light' | 'medium' = 'light') {
@@ -33,6 +35,7 @@ export function EditValueModal({
   currentValue,
   onSave,
   historicalWeights = [],
+  equipment,
 }: EditValueModalProps) {
   const [display, setDisplay] = useState<string>('');
   // replaceNext: el próximo dígito reemplaza todo (comportamiento calculadora)
@@ -120,6 +123,10 @@ export function EditValueModal({
 
   const displayText = display === '' ? '–' : display;
   const isValid = numericValue() > 0;
+  
+  const isBarbell = equipment
+    ? /barra|barbell/i.test(equipment)
+    : false;
 
   const shortcuts: number[] = field === 'reps'
     ? [6, 8, 10, 12, 15, 20]
@@ -129,9 +136,24 @@ export function EditValueModal({
     ? [{ label: '−5', delta: -5 }, { label: '−2.5', delta: -2.5 }, { label: '+2.5', delta: 2.5 }, { label: '+5', delta: 5 }]
     : [{ label: '−5', delta: -5 }, { label: '−1', delta: -1 }, { label: '+1', delta: 1 }, { label: '+5', delta: 5 }];
 
+  const handleClose = () => {
+    const v = numericValue();
+    if (v > 0 && v !== currentValue) {
+      onSave(v);
+    }
+    onClose();
+  };
+
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={title}>
+    <BottomSheet isOpen={isOpen} onClose={handleClose} title={title}>
       <div className="px-3 pb-3 space-y-3">
+
+        {/* Calculadora de Discos (Solo para peso y si es barra/barbell) */}
+        {field === 'weight' && isBarbell && numericValue() > 0 && (
+          <div className="mb-2">
+            <PlateCalculator targetWeight={numericValue()} />
+          </div>
+        )}
 
         {/* Pantalla principal estilo calculadora */}
         <div className="relative flex items-center justify-center bg-gray-900 dark:bg-gray-950 rounded-2xl border border-gray-700 min-h-18 px-4">
@@ -188,7 +210,7 @@ export function EditValueModal({
                   onClick={() => handleShortcut(val)}
                   className={`py-2.5 rounded-xl font-bold text-sm active:scale-95 touch-manipulation select-none ${
                     String(val) === display
-                      ? 'bg-blue-500 text-white shadow-md'
+                      ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -248,7 +270,7 @@ export function EditValueModal({
         <button
           onClick={handleConfirm}
           disabled={!isValid}
-          className="w-full py-4 text-xl font-bold rounded-2xl bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation select-none"
+          className="w-full py-4 text-xl font-bold rounded-2xl bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 shadow-lg active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation select-none"
         >
           ✓ Guardar{isValid ? ` (${display}${field === 'weight' ? ' kg' : ' reps'})` : ''}
         </button>

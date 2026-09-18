@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
     ],
     // typedRoutes: true, // Requiere migrar todas las rutas string a Route<T> — pendiente
   },
+  output: "standalone",
   // Only use static export for mobile builds
   // output: "export", // Commented out - only uncomment for mobile build
   images: {

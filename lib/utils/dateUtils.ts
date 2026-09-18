@@ -8,6 +8,54 @@
  */
 
 import type { WorkoutSession } from "@/types";
+import type { DayKey } from "@/types/planning";
+
+/**
+ * Devuelve el índice de día de la semana con convención ISO (0 = lunes, ..., 6 = domingo)
+ */
+export function getISOWeekdayIndex(date: Date): number {
+  return (date.getDay() + 6) % 7;
+}
+
+/** Devuelve el inicio de la semana (medianoche) según weekStartsOn ('monday'|'sunday') */
+export function getWeekStart(
+  date: Date,
+  weekStartsOn: "monday" | "sunday" = "monday",
+): Date {
+  const d = new Date(date);
+  const jsWeekStart = weekStartsOn === "monday" ? 1 : 0;
+  const day = d.getDay();
+  const diff = (day - jsWeekStart + 7) % 7;
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+export function getWeekKey(
+  date: Date,
+  weekStartsOn: "monday" | "sunday" = "monday",
+): string {
+  return getWeekStart(date, weekStartsOn).toISOString().split("T")[0];
+}
+
+const JS_DAY_TO_KEY: Record<number, DayKey> = {
+  0: "sunday",
+  1: "monday",
+  2: "tuesday",
+  3: "wednesday",
+  4: "thursday",
+  5: "friday",
+  6: "saturday",
+};
+
+export function getDayKey(date: Date): DayKey {
+  return JS_DAY_TO_KEY[date.getDay()];
+}
+
+export function getDayName(date: Date, locale = "es-ES"): string {
+  const name = date.toLocaleDateString(locale, { weekday: "long" });
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
 
 /**
  * Normaliza una fecha a medianoche en la zona horaria local

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { NumericInput } from '@/components/ui/NumericInput';
 import { WeightSelector } from '@/components/features/workout/WeightSelector';
 import { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
-import { Dumbbell, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Dumbbell, Plus, ChevronDown, ChevronUp, Trash2 } from '@/components/icons/lucide';
 import type { FreeExercise } from '../hooks/useFreeWorkoutState';
 
 interface FreeWorkoutExerciseListProps {

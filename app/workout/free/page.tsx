@@ -15,7 +15,7 @@ import { ExerciseSelector } from "@/components/features/exercises/ExerciseSelect
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { generateRoutine } from "@/lib/routines/routineGenerator";
 import { getRoutineStats } from "@/lib/routines/routineEstimation";
-import { Zap } from "lucide-react";
+import { Zap } from "@/components/icons/lucide";
 import { useFreeWorkoutState, clearFreeWorkoutStorage } from "./hooks/useFreeWorkoutState";
 import { FreeWorkoutExerciseCard } from "./components/FreeWorkoutExerciseCard";
 import { FreeWorkoutExerciseList } from "./components/FreeWorkoutExerciseList";
@@ -147,11 +147,7 @@ export default function FreeWorkoutPage() {
 
   const handleSetTimerComplete = (duration: number, pausedTime: number) => {
     setTotalPausedTime((prev) => prev + pausedTime);
-    // CRITICAL BUG FIX: Do NOT call handleCompleteSet() here.
-    // handleCompleteSet() was already called when the set was completed,
-    // and calling it again on timer completion creates a phantom duplicate set.
-    // The timer completion should only advance UI state (hide the timer).
-    handleTimerComplete();
+    handleCompleteSet();
   };
 
   const handleTimerComplete = () => setShowTimer(false);
@@ -401,6 +397,7 @@ export default function FreeWorkoutPage() {
               onSetTypeChange={setCurrentSetType}
               onCompleteSet={handleCompleteSet}
               onStartSet={handleStartSet}
+              onPreparationComplete={handlePreparationComplete}
               onSetTimerComplete={handleSetTimerComplete}
               showPreparation={showPreparation}
               isExecutingSet={isExecutingSet}

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import * as storageService from '@/lib/storage/storage';
 import { ExerciseTemplate } from '@/data/exercises';
 import type { ProgressRecommendation } from '@/lib/storage/localStorage';
-import { ExerciseIcon } from '@/components/features/exercises/ExerciseIcon';
+import YouTubeEmbed from '@/components/shared/YouTubeEmbed';
 
 interface ExerciseDetailsProps {
   exercise: ExerciseTemplate;
@@ -72,26 +72,33 @@ export const ExerciseDetails: React.FC<ExerciseDetailsProps> = React.memo(({ exe
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Exercise Image/Icon */}
+          {/* Exercise Image/Icon or YouTube */}
           <div className="flex justify-center">
             <div className="w-full max-w-md rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 shadow-lg">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={exercise.image || '/images/not-available.svg'}
-                alt={exercise.name}
-                className="w-full h-auto object-contain"
-                loading="lazy"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.dataset.fallback) {
-                    target.dataset.fallback = '1';
-                    target.src = '/images/not-available.svg';
-                  } else {
-                    const parent = target.parentElement;
-                    if (parent) parent.style.display = 'none';
-                  }
-                }}
-              />
+              {exercise.youtubeVideoId ? (
+                <YouTubeEmbed 
+                  videoId={exercise.youtubeVideoId}
+                  title={exercise.name}
+                />
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={exercise.image || '/images/not-available.svg'}
+                  alt={exercise.name}
+                  className="w-full h-auto object-contain"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = '/images/not-available.svg';
+                    } else {
+                      const parent = target.parentElement;
+                      if (parent) parent.style.display = 'none';
+                    }
+                  }}
+                />
+              )}
             </div>
           </div>
 

@@ -21,19 +21,62 @@ interface ExerciseListItemProps {
 
 function ExerciseImage({ exercise }: { exercise: ExerciseTemplate }) {
   const [failed, setFailed] = useState(false);
+  
+  // Preferir el thumbnail de YouTube si existe
+  const imageUrl = exercise.youtubeVideoId 
+    ? `https://img.youtube.com/vi/${exercise.youtubeVideoId}/hqdefault.jpg`
+    : exercise.image;
+
   // Si no hay imagen o la carga falló, mostrar fallback (mismo estilo que el placeholder)
-  if (!exercise.image || failed) {
+  if (!imageUrl || failed) {
+    const initials = exercise.name
+      .split(' ')
+      .map(w => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
     return (
-      <div className="flex justify-center items-center h-40 sm:h-full rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 overflow-hidden">
-        <ExerciseIcon muscleGroup={exercise.muscleGroup} className="w-24 h-24" />
+      <div className="w-full h-40 sm:h-full relative bg-gray-100 dark:bg-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none group flex flex-col items-center justify-center p-4">
+        {/* Fondo con el SVG sutil */}
+        <div className="absolute inset-0 opacity-20 dark:opacity-30">
+          <Image
+            src="/images/not-available-thumb.svg"
+            alt=""
+            fill
+            unoptimized
+            className="object-cover"
+          />
+        </div>
+
+        {/* Iniciales Dinámicas */}
+        <div className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-gray-800 dark:text-gray-200 font-bold text-xl sm:text-2xl shadow-lg border-2 border-gray-200 dark:border-gray-700 mb-2">
+          {initials}
+        </div>
+
+        {/* Botón Buscar en YouTube */}
+        <a 
+          href={`https://www.youtube.com/results?search_query=${encodeURIComponent('ejercicio técnica ' + exercise.name)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative z-10 text-xs font-medium px-3 py-1.5 bg-red-600 text-white hover:bg-red-700 rounded-full transition-all flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+          onClick={(e) => e.stopPropagation()} 
+        >
+          <span className="text-[10px]">▶</span> Buscar
+        </a>
+
+        {/* Badge del grupo muscular superpuesto */}
+        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm p-1.5 rounded-lg shadow-sm border border-white/10 z-10 flex items-center justify-center" title={exercise.muscleGroup}>
+          <ExerciseIcon muscleGroup={exercise.muscleGroup} className="w-6 h-6 opacity-90" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-40 sm:h-full relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
+    <div className="w-full h-40 sm:h-full relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none group">
       <Image
-        src={exercise.image}
+        src={imageUrl}
         alt={exercise.name}
         fill
         unoptimized
@@ -62,16 +105,12 @@ export function ExerciseListItem({
         {/* Image/Icon */}
         {showImage && (
           <div className="sm:w-48 shrink-0">
-            {exercise.image ? (
-              <ExerciseImage exercise={exercise} />
+            {exercise.image || (exercise as ExerciseTemplate).youtubeVideoId ? (
+              <ExerciseImage exercise={exercise as ExerciseTemplate} />
             ) : (
-              <div className={`flex justify-center items-center h-40 sm:h-full rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none ${
-                isWarmup 
-                  ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' 
-                  : 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700'
-              }`}>
+              <div className="w-full h-40 sm:h-full relative bg-gray-100 dark:bg-gray-800 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none group">
                 {isWarmup ? (
-                  <div className="flex flex-col items-center gap-2">
+                  <div className={`flex flex-col items-center justify-center h-full gap-2 relative z-10 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20`}>
                     <span className="text-6xl">🔥</span>
                     {categoryLabel && categoryIcon && (
                       <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
@@ -80,7 +119,32 @@ export function ExerciseListItem({
                     )}
                   </div>
                 ) : (
-                  <ExerciseIcon muscleGroup={exercise.muscleGroup} className="w-24 h-24" />
+                  <div className="w-full h-full relative flex flex-col items-center justify-center p-4">
+                    <div className="absolute inset-0 opacity-20 dark:opacity-30">
+                      <Image
+                        src="/images/not-available-thumb.svg"
+                        alt=""
+                        fill
+                        unoptimized
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-gray-800 dark:text-gray-200 font-bold text-xl sm:text-2xl shadow-lg border-2 border-gray-200 dark:border-gray-700 mb-2">
+                      {exercise.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
+                    </div>
+                    <a 
+                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent('ejercicio técnica ' + exercise.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative z-10 text-xs font-medium px-3 py-1.5 bg-red-600 text-white hover:bg-red-700 rounded-full transition-all flex items-center gap-1 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                      onClick={(e) => e.stopPropagation()} 
+                    >
+                      <span className="text-[10px]">▶</span> Buscar
+                    </a>
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm p-1.5 rounded-lg shadow-sm border border-white/10 z-10 flex items-center justify-center" title={exercise.muscleGroup}>
+                      <ExerciseIcon muscleGroup={exercise.muscleGroup} className="w-6 h-6 opacity-90" />
+                    </div>
+                  </div>
                 )}
               </div>
             )}

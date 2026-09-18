@@ -55,6 +55,7 @@ create table public.user_profiles (
   gender text check (gender in ('male', 'female', 'other')),
   height numeric, -- en cm
   weight numeric, -- en kg
+  weight_history jsonb, -- historial de peso: [{date, weight}] en kg
   fitness_goal text check (fitness_goal in ('muscle_gain', 'strength', 'weight_loss', 'endurance', 'general_fitness')),
   fitness_level text check (fitness_level in ('beginner', 'intermediate', 'advanced')),
   weekly_workouts integer,

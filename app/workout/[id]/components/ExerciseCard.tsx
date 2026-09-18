@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { WeightSuggestionBanner } from "@/components/features/workout/WeightSuggestionBanner";
 import { EditValueModal } from "@/components/shared/EditValueModal";
 import { useToast } from "@/context/NotificationContext";
 import { formatRestTime } from "@/lib/utils/formatTime";
+import { soundManager } from "@/lib/audio/soundSystem";
 import type { Exercise } from "@/types";
 import type { WeightSuggestion } from "@/lib/data/weightSuggestions";
 
@@ -36,6 +38,8 @@ interface ExerciseCardProps {
   personalRecord?: { maxWeight: number; reps: number; date: Date } | null;
   // Pesos ya usados en esta sesión para sugerencias
   actualWeights?: number[];
+  // Callback para cambiar el tempo del ejercicio
+  onTempoChange?: (tempo: string) => void;
 }
 
 /**
@@ -67,6 +71,7 @@ export function ExerciseCard({
   quickSwitcher,
   personalRecord,
   actualWeights = [],
+  onTempoChange,
 }: ExerciseCardProps) {
   const { success } = useToast();
   const totalSets = exercise.sets.length;
@@ -81,38 +86,24 @@ export function ExerciseCard({
   // Estado local para controlar la visibilidad de la sugerencia
   const [showSuggestion, setShowSuggestion] = useState(true);
 
-  // Resetear showSuggestion cuando cambia weightSuggestion
-  React.useEffect(() => {
-    if (weightSuggestion) {
-      setShowSuggestion(true);
-    }
-  }, [weightSuggestion]);
-
-  // Timer for set execution
+  // Timer TUT (debe declararse antes que tempoPhaseInfo)
   const [elapsedTime, setElapsedTime] = React.useState(0);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
-    // Limpiar intervalo anterior
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-
     if (!setStartTime) {
       setElapsedTime(0);
       return;
     }
-
-    // Actualizar inmediatamente
     setElapsedTime(Math.floor((Date.now() - setStartTime) / 1000));
-
-    // Crear nuevo intervalo
     intervalRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - setStartTime) / 1000);
       setElapsedTime(elapsed);
     }, 1000);
-
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -120,6 +111,101 @@ export function ExerciseCard({
       }
     };
   }, [setStartTime]);
+
+  // Estado para Tempo
+  const [showTempoSheet, setShowTempoSheet] = useState(false);
+  const [tempoInputs, setTempoInputs] = useState({ e: 3, p1: 1, c: 2, p2: 0 });
+  const metronomRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [metronomActive, setMetronomActive] = useState(false);
+  // Ref para guardar la fase actual dentro del intervalo sin closure stale
+  // Se inicializa en null y se sincroniza en un useEffect después de declarar tempoPhaseInfo
+  const tempoPhaseInfoRef = React.useRef<typeof tempoPhaseInfo>(null);
+  // NOTA: el useEffect de sincronización está justo después de tempoPhaseInfo (más abajo)
+
+  /**
+   * Activa/desactiva el metrónomo.
+   * DEBE ejecutarse desde un gesto del usuario para que AudioContext pueda
+   * reanudarse (política de autoplay de Chrome/Safari/Firefox).
+   */
+  const handleMetronomToggle = React.useCallback(async () => {
+    const newActive = !metronomActive;
+    if (newActive) {
+      // Inicializar/reanudar AudioContext desde el gesto del usuario
+      await soundManager.resumeContext();
+      // Emitir un tick de prueba para confirmar que el audio funciona
+      soundManager.playMetronomeTick(false);
+    } else {
+      if (metronomRef.current) clearInterval(metronomRef.current);
+    }
+    setMetronomActive(newActive);
+  }, [metronomActive]);
+
+  // Parse del tempo del ejercicio
+  const parsedTempo = useMemo(() => {
+    const raw = exercise.tempo;
+    if (!raw) return null;
+    const parts = raw.split('-').map(Number);
+    if (parts.length !== 4 || parts.some(isNaN)) return null;
+    return parts; // [excéntrica, pausa-arriba, concéntrica, pausa-abajo]
+  }, [exercise.tempo]);
+
+  // Sincronizar tempoInputs cuando cambia exercise.tempo
+  React.useEffect(() => {
+    if (parsedTempo) {
+      setTempoInputs({ e: parsedTempo[0], p1: parsedTempo[1], c: parsedTempo[2], p2: parsedTempo[3] });
+    }
+  }, [parsedTempo]);
+
+  // Calcular fase actual del tempo basada en el tiempo transcurrido
+  const tempoPhaseInfo = useMemo(() => {
+    if (!parsedTempo || !isSetStarted) return null;
+    const [ecc, p1, con, p2] = parsedTempo;
+    const cycle = ecc + p1 + con + p2;
+    if (cycle === 0) return null;
+    const timeInCycle = elapsedTime % cycle;
+    const phases = [
+      { name: 'BAJANDO', label: 'Excéntrica', color: '#4da6ff', bg: 'bg-blue-500/20', border: 'border-blue-500', duration: ecc, scale: 1.35 },
+      { name: 'PAUSA', label: 'Sostén arriba', color: '#fbbf24', bg: 'bg-amber-500/20', border: 'border-amber-500', duration: p1, scale: 1.35 },
+      { name: 'SUBIENDO', label: 'Concéntrica', color: '#34d399', bg: 'bg-emerald-500/20', border: 'border-emerald-500', duration: con, scale: 0.8 },
+      { name: 'PAUSA', label: 'Sostén abajo', color: '#94a3b8', bg: 'bg-slate-500/20', border: 'border-slate-500', duration: p2, scale: 0.8 },
+    ];
+    let acc = 0;
+    for (const ph of phases) {
+      if (ph.duration === 0) continue;
+      const remaining = ph.duration - Math.max(0, timeInCycle - acc);
+      acc += ph.duration;
+      if (timeInCycle < acc) return { ...ph, remaining: Math.max(0, Math.ceil(remaining)) };
+    }
+    return { ...phases[0], remaining: phases[0].duration };
+  }, [parsedTempo, elapsedTime, isSetStarted]);
+
+  // Sincronizar ref de fase para acceso desde el intervalo del metrónomo
+  React.useEffect(() => { tempoPhaseInfoRef.current = tempoPhaseInfo; }, [tempoPhaseInfo]);
+
+  // Metrónomo: háptico + audio
+  React.useEffect(() => {
+    if (metronomActive && isSetStarted) {
+      metronomRef.current = setInterval(() => {
+        const isPhaseChange = tempoPhaseInfoRef.current?.remaining === 1;
+        // Háptico
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(isPhaseChange ? [80, 30, 80] : 40);
+        }
+        // Audio (AudioContext ya reanudado desde el gesto del toggle)
+        soundManager.playMetronomeTick(isPhaseChange);
+      }, 1000);
+    } else {
+      if (metronomRef.current) clearInterval(metronomRef.current);
+    }
+    return () => { if (metronomRef.current) clearInterval(metronomRef.current); };
+  }, [metronomActive, isSetStarted]);
+
+  // Resetear showSuggestion cuando cambia weightSuggestion
+  React.useEffect(() => {
+    if (weightSuggestion) {
+      setShowSuggestion(true);
+    }
+  }, [weightSuggestion]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -251,21 +337,96 @@ export function ExerciseCard({
 
       {/* Contenido principal */}
       <CardContent className="space-y-3">
-        {/* Serie iniciada indicator - Mejorado y más prominente */}
+        {/* Panel TUT + Tempo Visualizer */}
         {isSetStarted && setStartTime && (
-          <div className="bg-linear-to-r from-blue-500 to-purple-600 rounded-xl p-4 shadow-lg">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">⏱️</span>
-                <span className="text-sm font-semibold text-white/90">
-                  Serie en progreso
-                </span>
+          <div className="relative overflow-hidden bg-linear-to-br from-indigo-900 to-slate-900 rounded-2xl shadow-2xl border border-indigo-500/30">
+            {/* Fondo animado por fase */}
+            <motion.div
+              className="absolute inset-0"
+              animate={{ backgroundColor: tempoPhaseInfo ? `${tempoPhaseInfo.color}18` : '#1e8fff18' }}
+              transition={{ duration: 0.6, ease: 'easeInOut' }}
+            />
+
+            <div className="relative z-10 flex flex-col items-center justify-center p-4 gap-3">
+              {/* Encabezado TUT */}
+              <div className="flex items-center justify-between w-full">
+                <span className="text-xs font-bold text-indigo-300 uppercase tracking-widest">Tiempo Bajo Tensión</span>
+                {/* Toggle metrónomo */}
+                <button
+                  onClick={handleMetronomToggle}
+                  title={metronomActive ? 'Desactivar metrónomo' : 'Activar metrónomo (háptico + sonido)'}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                    metronomActive
+                      ? 'bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-500/40'
+                      : 'bg-slate-800 border-slate-600 text-slate-400'
+                  }`}
+                >
+                  📳 {metronomActive ? 'ON' : 'OFF'}
+                </button>
               </div>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold tabular-nums text-white">
-                {formatTime(elapsedTime)}
+
+              {/* Anillo de respiración + cronómetro */}
+              <div className="relative flex items-center justify-center w-36 h-36">
+                {/* Anillo exterior (fase) */}
+                {tempoPhaseInfo && (
+                  <motion.div
+                    className="absolute rounded-full border-4"
+                    style={{ width: '120px', height: '120px', borderColor: tempoPhaseInfo.color }}
+                    animate={{ scale: tempoPhaseInfo.scale, opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 0.8, ease: 'easeInOut', opacity: { repeat: Infinity, duration: 1.5 } }}
+                  />
+                )}
+                {/* Anillo base pulsante */}
+                {!tempoPhaseInfo && (
+                  <motion.div
+                    className="absolute w-28 h-28 rounded-full border-4 border-indigo-500"
+                    animate={{ scale: [1, 1.08, 1], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                )}
+                {/* Centro: cronómetro */}
+                <div className="flex flex-col items-center justify-center z-10">
+                  <span className="text-4xl font-black tabular-nums text-white drop-shadow-[0_0_12px_rgba(99,102,241,0.7)]">
+                    {formatTime(elapsedTime)}
+                  </span>
+                  <span className="text-[9px] font-semibold text-indigo-300 uppercase tracking-widest mt-0.5">TUT</span>
+                </div>
               </div>
+
+              {/* Indicador de fase actual */}
+              <AnimatePresence mode="wait">
+                {tempoPhaseInfo ? (
+                  <motion.div
+                    key={tempoPhaseInfo.name + tempoPhaseInfo.remaining}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col items-center gap-1"
+                  >
+                    <span
+                      className="text-lg font-black tracking-widest uppercase"
+                      style={{ color: tempoPhaseInfo.color }}
+                    >
+                      {tempoPhaseInfo.name}
+                    </span>
+                    <span className="text-4xl font-black tabular-nums text-white">
+                      {tempoPhaseInfo.remaining}
+                    </span>
+                    <span className="text-xs text-slate-400">{tempoPhaseInfo.label}</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="no-tempo"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-medium text-slate-300">Concéntrate en el movimiento</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         )}
@@ -297,7 +458,7 @@ export function ExerciseCard({
         )}
 
         {/* Información compacta del ejercicio */}
-        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 px-3 py-2 rounded-lg">
+        <div className="flex items-center gap-3 flex-wrap text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 px-3 py-2 rounded-lg">
           {exercise.equipment && (
             <span className="flex items-center gap-1">
               <span>📦</span>
@@ -310,6 +471,18 @@ export function ExerciseCard({
               <span>{formatRestTime(exercise.restBetweenSets)}</span>
             </span>
           )}
+          {/* Badge de Tempo */}
+          <button
+            onClick={() => setShowTempoSheet(true)}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold transition-all active:scale-95 ${
+              exercise.tempo
+                ? 'bg-violet-100 dark:bg-violet-900/30 border-violet-400 dark:border-violet-600 text-violet-700 dark:text-violet-300'
+                : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            <span>⏱️</span>
+            <span>{exercise.tempo ? `Tempo: ${exercise.tempo}` : 'Ritmo: Libre'}</span>
+          </button>
         </div>
 
         {/* Inputs de reps y peso */}
@@ -432,6 +605,106 @@ export function ExerciseCard({
           <div className="pt-1">{quickSwitcher}</div>
         )}
       </CardContent>
+
+      {/* BottomSheet de configuración de Tempo */}
+      <BottomSheet
+        isOpen={showTempoSheet}
+        onClose={() => setShowTempoSheet(false)}
+        title="⏱️ Tempo de ejecución"
+      >
+        <div className="p-4 space-y-5">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Define el ritmo de cada fase del movimiento (en segundos).
+          </p>
+
+          {/* Inputs de 4 fases */}
+          <div className="grid grid-cols-4 gap-3">
+            {([
+              { key: 'e' as const, label: '↓ Excéntrica', color: 'blue', hint: 'Bajada' },
+              { key: 'p1' as const, label: '— Pausa', color: 'amber', hint: 'Arriba' },
+              { key: 'c' as const, label: '↑ Concéntrica', color: 'emerald', hint: 'Subida' },
+              { key: 'p2' as const, label: '— Pausa', color: 'slate', hint: 'Abajo' },
+            ] as const).map(({ key, label, hint }) => (
+              <div key={key} className="flex flex-col items-center gap-1">
+                <label className="text-[10px] font-bold text-gray-500 uppercase text-center leading-tight">
+                  {label}<br/><span className="normal-case font-normal">{hint}</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={tempoInputs[key]}
+                  onChange={e => setTempoInputs(prev => ({ ...prev, [key]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                  className="w-full text-center text-2xl font-black border-2 rounded-xl py-2 bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 focus:outline-none focus:border-indigo-500 tabular-nums"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Preview */}
+          <div className="text-center">
+            <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400">
+              {tempoInputs.e}-{tempoInputs.p1}-{tempoInputs.c}-{tempoInputs.p2}
+            </span>
+            <p className="text-xs text-gray-400 mt-1">
+              Ciclo total: {tempoInputs.e + tempoInputs.p1 + tempoInputs.c + tempoInputs.p2}s/rep
+            </p>
+          </div>
+
+          {/* Presets */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase">Presets</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { name: 'Hipertrofia', tempo: '3-1-2-0' },
+                { name: 'Fuerza', tempo: '2-1-1-0' },
+                { name: 'Explosivo', tempo: '3-0-X-0' },
+                { name: 'Libre', tempo: '' },
+              ].map(preset => (
+                <button
+                  key={preset.name}
+                  onClick={() => {
+                    if (!preset.tempo) {
+                      setTempoInputs({ e: 0, p1: 0, c: 0, p2: 0 });
+                    } else {
+                      const [e, p1, c, p2] = preset.tempo.split('-').map(Number);
+                      setTempoInputs({ e: e || 0, p1: p1 || 0, c: c || 0, p2: p2 || 0 });
+                    }
+                  }}
+                  className="py-2 px-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-sm font-semibold hover:border-indigo-400 dark:hover:border-indigo-500 transition-all active:scale-95"
+                >
+                  {preset.name}{preset.tempo ? ` (${preset.tempo})` : ''}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Botones de acción */}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="ghost"
+              className="flex-1"
+              onClick={() => {
+                onTempoChange?.('');
+                setTempoInputs({ e: 0, p1: 0, c: 0, p2: 0 });
+                setShowTempoSheet(false);
+              }}
+            >
+              Libre
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                const tempo = `${tempoInputs.e}-${tempoInputs.p1}-${tempoInputs.c}-${tempoInputs.p2}`;
+                onTempoChange?.(tempo);
+                setShowTempoSheet(false);
+              }}
+            >
+              Aplicar
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* Modal de edición de repeticiones */}
       <EditValueModal

@@ -99,6 +99,8 @@ export interface WeeklyPlan {
   dailySchedule?: Partial<Record<DayKey, DaySchedule>>; // Agenda diaria de rutinas
   notes?: string;
   isDeload?: boolean;          // Semana de descarga
+  /** Series reales ejecutadas, archivadas automáticamente al finalizar la semana */
+  actualSets?: Record<string, number>;
 }
 
 /** Mesociclo — bloque principal de planificación */
@@ -118,6 +120,8 @@ export interface Mesocycle {
   createdAt: string;
   updatedAt: string;
 }
+
+import { getWeekStart } from '@/lib/utils/dateUtils';
 
 /** Estructura raíz persistida en localStorage */
 export interface PlanningData {
@@ -139,7 +143,7 @@ export function getCurrentWeek(meso: Mesocycle): WeeklyPlan | null {
   const start = new Date(meso.startDate);
   const now = new Date();
   const diffDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const weekIdx = Math.min(Math.floor(diffDays / 7), meso.weeks - 1);
+  const weekIdx = Math.min(Math.max(Math.floor(diffDays / 7), 0), meso.weeks - 1);
   return meso.weeklyPlans.find(w => w.weekNumber === weekIdx + 1) ?? null;
 }
 
@@ -147,27 +151,40 @@ export function getTotalWeeklySets(plan: WeeklyPlan): number {
   return Object.values(plan.muscleGroupTargets).reduce((s, t) => s + t.targetSets, 0);
 }
 
-/** Calcula series reales por grupo muscular dadas las sesiones de la semana */
+/**
+ * Calcula series reales por grupo muscular para un rango semanal.
+ *
+ * @param weekStart - Inicio de la semana a consultar. Si se omite usa el lunes
+ *   de la semana calendario actual (convención ES/ISO: semana empieza el lunes).
+ */
 export function getActualSetsThisWeek(
   sessions: import('@/types').WorkoutSession[],
   exerciseDatabase: import('@/data/exercises').ExerciseTemplate[],
+  weekStart?: Date,
 ): Record<string, number> {
   const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
+  // Calcular inicio de semana: si se provee externamente se usa tal cual;
+  // en caso contrario se usa el lunes de la semana de calendario actual.
+  const startOfWeek: Date = weekStart ? new Date(weekStart) : getWeekStart(now, 'monday');
+
+  // Límite superior: 7 días desde el inicio (no contar sesiones de la semana siguiente)
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
 
   const result: Record<string, number> = {};
 
   for (const session of sessions) {
     const sessionDate = new Date(session.date);
-    if (sessionDate < startOfWeek) continue;
+    if (sessionDate < startOfWeek || sessionDate >= endOfWeek) continue;
 
     for (const ex of session.exercises) {
-      const template = exerciseDatabase.find(t => t.name === ex.exerciseName);
+      // Buscar por ID primero (más fiable), fallback a nombre si no hay match
+      const template =
+        exerciseDatabase.find((t) => t.id === ex.exerciseId) ||
+        exerciseDatabase.find((t) => t.name === ex.exerciseName);
       if (!template) continue;
       const group = template.muscleGroup;
-      result[group] = (result[group] ?? 0) + ex.completedSets;
+      result[group] = (result[group] ?? 0) + (ex.completedSets ?? 0);
     }
   }
   return result;

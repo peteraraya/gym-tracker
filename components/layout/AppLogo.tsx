@@ -12,14 +12,14 @@ export const AppLogo: React.FC<AppLogoProps> = ({ large = false, oneLine = false
   const t = useTranslations('nav');
   const appName = t ? t('appName') : 'Gym Tracker';
   const containerClass = large
-    ? 'p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg'
-    : 'p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg';
+    ? 'p-3 bg-linear-to-br from-zinc-950 to-zinc-700 dark:from-zinc-100 dark:to-zinc-400 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg'
+    : 'p-2 bg-linear-to-br from-zinc-950 to-zinc-700 dark:from-zinc-100 dark:to-zinc-400 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg';
 
-  const iconClass = large ? 'w-8 h-8 text-white' : 'w-5 h-5 text-white';
+  const iconClass = large ? 'w-8 h-8 text-white dark:text-zinc-950' : 'w-5 h-5 text-white dark:text-zinc-950';
 
   const textClass = large
-    ? 'text-3xl font-extrabold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center leading-none'
-    : 'text-xl font-extrabold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:block';
+    ? 'text-3xl font-extrabold bg-linear-to-r from-zinc-900 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-500 text-center leading-none'
+    : 'text-xl font-extrabold bg-linear-to-r from-zinc-900 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-500 hidden sm:block';
 
   const renderText = () => {
     if (oneLine) return <span className={textClass}>{appName}</span>;

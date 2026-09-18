@@ -7,6 +7,7 @@ import { NotificationProvider } from '@/context/NotificationContext';
 import { EquipmentProvider } from '@/context/EquipmentContext';
 import { GymProvider } from '@/context/GymContext';
 import { WorkoutProvider } from '@/context/WorkoutContext';
+import { PrefetchData } from '@/components/layout/PrefetchData';
 
 /**
  * Consolidated provider tree.
@@ -24,6 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <EquipmentProvider>
             <GymProvider>
+              <PrefetchData />
               <WorkoutProvider>
                 {children}
               </WorkoutProvider>

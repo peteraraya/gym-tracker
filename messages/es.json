@@ -61,6 +61,7 @@
     "required": "Requerido",
     "passwordsNoMatch": "Las contraseñas no coinciden",
     "accountCreated": "¡Cuenta creada! Revisa tu email para confirmar tu cuenta.",
+    "accountAlreadyExists": "Este correo ya está registrado. Inicia sesión.",
     "email": "Correo electrónico",
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña",
@@ -256,7 +257,23 @@
     "distribution": "Distribución del Entrenamiento",
     "sets": "series",
     "viewProgress": "Ver progreso",
-    "progressDesc": "Analiza tu volumen de entrenamiento por grupo muscular"
+    "progressDesc": "Analiza tu volumen de entrenamiento por grupo muscular",
+    "panel": {
+      "title": "Panel de Progreso",
+      "week": "Sem",
+      "month": "Mes",
+      "year": "Año",
+      "monthlyVolume": "Volumen",
+      "wilksScore": "Fuerza (1RM)",
+      "workoutDensity": "Densidad",
+      "consistency": "Entrenamientos",
+      "sessions": "sesiones",
+      "noData": "Sin datos aún",
+      "viewDetail": "Ver detalle",
+      "trendUp": "Tu volumen subió respecto al período anterior",
+      "trendDown": "Tu volumen bajó respecto al período anterior",
+      "trendStable": "Tu volumen se mantiene estable respecto al período anterior"
+    }
   },
   "profile": {
     "title": "Mi Perfil",
@@ -479,7 +496,10 @@
     "kgPerDay": "kg/día",
     "volume": "Volumen",
     "tooltipVolume": "Volumen",
-    "tooltipSessions": "Sesiones"
+    "tooltipSessions": "Sesiones",
+    "units": {
+      "kg": "kg"
+    }
   },
   "activityHeatmap": {
     "title": "Actividad de Entrenamiento",
@@ -564,6 +584,13 @@
     "subtitle": "Gestiona tus rutinas de entrenamiento",
     "loading": "Cargando rutinas...",
     "newRoutine": "Nueva Rutina",
+    "noRoutines": "Aún no tienes rutinas",
+    "noRoutinesDesc": "Crea tu primera rutina para comenzar a entrenar",
+    "createRoutine": "Crear Rutina",
+    "exercises": "Ejercicios",
+    "startRoutine": "Iniciar",
+    "editRoutine": "Editar",
+    "deleteRoutine": "Eliminar",
     "empty": {
       "title": "No tienes rutinas todavía",
       "description": "Crea tu primera rutina para comenzar a entrenar",

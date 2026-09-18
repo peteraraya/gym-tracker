@@ -80,7 +80,7 @@ export const SetTimer: React.FC<SetTimerProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const activeTime = elapsedTime - pausedTime;
+  const activeTime = elapsedTime;
 
   const t = useTranslations('setTimer');
 

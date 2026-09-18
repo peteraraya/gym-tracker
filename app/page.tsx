@@ -11,6 +11,8 @@ import {
   calculateStreak,
   calculateTotalVolume,
   filterSessionsByMonth,
+  getWeekStart,
+  getDayKey,
 } from "@/lib/utils/dateUtils";
 import { getWeeklyPlan } from "@/lib/storage/storage";
 import type { WeeklyPlan } from "@/lib/storage/localStorage";
@@ -47,32 +49,32 @@ const DAY_LABELS: Record<DayKey, string> = {
 };
 
 function getTodayKey(): DayKey {
-  return DAY_MAP[new Date().getDay()];
+  return getDayKey(new Date());
 }
 
 function getThisWeekVolume(sessions: any[]): number {
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - mondayOffset);
-  monday.setHours(0, 0, 0, 0);
-  return calculateTotalVolume(sessions.filter((s) => new Date(s.date) >= monday));
+  const monday = getWeekStart(now, "monday");
+  const weekEnd = new Date(monday);
+  weekEnd.setDate(monday.getDate() + 7);
+  return calculateTotalVolume(
+    sessions.filter((s) => {
+      const d = new Date(s.date);
+      return d >= monday && d < weekEnd;
+    }),
+  );
 }
 
 function getLastWeekVolume(sessions: any[]): number {
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const thisMonday = new Date(now);
-  thisMonday.setDate(now.getDate() - mondayOffset);
-  thisMonday.setHours(0, 0, 0, 0);
+  const thisMonday = getWeekStart(now, "monday");
   const lastMonday = new Date(thisMonday);
   lastMonday.setDate(thisMonday.getDate() - 7);
-  const lastSunday = new Date(thisMonday);
-  lastSunday.setMilliseconds(-1);
   return calculateTotalVolume(
-    sessions.filter((s) => { const d = new Date(s.date); return d >= lastMonday && d <= lastSunday; })
+    sessions.filter((s) => {
+      const d = new Date(s.date);
+      return d >= lastMonday && d < thisMonday;
+    }),
   );
 }
 
@@ -95,22 +97,32 @@ const RestDayCard: React.FC<{ dayLabel: string; showSetup?: boolean }> = ({ dayL
     className="rounded-3xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 p-5"
   >
     <p className="text-zinc-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">{dayLabel}</p>
-    <div className="flex items-center gap-3 mb-3">
-      <Moon className="w-7 h-7 text-zinc-400 dark:text-zinc-500" />
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+        <Moon className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
+      </div>
       <div>
-        <h2 className="text-zinc-800 dark:text-zinc-100 font-bold text-lg">Día de descanso</h2>
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm">No tienes entrenamiento planificado</p>
+        <h2 className="text-zinc-800 dark:text-zinc-100 font-bold text-lg leading-tight">Día de descanso</h2>
+        <p className="text-zinc-500 dark:text-zinc-400 text-sm">Aprovecha para recuperarte</p>
       </div>
     </div>
-    {showSetup ? (
-      <Link href="/planning" className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
-        Planificar semana <ChevronRight className="w-4 h-4" />
+    
+    <div className="flex flex-col gap-2">
+      <Link href="/exercises" className="flex items-center justify-center gap-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-indigo-300 dark:hover:border-indigo-700 text-zinc-700 dark:text-zinc-300 text-sm font-bold px-5 py-3 rounded-xl shadow-sm transition-colors w-full">
+        <Flame className="w-4 h-4 text-orange-500" />
+        Sugerencia: Sesión de Movilidad
       </Link>
-    ) : (
-      <Link href="/routines" className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">
-        Entrenar igualmente <ChevronRight className="w-4 h-4" />
-      </Link>
-    )}
+      
+      {showSetup ? (
+        <Link href="/planning" className="inline-flex items-center justify-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-xs font-medium hover:text-indigo-600 dark:hover:text-indigo-400 mt-1 transition-colors">
+          Configurar agenda semanal <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      ) : (
+        <Link href="/routines" className="inline-flex items-center justify-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-xs font-medium hover:text-indigo-600 dark:hover:text-indigo-400 mt-1 transition-colors">
+          Forzar entrenamiento hoy <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      )}
+    </div>
   </motion.div>
 );
 
@@ -155,7 +167,7 @@ const TodayWorkoutCard: React.FC<{
     const first = planned[0] as any;
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-purple-700 p-5 shadow-xl shadow-indigo-500/25"
+        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-800 p-5 shadow-xl shadow-black/25"
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/40" />
@@ -165,15 +177,15 @@ const TodayWorkoutCard: React.FC<{
           <p className="text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-1">
             📅 Tu entrenamiento de hoy · {DAY_LABELS[todayKey]}
           </p>
-          <h2 className="text-white font-bold text-xl truncate mb-0.5">{first.name}</h2>
-          <p className="text-indigo-200 text-sm mb-4">
+          <h2 className="text-white font-bold text-2xl truncate mb-1">{first.name}</h2>
+          <p className="text-indigo-100 text-sm mb-6">
             {first.exercises?.length || 0} ejercicios ·{" "}
             {(first.exercises || []).reduce((s: number, ex: any) => s + (ex.sets?.length || 0), 0)} series
           </p>
           <button onClick={() => onStart(first.id)}
-            className="flex items-center gap-2 bg-white text-indigo-700 text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg hover:bg-indigo-50 transition-colors"
+            className="w-full flex items-center justify-center gap-3 bg-white text-indigo-700 text-base font-bold py-4 rounded-2xl shadow-xl hover:bg-indigo-50 transform hover:scale-[1.02] active:scale-95 transition-all"
           >
-            <Play className="w-4 h-4 fill-indigo-600" /> Iniciar ahora
+            <Play className="w-5 h-5 fill-indigo-600" /> Iniciar Entrenamiento
           </button>
           {planned.length > 1 && (
             <p className="text-indigo-300 text-xs mt-2">+{planned.length - 1} rutina{planned.length > 2 ? "s" : ""} más</p>

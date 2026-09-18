@@ -28,6 +28,7 @@ import { useWorkoutLifecycle } from "@/hooks/useWorkoutLifecycle";
 import type { WorkoutState } from "@/lib/workout/normalizeWorkoutState";
 import * as storageService from "@/lib/storage/storage";
 import logger from "@/lib/logger";
+import { saveQueue } from "@/lib/utils/saveQueue";
 
 export type { WorkoutState };
 
@@ -121,30 +122,50 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         skippedExercises?: string[];
       },
     ) => {
-      logger.log("[WorkoutContext] updateWorkoutProgress", { exerciseIndex, set });
-      setActiveWorkout((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          currentExerciseIndex: exerciseIndex,
-          currentSet: set,
-          completedSets,
-          actualReps,
-          actualWeights,
-          isResting: restState?.isResting ?? false,
-          restTimerRemaining: restState?.restTimerDuration,
-          restTimerStartedAt: restState?.isResting
-            ? (restState?.restTimerStartedAt ?? Date.now())
-            : undefined,
-          restTimerTitle: restState?.restTimerTitle,
-          restTimerNextExercise: restState?.restTimerNextExercise,
-          totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
-          setTypes:            additionalData?.setTypes            ?? prev.setTypes,
-          restOverrides:       additionalData?.restOverrides       ?? prev.restOverrides,
-          perSetRestOverrides: additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides,
-          skippedExercises:    additionalData?.skippedExercises    ?? prev.skippedExercises,
-        };
-      });
+      logger.debug("[WorkoutContext] updateWorkoutProgress", { exerciseIndex, set, restState, additionalData });
+        setActiveWorkout((prev) => {
+          if (!prev) return null;
+          const newActive: WorkoutState = {
+            ...prev,
+            currentExerciseIndex: exerciseIndex,
+            currentSet: set,
+            completedSets,
+            actualReps,
+            actualWeights,
+            isResting: restState?.isResting ?? false,
+            restTimerRemaining: restState?.restTimerDuration,
+            restTimerStartedAt: restState?.isResting
+              ? (restState?.restTimerStartedAt ?? Date.now())
+              : undefined,
+            restTimerTitle: restState?.restTimerTitle,
+            restTimerNextExercise: restState?.restTimerNextExercise,
+            totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
+            setTypes:            additionalData?.setTypes            ?? prev.setTypes,
+            restOverrides:       additionalData?.restOverrides       ?? prev.restOverrides,
+            perSetRestOverrides: additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides,
+            skippedExercises:    additionalData?.skippedExercises    ?? prev.skippedExercises,
+          };
+
+          // Guardar inmediatamente usando la cola para reducir la ventana de pérdida
+        try {
+          queueMicrotask(() => {
+            saveQueue
+              .save(newActive as unknown as import('@/lib/storage/storage').ActiveWorkout)
+              .catch((err) => {
+                logger.error('[WorkoutContext] immediate save failed', err instanceof Error ? err : undefined);
+                try {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('gym:activeWorkout:save-failed', { detail: { context: 'updateWorkoutProgress', error: (err && (err as any).message) ? (err as any).message : String(err) } }));
+                  }
+                } catch (e) {}
+              });
+          });
+        } catch (e) {
+          logger.error('[WorkoutContext] Failed scheduling immediate save', e instanceof Error ? e : undefined);
+        }
+
+          return newActive;
+        });
     },
     [setActiveWorkout],
   );

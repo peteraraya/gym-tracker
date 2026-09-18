@@ -57,6 +57,7 @@ export const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
     defaultReps: 10,
     difficulty: 'intermedio' as DifficultyLevel,
     category: 'compuesto' as ExerciseCategory,
+    image: undefined as string | undefined,
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -81,6 +82,7 @@ export const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
         ...formData,
         equipment: formData.equipment || undefined,
         description: formData.description || undefined,
+        image: formData.image || undefined,
       });
 
       // Notificar éxito
@@ -96,7 +98,7 @@ export const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">✨ Crear Ejercicio Personalizado</h2>
@@ -137,6 +139,102 @@ export const AddCustomExerciseModal: React.FC<AddCustomExerciseModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* Imagen (Opcional) */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <span className="text-2xl">📸</span>
+              Foto del Ejercicio (Opcional)
+            </h3>
+            
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-4 sm:p-6 bg-gray-50 dark:bg-gray-800/50 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800">
+              {formData.image ? (
+                <div className="relative w-full max-w-sm aspect-video sm:aspect-[4/3] rounded-lg overflow-hidden group shadow-md border border-gray-200 dark:border-gray-700">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={formData.image}
+                    alt="Vista previa"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, image: undefined })}
+                      className="bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition-colors transform hover:scale-110 shadow-lg"
+                      title="Eliminar imagen"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = (event) => {
+                          // Compress image using canvas
+                          const img = new Image();
+                          img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            const MAX_HEIGHT = 800;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                              if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                              }
+                            } else {
+                              if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                              }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            if (ctx) {
+                              ctx.drawImage(img, 0, 0, width, height);
+                              const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                              setFormData({ ...formData, image: dataUrl });
+                            } else {
+                              setFormData({ ...formData, image: event.target?.result as string });
+                            }
+                          };
+                          img.src = event.target?.result as string;
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="hidden"
+                    id="custom-exercise-image"
+                  />
+                  <label
+                    htmlFor="custom-exercise-image"
+                    className="cursor-pointer flex flex-col items-center"
+                  >
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 mb-3 text-gray-400 dark:text-gray-500 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm border border-gray-200 dark:border-gray-600 hover:scale-105 transition-transform">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
+                    <span className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Añadir foto
+                    </span>
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
+                      Formatos soportados: JPG, PNG, WEBP
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Información básica */}
           <div className="space-y-4">

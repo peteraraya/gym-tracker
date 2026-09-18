@@ -13,6 +13,8 @@ export {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 
   // Stats & Charts
   Calendar,
@@ -43,6 +45,11 @@ export {
   Bot,
   Send,
   Bell,
+  Camera,
+
+  // Sound
+  Volume2,
+  VolumeX,
 
   // Alerts
   CheckCircle,
@@ -98,3 +105,5 @@ export {
   WifiOff,
   Loader2,
 } from "lucide-react";
+
+export type { LucideIcon } from "lucide-react";

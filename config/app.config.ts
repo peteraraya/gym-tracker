@@ -18,16 +18,16 @@ export const APP_CONFIG = {
 
   // Colores por grupo muscular
   muscleGroupColors: {
-    pecho: "#ef4444", // red
-    espalda: "#3b82f6", // blue
+    pecho: "#ff4d5e", // red
+    espalda: "#1e8fff", // blue-500
     piernas: "#10b981", // green
-    gluteos: "#ec4899", // pink
-    hombros: "#8b5cf6", // purple
+    gluteos: "#ff7ac8", // pink
+    hombros: "#4d6df5", // indigo-500
     biceps: "#f97316", // orange
     triceps: "#fb923c", // orange-400
     antebrazos: "#fdba74", // orange-300
-    trapecio: "#a855f7", // purple-500
-    cuello: "#c084fc", // purple-400
+    trapecio: "#0a6dff", // blue-600
+    cuello: "#85bfff", // blue-300
     core: "#eab308", // yellow
     gemelos: "#14b8a6", // teal
     cardio: "#f43f5e", // rose

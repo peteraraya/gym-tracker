@@ -61,6 +61,7 @@
     "required": "Required",
     "passwordsNoMatch": "Passwords do not match",
     "accountCreated": "Account created! Check your email to confirm your account.",
+    "accountAlreadyExists": "This email is already registered. Sign in instead.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "email": "Email",
@@ -301,7 +302,23 @@
     "distribution": "Training Distribution",
     "sets": "sets",
     "viewProgress": "View progress",
-    "progressDesc": "Analyze your training volume by muscle group"
+    "progressDesc": "Analyze your training volume by muscle group",
+    "panel": {
+      "title": "Progress Dashboard",
+      "week": "Wk",
+      "month": "Mo",
+      "year": "Yr",
+      "monthlyVolume": "Volume",
+      "wilksScore": "Strength (1RM)",
+      "workoutDensity": "Density",
+      "consistency": "Workouts",
+      "sessions": "sessions",
+      "noData": "No data yet",
+      "viewDetail": "View detail",
+      "trendUp": "Your volume increased vs previous period",
+      "trendDown": "Your volume dropped vs previous period",
+      "trendStable": "Your volume is stable vs previous period"
+    }
   },
   "profile": {
     "title": "My Profile",

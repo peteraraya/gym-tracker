@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ExerciseTemplate } from '@/data/exercises/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import YouTubeEmbed from '@/components/shared/YouTubeEmbed';
 import { 
   Info, 
   AlertTriangle, 
@@ -60,7 +61,7 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <Card className="w-full max-w-4xl my-8 shadow-2xl animate-fadeIn">
         {/* Header */}
-        <CardHeader className="bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6">
+        <CardHeader className="bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-t-lg p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-2xl font-bold text-white mb-2">
@@ -142,21 +143,37 @@ export default function ExerciseGuide({ exercise, onClose }: ExerciseGuideProps)
               <div className="space-y-6 animate-fadeIn">
                 {/* Image/Video */}
                 <div className="relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-                  <img
-                    src={exercise.image || '/images/not-available.svg'}
-                    alt={exercise.name}
-                    className="w-full h-64 object-contain"
-                  />
-                  {exercise.videoUrl && (
-                    <a
-                      href={exercise.videoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-lg"
-                    >
-                      <Play className="w-4 h-4" />
-                      Ver Video
-                    </a>
+                  {exercise.youtubeVideoId ? (
+                    <YouTubeEmbed 
+                      videoId={exercise.youtubeVideoId}
+                      title={exercise.name}
+                    />
+                  ) : (
+                    <>
+                      <img
+                        src={exercise.image || '/images/not-available.svg'}
+                        alt={exercise.name}
+                        className="w-full h-64 object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (!target.dataset.fallback) {
+                            target.dataset.fallback = '1';
+                            target.src = '/images/not-available.svg';
+                          }
+                        }}
+                      />
+                      {exercise.videoUrl && (
+                        <a
+                          href={exercise.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-lg"
+                        >
+                          <Play className="w-4 h-4" />
+                          Ver Video
+                        </a>
+                      )}
+                    </>
                   )}
                 </div>
 

@@ -96,7 +96,7 @@ export default function AuthPage() {
             const raw = getMessage(error);
             const isDuplicate =
               /already exists|duplicate|already registered/i.test(raw);
-            const msg = isDuplicate ? t("accountCreated") : t("signInError");
+            const msg = isDuplicate ? t("accountAlreadyExists") : t("signInError");
             setError("root", { message: msg });
             toastError(msg);
           } else {

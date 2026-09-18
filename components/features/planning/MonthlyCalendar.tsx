@@ -5,13 +5,15 @@ import { ChevronLeft, ChevronRight } from '@/components/icons/lucide';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Routine } from '@/types';
+import { getISOWeekdayIndex, getDayKey } from '@/lib/utils/dateUtils';
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+// Mostrar encabezado empezando en Lunes (ISO)
+const DAY_NAMES_SHORT = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 type DayPlan = { routines: string[]; blocked?: boolean; note?: string };
@@ -37,7 +39,8 @@ const getMonthDays = (year: number, month: number) => {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = firstDay.getDay();
+  // Índice ISO: 0 = lunes, ... 6 = domingo
+  const startingDayOfWeek = getISOWeekdayIndex(firstDay);
   
   const days: (Date | null)[] = [];
   
@@ -79,7 +82,7 @@ export default function MonthlyCalendar({
   // Obtiene el plan efectivo de un día: override mensual > plan semanal recurrente > vacío
   const getEffectivePlan = (date: Date, dateKey: string): DayPlan & { isFromWeekly?: boolean } => {
     if (monthlyPlan[dateKey]) return monthlyPlan[dateKey];
-    const weekDayKey = JS_DAY_TO_KEY[date.getDay()];
+    const weekDayKey = getDayKey(date);
     const weekly = weeklyPlan[weekDayKey];
     if (weekly) return { ...weekly, isFromWeekly: true };
     return { routines: [], blocked: false, note: '' };

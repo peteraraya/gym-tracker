@@ -7,6 +7,7 @@
 
 import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
+import { getWeekStart } from '@/lib/utils/dateUtils';
 
 /**
  * Calcula el volumen total (series × reps × peso) de una sesión
@@ -83,8 +84,7 @@ export function calculateVolumeByPeriod(
     let key: string;
 
     if (period === 'week') {
-      const weekStart = new Date(date);
-      weekStart.setDate(date.getDate() - date.getDay());
+      const weekStart = getWeekStart(date, 'monday');
       key = weekStart.toISOString().split('T')[0];
     } else {
       key = date.toISOString().slice(0, 7); // YYYY-MM
@@ -110,6 +110,14 @@ export function calculateAverageVolumePerSession(sessions: WorkoutSession[]): nu
 export function calculateMaxSessionVolume(sessions: WorkoutSession[]): number {
   if (sessions.length === 0) return 0;
   return Math.max(...sessions.map(calculateSessionVolume));
+}
+
+/**
+ * Formatea un volumen en kg a un string legible (kg o toneladas).
+ */
+export function formatVolume(volumeKg: number): string {
+  if (volumeKg < 1000) return `${Math.round(volumeKg)}kg`;
+  return `${(volumeKg / 1000).toFixed(1)}t`;
 }
 
 /**

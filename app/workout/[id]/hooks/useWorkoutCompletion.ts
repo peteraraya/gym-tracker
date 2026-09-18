@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useAchievementManager } from '@/lib/achievements/achievementManager';
 import { useConfirm } from '@/context/NotificationContext';
+import { usePlanning } from '@/hooks/usePlanning';
+import { EXERCISE_DATABASE } from '@/data/exercises';
+import { getActualSetsThisWeek } from '@/types/planning';
 import type { CompleteSplashStats } from '@/components/features/workout/WorkoutCompleteSplash';
 
 interface UseWorkoutCompletionProps {
@@ -36,10 +39,13 @@ export function useWorkoutCompletion({
   const [shownAchievements, setShownAchievements] = useState<Set<string>>(new Set());
   const [completeSplash, setCompleteSplash] = useState<CompleteSplashStats | null>(null);
   const [pendingNavigate, setPendingNavigate] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // ✨ Usar el nuevo sistema de logros
   const achievementManager = useAchievementManager();
   const { confirm } = useConfirm();
+  // Integración con planificación: actualizar actualSets cuando se guarda una sesión
+  const planning = usePlanning();
   
   const openCompletionModal = useCallback((duration?: number) => {
     const calculatedDuration = duration || Math.floor((Date.now() - workoutStartTime - totalPausedTime) / 1000);
@@ -72,8 +78,7 @@ export function useWorkoutCompletion({
       if (!confirmed) return;
     }
 
-    // Cerrar el modal antes de procesar para que no reaparezca tras el splash
-    setShowNotesModal(false);
+    setIsSaving(true);
 
     // Calculate total volume
     let totalVolume = 0;
@@ -159,10 +164,37 @@ export function useWorkoutCompletion({
       // Haptic feedback al completar entrenamiento
       onWorkoutComplete?.();
 
+      // Actualizar planning: si hay un mesociclo activo, recalcular series de la
+      // semana del mesociclo donde cayó esta sesión y persistirlas en weeklyPlan.actualSets
+      try {
+        const active = planning.activeMesocycle;
+        if (active) {
+          const sessionDate = new Date(newSession.date);
+          const mesoStart = new Date(active.startDate);
+          const diffDays = Math.floor((sessionDate.getTime() - mesoStart.getTime()) / (1000 * 60 * 60 * 24));
+          const weekIdx = Math.min(Math.max(Math.floor(diffDays / 7), 0), active.weeks - 1);
+          const weekNumber = weekIdx + 1;
+          const weekStart = new Date(mesoStart);
+          weekStart.setDate(mesoStart.getDate() + weekIdx * 7);
+          weekStart.setHours(0, 0, 0, 0);
+
+          // Calcular series reales incluyendo la nueva sesión
+          const sessionsWithNew = [...sessions, newSession];
+          const sets = getActualSetsThisWeek(sessionsWithNew as any, EXERCISE_DATABASE as any, weekStart as any);
+          planning.archiveWeekActualSets(active.id, weekNumber, sets);
+        }
+      } catch (e) {
+        console.warn('Error actualizando planning after session save:', e);
+      }
+
       // Esperar a que el activeWorkout se limpie correctamente antes de continuar
       await finishWorkoutContext();
 
       onSuccess('Sesión guardada exitosamente');
+
+      // Cerrar el modal antes del splash
+      setShowNotesModal(false);
+      setIsSaving(false);
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -191,6 +223,9 @@ export function useWorkoutCompletion({
           console.error('Error clearing active workout after local save fallback:', e);
         }
 
+        setShowNotesModal(false);
+        setIsSaving(false);
+
         await new Promise(resolve => setTimeout(resolve, 100));
         setCompleteSplash({
           routineName: routine?.name || 'Entrenamiento',
@@ -204,6 +239,7 @@ export function useWorkoutCompletion({
       } catch (localErr) {
         console.error('Error saving session locally as fallback:', localErr);
         onError('Error al guardar la sesión. Por favor, intenta nuevamente.');
+        setIsSaving(false);
         return;
       }
     }
@@ -236,6 +272,7 @@ export function useWorkoutCompletion({
     openCompletionModal,
     finishWorkout,
     completeSplash,
+    isSaving,
     onCompleteSplashDone: useCallback(() => {
       setCompleteSplash(null);
       // El splash solo aparece tras completar exitosamente → siempre navegar a /sessions

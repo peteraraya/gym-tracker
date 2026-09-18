@@ -34,6 +34,7 @@ import { useValidSessions } from "@/hooks/useValidSessions";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { StatsGrid, EmptyStateCard } from "@/components/shared";
 import { StatCard } from "@/components/shared/StatsGrid";
+import { motion } from "framer-motion";
 
 // Lazy loaded components
 import {
@@ -66,6 +67,7 @@ export default function DashboardPage() {
 
   const { routines } = useGym();
   const validSessions = useValidSessions();
+  const { loading: sessionsLoading } = useGym();
   const exerciseNameById = useMemo(
     () =>
       new Map(
@@ -89,45 +91,55 @@ export default function DashboardPage() {
     setPeriod(newPeriod);
   }, []);
 
-  const loadData = useCallback(async () => {
-    try {
-      // Verificar modo de almacenamiento
-      const { isLocalStorageMode: shouldUseLocalStorage } = await import(
-        "@/lib/storageConfig"
-      );
+  useEffect(() => {
+    let mounted = true;
 
-      if (shouldUseLocalStorage()) {
-        // Modo LOCAL: Cargar desde localStorage
-        if (typeof window !== "undefined") {
-          const { getProfileLocally } = await import("@/lib/user/localProfile");
-          const localProfile = getProfileLocally();
+    const fetchProfileData = async () => {
+      try {
+        // Verificar modo de almacenamiento
+        const { isLocalStorageMode: shouldUseLocalStorage } = await import(
+          "@/lib/storageConfig"
+        );
 
-          if (localProfile) {
-            logger.log("[Dashboard] ✅ Loaded from localStorage");
-            setProfile(localProfile);
+        if (shouldUseLocalStorage()) {
+          // Modo LOCAL: Cargar desde localStorage
+          if (typeof window !== "undefined") {
+            const { getProfileLocally } = await import("@/lib/user/localProfile");
+            const localProfile = getProfileLocally();
+
+            if (mounted && localProfile) {
+              logger.log("[Dashboard] ✅ Loaded from localStorage");
+              setProfile(localProfile);
+            }
+          }
+        } else {
+          // Modo DATABASE: Cargar desde Supabase
+          logger.log("[Dashboard] ☁️ Loading from Supabase...");
+          const profileRes = await fetch("/api/profile");
+
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            if (mounted) {
+              logger.log("[Dashboard] ✅ Loaded from Supabase");
+              setProfile(profileData);
+            }
           }
         }
-      } else {
-        // Modo DATABASE: Cargar desde Supabase
-        logger.log("[Dashboard] ☁️ Loading from Supabase...");
-        const profileRes = await fetch("/api/profile");
-
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          logger.log("[Dashboard] ✅ Loaded from Supabase");
-          setProfile(profileData);
+      } catch (error) {
+        logger.error("[Dashboard] ❌ Error loading dashboard:", error);
+      } finally {
+        if (mounted) {
+          setProfileLoading(false);
         }
       }
-    } catch (error) {
-      logger.error("[Dashboard] ❌ Error loading dashboard:", error);
-    } finally {
-      setProfileLoading(false);
-    }
-  }, []);
+    };
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+    fetchProfileData();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Cálculos de estadísticas usando helpers para consistencia
   const stats = useMemo(() => {
@@ -219,6 +231,14 @@ export default function DashboardPage() {
 
   // console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
 
+  const volumeMilestoneSubtitle = useMemo(() => {
+    if (stats.totalVolume > 15000) return "🐘 Equivalente a 3 elefantes adultos";
+    if (stats.totalVolume > 5000) return "🐘 Equivalente a un elefante adulto";
+    if (stats.totalVolume > 2000) return "🚙 Equivalente a un coche SUV";
+    if (stats.totalVolume > 500) return "🎹 Equivalente a un piano de cola";
+    return t("statsCards.totalVolumeSubtitle");
+  }, [stats.totalVolume, t]);
+
   return (
     <PageLayout>
       <PageHeader
@@ -256,29 +276,33 @@ export default function DashboardPage() {
 
       <PageContent>
         {/* Stats Cards Grid */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
         <StatsGrid className="mb-6 p-4">
           <StatCard
             title={t("statsCards.totalSessions")}
             value={stats.totalSessions}
             icon={<Calendar className="w-5 h-5" />}
             subtitle={t("statsCards.totalSessionsSubtitle")}
-            trend={{ isPositive: stats.totalSessions >= 0, value: 0 }}
             gradientClass="from-blue-500 to-indigo-500 dark:from-blue-900/30 dark:to-indigo-900/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
 
           <StatCard
             title={t("statsCards.totalVolume")}
             value={`${stats.totalVolume.toLocaleString()} ${t("units.kg")}`}
             icon={<Dumbbell className="w-5 h-5" />}
-            subtitle={t("statsCards.totalVolumeSubtitle")}
+            subtitle={volumeMilestoneSubtitle}
             trend={Math.round(volumeTrend)}
             gradientClass="from-purple-500 to-pink-500 dark:from-purple-900/30 dark:to-pink-900/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
 
           <StatCard
@@ -293,7 +317,7 @@ export default function DashboardPage() {
             gradientClass="from-orange-400 to-orange-600 dark:from-orange-900/30 dark:to-orange-800/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
 
           <StatCard
@@ -301,15 +325,20 @@ export default function DashboardPage() {
             value={stats.totalSets}
             icon={<Activity className="w-5 h-5" />}
             subtitle={t("statsCards.totalSetsSubtitle")}
-            trend={{ isPositive: stats.totalSets >= 0, value: 0 }}
             gradientClass="from-emerald-400 to-emerald-600 dark:from-emerald-900/30 dark:to-emerald-800/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
-            loading={false}
+            loading={sessionsLoading}
           />
         </StatsGrid>
+        </motion.div>
 
         {/* Volume Chart */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -332,8 +361,11 @@ export default function DashboardPage() {
           </div>
         </div>
         <LazyErrorBoundary>
-          <VolumeChart sessions={validSessions} period={period} />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-2">
+            <VolumeChart sessions={validSessions} period={period} />
+          </div>
         </LazyErrorBoundary>
+        </motion.div>
 
         {/* Activity Heatmap */}
         <div>

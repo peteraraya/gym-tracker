@@ -205,6 +205,31 @@ class SoundManager {
     await this.playRestCompleteSound();
   }
 
+  /**
+   * Tick del metrónomo — debe llamarse desde un efecto, pero el AudioContext
+   * debe haber sido inicializado previamente desde un gesto del usuario.
+   * tick normal → tono suave 650 Hz
+   * cambio de fase → doble beep 900/1100 Hz
+   */
+  async playMetronomeTick(isPhaseChange: boolean = false): Promise<void> {
+    const audioContext = await this.initAudioContext();
+    if (!audioContext) return;
+    if (isPhaseChange) {
+      await this.playTone(900, 0.07, 0.55, 0);
+      await this.playTone(1100, 0.07, 0.55, 0.12);
+    } else {
+      await this.playTone(650, 0.05, 0.30, 0);
+    }
+  }
+
+  /** Fuerza la reanudación del contexto (llamar desde un gesto del usuario) */
+  async resumeContext(): Promise<void> {
+    const audioContext = await this.initAudioContext();
+    if (audioContext && audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+  }
+
   setSoundType(soundType: SoundType): void {
     this.currentSound = soundType;
     this.saveSettings();
@@ -244,6 +269,8 @@ export const soundManager = new SoundManager();
 export function useSoundSettings() {
   return {
     playRestCompleteSound: () => soundManager.playRestCompleteSound(),
+    playMetronomeTick: (isPhaseChange?: boolean) => soundManager.playMetronomeTick(isPhaseChange),
+    resumeContext: () => soundManager.resumeContext(),
     testSound: () => soundManager.testSound(),
     setSoundType: (type: SoundType) => soundManager.setSoundType(type),
     setVolume: (volume: number) => soundManager.setVolume(volume),

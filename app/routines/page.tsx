@@ -10,6 +10,7 @@ import { useWorkout } from "@/context/WorkoutContext";
 import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { CardSkeleton } from "@/components/ui/Skeleton";
 import { RoutineForm } from "@/components/features/routines/RoutineForm";
 import RoutineWizard from "@/components/features/routines/RoutineWizard";
 import WeeklyPlanner from "@/components/features/planning/WeeklyPlanner";
@@ -37,6 +38,7 @@ import {
   CardGrid,
 } from "@/components/shared";
 import { usePlanning } from "@/hooks/usePlanning";
+import { getDayKey } from '@/lib/utils/dateUtils';
 import { GOAL_LABELS, DAYS, DAY_LABELS_SHORT } from "@/types/planning";
 import Link from "next/link";
 
@@ -343,17 +345,7 @@ export default function RoutinesPage() {
           {planning.activeMesocycle &&
             (() => {
               const currentWeek = planning.getCurrentWeekPlan();
-              const todayKey = (
-                [
-                  "sunday",
-                  "monday",
-                  "tuesday",
-                  "wednesday",
-                  "thursday",
-                  "friday",
-                  "saturday",
-                ] as const
-              )[new Date().getDay()];
+              const todayKey = getDayKey(new Date());
               const todaySchedule = currentWeek?.dailySchedule?.[todayKey];
               const todayRoutines = (todaySchedule?.routineIds ?? [])
                 .map((id) => routines.find((r) => r.id === id))
@@ -421,11 +413,14 @@ export default function RoutinesPage() {
           </div>
           {/* Content */}
           {loading ? (
-            <LoadingSpinner
-              size="lg"
-              message={t("loading")}
-              className="py-20"
-            />
+            <CardGrid cols={3}>
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </CardGrid>
           ) : routines.length === 0 ? (
             <EmptyStateCard
               icon={<ClipboardList className="w-12 h-12" />}
@@ -463,7 +458,8 @@ export default function RoutinesPage() {
           )}
 
           {/* Floating Free Workout button */}
-          <div className="fixed bottom-20 right-4 sm:bottom-8 sm:right-6 z-40">
+          {/* Posicionado cuidadosamente para no chocar con el AI Assistant ni el menú inferior */}
+          <div className="fixed bottom-[104px] right-4 sm:bottom-8 sm:right-6 z-40 flex flex-col gap-3">
             <button
               onClick={() => router.push("/workout/free")}
               aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"

@@ -100,6 +100,35 @@ describe('useWorkoutState', () => {
     expect(result.current.workoutData.completedSets['ex-1']).toBe(1);
   });
 
+  it('should count only explicitly completed set flags when completing out of order', () => {
+    const { result } = renderHook(() => useWorkoutState(mockRoutine, {}));
+
+    act(() => {
+      result.current.completeSetAt('ex-1', 1, 8, 70);
+    });
+
+    expect(result.current.workoutData.actualReps['ex-1']).toEqual([0, 8]);
+    expect(result.current.workoutData.completedSetFlags['ex-1']).toEqual([false, true]);
+    expect(result.current.workoutData.completedSets['ex-1']).toBe(1);
+  });
+
+  it('should keep completedSets derived from explicit flags', () => {
+    const { result } = renderHook(() => useWorkoutState(mockRoutine, {}));
+
+    act(() => {
+      result.current.updateActualReps('ex-1', [10, 8]);
+      result.current.updateCompletedSetFlags('ex-1', [true, false]);
+    });
+
+    expect(result.current.workoutData.completedSets['ex-1']).toBe(1);
+
+    act(() => {
+      result.current.updateCompletedSetFlag('ex-1', 1, true);
+    });
+
+    expect(result.current.workoutData.completedSets['ex-1']).toBe(2);
+  });
+
   it('should get exercise data', () => {
     const { result } = renderHook(() => useWorkoutState(mockRoutine, {}));
 
@@ -138,6 +167,44 @@ describe('useWorkoutState', () => {
     expect(result.current.workoutData.completedSets['ex-1']).toBe(1);
     expect(result.current.workoutData.actualReps['ex-1']).toEqual([10]);
     expect(result.current.workoutData.actualWeights['ex-1']).toEqual([60]);
+  });
+
+  it('should recalculate completedSets from restored completedSetFlags', () => {
+    const { result } = renderHook(() => useWorkoutState(mockRoutine, {}));
+
+    act(() => {
+      result.current.restoreData({
+        completedSets: { 'ex-1': 2 },
+        completedSetFlags: { 'ex-1': [true, false] },
+        actualReps: { 'ex-1': [10, 8] },
+      });
+    });
+
+    expect(result.current.workoutData.completedSetFlags['ex-1']).toEqual([true, false]);
+    expect(result.current.workoutData.completedSets['ex-1']).toBe(1);
+  });
+
+  it('should preserve undefined entries when restoring arrays', () => {
+    const { result } = renderHook(() => useWorkoutState(mockRoutine, {}));
+
+    act(() => {
+      result.current.restoreData({
+        actualReps: { 'ex-1': [10, undefined as unknown as number, 8] },
+        actualWeights: { 'ex-1': [undefined as unknown as number, 70] },
+      });
+    });
+
+    const reps = result.current.workoutData.actualReps['ex-1'];
+    const weights = result.current.workoutData.actualWeights['ex-1'];
+
+    expect(Array.isArray(reps)).toBe(true);
+    expect(reps[0]).toBe(10);
+    expect(reps[1]).toBeUndefined();
+    expect(reps[2]).toBe(8);
+
+    expect(Array.isArray(weights)).toBe(true);
+    expect(weights[0]).toBeUndefined();
+    expect(weights[1]).toBe(70);
   });
 
   it('should return memoized object', () => {

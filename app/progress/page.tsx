@@ -6,12 +6,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { EXERCISE_DATABASE, type MuscleGroup } from "@/data/exercises";
 import { useValidSessions } from "@/hooks/useValidSessions";
+import { useSessions, useRoutines } from "@/context/GymContext";
 import { APP_CONFIG } from "@/config/app.config";
 import { StatsGrid, StatCard } from "@/components/shared/StatsGrid";
 import { TrendingUp } from "@/components/icons/lucide";
 import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
-import { LoadingSpinner, EmptyStateCard } from "@/components/shared";
+import { EmptyStateCard } from "@/components/shared";
+import { ChartSkeleton } from "@/components/ui/Skeleton";
+import { IntegratedProgressPanel } from "@/components/features/progress";
 
 const MUSCLE_GROUPS = Object.keys(
   APP_CONFIG.muscleGroupColors,
@@ -20,7 +23,9 @@ const MUSCLE_COLORS = APP_CONFIG.muscleGroupColors;
 
 export default function ProgressPage() {
   const validSessions = useValidSessions();
-  const loading = false;
+  const { loading: sessionsLoading } = useSessions();
+  const { loading: routinesLoading } = useRoutines();
+  const loading = sessionsLoading || routinesLoading;
   const { t } = useLocale();
   const tMuscles = useTranslations("muscles");
   const exerciseById = useMemo(
@@ -176,10 +181,15 @@ export default function ProgressPage() {
             gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
-            <LoadingSpinner
-              size="lg"
-              message="Cargando tus sesiones y rutinas"
-            />
+            <div className="space-y-6">
+              <ChartSkeleton />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
+                <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
+                <div className="h-24 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
+              </div>
+              <ChartSkeleton />
+            </div>
           </PageContent>
         </PageLayout>
       </ProtectedRoute>
@@ -201,6 +211,8 @@ export default function ProgressPage() {
               icon="📊"
               title={t("progress.noData")}
               description={t("progress.noDataDesc")}
+              actionLabel="Empezar a entrenar"
+              onAction={() => window.location.href = '/routines'}
             />
           </PageContent>
         </PageLayout>
@@ -219,6 +231,9 @@ export default function ProgressPage() {
         />
 
         <PageContent>
+          {/* Panel integrado de progreso con métricas clave */}
+          <IntegratedProgressPanel />
+
           {/* Estadísticas generales */}
           <StatsGrid columns={3}>
             <StatCard

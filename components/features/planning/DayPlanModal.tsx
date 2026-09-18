@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { getDayName } from '@/lib/utils/dateUtils';
 import type { Routine } from '@/types';
 
 type DayPlan = { routines: string[]; blocked?: boolean; note?: string };
@@ -54,9 +55,9 @@ export default function DayPlanModal({
       // Formato de fecha YYYY-MM-DD
       const [year, month, day] = dateKey.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
       const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      return `${dayNames[date.getDay()]}, ${day} de ${monthNames[date.getMonth()]} de ${year}`;
+      const dayName = getDayName(date);
+      return `${dayName}, ${day} de ${monthNames[date.getMonth()]} de ${year}`;
     }
   };
 
