@@ -58,30 +58,28 @@ export function calculateNextRestTime({
 
 /**
  * Calculate rest time between different exercises.
- * Priority: nextExerciseOverride > routineConfig > smart > default
+ * Priority: routineConfig > smart > default
+ *
+ * Note: `restOverrides` holds per-exercise "rest between sets" overrides
+ * (set via onEditRestTime, keyed by exercise id). It is NOT a rest-between-
+ * exercises override, so it must not be read here — doing so previously
+ * reused the next exercise's "rest between its own sets" value as the
+ * transition rest from the current exercise into it.
  */
 export function calculateExerciseRestTime({
   currentExercise,
   nextExercise,
   routine,
-  restOverrides,
   useSmartRest
 }: RestCalculationParams): number {
   if (!nextExercise) return 120;
 
-  const nextExerciseId = nextExercise.id;
-
-  // 1. Override on next exercise
-  if (typeof restOverrides?.[nextExerciseId] === 'number') {
-    return restOverrides[nextExerciseId];
-  }
-
-  // 2. Routine's global config
+  // 1. Routine's global config
   if (routine.restBetweenExercises) {
     return routine.restBetweenExercises;
   }
 
-  // 3. Smart rest
+  // 2. Smart rest
   if (useSmartRest) {
     const currentTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === currentExercise.name.toLowerCase());
     const nextTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === nextExercise.name.toLowerCase());
@@ -96,7 +94,7 @@ export function calculateExerciseRestTime({
     }
   }
 
-  // 4. Default
+  // 3. Default
   return 120;
 }
 
