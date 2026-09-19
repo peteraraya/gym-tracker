@@ -457,19 +457,21 @@ export default function RoutinesPage() {
             </CardGrid>
           )}
 
-          {/* Floating Free Workout button */}
+          {/* Floating Free Workout button — oculto temporalmente (feature en pausa) */}
           {/* Posicionado cuidadosamente para no chocar con el AI Assistant ni el menú inferior */}
-          <div className="fixed bottom-[104px] right-4 sm:bottom-8 sm:right-6 z-40 flex flex-col gap-3">
-            <button
-              onClick={() => router.push("/workout/free")}
-              aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"
-              title="Entrenamiento Libre"
-              className="group flex items-center justify-center gap-2 px-5 py-4 sm:w-14 sm:h-14 sm:p-0 rounded-full bg-linear-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-            >
-              <Zap className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-              <span className="text-sm font-semibold sm:hidden">Libre</span>
-            </button>
-          </div>
+          {false && (
+            <div className="fixed bottom-[104px] right-4 sm:bottom-8 sm:right-6 z-40 flex flex-col gap-3">
+              <button
+                onClick={() => router.push("/workout/free")}
+                aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"
+                title="Entrenamiento Libre"
+                className="group flex items-center justify-center gap-2 px-5 py-4 sm:w-14 sm:h-14 sm:p-0 rounded-full bg-linear-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                <span className="text-sm font-semibold sm:hidden">Libre</span>
+              </button>
+            </div>
+          )}
 
           {/* Modals */}
           <Modal
