@@ -76,7 +76,7 @@ export default function InfoTooltip({
         ref={btnRef}
         type="button"
         aria-label={title ?? 'Información'}
-        className="ml-2 text-blue-400 hover:text-blue-300 focus:outline-none"
+        className="ml-2 text-blue-400 hover:text-blue-300 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onFocus={() => setShow(true)}
