@@ -304,14 +304,18 @@ export function useWorkoutPageState(id: string) {
       const lastExerciseData = lastSessionForExercise.exercises.find(
         (e) => e.exerciseName === currentExercise.name,
       );
-      if (lastExerciseData && lastExerciseData.actualReps[0] && lastExerciseData.actualWeight[0]) {
+      if (
+        lastExerciseData &&
+        lastExerciseData.actualReps[0] !== undefined &&
+        lastExerciseData.actualWeight[0] !== undefined
+      ) {
         return { reps: lastExerciseData.actualReps[0], weight: lastExerciseData.actualWeight[0] };
       }
     }
     if (currentSetIndex > 0) {
       const prevReps = workoutState.workoutData.actualReps[exerciseId]?.[currentSetIndex - 1];
       const prevWeight = workoutState.workoutData.actualWeights[exerciseId]?.[currentSetIndex - 1];
-      if (prevReps && prevWeight) return { reps: prevReps, weight: prevWeight };
+      if (prevReps !== undefined && prevWeight !== undefined) return { reps: prevReps, weight: prevWeight };
     }
     return null;
   }, [currentExercise, workoutState.currentSet, workoutState.workoutData.actualReps, workoutState.workoutData.actualWeights, lastSessionForExercise]);

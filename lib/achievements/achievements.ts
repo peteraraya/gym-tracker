@@ -6,7 +6,11 @@ import {
   WorkoutSession,
 } from "@/types";
 import logger from "@/lib/logger";
-import { calculateTotalVolume } from "@/lib/utils/dateUtils";
+import {
+  calculateTotalVolume,
+  calculateSessionVolume,
+  calculateStreak as calculateCurrentStreak,
+} from "@/lib/utils/dateUtils";
 
 // Definición de todos los logros disponibles
 const ACHIEVEMENT_DEFINITIONS: Omit<
@@ -246,50 +250,17 @@ export function calculateStreak(sessions: WorkoutSession[]): Streak {
     new Set(sortedSessions.map((s) => new Date(s.date).toDateString())),
   ).map((dateStr) => new Date(dateStr));
 
-  let currentStreak = 0;
   let longestStreak = 0;
   let tempStreak = 1;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
   if (uniqueDates.length === 0) {
     return { current: 0, longest: 0 };
   }
 
-  const lastWorkoutDate = new Date(uniqueDates[0]);
-  lastWorkoutDate.setHours(0, 0, 0, 0);
-
-  // Calcular racha actual
-  const daysDifference = Math.floor(
-    (today.getTime() - lastWorkoutDate.getTime()) / (1000 * 60 * 60 * 24),
-  );
-
-  logger.debug("[Achievements] Days since last workout:", daysDifference);
-
-  if (daysDifference <= 1) {
-    // La racha sigue activa (hoy o ayer)
-    currentStreak = 1;
-
-    for (let i = 1; i < uniqueDates.length; i++) {
-      const currentDate = new Date(uniqueDates[i]);
-      currentDate.setHours(0, 0, 0, 0);
-
-      const previousDate = new Date(uniqueDates[i - 1]);
-      previousDate.setHours(0, 0, 0, 0);
-
-      const diff = Math.floor(
-        (previousDate.getTime() - currentDate.getTime()) /
-          (1000 * 60 * 60 * 24),
-      );
-
-      if (diff === 1) {
-        currentStreak++;
-      } else {
-        break;
-      }
-    }
-  }
+  // Racha actual: delega en dateUtils.calculateStreak para tener una sola
+  // fuente de verdad (antes había dos implementaciones independientes que
+  // podían dar números distintos con los mismos datos).
+  const currentStreak = calculateCurrentStreak(sessions);
 
   // Calcular racha más larga
   longestStreak = currentStreak;
@@ -328,6 +299,36 @@ export function calculateStreak(sessions: WorkoutSession[]): Streak {
 }
 
 /**
+ * Encuentra la fecha en que se alcanzó por primera vez una racha de al
+ * menos `targetLength` días consecutivos.
+ */
+function findStreakUnlockDate(
+  sessions: WorkoutSession[],
+  targetLength: number,
+): Date | undefined {
+  const uniqueDatesAsc = Array.from(
+    new Set(sessions.map((s) => new Date(s.date).toDateString())),
+  )
+    .map((d) => new Date(d))
+    .sort((a, b) => a.getTime() - b.getTime());
+
+  if (uniqueDatesAsc.length === 0) return undefined;
+
+  let runLength = 1;
+  if (runLength >= targetLength) return uniqueDatesAsc[0];
+
+  for (let i = 1; i < uniqueDatesAsc.length; i++) {
+    const diffDays = Math.round(
+      (uniqueDatesAsc[i].getTime() - uniqueDatesAsc[i - 1].getTime()) /
+        (1000 * 60 * 60 * 24),
+    );
+    runLength = diffDays === 1 ? runLength + 1 : 1;
+    if (runLength >= targetLength) return uniqueDatesAsc[i];
+  }
+  return undefined;
+}
+
+/**
  * Calcula el progreso y desbloqueo de todos los logros
  */
 export function calculateAchievements(
@@ -337,32 +338,48 @@ export function calculateAchievements(
   const totalVolume = calculateTotalVolume(sessions);
   const streak = calculateStreak(sessions);
 
+  // Sesiones ordenadas ascendente + volumen acumulado, para poder ubicar
+  // exactamente cuándo (con qué sesión) se cruzó cada umbral.
+  const sortedAsc = [...sessions].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+  let cumVolume = 0;
+  const cumVolumes = sortedAsc.map((s) => {
+    cumVolume += calculateSessionVolume(s.exercises);
+    return cumVolume;
+  });
+
   return ACHIEVEMENT_DEFINITIONS.map((def) => {
     let progress = 0;
-    let unlocked = false;
+    let unlockedAt: Date | undefined;
 
     switch (def.category) {
       case "consistency":
-        progress = totalSessions;
-        break;
-      case "volume":
-        progress = totalVolume;
-        break;
-      case "streak":
-        progress = streak.longest;
-        break;
       case "milestone":
         progress = totalSessions;
+        if (progress >= def.target) unlockedAt = sortedAsc[def.target - 1]?.date;
+        break;
+      case "volume": {
+        progress = totalVolume;
+        if (progress >= def.target) {
+          const idx = cumVolumes.findIndex((v) => v >= def.target);
+          unlockedAt = idx !== -1 ? sortedAsc[idx].date : undefined;
+        }
+        break;
+      }
+      case "streak":
+        progress = streak.longest;
+        if (progress >= def.target) unlockedAt = findStreakUnlockDate(sessions, def.target);
         break;
     }
 
-    unlocked = progress >= def.target;
+    const unlocked = progress >= def.target;
 
     return {
       ...def,
       progress,
       unlocked,
-      unlockedAt: unlocked ? new Date() : undefined, // En producción, guardarías la fecha real
+      unlockedAt: unlocked ? unlockedAt : undefined,
     };
   });
 }

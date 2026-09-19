@@ -288,7 +288,9 @@ export async function getRoutines(): Promise<Routine[]> {
 }
 
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
-  return router.criticalWithDraft(s => s.createRoutine(data), `routine-draft-${Date.now()}`, data);
+  // Clave fija (no Date.now()): un reintento sobrescribe el borrador anterior
+  // en vez de acumular una entrada nueva en localStorage por cada fallo.
+  return router.criticalWithDraft(s => s.createRoutine(data), 'routine-draft-new', data);
 }
 
 export async function updateRoutine(id: string, data: CreateRoutineData): Promise<Routine> {
@@ -335,7 +337,10 @@ export async function getProfile(): Promise<UserProfile> {
 }
 
 export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
-  return router.criticalWithDraft(s => s.updateProfile(data), `profile-draft-${Date.now()}`, data);
+  // Clave fija: hay un solo perfil por usuario, no tiene sentido acumular
+  // un borrador por cada fallo con Date.now(); el último reintento pisa al
+  // anterior.
+  return router.criticalWithDraft(s => s.updateProfile(data), 'profile-draft', data);
 }
 
 // --- Weekly Plan ---
@@ -344,7 +349,8 @@ export async function getWeeklyPlan(): Promise<WeeklyPlan> {
 }
 
 export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
-  return router.criticalWithDraft(s => s.saveWeeklyPlan(plan), `weekly-plan-draft-${Date.now()}`, plan);
+  // Clave fija: un solo plan semanal por usuario, mismo motivo que arriba.
+  return router.criticalWithDraft(s => s.saveWeeklyPlan(plan), 'weekly-plan-draft', plan);
 }
 
 // --- Monthly Plan (allows fallback) ---
