@@ -45,3 +45,5 @@ android/
 ios/
 .capacitor/
 .env*.local
+
+.opencode/

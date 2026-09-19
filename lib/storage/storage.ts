@@ -17,7 +17,7 @@ export type { SetData, RoutineExercise, CreateRoutineData, UserProfile, Progress
 import type { CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';
 
 // ==================== Strategy Interface ====================
-
+ 
 export interface StorageStrategy {
   name: string;
   getRoutines(): Promise<Routine[]>;
@@ -208,29 +208,31 @@ class StorageRouter {
     return result;
   }
 
-  /** Critical with draft saving on Supabase failure. */
-  async criticalWithDraft<T>(
-    fn: (s: StorageStrategy) => Promise<T>,
-    draftKey: string,
-    draftPayload: unknown,
-  ): Promise<T> {
-    if (!this.isDbEnabled()) {
-      logger.info('Database disabled, using localStorage');
-      return fn(this.localStore);
-    }
-    try {
-      const result = await fn(this.supabase);
-      this.onSuccess();
-      return result;
-    } catch (err: unknown) {
-      this.onError();
-      logger.error('Critical operation failed, saving draft', { draftKey }, err instanceof Error ? err : undefined);
+/** Critical with draft saving on Supabase failure.
+    * Guarda draft y notifica al router del fallo para que run()
+    * pueda activar su fallback correctamente. */
+    async criticalWithDraft<T>(
+      fn: (s: StorageStrategy) => Promise<T>,
+      draftKey: string,
+      draftPayload: unknown,
+    ): Promise<T> {
+      if (!this.isDbEnabled()) {
+        logger.info('Database disabled, using localStorage');
+        return fn(this.localStore);
+      }
       try {
-        localStorage.setItem(draftKey, JSON.stringify({ ...(draftPayload as object), savedAt: Date.now() }));
-      } catch { /* ignore */ }
-      throw err;
+        const result = await fn(this.supabase);
+        this.onSuccess();
+        return result;
+      } catch (err: unknown) {
+        this.onError();
+        logger.error('Critical operation failed, saving draft', { draftKey }, err instanceof Error ? err : undefined);
+        try {
+          localStorage.setItem(draftKey, JSON.stringify({ ...(draftPayload as object), savedAt: Date.now() }));
+        } catch { /* ignore */ }
+        throw err;
+      }
     }
-  }
 
   /** Dual-write: localStorage first (always), then Supabase best-effort. */
   async dualWrite<T>(fn: (s: LocalStorageStrategy) => Promise<T>): Promise<T> {
@@ -408,18 +410,91 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
     let dbSessions: WorkoutSession[] = [];
     try { dbSessions = await dbSvc.getSessions(); } catch { return { synced: 0, errors: 0 }; }
 
-    const dbIds = new Set(dbSessions.map(s => s.id));
+    const dbIds = new Map(dbSessions.map(s => [s.id, s]));
     let synced = 0;
     let errors = 0;
 
     for (const session of localSessions) {
-      if (!dbIds.has(session.id)) {
-        try { await dbSvc.saveSession(session); synced++; }
-        catch { errors++; logger.error('Error syncing session', { sessionId: session.id }); }
+      try {
+        const existing = dbSessions.find(s => s.id === session.id);
+        if (existing) {
+          await dbSvc.updateSession(session);
+          synced++;
+        } else {
+          await dbSvc.saveSession(session);
+          synced++;
+        }
+      } catch {
+        errors++;
+        logger.error('Error syncing session', { sessionId: session.id });
       }
     }
 
     if (synced > 0) logger.info('Sessions synced to database', { synced, errors });
+    return { synced, errors };
+  } catch { return { synced: 0, errors: 0 }; }
+}
+
+export async function syncLocalRoutinesToDatabase(): Promise<{ synced: number; errors: number }> {
+  if (!router.isDbEnabled()) return { synced: 0, errors: 0 };
+
+  try {
+    const localSvc = await import('@/lib/storage/localStorage');
+    const localRoutines = await localSvc.getRoutines();
+
+    const dbSvc = await import('@/lib/supabase/service');
+    let dbRoutines: any[] = [];
+    try { dbRoutines = await dbSvc.getRoutines(); } catch { return { synced: 0, errors: 0 }; }
+
+    const dbMap = new Map(dbRoutines.map((r: any) => [r.name, r]));
+    let synced = 0;
+    let errors = 0;
+
+    for (const routine of localRoutines) {
+      try {
+        const existing = dbMap.get(routine.name);
+        if (existing) {
+          await dbSvc.updateRoutine(existing.id, {
+            name: routine.name,
+            description: routine.description,
+            image: routine.image,
+            exercises: routine.exercises.map((ex: any) => ({
+              name: ex.name,
+              sets: ex.sets,
+              equipment: ex.equipment,
+              notes: ex.notes,
+              restBetweenSets: ex.restBetweenSets,
+              useSmartRest: ex.useSmartRest,
+            })),
+            restBetweenSets: routine.restBetweenSets,
+            restBetweenExercises: routine.restBetweenExercises,
+          });
+          synced++;
+        } else {
+          await dbSvc.createRoutine({
+            name: routine.name,
+            description: routine.description,
+            image: routine.image,
+            exercises: routine.exercises.map((ex: any) => ({
+              name: ex.name,
+              sets: ex.sets,
+              equipment: ex.equipment,
+              notes: ex.notes,
+              restBetweenSets: ex.restBetweenSets,
+              useSmartRest: ex.useSmartRest,
+            })),
+            restBetweenSets: routine.restBetweenSets,
+            restBetweenExercises: routine.restBetweenExercises,
+          });
+          synced++;
+        }
+      } catch (e) {
+        errors++;
+        logger.error('Error syncing routine', { routineName: routine.name }, e instanceof Error ? e : undefined);
+      }
+    }
+
+    if (synced > 0) logger.info('Routines synced to database', { synced, errors });
     return { synced, errors };
   } catch { return { synced: 0, errors: 0 }; }
 }

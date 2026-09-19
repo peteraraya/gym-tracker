@@ -18,7 +18,7 @@ export const queryClient = new QueryClient({
       // or app switching. Mutations still invalidate queries explicitly.
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
-      refetchOnMount: false,
+      refetchOnMount: true,
       
       // Network mode - offline first
       networkMode: 'offlineFirst',
