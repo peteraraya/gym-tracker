@@ -208,31 +208,31 @@ class StorageRouter {
     return result;
   }
 
-  /** Critical with draft saving on Supabase failure.
-   * NOTA: no llama a onError() para no afectar el estado del router
-   * y que run() maneje su propio fallback independientemente. */
-  async criticalWithDraft<T>(
-    fn: (s: StorageStrategy) => Promise<T>,
-    draftKey: string,
-    draftPayload: unknown,
-  ): Promise<T> {
-    if (!this.isDbEnabled()) {
-      logger.info('Database disabled, using localStorage');
-      return fn(this.localStore);
-    }
-    try {
-      const result = await fn(this.supabase);
-      this.onSuccess();
-      return result;
-    } catch (err: unknown) {
-      // Guarda draft sin cambiar el modo del router (run() maneja su propio fallback)
-      logger.error('Critical operation failed, saving draft', { draftKey }, err instanceof Error ? err : undefined);
+/** Critical with draft saving on Supabase failure.
+    * Guarda draft y notifica al router del fallo para que run()
+    * pueda activar su fallback correctamente. */
+    async criticalWithDraft<T>(
+      fn: (s: StorageStrategy) => Promise<T>,
+      draftKey: string,
+      draftPayload: unknown,
+    ): Promise<T> {
+      if (!this.isDbEnabled()) {
+        logger.info('Database disabled, using localStorage');
+        return fn(this.localStore);
+      }
       try {
-        localStorage.setItem(draftKey, JSON.stringify({ ...(draftPayload as object), savedAt: Date.now() }));
-      } catch { /* ignore */ }
-      throw err;
+        const result = await fn(this.supabase);
+        this.onSuccess();
+        return result;
+      } catch (err: unknown) {
+        this.onError();
+        logger.error('Critical operation failed, saving draft', { draftKey }, err instanceof Error ? err : undefined);
+        try {
+          localStorage.setItem(draftKey, JSON.stringify({ ...(draftPayload as object), savedAt: Date.now() }));
+        } catch { /* ignore */ }
+        throw err;
+      }
     }
-  }
 
   /** Dual-write: localStorage first (always), then Supabase best-effort. */
   async dualWrite<T>(fn: (s: LocalStorageStrategy) => Promise<T>): Promise<T> {
@@ -413,14 +413,23 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
     let dbSessions: WorkoutSession[] = [];
     try { dbSessions = await dbSvc.getSessions(); } catch { return { synced: 0, errors: 0 }; }
 
-    const dbIds = new Set(dbSessions.map(s => s.id));
+    const dbIds = new Map(dbSessions.map(s => [s.id, s]));
     let synced = 0;
     let errors = 0;
 
     for (const session of localSessions) {
-      if (!dbIds.has(session.id)) {
-        try { await dbSvc.saveSession(session); synced++; }
-        catch { errors++; logger.error('Error syncing session', { sessionId: session.id }); }
+      try {
+        const existing = dbSessions.find(s => s.id === session.id);
+        if (existing) {
+          await dbSvc.updateSession(session);
+          synced++;
+        } else {
+          await dbSvc.saveSession(session);
+          synced++;
+        }
+      } catch {
+        errors++;
+        logger.error('Error syncing session', { sessionId: session.id });
       }
     }
 
@@ -440,14 +449,31 @@ export async function syncLocalRoutinesToDatabase(): Promise<{ synced: number; e
     let dbRoutines: any[] = [];
     try { dbRoutines = await dbSvc.getRoutines(); } catch { return { synced: 0, errors: 0 }; }
 
-    // Compara por nombre ya que localStorage y Supabase generan IDs distintos
-    const dbNames = new Set(dbRoutines.map((r: any) => r.name));
+    const dbMap = new Map(dbRoutines.map((r: any) => [r.name, r]));
     let synced = 0;
     let errors = 0;
 
     for (const routine of localRoutines) {
-      if (!dbNames.has(routine.name)) {
-        try {
+      try {
+        const existing = dbMap.get(routine.name);
+        if (existing) {
+          await dbSvc.updateRoutine(existing.id, {
+            name: routine.name,
+            description: routine.description,
+            image: routine.image,
+            exercises: routine.exercises.map((ex: any) => ({
+              name: ex.name,
+              sets: ex.sets,
+              equipment: ex.equipment,
+              notes: ex.notes,
+              restBetweenSets: ex.restBetweenSets,
+              useSmartRest: ex.useSmartRest,
+            })),
+            restBetweenSets: routine.restBetweenSets,
+            restBetweenExercises: routine.restBetweenExercises,
+          });
+          synced++;
+        } else {
           await dbSvc.createRoutine({
             name: routine.name,
             description: routine.description,
@@ -464,10 +490,10 @@ export async function syncLocalRoutinesToDatabase(): Promise<{ synced: number; e
             restBetweenExercises: routine.restBetweenExercises,
           });
           synced++;
-        } catch (e) {
-          errors++;
-          logger.error('Error syncing routine', { routineName: routine.name }, e instanceof Error ? e : undefined);
         }
+      } catch (e) {
+        errors++;
+        logger.error('Error syncing routine', { routineName: routine.name }, e instanceof Error ? e : undefined);
       }
     }
 

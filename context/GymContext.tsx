@@ -116,10 +116,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === "true") {
       if (authLoading) return;
-      if (!user) {
-        refetchRoutines();
-        refetchSessions();
-      } else {
+      if (user) {
         void refetchRoutines();
         void refetchSessions();
       }

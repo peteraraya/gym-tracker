@@ -111,15 +111,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const supabase = createClient();
-    await supabase.auth.signOut();
-    // Limpia la sesión del almacenamiento local para evitar restauración al recargar
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await supabase.auth.signOut({ scope: 'global' });
-      }
+      await supabase.auth.signOut({ scope: 'global' });
     } catch { /* ignore */ }
-    // Limpia tokens de almacenamiento local
     try {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sb-access-token');

@@ -27,18 +27,24 @@ export function useRoutines() {
     mutationFn: ({ id, data }: { id: string; data: storageService.CreateRoutineData }) =>
       storageService.updateRoutine(id, data),
     onMutate: async ({ id, data }) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.routines.lists() });
       
-      // Snapshot previous value
       const previousRoutines = queryClient.getQueryData(queryKeys.routines.lists());
       
-      // Optimistically update
       queryClient.setQueryData(queryKeys.routines.lists(), (old: Routine[] | undefined) => {
         if (!old) return old;
-        return old.map(routine => 
-          routine.id === id ? { ...routine, ...data } as Routine : routine
-        );
+        return old.map(routine => {
+          if (routine.id !== id) return routine;
+          return {
+            ...routine,
+            name: (data as any).name ?? routine.name,
+            description: (data as any).description ?? routine.description,
+            image: (data as any).image ?? routine.image,
+            restBetweenSets: (data as any).restBetweenSets ?? routine.restBetweenSets,
+            restBetweenExercises: (data as any).restBetweenExercises ?? routine.restBetweenExercises,
+            exercises: (data as any).exercises ?? routine.exercises,
+          } as Routine;
+        });
       });
       
       return { previousRoutines };
