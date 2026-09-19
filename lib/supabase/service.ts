@@ -338,13 +338,19 @@ export async function getSessions(): Promise<WorkoutSession[]> {
     id: session.id,
     routineId: session.routine_id,
     routineName: session.routine_name,
-    date: new Date(session.created_at), // Usar created_at como fecha principal
+    // session.date es la fecha real del entrenamiento; created_at es solo
+    // el momento del INSERT, que puede no coincidir (ej. sesiones editadas
+    // o guardadas más tarde que cuando ocurrió el entrenamiento).
+    date: new Date(session.date || session.created_at),
     startedAt: new Date(session.created_at),
     completedAt: session.completed_at ? new Date(session.completed_at) : undefined,
     totalDuration: session.total_duration,
     totalPausedTime: session.total_paused_time,
     exercises: (session.session_exercises || []).map((ex: any) => ({
-      exerciseId: ex.exercise_name || ex.id,
+      // exercise_ref_id es el snapshot seguro (sin FK) del id real del
+      // ejercicio; exercise_name es el fallback para filas guardadas antes
+      // de que existiera esa columna.
+      exerciseId: ex.exercise_ref_id || ex.exercise_name || ex.id,
       exerciseName: ex.exercise_name,
       completedSets: ex.sets_completed ? (Array.isArray(ex.sets_completed) ? ex.sets_completed.length : 0) : 0,
       actualReps: ex.sets_completed ? ex.sets_completed.map((s: any) => s.reps) : [],
@@ -372,6 +378,7 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
       user_id: user.id,
       routine_id: session.routineId,
       routine_name: session.routineName,
+      date: session.date,
       completed_at: session.completedAt || session.date,
       total_duration: session.totalDuration,
       total_paused_time: session.totalPausedTime
@@ -399,6 +406,7 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
       return {
         session_id: dbSession.id,
         exercise_name: (ex.exerciseName as any) || (ex.exerciseId as any) || null,
+        exercise_ref_id: (ex.exerciseId as any) || null,
         sets_completed,
         set_durations: ex.setDurations || [],
         pause_durations: ex.pauseDurations || [],
@@ -432,6 +440,8 @@ export async function updateSession(session: WorkoutSession): Promise<void> {
   const { error: sessionError } = await supabase
     .from('workout_sessions')
     .update({
+      date: session.date,
+      completed_at: session.completedAt || session.date,
       total_duration: session.totalDuration,
       total_paused_time: session.totalPausedTime,
       notes: session.notes
@@ -466,6 +476,7 @@ export async function updateSession(session: WorkoutSession): Promise<void> {
     return {
       session_id: session.id,
       exercise_name: (ex.exerciseName as any) || (ex.exerciseId as any) || null,
+      exercise_ref_id: (ex.exerciseId as any) || null,
       sets_completed,
       set_durations: ex.setDurations || [],
       pause_durations: ex.pauseDurations || [],
