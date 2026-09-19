@@ -328,7 +328,7 @@ export function CompactWorkoutHeader({
         )}
         {/* Barra de progreso actual */}
         <div
-          className="absolute top-0 left-0 h-full bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-300 shadow-sm"
+          className="absolute top-0 left-0 h-full bg-linear-to-r from-blue-500 via-indigo-500 to-violet-500 transition-all duration-300 shadow-sm"
           style={{ width: `${progress}%` }}
         />
       </div>

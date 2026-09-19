@@ -54,7 +54,7 @@ export function GlossaryFilters({ totalTermsCount, categoryCounts }: GlossaryFil
 
       {/* Categorías */}
       <Card className="shadow-lg">
-        <CardHeader className="bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-t-lg p-4">
+        <CardHeader className="bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-t-lg p-4">
           <CardTitle className="text-lg text-white">Categorías</CardTitle>
         </CardHeader>
         <CardContent className="p-4">
@@ -63,7 +63,7 @@ export function GlossaryFilters({ totalTermsCount, categoryCounts }: GlossaryFil
               onClick={() => updateFilters(currentQuery, 'all')}
               className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
                 currentCategory === 'all'
-                  ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                  ? 'bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-md'
                   : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >

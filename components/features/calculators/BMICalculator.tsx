@@ -106,12 +106,12 @@ export default function BMICalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-linear-to-r from-pink-500 to-rose-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-blue-500 to-rose-600 text-white rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <User className="w-6 h-6" />
           Calculadora de IMC y Composición Corporal
         </CardTitle>
-        <p className="text-sm text-pink-100 mt-2">
+        <p className="text-sm text-blue-100 mt-2">
           Calcula tu IMC y estima tu composición corporal
         </p>
       </CardHeader>
@@ -177,7 +177,7 @@ export default function BMICalculator() {
                   onClick={() => setGender('male')}
                   className={`p-2 rounded-lg border-2 transition-all ${
                     gender === 'male'
-                      ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                       : 'border-gray-200 dark:border-gray-700'
                   }`}
                 >
@@ -187,7 +187,7 @@ export default function BMICalculator() {
                   onClick={() => setGender('female')}
                   className={`p-2 rounded-lg border-2 transition-all ${
                     gender === 'female'
-                      ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                       : 'border-gray-200 dark:border-gray-700'
                   }`}
                 >

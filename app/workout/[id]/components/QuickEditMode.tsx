@@ -251,7 +251,7 @@ export function QuickEditMode({
       icon: '🔗',
       label: 'Cluster',
       description: 'Mini-series con descansos breves',
-      color: 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border border-pink-300 dark:border-pink-700',
+      color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700',
     },
   };
 
