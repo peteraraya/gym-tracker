@@ -115,20 +115,41 @@ export const BottomNavBar: React.FC = () => {
     { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
   ];
 
-  // Items del panel "Más"
-  const moreItems = [
-    { href: '/sessions',     icon: Calendar,    label: t('sessions'),    color: 'text-blue-500' },
-    { href: '/progress',     icon: TrendingUp,  label: t('progress'),    color: 'text-orange-500' },
-    { href: '/achievements', icon: Trophy,      label: t('achievements'), color: 'text-amber-500' },
-    { href: '/ai-assistant', icon: Sparkles,    label: t('aiAssistant'), color: 'text-violet-500' },
-    { href: '/planning',     icon: BarChart3,   label: t('planning'),    color: 'text-indigo-500' },
-    { href: '/exercises',    icon: Lightbulb,   label: t('exercises'),   color: 'text-cyan-500' },
-    { href: '/recommended',  icon: Target,      label: t('recommended'), color: 'text-emerald-500' },
-    { href: '/calculators',  icon: Calculator,  label: t('calculators'), color: 'text-teal-500' },
-    { href: '/glossary',     icon: BookOpen,    label: t('glossary'),    color: 'text-sky-500' },
-    { href: '/settings',     icon: Settings,    label: t('settings'),    color: 'text-zinc-500' },
-    { href: '/profile',      icon: User,        label: t('profile'),     color: 'text-rose-500' },
+  // Items del panel "Más", agrupados por intención en vez de una grilla plana
+  const moreGroups = [
+    {
+      title: t('moreGroups.progress'),
+      items: [
+        { href: '/sessions',     icon: Calendar,   label: t('sessions'),     color: 'text-blue-500' },
+        { href: '/progress',     icon: TrendingUp, label: t('progress'),     color: 'text-orange-500' },
+        { href: '/achievements', icon: Trophy,     label: t('achievements'), color: 'text-amber-500' },
+        { href: '/planning',     icon: BarChart3,  label: t('planning'),     color: 'text-indigo-500' },
+      ],
+    },
+    {
+      title: t('moreGroups.discover'),
+      items: [
+        { href: '/exercises',    icon: Lightbulb, label: t('exercises'),   color: 'text-cyan-500' },
+        { href: '/recommended',  icon: Target,    label: t('recommended'), color: 'text-emerald-500' },
+        { href: '/ai-assistant', icon: Sparkles,  label: t('aiAssistant'), color: 'text-violet-500' },
+      ],
+    },
+    {
+      title: t('moreGroups.tools'),
+      items: [
+        { href: '/calculators', icon: Calculator, label: t('calculators'), color: 'text-teal-500' },
+        { href: '/glossary',    icon: BookOpen,    label: t('glossary'),    color: 'text-sky-500' },
+      ],
+    },
+    {
+      title: t('moreGroups.account'),
+      items: [
+        { href: '/settings', icon: Settings, label: t('settings'), color: 'text-zinc-500' },
+        { href: '/profile',  icon: User,     label: t('profile'),  color: 'text-rose-500' },
+      ],
+    },
   ];
+  const moreItems = moreGroups.flatMap((group) => group.items);
 
   // Si algún "más" está activo, marcar el tab de "Más" como activo
   const isMoreActive = moreItems.some((item) => isActive(item.href));
@@ -170,36 +191,45 @@ export const BottomNavBar: React.FC = () => {
                 </button>
               </div>
 
-              {/* Grid de ítems */}
-              <div className="grid grid-cols-4 gap-1 p-3">
-                {moreItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMoreOpen(false)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-colors ${
-                      isActive(item.href)
-                        ? 'bg-indigo-50 dark:bg-indigo-900/30'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    <item.icon
-                      className={`w-6 h-6 ${
-                        isActive(item.href)
-                          ? 'text-indigo-600 dark:text-indigo-400'
-                          : item.color
-                      }`}
-                    />
-                    <span
-                      className={`text-[10px] font-medium text-center leading-tight ${
-                        isActive(item.href)
-                          ? 'text-indigo-600 dark:text-indigo-400'
-                          : 'text-zinc-500 dark:text-zinc-400'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </Link>
+              {/* Secciones agrupadas por intención */}
+              <div className="max-h-[60vh] overflow-y-auto p-3 space-y-4">
+                {moreGroups.map((group) => (
+                  <div key={group.title}>
+                    <h3 className="px-1 mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      {group.title}
+                    </h3>
+                    <div className="grid grid-cols-4 gap-1">
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMoreOpen(false)}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-colors ${
+                            isActive(item.href)
+                              ? 'bg-indigo-50 dark:bg-indigo-900/30'
+                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                          }`}
+                        >
+                          <item.icon
+                            className={`w-6 h-6 ${
+                              isActive(item.href)
+                                ? 'text-indigo-600 dark:text-indigo-400'
+                                : item.color
+                            }`}
+                          />
+                          <span
+                            className={`text-[10px] font-medium text-center leading-tight ${
+                              isActive(item.href)
+                                ? 'text-indigo-600 dark:text-indigo-400'
+                                : 'text-zinc-500 dark:text-zinc-400'
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
 

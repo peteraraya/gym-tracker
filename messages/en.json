@@ -50,7 +50,13 @@
     "glossary": "Glossary",
     "aiAssistant": "AI Assistant",
     "settings": "Settings",
-    "planning": "Planning"
+    "planning": "Planning",
+    "moreGroups": {
+      "progress": "Progress",
+      "discover": "Discover",
+      "tools": "Tools",
+      "account": "Account"
+    }
   },
   "auth": {
     "signIn": "Sign In",
@@ -385,7 +391,7 @@
   "dashboard": {
     "loadingStats": "Loading stats...",
     "pageTitle": "Dashboard",
-    "pageDescription": "Summary of your progress and statistics",
+    "pageDescription": "Charts and in-depth analysis of your long-term progress",
     "fitnessGoals": {
       "muscle_gain": "Muscle Gain",
       "strength": "Strength",
