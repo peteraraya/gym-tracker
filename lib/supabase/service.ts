@@ -371,10 +371,14 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
-  // Insert session
+  // Upsert por id (no insert): si esta misma sesión ya se guardó antes
+  // (retry de red, doble tap) esto actualiza la fila existente en vez de
+  // crear una duplicada. Requiere que session.id sea un uuid real, no el
+  // viejo "temp-<timestamp>".
   const { data: dbSession, error: sessionError } = await supabase
     .from('workout_sessions')
-    .insert({
+    .upsert({
+      id: session.id,
       user_id: user.id,
       routine_id: session.routineId,
       routine_name: session.routineName,
@@ -382,7 +386,7 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
       completed_at: session.completedAt || session.date,
       total_duration: session.totalDuration,
       total_paused_time: session.totalPausedTime
-    })
+    }, { onConflict: 'id' })
     .select()
     .single();
 
@@ -392,6 +396,11 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
   if (!session.exercises || !Array.isArray(session.exercises) || session.exercises.length === 0) {
     throw new Error('La sesión debe contener al menos un ejercicio');
   }
+
+  // Si un intento previo de guardar esta misma sesión llegó a insertar
+  // ejercicios antes de fallar, limpiarlos primero para no duplicarlos
+  // (el upsert de arriba solo evita duplicar la fila de la sesión).
+  await supabase.from('session_exercises').delete().eq('session_id', session.id);
 
     const exercisesData = session.exercises.map(ex => {
       const reps = Array.isArray(ex.actualReps) ? ex.actualReps : [];
