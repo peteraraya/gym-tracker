@@ -18,7 +18,7 @@ import {
   formatRestTime
 } from '@/lib/workout/restCalculator';
 import { soundManager } from '@/lib/audio/soundSystem';
-import { useRestNotifications } from '@/lib/notifications/pwaNotifications';
+import { extendRestNotification } from '@/lib/notifications/restNotification';
 
 interface TimerProps {
   duration: number; // duración en segundos
@@ -58,64 +58,18 @@ export const Timer: React.FC<TimerProps> = ({
   const startTimeRef = useRef<number>(0);
   const onActualDurationRef = useRef<typeof onActualDurationChange | null>(null);
   
-  // ✨ NEW: Hooks para notificaciones y sonidos mejorados
-  const notifications = useRestNotifications();
-  const [notificationPermission, setNotificationPermission] = useState(false);
-  
   // Mantener onCompleteRef actualizado
   useEffect(() => {
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
-  // ✨ NEW: Configurar manejadores de acciones de notificación
-  useEffect(() => {
-    notifications.setupActionHandlers();
-    
-    // Escuchar eventos de acciones de notificación
-    const handleSkipFromNotification = () => {
-      if (onSkip) {
-        onSkip();
-      } else if (onComplete) {
-        onComplete();
-      }
-    };
-    
-    const handleAddTimeFromNotification = (event: CustomEvent) => {
-      const { seconds } = event.detail;
-      setTimeLeft(prev => prev + seconds);
-      setHasAdjusted(true);
-    };
-    
-    const handleContinueFromNotification = () => {
-      if (onComplete) {
-        onComplete();
-      }
-    };
-    
-    const handleMoreRestFromNotification = () => {
-      setTimeLeft(prev => prev + 60); // Añadir 1 minuto más
-      setHasAdjusted(true);
-      setIsCompleted(false);
-      setIsRunning(true);
-    };
-
-    window.addEventListener('rest-timer-skip', handleSkipFromNotification);
-    window.addEventListener('rest-timer-add-time', handleAddTimeFromNotification as EventListener);
-    window.addEventListener('rest-timer-continue', handleContinueFromNotification);
-    window.addEventListener('rest-timer-more-rest', handleMoreRestFromNotification);
-
-    return () => {
-      window.removeEventListener('rest-timer-skip', handleSkipFromNotification);
-      window.removeEventListener('rest-timer-add-time', handleAddTimeFromNotification as EventListener);
-      window.removeEventListener('rest-timer-continue', handleContinueFromNotification);
-      window.removeEventListener('rest-timer-more-rest', handleMoreRestFromNotification);
-    };
-  }, [onSkip, onComplete]);
-
-  // ✨ NEW: Solicitar permiso de notificaciones al montar
-  useEffect(() => {
-    notifications.requestPermission().then(setNotificationPermission);
-  }, []);
+  // Nota: las acciones de la notificación de descanso (skip/+30s) y el
+  // permiso de notificaciones ya se manejan en useWorkoutPageState.ts y
+  // restNotification.ts (basados en el Service Worker). Este componente NO
+  // debe registrar su propio listener para el mismo mensaje del SW ni
+  // arrancar un segundo pipeline de notificaciones (ver pwaNotifications.ts):
+  // hacerlo duplicaba la notificación de descanso real (dos tags distintos,
+  // dos intervalos corriendo en paralelo) y procesaba cada acción dos veces.
 
   useEffect(() => {
     // Solo actualizar cuando cambia la duración (nuevo timer)
@@ -143,18 +97,6 @@ export const Timer: React.FC<TimerProps> = ({
   useEffect(() => {
     // console.log('[Timer] Interval effect - isRunning:', isRunning);
     if (isRunning) {
-      // ✨ NEW: Iniciar notificaciones de progreso si están habilitadas
-      // Nota: no dependemos de `timeLeft` aquí para evitar reiniciar
-      // las notificaciones en cada tick (evita notificaciones cada segundo).
-      if (notificationPermission && timeLeft > 10) {
-        notifications.startTimerNotifications({
-          timeLeft,
-          totalTime: plannedDuration,
-          nextExercise: nextExerciseName,
-          routineName: title
-        });
-      }
-
       // console.log('[Timer] Starting interval');
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
@@ -162,9 +104,6 @@ export const Timer: React.FC<TimerProps> = ({
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
-
-            // ✨ NEW: Detener notificaciones de progreso
-            notifications.stopTimerNotifications();
 
             // Calcular duración real
             const realDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -181,18 +120,14 @@ export const Timer: React.FC<TimerProps> = ({
 
             return 0;
           }
-          
+
           if (prev === 11) {
             setAriaMessage("Faltan 10 segundos de descanso.");
           }
-          
+
           return prev - 1;
         });
       }, 1000);
-    } else {
-      // ✨ NEW: Detener notificaciones cuando se pausa
-      notifications.stopTimerNotifications();
-      // console.log('[Timer] Clearing interval');
     }
 
     return () => {
@@ -200,21 +135,14 @@ export const Timer: React.FC<TimerProps> = ({
         // console.log('[Timer] Cleanup - clearing interval');
         clearInterval(intervalRef.current);
       }
-      // ✨ NEW: Limpiar notificaciones al desmontar
-      notifications.stopTimerNotifications();
     };
-  }, [isRunning, notificationPermission, plannedDuration, nextExerciseName, title]); // Removido timeLeft de las dependencias para evitar reinicios frecuentes
+  }, [isRunning]); // Removido timeLeft de las dependencias para evitar reinicios frecuentes
 
   // Si el tiempo se ajusta manualmente mientras el timer está corriendo,
-  // reiniciamos las notificaciones con el nuevo valor una sola vez.
+  // limpiamos la bandera "Ajustado manualmente" (el ajuste real ya se envía
+  // al Service Worker desde handleAdjustTime, no hace falta reiniciar nada aquí).
   useEffect(() => {
-    if (hasAdjusted && isRunning && notificationPermission) {
-      notifications.startTimerNotifications({
-        timeLeft,
-        totalTime: plannedDuration,
-        nextExercise: nextExerciseName,
-        routineName: title
-      });
+    if (hasAdjusted) {
       // Resetear la bandera de forma asíncrona para evitar setState sincrónico en effect
       setTimeout(() => setHasAdjusted(false), 0);
     }
@@ -237,25 +165,18 @@ export const Timer: React.FC<TimerProps> = ({
     }
   }, [isCompleted, actualDuration]);
 
-  // ✨ NEW: Efecto mejorado para notificaciones y sonidos al completar
+  // Sonido y vibración al completar. La notificación de "¡A entrenar!" ya la
+  // muestra el Service Worker (ver public/sw.js) cuando su propio intervalo
+  // llega a 0; mostrar otra aquí desde el cliente duplicaba el aviso.
   useEffect(() => {
     if (isCompleted) {
       setTimeout(() => setAriaMessage("Descanso completado. Prepárate."), 0);
-      
-      // Mostrar notificación de completado
-      if (notificationPermission) {
-        notifications.showRestComplete({
-          totalTime: plannedDuration,
-          nextExercise: nextExerciseName,
-          routineName: title
-        });
-      }
-      
+
       // Reproducir sonido mejorado
       soundManager.playRestCompleteSound().catch(error => {
         console.warn('Error reproduciendo sonido:', error);
       });
-      
+
       // Feedback háptico (vibración)
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
@@ -266,7 +187,7 @@ export const Timer: React.FC<TimerProps> = ({
         }
       }
     }
-  }, [isCompleted, notificationPermission, nextExerciseName, title, plannedDuration]);
+  }, [isCompleted, nextExerciseName, title, plannedDuration]);
 
   // Anunciar inicio
   useEffect(() => {
@@ -322,11 +243,17 @@ export const Timer: React.FC<TimerProps> = ({
     }
   };
 
-  // Ajuste rápido de tiempo
+  // Ajuste rápido de tiempo. Además de la UI local, empuja el mismo delta al
+  // Service Worker para que la notificación real del descanso en el teléfono
+  // quede sincronizada con lo que el usuario ve en pantalla.
   const handleAdjustTime = (seconds: number) => {
     setTimeLeft(prev => {
       const newTime = Math.max(0, prev + seconds);
+      const appliedDelta = newTime - prev;
       setHasAdjusted(true);
+      if (appliedDelta !== 0) {
+        extendRestNotification(appliedDelta).catch(() => {});
+      }
       return newTime;
     });
   };
@@ -502,10 +429,7 @@ export const Timer: React.FC<TimerProps> = ({
             <div className="flex items-center justify-center gap-3">
               <Button
                 variant="ghost"
-                onClick={() => {
-                  setTimeLeft(prev => Math.max(0, prev - 30));
-                  setHasAdjusted(true);
-                }}
+                onClick={() => handleAdjustTime(-30)}
                 size="lg"
                 className="flex items-center gap-2 px-6"
                 disabled={timeLeft <= 30}
@@ -513,13 +437,10 @@ export const Timer: React.FC<TimerProps> = ({
                 <Minus className="w-5 h-5" />
                 <span className="font-semibold">30s</span>
               </Button>
-              
+
               <Button
                 variant="ghost"
-                onClick={() => {
-                  setTimeLeft(prev => prev + 30);
-                  setHasAdjusted(true);
-                }}
+                onClick={() => handleAdjustTime(30)}
                 size="lg"
                 className="flex items-center gap-2 px-6"
               >

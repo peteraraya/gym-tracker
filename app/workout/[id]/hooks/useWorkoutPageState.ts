@@ -34,7 +34,7 @@ import {
   applySmartRestToAllSets,
 } from "../services/restCalculationService";
 import { saveQueue } from '@/lib/utils/saveQueue';
-import { updateRestNotification } from '@/lib/notifications/restNotification';
+import { extendRestNotification } from '@/lib/notifications/restNotification';
 import logger from '@/lib/logger';
 import { initializeWorkout } from "../services/workoutInitService";
 import { WorkoutSession } from "../types/workout.types";
@@ -371,10 +371,13 @@ export function useWorkoutPageState(id: string) {
         if (handlers.skipAndAdvance) handlers.skipAndAdvance();
         else handlers.skipTimer();
       } else if (action === 'add-30s' || action === 'more-rest') {
-        const added = 30;
+        const added = action === 'more-rest' ? 60 : 30;
         const newTime = Math.max(0, (handlers.currentTimeLeft || 0) + added);
         handlers.setCurrentTimeLeft(newTime);
-        updateRestNotification(newTime).catch(() => {});
+        // extendRestNotification ajusta el deadline real del descanso en el SW;
+        // a diferencia de updateRestNotification, esto no se ignora aunque el
+        // intervalo del SW ya esté activo (que es siempre el caso aquí).
+        extendRestNotification(added).catch(() => {});
       } else if (action === 'continue') {
         handlers.expandTimer();
       }
