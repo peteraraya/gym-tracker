@@ -18,8 +18,7 @@ export function useRoutines() {
     mutationFn: (data: storageService.CreateRoutineData) => 
       storageService.createRoutine(data),
     onSuccess: () => {
-      // Invalidate and refetch routines
-      queryClient.invalidateQueries({ queryKey: queryKeys.routines.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.routines.lists() });
     },
   });
   
@@ -51,8 +50,7 @@ export function useRoutines() {
       }
     },
     onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: queryKeys.routines.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.routines.lists() });
     },
   });
   
@@ -60,7 +58,7 @@ export function useRoutines() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => storageService.deleteRoutine(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.routines.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.routines.lists() });
     },
   });
   

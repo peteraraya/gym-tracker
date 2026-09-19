@@ -130,10 +130,15 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const storageStatus = storageService.getStorageStatus();
           if (storageStatus.mode === "localStorage" && storageStatus.hasError) {
-            const syncResult =
+            const sessionSyncResult =
               await storageService.syncLocalSessionsToDatabase();
-            if (syncResult.synced > 0 && mounted) {
+            if (sessionSyncResult.synced > 0 && mounted) {
               await refetchSessions();
+            }
+            const routineSyncResult =
+              await storageService.syncLocalRoutinesToDatabase();
+            if (routineSyncResult.synced > 0 && mounted) {
+              await refetchRoutines();
             }
           }
         } catch (e) {
@@ -144,7 +149,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       mounted = false;
     };
-  }, [refetchSessions]);
+  }, [refetchRoutines, refetchSessions]);
 
   const addRoutine = useCallback(
     async (routine: Omit<Routine, "id" | "createdAt" | "updatedAt">) => {

@@ -427,6 +427,53 @@ export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; e
   } catch { return { synced: 0, errors: 0 }; }
 }
 
+export async function syncLocalRoutinesToDatabase(): Promise<{ synced: number; errors: number }> {
+  if (!router.isDbEnabled()) return { synced: 0, errors: 0 };
+
+  try {
+    const localSvc = await import('@/lib/storage/localStorage');
+    const localRoutines = await localSvc.getRoutines();
+
+    const dbSvc = await import('@/lib/supabase/service');
+    let dbRoutines: any[] = [];
+    try { dbRoutines = await dbSvc.getRoutines(); } catch { return { synced: 0, errors: 0 }; }
+
+    const dbIds = new Set(dbRoutines.map((r: any) => r.id));
+    let synced = 0;
+    let errors = 0;
+
+    for (const routine of localRoutines) {
+      if (!dbIds.has(routine.id)) {
+        try {
+          await dbSvc.createRoutine({
+            name: routine.name,
+            description: routine.description,
+            image: routine.image,
+            exercises: routine.exercises.map((ex: any) => ({
+              id: ex.id,
+              name: ex.name,
+              sets: ex.sets,
+              equipment: ex.equipment,
+              notes: ex.notes,
+              restBetweenSets: ex.restBetweenSets,
+              useSmartRest: ex.useSmartRest,
+            })),
+            restBetweenSets: routine.restBetweenSets,
+            restBetweenExercises: routine.restBetweenExercises,
+          });
+          synced++;
+        } catch (e) {
+          errors++;
+          logger.error('Error syncing routine', { routineId: routine.id }, e instanceof Error ? e : undefined);
+        }
+      }
+    }
+
+    if (synced > 0) logger.info('Routines synced to database', { synced, errors });
+    return { synced, errors };
+  } catch { return { synced: 0, errors: 0 }; }
+}
+
 // ==================== Dev Tools ====================
 
 export function isDevToolsEnabled(): boolean {
