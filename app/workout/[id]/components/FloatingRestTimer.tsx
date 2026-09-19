@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface FloatingRestTimerProps {
   duration: number; // en segundos
@@ -16,15 +16,26 @@ export function FloatingRestTimer({ duration, onComplete, onDismiss }: FloatingR
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isVisible, setIsVisible] = useState(true);
   const [ariaMessage, setAriaMessage] = useState("");
+  // Evita invocar onComplete más de una vez por instancia del timer: el
+  // efecto se re-ejecuta cuando timeLeft llega a 0 (por su propia
+  // dependencia) y, sin este guard, dispara onComplete una segunda vez.
+  const completedRef = useRef(false);
+
+  const notifyComplete = () => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    onComplete?.();
+  };
 
   useEffect(() => {
+    completedRef.current = false;
     setTimeLeft(duration);
     setAriaMessage(`Descanso de ${duration} segundos iniciado.`);
   }, [duration]);
 
   useEffect(() => {
     if (timeLeft <= 0) {
-      onComplete?.();
+      notifyComplete();
       setAriaMessage("Descanso completado. Prepárate.");
       return;
     }
@@ -33,7 +44,7 @@ export function FloatingRestTimer({ duration, onComplete, onDismiss }: FloatingR
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          onComplete?.();
+          notifyComplete();
           setAriaMessage("Descanso completado. Prepárate.");
           return 0;
         }

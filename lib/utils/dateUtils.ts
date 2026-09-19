@@ -31,11 +31,21 @@ export function getWeekStart(
   return d;
 }
 
+/** Formatea una fecha como YYYY-MM-DD usando sus componentes LOCALES (no UTC) */
+function formatLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function getWeekKey(
   date: Date,
   weekStartsOn: "monday" | "sunday" = "monday",
 ): string {
-  return getWeekStart(date, weekStartsOn).toISOString().split("T")[0];
+  // getWeekStart normaliza a medianoche LOCAL; usar toISOString() la convierte
+  // a UTC y en husos horarios positivos (UTC+N) devuelve el día anterior.
+  return formatLocalDateKey(getWeekStart(date, weekStartsOn));
 }
 
 const JS_DAY_TO_KEY: Record<number, DayKey> = {

@@ -916,13 +916,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                               const updatedExercises = [
                                                 ...currentExercises,
                                               ];
-                                              updatedExercises[
-                                                exerciseIndex
-                                              ].restBetweenSets =
-                                                recommendedTime;
-                                              updatedExercises[
-                                                exerciseIndex
-                                              ].useSmartRest = true;
+                                              updatedExercises[exerciseIndex] = {
+                                                ...updatedExercises[exerciseIndex],
+                                                restBetweenSets: recommendedTime,
+                                                useSmartRest: true,
+                                              };
                                               return updatedExercises;
                                             });
 
@@ -949,12 +947,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                         const updatedExercises = [
                                           ...currentExercises,
                                         ];
-                                        updatedExercises[
-                                          exerciseIndex
-                                        ].restBetweenSets = undefined;
-                                        updatedExercises[
-                                          exerciseIndex
-                                        ].useSmartRest = false;
+                                        updatedExercises[exerciseIndex] = {
+                                          ...updatedExercises[exerciseIndex],
+                                          restBetweenSets: undefined,
+                                          useSmartRest: false,
+                                        };
                                         return updatedExercises;
                                       });
                                     }
@@ -973,11 +970,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                 <RestTimeSelectorCompact
                                   value={exercise.restBetweenSets}
                                   onChange={(v) => {
-                                    const newExercises = [...exercises];
-                                    newExercises[
-                                      exerciseIndex
-                                    ].restBetweenSets = v;
-                                    setExercises(newExercises);
+                                    setExercises((currentExercises) => {
+                                      const newExercises = [...currentExercises];
+                                      newExercises[exerciseIndex] = {
+                                        ...newExercises[exerciseIndex],
+                                        restBetweenSets: v,
+                                      };
+                                      return newExercises;
+                                    });
                                   }}
                                   placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, "0")} (global)`}
                                   className="flex-1"

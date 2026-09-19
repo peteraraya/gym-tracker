@@ -7,7 +7,7 @@
 
 import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
-import { getWeekStart } from '@/lib/utils/dateUtils';
+import { getWeekKey } from '@/lib/utils/dateUtils';
 
 /**
  * Calcula el volumen total (series × reps × peso) de una sesión
@@ -84,10 +84,13 @@ export function calculateVolumeByPeriod(
     let key: string;
 
     if (period === 'week') {
-      const weekStart = getWeekStart(date, 'monday');
-      key = weekStart.toISOString().split('T')[0];
+      // getWeekKey usa componentes de fecha LOCALES; toISOString() convierte
+      // a UTC y en husos horarios positivos agrupaba la sesión en la semana
+      // anterior.
+      key = getWeekKey(date, 'monday');
     } else {
-      key = date.toISOString().slice(0, 7); // YYYY-MM
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      key = `${date.getFullYear()}-${month}`; // YYYY-MM (local, no UTC)
     }
 
     volumeByPeriod[key] = (volumeByPeriod[key] || 0) + calculateSessionVolume(session);
