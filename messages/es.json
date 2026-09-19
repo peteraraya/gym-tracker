@@ -50,7 +50,13 @@
     "glossary": "Glosario",
     "aiAssistant": "Asistente IA",
     "settings": "Ajustes",
-    "planning": "Planificación"
+    "planning": "Planificación",
+    "moreGroups": {
+      "progress": "Progreso",
+      "discover": "Descubrir",
+      "tools": "Herramientas",
+      "account": "Cuenta"
+    }
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -340,7 +346,7 @@
   "dashboard": {
     "loadingStats": "Cargando estadísticas...",
     "pageTitle": "Panel de Control",
-    "pageDescription": "Resumen de tu progreso y estadísticas",
+    "pageDescription": "Gráficos y análisis detallado de tu progreso a largo plazo",
     "fitnessGoals": {
       "muscle_gain": "Ganancia Muscular",
       "strength": "Fuerza",

@@ -22,18 +22,15 @@ import {
 import {
   Dumbbell,
   TrendingUp,
-  Calendar,
   Award,
   Target,
   Flame,
-  Activity,
   BarChart3,
 } from "@/components/icons/lucide";
 import { useGym } from "@/context/GymContext";
 import { useValidSessions } from "@/hooks/useValidSessions";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
-import { StatsGrid, EmptyStateCard } from "@/components/shared";
-import { StatCard } from "@/components/shared/StatsGrid";
+import { EmptyStateCard } from "@/components/shared";
 import { motion } from "framer-motion";
 
 // Lazy loaded components
@@ -67,7 +64,6 @@ export default function DashboardPage() {
 
   const { routines } = useGym();
   const validSessions = useValidSessions();
-  const { loading: sessionsLoading } = useGym();
   const exerciseNameById = useMemo(
     () =>
       new Map(
@@ -229,16 +225,6 @@ export default function DashboardPage() {
     [validSessions],
   );
 
-  // console.log('Dashboard stats:', stats, 'Volume trend:', volumeTrend);
-
-  const volumeMilestoneSubtitle = useMemo(() => {
-    if (stats.totalVolume > 15000) return "🐘 Equivalente a 3 elefantes adultos";
-    if (stats.totalVolume > 5000) return "🐘 Equivalente a un elefante adulto";
-    if (stats.totalVolume > 2000) return "🚙 Equivalente a un coche SUV";
-    if (stats.totalVolume > 500) return "🎹 Equivalente a un piano de cola";
-    return t("statsCards.totalVolumeSubtitle");
-  }, [stats.totalVolume, t]);
-
   return (
     <PageLayout>
       <PageHeader
@@ -275,64 +261,6 @@ export default function DashboardPage() {
       />
 
       <PageContent>
-        {/* Stats Cards Grid */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-        <StatsGrid className="mb-6 p-4">
-          <StatCard
-            title={t("statsCards.totalSessions")}
-            value={stats.totalSessions}
-            icon={<Calendar className="w-5 h-5" />}
-            subtitle={t("statsCards.totalSessionsSubtitle")}
-            gradientClass="from-blue-500 to-indigo-500 dark:from-blue-900/30 dark:to-indigo-900/30"
-            className="rounded-xl shadow-md"
-            iconClassName="text-white"
-            loading={sessionsLoading}
-          />
-
-          <StatCard
-            title={t("statsCards.totalVolume")}
-            value={`${stats.totalVolume.toLocaleString()} ${t("units.kg")}`}
-            icon={<Dumbbell className="w-5 h-5" />}
-            subtitle={volumeMilestoneSubtitle}
-            trend={Math.round(volumeTrend)}
-            gradientClass="from-purple-500 to-blue-500 dark:from-purple-900/30 dark:to-blue-900/30"
-            className="rounded-xl shadow-md"
-            iconClassName="text-white"
-            loading={sessionsLoading}
-          />
-
-          <StatCard
-            title={t("statsCards.currentStreak")}
-            value={`${stats.currentStreak} ${t("statsCards.days")}`}
-            icon={<Flame className="w-5 h-5" />}
-            subtitle={t("statsCards.currentStreakSubtitle")}
-            trend={{
-              isPositive: stats.currentStreak > 0,
-              value: stats.currentStreak,
-            }}
-            gradientClass="from-orange-400 to-orange-600 dark:from-orange-900/30 dark:to-orange-800/30"
-            className="rounded-xl shadow-md"
-            iconClassName="text-white"
-            loading={sessionsLoading}
-          />
-
-          <StatCard
-            title={t("statsCards.totalSets")}
-            value={stats.totalSets}
-            icon={<Activity className="w-5 h-5" />}
-            subtitle={t("statsCards.totalSetsSubtitle")}
-            gradientClass="from-emerald-400 to-emerald-600 dark:from-emerald-900/30 dark:to-emerald-800/30"
-            className="rounded-xl shadow-md"
-            iconClassName="text-white"
-            loading={sessionsLoading}
-          />
-        </StatsGrid>
-        </motion.div>
-
         {/* Volume Chart */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
