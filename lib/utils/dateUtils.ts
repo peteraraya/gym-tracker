@@ -195,15 +195,24 @@ export function calculateStreak(sessions: WorkoutSession[]): number {
   let streak = 0;
   let expectedDate = today;
 
-  for (const date of uniqueDates) {
-    if (isSameDay(date, expectedDate) || isPreviousDay(date, expectedDate)) {
-      streak++;
-      // Mover la fecha esperada al día anterior de forma segura
-      expectedDate = new Date(date);
-      expectedDate.setDate(expectedDate.getDate() - 1);
-    } else {
-      break;
-    }
+  for (let i = 0; i < uniqueDates.length; i++) {
+    const date = uniqueDates[i];
+
+    // Solo la primera comparación puede tolerar que "hoy" no tenga sesión
+    // todavía (la racha sigue viva mientras no termine el día). A partir de
+    // ahí, cada fecha debe ser exactamente un día antes de la anterior:
+    // permitir isPreviousDay en cada iteración perdonaría un hueco por paso.
+    const matches =
+      i === 0
+        ? isSameDay(date, expectedDate) || isPreviousDay(date, expectedDate)
+        : isSameDay(date, expectedDate);
+
+    if (!matches) break;
+
+    streak++;
+    // Mover la fecha esperada al día anterior de forma segura
+    expectedDate = new Date(date);
+    expectedDate.setDate(expectedDate.getDate() - 1);
   }
 
   return streak;

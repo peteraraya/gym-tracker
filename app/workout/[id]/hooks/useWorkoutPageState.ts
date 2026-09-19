@@ -127,7 +127,7 @@ export function useWorkoutPageState(id: string) {
           const exWeights = actualWeightsMap[ex.id] || [];
           const sets = (ex.sets || []).map((s: Set, idx: number) => {
             const aw = exWeights[idx];
-            const mergedWeight = aw !== undefined && aw !== null && aw !== 0 ? aw : (s.weight ?? 0);
+            const mergedWeight = aw !== undefined && aw !== null ? aw : (s.weight ?? 0);
             return { ...s, weight: mergedWeight };
           });
           return { ...ex, sets } as Exercise;
@@ -882,8 +882,8 @@ export function useWorkoutPageState(id: string) {
                    id: ex.id,
                    name: ex.name,
                    sets: ex.sets.map((s: Set, idx: number) => {
-                     const finalReps = exReps[idx] !== undefined && exReps[idx] > 0 ? exReps[idx] : s.reps;
-                     const finalWeight = exWeights[idx] !== undefined && exWeights[idx] > 0 ? exWeights[idx] : (s.weight || 0);
+                     const finalReps = exReps[idx] !== undefined ? exReps[idx] : s.reps;
+                     const finalWeight = exWeights[idx] !== undefined ? exWeights[idx] : (s.weight || 0);
                     
                      return {
                        reps: finalReps,
