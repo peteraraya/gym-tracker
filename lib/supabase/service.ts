@@ -77,7 +77,7 @@ export async function getRoutines(): Promise<Routine[]> {
     restBetweenExercises: routine.rest_between_exercises,
     createdAt: new Date(routine.created_at),
     updatedAt: new Date(routine.updated_at),
-    exercises: routine.exercises
+    exercises: (routine.exercises || [])
       .sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index)
       .map((ex: any) => {
         let sets: SetData[];
@@ -235,7 +235,7 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
   // Delete exercises that were removed in the new payload
   try {
     const incomingIds = new Set(data.exercises.filter(e => e.id).map(e => e.id));
-    const toDelete = (oldExercises || []).filter((ex: any) => !incomingIds.has(ex.id)).map((ex: any) => ex.id);
+    const toDelete = ((oldExercises || []).filter((ex: any) => !incomingIds.has(ex.id)).map((ex: any) => ex.id));
     if (toDelete.length > 0) {
       await supabase.from('exercises').delete().in('id', toDelete).eq('routine_id', id);
     }

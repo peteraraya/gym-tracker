@@ -226,8 +226,7 @@ export async function deleteSessionsByRoutine(routineId: string): Promise<void> 
  */
 export async function getSessions(): Promise<WorkoutSession[]> {
     const sessions = getFromStorage<WorkoutSession[]>(STORAGE_KEYS.SESSIONS, []);
-    // Sort by date descending
-    return sessions.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return [...sessions].sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 /**

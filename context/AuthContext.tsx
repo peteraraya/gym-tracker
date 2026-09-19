@@ -105,14 +105,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     if (!isDatabaseEnabled) {
       console.warn('Authentication is disabled in localStorage mode');
-      // Clear the mock local user when database/auth is disabled
       setUser(null);
       setLoading(false);
       return;
     }
 
     const supabase = createClient();
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch { /* ignore */ }
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sb-access-token');
+        localStorage.removeItem('sb-refresh-token');
+        localStorage.removeItem('sb-event-callback');
+      }
+    } catch { /* ignore */ }
+    setUser(null);
+    setLoading(false);
   }, [isDatabaseEnabled]);
 
   const resetPassword = useCallback(async (email: string) => {

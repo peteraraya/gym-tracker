@@ -2,9 +2,10 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from '@/context/LocaleContext';
+import { useAuth } from '@/context/AuthContext';
 import { useWorkout } from '@/context/WorkoutContext';
 import {
   Home,
@@ -24,6 +25,7 @@ import {
   Target,
   Grid3x3,
   X,
+  LogOut,
 } from '@/components/icons/lucide';
 
 const NavTab: React.FC<{
@@ -60,11 +62,19 @@ const NavTab: React.FC<{
 
 export const BottomNavBar: React.FC = () => {
   const pathname = usePathname() || '/';
+  const router = useRouter();
   const t = useTranslations('nav');
+  const { user, signOut } = useAuth();
   const { activeWorkout } = useWorkout();
   const [moreOpen, setMoreOpen] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMoreOpen(false);
+    router.push('/auth');
+  };
 
   // Accesibilidad: enfocar el panel al abrir, cerrar con Escape, devolver el foco al cerrar
   useEffect(() => {
@@ -192,6 +202,20 @@ export const BottomNavBar: React.FC = () => {
                   </Link>
                 ))}
               </div>
+
+              {/* Cerrar sesión */}
+              {user && (
+                <div className="border-t border-zinc-100 dark:border-zinc-800 p-3">
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t('logout') || 'Cerrar sesión'}
+                  </button>
+                </div>
+              )}
             </motion.div>
           </>
         )}
