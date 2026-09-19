@@ -36,7 +36,7 @@ function formatDuration(seconds: number): string {
 /** Partículas de confetti puramente CSS/Framer Motion */
 const CONFETTI_COLORS = [
   'bg-yellow-400', 'bg-indigo-400', 'bg-emerald-400',
-  'bg-pink-400', 'bg-violet-400', 'bg-orange-400', 'bg-cyan-400',
+  'bg-blue-400', 'bg-violet-400', 'bg-orange-400', 'bg-cyan-400',
 ];
 
 const Particle: React.FC<{ index: number }> = ({ index }) => {

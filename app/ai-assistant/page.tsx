@@ -219,7 +219,7 @@ export default function AIAssistantPage() {
                       className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                         message.role === 'user'
                           ? 'bg-linear-to-br from-blue-600 to-cyan-600'
-                          : 'bg-linear-to-br from-purple-600 to-pink-600'
+                          : 'bg-linear-to-br from-purple-600 to-blue-600'
                       }`}
                     >
                       {message.role === 'user' ? (
@@ -277,7 +277,7 @@ export default function AIAssistantPage() {
 
                 {isLoading && (
                   <div className="flex gap-3 items-center">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-purple-600 to-blue-600 flex items-center justify-center">
                       <Bot className="w-5 h-5 text-white" />
                     </div>
                     <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 flex items-center gap-3">

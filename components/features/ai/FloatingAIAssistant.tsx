@@ -710,7 +710,7 @@ export function FloatingAIAssistant() {
                     className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       message.role === "user"
                         ? "bg-linear-to-br from-blue-600 to-cyan-600"
-                        : "bg-linear-to-br from-purple-600 to-pink-600"
+                        : "bg-linear-to-br from-purple-600 to-blue-600"
                     }`}
                   >
                     {message.role === "user" ? (
@@ -737,7 +737,7 @@ export function FloatingAIAssistant() {
 
               {isLoading && (
                 <div className="flex gap-2">
-                  <div className="w-8 h-8 bg-linear-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-linear-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
                     <Bot className="w-4 h-4 text-white" />
                   </div>
                   <div className="bg-white dark:bg-gray-700 rounded-2xl p-3">

@@ -299,7 +299,7 @@ export default function DashboardPage() {
             icon={<Dumbbell className="w-5 h-5" />}
             subtitle={volumeMilestoneSubtitle}
             trend={Math.round(volumeTrend)}
-            gradientClass="from-purple-500 to-pink-500 dark:from-purple-900/30 dark:to-pink-900/30"
+            gradientClass="from-purple-500 to-blue-500 dark:from-purple-900/30 dark:to-blue-900/30"
             className="rounded-xl shadow-md"
             iconClassName="text-white"
             loading={sessionsLoading}

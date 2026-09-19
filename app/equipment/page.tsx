@@ -40,7 +40,7 @@ export default async function EquipmentPage(props: {
           />
 
           {/* Info Card */}
-          <Card className="mt-4 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+          <Card className="mt-4 bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
             <CardHeader>
               <CardTitle>💡 ¿Cómo funciona?</CardTitle>
             </CardHeader>

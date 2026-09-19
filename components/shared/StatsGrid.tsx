@@ -27,7 +27,7 @@ const colorClasses = {
   purple: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20',
   orange: 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20',
   red: 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20',
-  pink: 'from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20'
+  pink: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20'
 };
 
 const iconColorClasses = {
@@ -36,7 +36,7 @@ const iconColorClasses = {
   purple: 'text-purple-500',
   orange: 'text-orange-500',
   red: 'text-red-500',
-  pink: 'text-pink-500'
+  pink: 'text-blue-500'
 };
 
 export function StatCard({

@@ -127,7 +127,7 @@ export const BottomNavBar: React.FC = () => {
     { href: '/calculators',  icon: Calculator,  label: t('calculators'), color: 'text-teal-500' },
     { href: '/glossary',     icon: BookOpen,    label: t('glossary'),    color: 'text-sky-500' },
     { href: '/settings',     icon: Settings,    label: t('settings'),    color: 'text-zinc-500' },
-    { href: '/profile',      icon: User,        label: t('profile'),     color: 'text-pink-500' },
+    { href: '/profile',      icon: User,        label: t('profile'),     color: 'text-rose-500' },
   ];
 
   // Si algún "más" está activo, marcar el tab de "Más" como activo

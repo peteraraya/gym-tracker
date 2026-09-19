@@ -104,9 +104,9 @@ export default async function CalculatorsPage(props: {
       description: 'Calcula IMC y % de grasa corporal',
       icon: User,
       category: 'body',
-      color: 'from-pink-500 to-rose-600',
-      bgColor: 'from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-800/20',
-      borderColor: 'border-pink-200 dark:border-pink-800'
+      color: 'from-blue-500 to-rose-600',
+      bgColor: 'from-blue-50 to-rose-100 dark:from-blue-900/20 dark:to-rose-800/20',
+      borderColor: 'border-blue-200 dark:border-blue-800'
     },
     {
       id: 'calories' as CalculatorType,
@@ -205,7 +205,7 @@ export default async function CalculatorsPage(props: {
           {!selectedCalculator && (
             <>
               {/* Hero Section */}
-              <div className="relative overflow-hidden bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
+              <div className="relative overflow-hidden bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
