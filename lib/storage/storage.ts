@@ -249,7 +249,14 @@ class StorageRouter {
     return result;
   }
 
-  /** Dual-read: Supabase first, localStorage fallback. */
+  /**
+   * Dual-read: Supabase first, localStorage fallback.
+   * Un resultado de Supabase que no lanzó excepción es autoritativo, aunque
+   * sea `null` (p. ej. "no hay entrenamiento activo" confirmado) — no hay
+   * que caer al fallback local en ese caso, o se puede resucitar/mostrar
+   * datos obsoletos de otro dispositivo. Solo una excepción real (falla de
+   * red, tabla inexistente, etc.) debe activar el fallback.
+   */
   async dualRead<T, U>(
     fnSupabase: (s: SupabaseStrategy) => Promise<T>,
     fnLocal: (s: LocalStorageStrategy) => Promise<U>,
@@ -257,7 +264,8 @@ class StorageRouter {
     if (this.isDbEnabled()) {
       try {
         const result = await fnSupabase(this.supabase);
-        if (result !== null) { this.onSuccess(); return result; }
+        this.onSuccess();
+        return result;
       } catch {
         logger.warn('Supabase read failed, trying localStorage', { operation: 'DUAL_READ' });
       }
@@ -314,18 +322,7 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
 }
 
 export async function updateSession(session: WorkoutSession): Promise<void> {
-  if (!router.isDbEnabled()) {
-    const svc = await import('@/lib/storage/localStorage');
-    return svc.saveSession(session);
-  }
-  try {
-    const svc = await import('@/lib/supabase/service');
-    await svc.updateSession(session);
-    logger.info('Sesión actualizada exitosamente', { sessionId: session.id });
-  } catch (err: unknown) {
-    logger.error('Error al actualizar sesión', { critical: true, sessionId: session.id }, err instanceof Error ? err : undefined);
-    throw new Error('No se pudo actualizar la sesión de entrenamiento. Verifica tu conexión.');
-  }
+  return router.criticalWithDraft(s => s.updateSession(session), `session-draft-${session.id}`, session);
 }
 
 export async function deleteSession(id: string): Promise<void> {

@@ -587,30 +587,26 @@ export async function getActiveWorkout(): Promise<any | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  try {
-    const { data, error } = await supabase
-      .from('active_workouts')
-      .select('data')
-      .eq('user_id', user.id)
-      .single();
+  const { data, error } = await supabase
+    .from('active_workouts')
+    .select('data')
+    .eq('user_id', user.id)
+    .single();
 
-    // Si la tabla no existe o no hay datos, retornar null (el sistema usará localStorage)
-    if (error) {
-      if (error.code === 'PGRST116' || 
-          error.code === '42P01' || 
-          error.message.includes('Could not find') ||
-          error.message.includes('does not exist')) {
-        return null;
-      }
+  if (error) {
+    // PGRST116 = .single() no encontró filas: confirma que este usuario
+    // NO tiene un entrenamiento activo. Es el único caso en que null es
+    // una respuesta autoritativa. Cualquier otro error (tabla inexistente,
+    // red caída, etc.) se propaga para que el caller (dualRead) haga
+    // fallback a localStorage en vez de asumir "no hay entrenamiento
+    // activo" y resucitar/ocultar datos incorrectamente.
+    if (error.code === 'PGRST116') {
       return null;
     }
-
-    return data?.data || null;
-  } catch (error: any) {
-    const { logger } = await import('@/lib/logger');
-    logger.warn('Failed to get active workout', { module: 'supabase-service', errorMessage: error.message });
-    return null;
+    throw new Error(`Error al obtener entrenamiento activo: ${error.message}`);
   }
+
+  return data?.data || null;
 }
 
 /**
