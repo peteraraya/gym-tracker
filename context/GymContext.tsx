@@ -119,6 +119,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!user) {
         refetchRoutines();
         refetchSessions();
+      } else {
+        void refetchRoutines();
+        void refetchSessions();
       }
     }
   }, [user, authLoading, refetchRoutines, refetchSessions]);

@@ -208,7 +208,9 @@ class StorageRouter {
     return result;
   }
 
-  /** Critical with draft saving on Supabase failure. */
+  /** Critical with draft saving on Supabase failure.
+   * NOTA: no llama a onError() para no afectar el estado del router
+   * y que run() maneje su propio fallback independientemente. */
   async criticalWithDraft<T>(
     fn: (s: StorageStrategy) => Promise<T>,
     draftKey: string,
@@ -223,7 +225,7 @@ class StorageRouter {
       this.onSuccess();
       return result;
     } catch (err: unknown) {
-      this.onError();
+      // Guarda draft sin cambiar el modo del router (run() maneja su propio fallback)
       logger.error('Critical operation failed, saving draft', { draftKey }, err instanceof Error ? err : undefined);
       try {
         localStorage.setItem(draftKey, JSON.stringify({ ...(draftPayload as object), savedAt: Date.now() }));
@@ -438,19 +440,19 @@ export async function syncLocalRoutinesToDatabase(): Promise<{ synced: number; e
     let dbRoutines: any[] = [];
     try { dbRoutines = await dbSvc.getRoutines(); } catch { return { synced: 0, errors: 0 }; }
 
-    const dbIds = new Set(dbRoutines.map((r: any) => r.id));
+    // Compara por nombre ya que localStorage y Supabase generan IDs distintos
+    const dbNames = new Set(dbRoutines.map((r: any) => r.name));
     let synced = 0;
     let errors = 0;
 
     for (const routine of localRoutines) {
-      if (!dbIds.has(routine.id)) {
+      if (!dbNames.has(routine.name)) {
         try {
           await dbSvc.createRoutine({
             name: routine.name,
             description: routine.description,
             image: routine.image,
             exercises: routine.exercises.map((ex: any) => ({
-              id: ex.id,
               name: ex.name,
               sets: ex.sets,
               equipment: ex.equipment,
@@ -464,7 +466,7 @@ export async function syncLocalRoutinesToDatabase(): Promise<{ synced: number; e
           synced++;
         } catch (e) {
           errors++;
-          logger.error('Error syncing routine', { routineId: routine.id }, e instanceof Error ? e : undefined);
+          logger.error('Error syncing routine', { routineName: routine.name }, e instanceof Error ? e : undefined);
         }
       }
     }
