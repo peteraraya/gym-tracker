@@ -19,6 +19,7 @@ import { useWorkoutCompletion } from "./useWorkoutCompletion";
 import { useWorkoutSuggestions } from "./useWorkoutSuggestions";
 import { useWakeLock } from "./useWakeLock";
 import { useHapticFeedback } from "./useHapticFeedback";
+import { useAppLifecycle } from "@/hooks/useAppLifecycle";
 import { useSoundSettingsModal } from "@/components/features/settings/SoundSettings";
 import { EXERCISE_DATABASE } from "@/data/exercises";
 import type { Routine, Exercise, Set, SetType, UserProfile } from "@/types";
@@ -42,11 +43,14 @@ import { getExerciseRecommendations } from '@/lib/exercises/exerciseRecommendati
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number,
-): ((...args: Parameters<T>) => void) & { cancel: () => void } {
+): ((...args: Parameters<T>) => void) & { cancel: () => void; flush: () => void } {
   let timeout: NodeJS.Timeout | null = null;
+  let lastArgs: Parameters<T> | null = null;
   const executedFunction = function(...args: Parameters<T>) {
+    lastArgs = args;
     const later = () => {
       timeout = null;
+      lastArgs = null;
       func(...args);
     };
     if (timeout) clearTimeout(timeout);
@@ -56,6 +60,22 @@ function debounce<T extends (...args: any[]) => any>(
     if (timeout) {
       clearTimeout(timeout);
       timeout = null;
+    }
+    lastArgs = null;
+  };
+  // Ejecuta inmediatamente la última llamada pendiente (si hay una) y
+  // cancela el timeout, en vez de esperar los `wait` ms restantes.
+  // Se usa al pausar/backgroundear la app para no perder la última
+  // actualización que quedó atrapada dentro de la ventana del debounce.
+  executedFunction.flush = function() {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    if (lastArgs) {
+      const args = lastArgs;
+      lastArgs = null;
+      func(...args);
     }
   };
   return executedFunction;
@@ -414,6 +434,16 @@ export function useWorkoutPageState(id: string) {
   const handleWorkoutDataChange = useCallback((data: WorkoutData) => {
     if (debouncedSaveRef.current) debouncedSaveRef.current(data);
   }, []);
+
+  // Si la app se va a segundo plano mientras el guardado sigue debounceado
+  // (hasta 500ms), forzamos que se ejecute ya mismo en vez de esperar: sin
+  // esto, useWorkoutLifecycle's onPause puede persistir el estado antes de
+  // que este debounce llegue a propagar la última serie completada.
+  useAppLifecycle({
+    onPause: useCallback(() => {
+      if (debouncedSaveRef.current) debouncedSaveRef.current.flush();
+    }, []),
+  });
 
   useEffect(() => {
     handleWorkoutDataChangeRef.current = handleWorkoutDataChange;

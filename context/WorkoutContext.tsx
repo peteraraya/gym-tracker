@@ -146,6 +146,12 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             skippedExercises:    additionalData?.skippedExercises    ?? prev.skippedExercises,
           };
 
+          // Mantener la ref sincronizada de inmediato (no esperar al efecto
+          // que la sincroniza tras el próximo render): onPause la lee
+          // directamente y, si quedara un tick atrás, persistiría datos
+          // desactualizados al backgroundear la app a mitad de una serie.
+          activeWorkoutRef.current = newActive;
+
           // Guardar inmediatamente usando la cola para reducir la ventana de pérdida
         try {
           queueMicrotask(() => {
@@ -167,7 +173,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           return newActive;
         });
     },
-    [setActiveWorkout],
+    [setActiveWorkout, activeWorkoutRef],
   );
 
   const clearRestState = useCallback(() => {
