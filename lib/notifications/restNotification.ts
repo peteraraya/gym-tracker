@@ -91,6 +91,27 @@ export async function updateRestNotification(remaining: number, tag = 'rest-time
   postToSW({ type: 'UPDATE_REST', remaining, tag });
 }
 
+// Ajusta el descanso activo por un delta (p.ej. +30s desde el botón de la
+// notificación o desde la app). A diferencia de updateRestNotification, esto
+// SÍ tiene efecto aunque el SW ya tenga su propio intervalo corriendo: es un
+// ajuste puntual del deadline real, no una actualización periódica.
+export async function extendRestNotification(deltaSeconds: number, tag = 'rest-timer') {
+  if (typeof window === 'undefined') return;
+  if (isRunningOnCapacitorNative()) {
+    try {
+      const Plugins = (window as any).Capacitor?.Plugins || (window as any).Plugins;
+      if (Plugins && Plugins.RestForeground && typeof Plugins.RestForeground.extend === 'function') {
+        await Plugins.RestForeground.extend({ deltaSeconds });
+        return;
+      }
+    } catch (e) {
+      console.warn('[restNotification] error calling native plugin extend', e);
+    }
+  }
+
+  postToSW({ type: 'EXTEND_REST', deltaSeconds, tag });
+}
+
 export async function endRestNotification(tag = 'rest-timer') {
   if (typeof window === 'undefined') return;
   if (_restInterval) {

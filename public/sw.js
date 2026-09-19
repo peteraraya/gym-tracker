@@ -532,6 +532,41 @@ self.addEventListener('message', (event) => {
     return;
   }
 
+  // EXTEND_REST -> ajustar el endTime real de un descanso activo (p.ej. botón
+  // "+30s" tocado desde la propia notificación o desde la app). A diferencia
+  // de UPDATE_REST, esto SÍ se aplica aunque el intervalo del SW esté activo:
+  // es un ajuste puntual del deadline, no una actualización periódica que
+  // compita con el propio intervalo.
+  if (event.data.type === 'EXTEND_REST') {
+    const tag = event.data.tag || 'rest-timer';
+    const deltaSeconds = Number(event.data.deltaSeconds) || 0;
+
+    self._restNotifications = self._restNotifications || {};
+    const meta = self._restNotifications[tag];
+    if (!meta || !deltaSeconds) return;
+
+    meta.endTime += deltaSeconds * 1000;
+
+    const remaining = Math.max(0, Math.ceil((meta.endTime - Date.now()) / 1000));
+    const formatted = formatSeconds(remaining);
+    self.registration.showNotification(formatted, {
+      body: meta.title || 'Descanso',
+      tag,
+      renotify: false,
+      requireInteraction: true,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/badge-72x72.png',
+      data: { endTime: meta.endTime, nextExercise: meta.nextExercise },
+      actions: [
+        { action: 'skip', title: 'Saltar' },
+        { action: 'add-30s', title: '+30s' },
+        { action: 'close', title: 'Cerrar' }
+      ],
+      image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
+    });
+    return;
+  }
+
   // UPDATE_REST -> ignorar si el SW ya tiene un intervalo activo para este tag
   // Así evitamos que la app y el SW compitan generando notificaciones duplicadas
   if (event.data.type === 'UPDATE_REST') {
