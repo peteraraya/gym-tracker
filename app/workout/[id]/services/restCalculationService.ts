@@ -27,7 +27,7 @@ export function calculateNextRestTime({
   const setIndex = (typeof currentSet === 'number' && currentSet > 0) ? currentSet - 1 : 0;
 
   // 1. Per-set override (manual edit during workout)
-  if (perSetOverrides?.[exerciseId]?.[setIndex]) {
+  if (typeof perSetOverrides?.[exerciseId]?.[setIndex] === 'number') {
     return perSetOverrides[exerciseId][setIndex];
   }
 
