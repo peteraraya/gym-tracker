@@ -16,7 +16,7 @@ export const logger = {
 
   info: (...args: LogArgs) => {
     if (isDevelopment || isTest) {
-      console.info("[INFO]", ...args);
+      console.info("[INFO]", ...args); 
     }
   },
 
