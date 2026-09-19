@@ -17,7 +17,7 @@ export type { SetData, RoutineExercise, CreateRoutineData, UserProfile, Progress
 import type { CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/storage/localStorage';
 
 // ==================== Strategy Interface ====================
-
+ 
 export interface StorageStrategy {
   name: string;
   getRoutines(): Promise<Routine[]>;
