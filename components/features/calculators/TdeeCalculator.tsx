@@ -66,17 +66,27 @@ useEffect(() => {
     loadProfile();
   }, []);
 
+  // Infiere el nivel de actividad TDEE a partir de los entrenos/semana del perfil
+  function applyActivityFromWeeklyWorkouts(w: number) {
+    if (w <= 1) setActivity('sedentary');
+    else if (w <= 3) setActivity('light');
+    else if (w <= 5) setActivity('moderate');
+    else if (w <= 7) setActivity('active');
+    else setActivity('very_active');
+  }
+
   const loadProfile = async () => {
     try {
       // Verificar modo de almacenamiento
       const { isLocalStorageMode } = await import('@/lib/storageConfig');
-      
+      let usedProfile = false;
+
       if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== 'undefined') {
           const { getProfileLocally } = await import('@/lib/user/localProfile');
           const localProfile = getProfileLocally();
-          
+
           if (localProfile) {
             // console.log('[TdeeCalculator] ✅ Loaded from localStorage');
             setAge(localProfile.age || '');
@@ -86,8 +96,8 @@ useEffect(() => {
             setFitnessGoal(localProfile.fitnessGoal || '');
             setFitnessLevel(localProfile.fitnessLevel || '');
             setWeeklyWorkouts(localProfile.weeklyWorkouts || '');
-            setProfileLoading(false);
-            return;
+            if (typeof localProfile.weeklyWorkouts === 'number') applyActivityFromWeeklyWorkouts(localProfile.weeklyWorkouts);
+            usedProfile = true;
           }
         }
       } else {
@@ -105,13 +115,23 @@ useEffect(() => {
             setFitnessGoal(profile.fitnessGoal || '');
             setFitnessLevel(profile.fitnessLevel || '');
             setWeeklyWorkouts(profile.weeklyWorkouts || '');
+            if (typeof profile.weeklyWorkouts === 'number') applyActivityFromWeeklyWorkouts(profile.weeklyWorkouts);
+            usedProfile = true;
           }
         }
+      }
+
+      if (usedProfile) {
+        setStatusMsg('Basado en tu perfil');
+        setTimeout(() => setStatusMsg(''), 1800);
       }
     } catch (err) {
       console.error('[TdeeCalculator] ❌ Error loading profile:', err);
     } finally {
       setProfileLoading(false);
+      // Marca la carga inicial como completa para que el autoguardado no
+      // sobrescriba el perfil recién cargado.
+      isInitialized.current = true;
     }
   };
 
@@ -122,55 +142,6 @@ useEffect(() => {
     setStatusMsg('Perfil eliminado');
     setTimeout(() => setStatusMsg(''), 1500);
   }
-
-  useEffect(() => {
-    // intentar cargar perfil al montar: preferir perfil del backend/localStorage unificado
-    (async () => {
-      try {
-        const storage = await import('@/lib/storage/storage');
-        const profile = await storage.getProfile();
-        // console.log('Perfil unificado cargado para TDEE:', profile);
-        let used = false;
-        if (profile) {
-          if (profile.gender) {
-            if (profile.gender === 'male' || profile.gender === 'female') {
-              setSex(profile.gender as 'male'|'female');
-              used = true;
-            }
-          }
-          if (typeof profile.age === 'number') { setAge(profile.age); used = true; }
-          // prefer currentWeight, fallback to weight
-          if (typeof profile.currentWeight === 'number') { setWeight(profile.currentWeight); used = true; }
-          else if (typeof profile.weight === 'number') { setWeight(profile.weight); used = true; }
-          if (typeof profile.height === 'number') { setHeight(profile.height); used = true; }
-          if (typeof profile.weeklyWorkouts === 'number') {
-            const w = profile.weeklyWorkouts;
-            if (w <= 1) setActivity('sedentary');
-            else if (w <= 3) setActivity('light');
-            else if (w <= 5) setActivity('moderate');
-            else if (w <= 7) setActivity('active');
-            else setActivity('very_active');
-            used = true;
-          }
-        }
-
-        if (used) {
-          setStatusMsg('Basado en tu perfil');
-          setTimeout(() => setStatusMsg(''), 1800);
-        } else {
-          // si no hay datos útiles en el perfil unificado, intentar cargar perfil local específico TDEE
-          if (typeof window !== 'undefined') loadProfile();
-        }
-      } catch (err) {
-        // en caso de error, fallback a carga local
-        if (typeof window !== 'undefined') loadProfile();
-      }
-    // marcar inicialización para evitar que el efecto de autoguardado
-    // sobrescriba inmediatamente el perfil cargado
-    isInitialized.current = true;
-    })();
-
-  }, []);
 
   // Autoguardado local (debounced) de la última información ingresada
   useEffect(() => {

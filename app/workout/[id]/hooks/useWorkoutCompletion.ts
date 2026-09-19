@@ -113,8 +113,14 @@ export function useWorkoutCompletion({
     }));
 
     // ✨ Crear la nueva sesión
+    // Id real (no "temp-" + timestamp): así, si esta misma sesión se
+    // reintenta guardar (retry de red, doble tap), saveSession puede
+    // hacer upsert por id en vez de crear una fila duplicada.
+    const sessionId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
     const newSession = {
-      id: `temp-${Date.now()}`, // ID temporal
+      id: sessionId,
       routineId: routine.id,
       routineName: routine.name,
       date: new Date(),
