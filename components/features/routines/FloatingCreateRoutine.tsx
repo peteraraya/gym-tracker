@@ -23,12 +23,13 @@ export const FloatingCreateRoutine: React.FC = () => {
   
   // Ocultar en las rutas de workout (entrenamiento activo)
   if (pathname && pathname.startsWith('/workout')) return null;
+  if (pathname === '/') return null;
 
   return (
-    <div className="fixed left-6 bottom-20 z-40">
+    <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-40 lg:bottom-6 lg:left-6">
       <Link href={href} aria-label={ariaLabel} className="group">
-        <div className="flex items-center gap-3 bg-linear-to-br from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 px-4 py-3 rounded-full shadow-lg hover:scale-105 transform transition">
-          <div className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-full">
+        <div className="flex items-center gap-2.5 rounded-full bg-blue-600 px-3 py-2.5 text-white shadow-lg shadow-blue-950/15 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950 sm:px-4 sm:py-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
             <Plus className="w-5 h-5" />
           </div>
           <div className="hidden sm:block">

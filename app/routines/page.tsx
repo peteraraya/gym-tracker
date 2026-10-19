@@ -27,6 +27,7 @@ import {
   Flame,
   Dumbbell,
   Search,
+  ChevronDown,
 } from "@/components/icons/lucide";
 import { useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
@@ -399,12 +400,25 @@ export default function RoutinesPage() {
             })()}
 
           {/* Weekly Planner */}
-          <div className="mb-6">
-            <WeeklyPlanner searchQuery={debouncedSearchFilter} />
-          </div>
+          <details className="group mb-4 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 marker:text-blue-600">
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  {t("plannerSummary")}
+                </span>
+                <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">
+                  {t("plannerDescription")}
+                </span>
+              </span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-zinc-500 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-zinc-100 p-3 dark:border-zinc-800 sm:p-4">
+              <WeeklyPlanner searchQuery={debouncedSearchFilter} />
+            </div>
+          </details>
 
           {/* Search */}
-          <div className="mb-6">
+          <div className="mb-4">
             <SearchInput
               value={searchFilter}
               onChange={setSearchFilter}

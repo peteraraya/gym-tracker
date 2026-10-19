@@ -232,11 +232,11 @@ export default function Home() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div className="max-w-lg mx-auto px-4 pt-6 pb-4 space-y-4">
+        <div className="mx-auto max-w-lg space-y-4 px-4 pt-4 pb-8 sm:px-6 sm:pt-6 lg:grid lg:max-w-7xl lg:grid-cols-12 lg:items-start lg:gap-6 lg:space-y-0">
 
           {/* Cabecera */}
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between lg:col-span-12"
           >
             <div>
               <p className="text-zinc-500 dark:text-zinc-400 text-sm">{greeting} 👋</p>
@@ -259,16 +259,19 @@ export default function Home() {
           </motion.div>
 
           {/* Card principal */}
-          <TodayWorkoutCard
-            todayKey={todayKey}
-            todayRoutineIds={todayRoutineIds}
-            routines={routines}
-            activeWorkout={activeWorkout}
-            onStart={handleStart}
-            loading={loading}
-          />
+          <section className="lg:col-span-7">
+            <TodayWorkoutCard
+              todayKey={todayKey}
+              todayRoutineIds={todayRoutineIds}
+              routines={routines}
+              activeWorkout={activeWorkout}
+              onStart={handleStart}
+              loading={loading}
+            />
+          </section>
 
           {/* Stats rápidos */}
+          <div className="space-y-4 lg:col-span-5">
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
             className="grid grid-cols-3 gap-3"
           >
@@ -444,7 +447,7 @@ export default function Home() {
               </Link>
             </motion.div>
           )}
-
+          </div>
         </div>
       </div>
     </ProtectedRoute>

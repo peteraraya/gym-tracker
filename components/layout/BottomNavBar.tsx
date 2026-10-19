@@ -36,22 +36,23 @@ const NavTab: React.FC<{
 }> = ({ href, icon: Icon, label, isActive }) => (
   <Link
     href={href}
-    className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 min-w-0"
+    aria-current={isActive ? 'page' : undefined}
+    className="flex min-h-11 min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
   >
     <motion.div
       whileTap={{ scale: 0.82 }}
       className={`p-1.5 rounded-xl transition-colors ${
         isActive
-          ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
       <Icon className="w-5 h-5" />
     </motion.div>
     <span
-      className={`text-[10px] font-medium leading-none truncate ${
+      className={`max-w-full truncate text-[11px] font-medium leading-none ${
         isActive
-          ? 'text-indigo-600 dark:text-indigo-400'
+          ? 'text-blue-700 dark:text-blue-300'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
@@ -171,7 +172,7 @@ export const BottomNavBar: React.FC = () => {
               className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-49 mx-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
               role="dialog"
               aria-modal="true"
-              aria-label="Más secciones"
+              aria-label={t('moreSections')}
               initial={{ y: 24, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 24, opacity: 0, scale: 0.97 }}
@@ -179,12 +180,12 @@ export const BottomNavBar: React.FC = () => {
             >
               {/* Cabecera */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Más secciones</span>
+                <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('moreSections')}</span>
                 <button
                   ref={closeBtnRef}
                   type="button"
                   onClick={() => setMoreOpen(false)}
-                  aria-label="Cerrar menú"
+                  aria-label={t('close')}
                   className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <X className="w-4 h-4" />
@@ -204,7 +205,7 @@ export const BottomNavBar: React.FC = () => {
                           key={item.href}
                           href={item.href}
                           onClick={() => setMoreOpen(false)}
-                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-colors ${
+                          className={`flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl p-3 transition-colors touch-manipulation ${
                             isActive(item.href)
                               ? 'bg-indigo-50 dark:bg-indigo-900/30'
                               : 'hover:bg-zinc-50 dark:hover:bg-zinc-800'
@@ -218,7 +219,7 @@ export const BottomNavBar: React.FC = () => {
                             }`}
                           />
                           <span
-                            className={`text-[10px] font-medium text-center leading-tight ${
+                            className={`text-[11px] font-medium text-center leading-tight ${
                               isActive(item.href)
                                 ? 'text-indigo-600 dark:text-indigo-400'
                                 : 'text-zinc-500 dark:text-zinc-400'
@@ -242,7 +243,7 @@ export const BottomNavBar: React.FC = () => {
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    {t('logout') || 'Cerrar sesión'}
+                    {t('logout')}
                   </button>
                 </div>
               )}
@@ -269,8 +270,8 @@ export const BottomNavBar: React.FC = () => {
             {/* Botón central elevado */}
             <Link
               href={centerHref}
-              aria-label={activeWorkout ? 'Entrenamiento activo' : 'Entrenar'}
-              className="relative -mt-6 shrink-0 mx-2"
+              aria-label={activeWorkout ? t('activeWorkout') : t('train')}
+              className="relative -mt-6 mx-1 flex shrink-0 touch-manipulation flex-col items-center gap-1"
             >
               <motion.div
                 whileTap={{ scale: 0.9 }}
@@ -286,6 +287,9 @@ export const BottomNavBar: React.FC = () => {
               {activeWorkout && (
                 <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-blue-400 border-2 border-white dark:border-zinc-900 animate-pulse" />
               )}
+              <span className="text-[11px] font-semibold leading-none text-zinc-700 dark:text-zinc-300">
+                {activeWorkout ? t('activeWorkout') : t('train')}
+              </span>
             </Link>
 
             {/* Tab Dashboard */}
@@ -306,27 +310,27 @@ export const BottomNavBar: React.FC = () => {
               onClick={() => setMoreOpen((v) => !v)}
               aria-expanded={moreOpen}
               aria-haspopup="dialog"
-              aria-label="Más"
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 min-w-0"
+              aria-label={t('more')}
+              className="flex min-h-11 min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
             >
               <motion.div
                 whileTap={{ scale: 0.82 }}
                 className={`p-1.5 rounded-xl transition-colors ${
                   isMoreActive || moreOpen
-                    ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >
                 {moreOpen ? <X className="w-5 h-5" /> : <Grid3x3 className="w-5 h-5" />}
               </motion.div>
               <span
-                className={`text-[10px] font-medium leading-none ${
+                className={`text-[11px] font-medium leading-none ${
                   isMoreActive || moreOpen
-                    ? 'text-indigo-600 dark:text-indigo-400'
+                    ? 'text-blue-700 dark:text-blue-300'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >
-                Más
+                {t('more')}
               </span>
             </button>
           </div>

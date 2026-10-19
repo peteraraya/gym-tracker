@@ -348,7 +348,7 @@ export function FloatingAIAssistant() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed ${isInWorkout ? 'bottom-[120px]' : 'bottom-[176px]'} right-4 sm:right-6 z-40 p-4 bg-linear-to-br from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white rounded-full shadow-2xl shadow-blue-700/40 transition-all duration-300 hover:scale-110 group`}
+        className={`fixed ${isInWorkout ? 'bottom-[120px]' : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6'} right-4 lg:right-6 z-40 rounded-full bg-blue-600 p-3.5 text-white shadow-xl shadow-blue-950/20 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950 group`}
         aria-label="Abrir asistente IA"
       >
         <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
@@ -362,8 +362,8 @@ export function FloatingAIAssistant() {
     <div
       className={`fixed z-40 transition-all duration-300 ${
         isMinimized
-          ? `${isInWorkout ? 'bottom-[120px]' : 'bottom-[176px]'} right-4 sm:right-6 w-80`
-          : `${isInWorkout ? 'bottom-[120px]' : 'bottom-[176px]'} right-4 sm:right-6 w-96 h-[600px] max-h-[70vh] sm:max-h-[600px]`
+          ? `${isInWorkout ? 'bottom-[120px]' : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6'} right-4 w-[calc(100vw-2rem)] max-w-80 lg:right-6`
+          : `${isInWorkout ? 'bottom-[120px]' : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6'} right-4 h-[min(600px,70dvh)] w-[calc(100vw-2rem)] max-w-96 lg:right-6 lg:w-96`
       }`}
     >
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">

@@ -10,7 +10,7 @@ interface CardProps {
 export const Card: React.FC<CardProps> = ({ children, className = '', onClick, style }) => {
   return (
     <div
-      className={`bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 transition-all hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-950/50 hover:-translate-y-1 ${
+      className={`rounded-2xl border border-zinc-200 bg-white p-4 transition-colors transition-shadow hover:border-blue-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-blue-900 dark:hover:shadow-zinc-950/40 sm:p-5 ${
         onClick ? 'cursor-pointer' : ''
       } ${className}`}
       onClick={onClick}
@@ -41,4 +41,3 @@ export const CardContent: React.FC<{ children: React.ReactNode; className?: stri
 }) => {
   return <div className={`text-zinc-700 dark:text-zinc-300 ${className}`}>{children}</div>;
 };
-

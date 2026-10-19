@@ -51,6 +51,11 @@
     "aiAssistant": "AI Assistant",
     "settings": "Settings",
     "planning": "Planning",
+    "more": "More",
+    "train": "Train",
+    "activeWorkout": "In progress",
+    "moreSections": "More sections",
+    "close": "Close",
     "moreGroups": {
       "progress": "Progress",
       "discover": "Discover",
@@ -125,6 +130,8 @@
   "routines": {
     "title": "My Routines",
     "subtitle": "Manage your workout routines",
+    "plannerSummary": "Weekly planning",
+    "plannerDescription": "Review or adjust your training calendar",
     "loading": "Loading...",
     "newRoutine": "New Routine",
     "noRoutines": "No routines yet",

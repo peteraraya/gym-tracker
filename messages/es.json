@@ -51,6 +51,11 @@
     "aiAssistant": "Asistente IA",
     "settings": "Ajustes",
     "planning": "Planificación",
+    "more": "Más",
+    "train": "Entrenar",
+    "activeWorkout": "En curso",
+    "moreSections": "Más secciones",
+    "close": "Cerrar",
     "moreGroups": {
       "progress": "Progreso",
       "discover": "Descubrir",
@@ -588,6 +593,8 @@
   "routines": {
     "title": "Mis Rutinas",
     "subtitle": "Gestiona tus rutinas de entrenamiento",
+    "plannerSummary": "Planificación semanal",
+    "plannerDescription": "Consulta o ajusta tu calendario de entrenamiento",
     "loading": "Cargando rutinas...",
     "newRoutine": "Nueva Rutina",
     "noRoutines": "Aún no tienes rutinas",

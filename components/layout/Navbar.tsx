@@ -76,12 +76,12 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <ActiveWorkoutBanner />
-      <nav className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <nav className="sticky top-0 z-40 hidden border-b border-zinc-200 bg-white/90 shadow-sm backdrop-blur-lg dark:border-zinc-800 dark:bg-zinc-900/90 lg:block">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1 flex-1 min-w-0">
-              <div className="flex items-center space-x-1 flex-nowrap bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-1.5 min-w-0 overflow-x-auto">
+              <div className="flex min-w-0 items-center gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/50">
                 <NavLink
                   href="/"
                   icon={Home}
@@ -106,62 +106,32 @@ export const Navbar: React.FC = () => {
                   data-tour="exercises"
                 />
                 <NavLink
-                  href="/equipment"
-                  icon={Dumbbell}
-                  label={t("equipment") || "Equipamiento"}
-                  isActive={isActive("/equipment")}
-                  color="blue"
-                />
-                <NavLink
                   href="/planning"
                   icon={BarChart3}
                   label={t("planning")}
                   isActive={isActive("/planning")}
                   color="indigo"
                 />
-                <NavLink
-                  href="/recommended"
-                  icon={Target}
-                  label={t("recommended")}
-                  isActive={isActive("/recommended")}
-                  color="emerald"
-                  data-tour="recommended"
+                <DropdownNav
+                  label={t("more")}
+                  icon={Menu}
+                  parentActive={
+                    isActive("/equipment") ||
+                    isActive("/recommended") ||
+                    isActive("/glossary") ||
+                    isActive("/calculators") ||
+                    isActive("/settings") ||
+                    isActive("/profile")
+                  }
+                  items={[
+                    { href: "/equipment", label: t("equipment"), icon: Dumbbell },
+                    { href: "/recommended", label: t("recommended"), icon: Target, dataTour: "recommended" },
+                    { href: "/glossary", label: t("glossary"), icon: BookOpen, dataTour: "glossary" },
+                    { href: "/calculators", label: t("calculators"), icon: Calculator, dataTour: "calculators" },
+                    { href: "/settings", label: t("settings"), icon: Settings },
+                    ...(user ? [{ href: "/profile", label: t("profile"), icon: User, dataTour: "profile" }] : []),
+                  ]}
                 />
-                {/* <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" /> */}
-                <NavLink
-                  href="/glossary"
-                  icon={BookOpen}
-                  label={t("glossary")}
-                  isActive={isActive("/glossary")}
-                  color="indigo"
-                  data-tour="glossary"
-                />
-                <NavLink
-                  href="/calculators"
-                  icon={Calculator}
-                  label={t("calculators")}
-                  isActive={isActive("/calculators")}
-                  color="teal"
-                  data-tour="calculators"
-                />
-                <NavLink
-                  href="/settings"
-                  icon={Settings}
-                  label={t("settings")}
-                  isActive={isActive("/settings")}
-                  color="zinc"
-                />
-                {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
-                {user && (
-                  <NavLink
-                    href="/profile"
-                    icon={User}
-                    label={t("profile")}
-                    isActive={isActive("/profile")}
-                    color="blue"
-                    data-tour="profile"
-                  />
-                )}
               </div>
               {/* Dropdown fuera del contenedor scrollable para evitar recortes */}
               <div className="ml-2">
@@ -214,6 +184,7 @@ export const Navbar: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleSignOut}
+                  aria-label={t("logout")}
                   className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 ml-2"
                 >
                   <LogOut className="w-4 h-4" />
@@ -314,7 +285,7 @@ const NavLink: React.FC<NavLinkProps> = ({
     >
       <span className="flex items-center gap-2">
         <Icon className="w-4 h-4" />
-        <span className="hidden xl:inline">{label}</span>
+        <span>{label}</span>
       </span>
     </Link>
   );
@@ -367,7 +338,7 @@ const DropdownNav: React.FC<DropdownNavProps> = ({
         aria-expanded={open}
       >
         <Icon className="w-4 h-4" />
-        <span className="hidden xl:inline">{selectedLabel}</span>
+        <span>{selectedLabel}</span>
         <ChevronDown className="w-3 h-3 ml-1" />
       </button>
 
