@@ -3,178 +3,260 @@
 /* Configuración de dark mode por clase */
 @variant dark (&:where(.dark, .dark *));
 
-/* ────────────────────────────────────────────
-   PALETA VOLT — lima eléctrico + negro tinta
-   Identidad: deportiva, vibrante, sin gradientes
-   púrpura/pink asociados a estética de IA.
-   Escalas remapeadas sobre utilidades Tailwind.
-   ──────────────────────────────────────────── */
-@theme {
-  /* Neutros (grises neutrales; en dark caen al negro puro) */
-  --color-gray-50: #fafafa;
-  --color-gray-100: #f4f4f5;
-  --color-gray-200: #e4e4e7;
-  --color-gray-300: #d4d4d8;
-  --color-gray-400: #a1a1aa;
-  --color-gray-500: #71717a;
-  --color-gray-600: #52525b;
-  --color-gray-700: #3f3f46;
-  --color-gray-800: #1f1f23;
-  --color-gray-900: #141416;
-  --color-gray-950: #09090b;
-
-  /* Negro puro premium (modo oscuro) */
-  --color-zinc-50: #fafafa;
-  --color-zinc-100: #f4f4f5;
-  --color-zinc-200: #e4e4e7;
-  --color-zinc-300: #d4d4d8;
-  --color-zinc-400: #a2a2ab;
-  --color-zinc-500: #71717a;
-  --color-zinc-600: #52525b;
-  --color-zinc-700: #3f3f46;
-  --color-zinc-800: #1b1b1d;
-  --color-zinc-900: #101011;
-  --color-zinc-950: #08080a;
-
-  /* AZUL MODERNO — sobre base negro (acento de marca) */
-  --color-blue-50: #eef6ff;
-  --color-blue-100: #d9ebff;
-  --color-blue-200: #b3d7ff;
-  --color-blue-300: #85bfff;
-  --color-blue-400: #4da6ff;
-  --color-blue-500: #1e8fff;
-  --color-blue-600: #0a6dff;
-  --color-blue-700: #0a56cc;
-  --color-blue-800: #0d469c;
-  --color-blue-900: #103a78;
-  --color-blue-950: #0a1d3f;
-
-  /* Azul profundo (indigo moderno) */
-  --color-indigo-50: #f0f4ff;
-  --color-indigo-100: #dde7ff;
-  --color-indigo-200: #bfd0ff;
-  --color-indigo-300: #93aaff;
-  --color-indigo-400: #6d8bff;
-  --color-indigo-500: #4d6df5;
-  --color-indigo-600: #3453e3;
-  --color-indigo-700: #2a43b8;
-  --color-indigo-800: #253781;
-  --color-indigo-900: #1f2b57;
-  --color-indigo-950: #0f1530;
-
-  /* Azul eléctrico alto */
-  --color-violet-50: #f3f5ff;
-  --color-violet-100: #e6eaff;
-  --color-violet-200: #ccd6ff;
-  --color-violet-300: #a8b7ff;
-  --color-violet-400: #7f97ff;
-  --color-violet-500: #5b78f9;
-  --color-violet-600: #3c58e8;
-  --color-violet-700: #2f45c4;
-  --color-violet-800: #293795;
-  --color-violet-900: #242e6e;
-  --color-violet-950: #141a3a;
-
-  /* Azul cobalto */
-  --color-purple-50: #f4f6ff;
-  --color-purple-100: #e9eeff;
-  --color-purple-200: #d4e0ff;
-  --color-purple-300: #b4c8ff;
-  --color-purple-400: #8faaff;
-  --color-purple-500: #6d8bff;
-  --color-purple-600: #4a6cf8;
-  --color-purple-700: #3a55d6;
-  --color-purple-800: #2f44ac;
-  --color-purple-900: #2a3b88;
-  --color-purple-950: #141c38;
-
-  /* Neutros puros "bone" (para cuadros de distribución) */
-  --color-slate-50: #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
-  --color-slate-950: #020617;
-
-  /* Color firma — azul moderno */
-  --color-volt: #1e8fff;
-}
-
+/* Paletas semánticas: grafito frío para estructura y azul profundo para la marca. */
 :root {
-  /* Colores principales - negro + azul moderno */
-  --background: #fafafa;
-  --foreground: #0f172a;
+  color-scheme: light;
 
-  /* Acentos - azul eléctrico → cobalt */
-  --primary: #0a6dff;
-  --primary-dark: #0a56cc;
-  --primary-light: #85bfff;
-  --secondary: #1e8fff;
-  --accent: #4d6df5;
-
-  /* Estados */
-  --success: #10b981;
-  --warning: #ffb020;
-  --error: #ff4d5e;
-  --info: #00b9f2;
-
-  /* Anillo de foco legible sobre superfícies claras */
-  --focus-ring: #171717;
-
-  /* Superficies */
+  --background: #f3f6fa;
+  --foreground: #111827;
   --surface: #ffffff;
-  --surface-alt: #f4f4f5;
-  --surface-hover: #e4e4e7;
+  --surface-alt: #eaf0f7;
+  --surface-hover: #dce5f0;
+  --border: #748398;
+  --border-light: #d8e1ed;
 
-  /* Bordes */
-  --border: #e4e4e7;
-  --border-light: #f4f4f5;
+  --primary: #1e40af;
+  --primary-dark: #1e3a8a;
+  --primary-light: #172554;
+  --secondary: #2563eb;
+  --accent: #52677f;
 
-  /* Sombras - neutrales modernas */
-  --shadow-sm: 0 1px 2px 0 rgb(9 9 11 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(9 9 11 / 0.1), 0 1px 2px -1px rgb(9 9 11 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(9 9 11 / 0.1), 0 2px 4px -2px rgb(9 9 11 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(9 9 11 / 0.1), 0 4px 6px -4px rgb(9 9 11 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(9 9 11 / 0.1), 0 8px 10px -6px rgb(9 9 11 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(9 9 11 / 0.25);
+  --success: #246344;
+  --warning: #73500e;
+  --error: #983d36;
+  --info: #1e40af;
+  --focus-ring: #2563eb;
+
+  --palette-neutral-50: #f3f6fa;
+  --palette-neutral-100: #eaf0f7;
+  --palette-neutral-200: #d8e1ed;
+  --palette-neutral-300: #b8c6d8;
+  --palette-neutral-400: #8495aa;
+  --palette-neutral-500: #5d6d82;
+  --palette-neutral-600: #46566b;
+  --palette-neutral-700: #344256;
+  --palette-neutral-800: #232f40;
+  --palette-neutral-900: #151f2e;
+  --palette-neutral-950: #0b1220;
+
+  --palette-brand-50: #eff6ff;
+  --palette-brand-100: #dbeafe;
+  --palette-brand-200: #bfdbfe;
+  --palette-brand-300: #93c5fd;
+  --palette-brand-400: #60a5fa;
+  --palette-brand-500: #3b82f6;
+  --palette-brand-600: #2563eb;
+  --palette-brand-700: #1d4ed8;
+  --palette-brand-800: #1e40af;
+  --palette-brand-900: #1e3a8a;
+  --palette-brand-950: #172554;
+
+  --palette-secondary-50: #eff6ff;
+  --palette-secondary-100: #dbeafe;
+  --palette-secondary-200: #bfdbfe;
+  --palette-secondary-300: #93c5fd;
+  --palette-secondary-400: #60a5fa;
+  --palette-secondary-500: #3b82f6;
+  --palette-secondary-600: #2563eb;
+  --palette-secondary-700: #1d4ed8;
+  --palette-secondary-800: #1e40af;
+  --palette-secondary-900: #1e3a8a;
+  --palette-secondary-950: #172554;
+
+  --champagne: #52677f;
+  --champagne-soft: #a9bad0;
+
+  --shadow-sm: 0 1px 2px 0 rgb(17 24 39 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(17 24 39 / 0.09), 0 1px 2px -1px rgb(17 24 39 / 0.08);
+  --shadow-md: 0 4px 6px -1px rgb(17 24 39 / 0.09), 0 2px 4px -2px rgb(17 24 39 / 0.08);
+  --shadow-lg: 0 10px 15px -3px rgb(17 24 39 / 0.09), 0 4px 6px -4px rgb(17 24 39 / 0.08);
+  --shadow-xl: 0 20px 25px -5px rgb(17 24 39 / 0.09), 0 8px 10px -6px rgb(17 24 39 / 0.08);
+  --shadow-2xl: 0 25px 50px -12px rgb(17 24 39 / 0.2);
 }
 
 @theme inline {
+  --color-gray-50: var(--palette-neutral-50);
+  --color-gray-100: var(--palette-neutral-100);
+  --color-gray-200: var(--palette-neutral-200);
+  --color-gray-300: var(--palette-neutral-300);
+  --color-gray-400: var(--palette-neutral-400);
+  --color-gray-500: var(--palette-neutral-500);
+  --color-gray-600: var(--palette-neutral-600);
+  --color-gray-700: var(--palette-neutral-700);
+  --color-gray-800: var(--palette-neutral-800);
+  --color-gray-900: var(--palette-neutral-900);
+  --color-gray-950: var(--palette-neutral-950);
+  --color-zinc-50: var(--palette-neutral-50);
+  --color-zinc-100: var(--palette-neutral-100);
+  --color-zinc-200: var(--palette-neutral-200);
+  --color-zinc-300: var(--palette-neutral-300);
+  --color-zinc-400: var(--palette-neutral-400);
+  --color-zinc-500: var(--palette-neutral-500);
+  --color-zinc-600: var(--palette-neutral-600);
+  --color-zinc-700: var(--palette-neutral-700);
+  --color-zinc-800: var(--palette-neutral-800);
+  --color-zinc-900: var(--palette-neutral-900);
+  --color-zinc-950: var(--palette-neutral-950);
+  --color-slate-50: var(--palette-neutral-50);
+  --color-slate-100: var(--palette-neutral-100);
+  --color-slate-200: var(--palette-neutral-200);
+  --color-slate-300: var(--palette-neutral-300);
+  --color-slate-400: var(--palette-neutral-400);
+  --color-slate-500: var(--palette-neutral-500);
+  --color-slate-600: var(--palette-neutral-600);
+  --color-slate-700: var(--palette-neutral-700);
+  --color-slate-800: var(--palette-neutral-800);
+  --color-slate-900: var(--palette-neutral-900);
+  --color-slate-950: var(--palette-neutral-950);
+  --color-blue-50: var(--palette-brand-50);
+  --color-blue-100: var(--palette-brand-100);
+  --color-blue-200: var(--palette-brand-200);
+  --color-blue-300: var(--palette-brand-300);
+  --color-blue-400: var(--palette-brand-400);
+  --color-blue-500: var(--palette-brand-500);
+  --color-blue-600: var(--palette-brand-600);
+  --color-blue-700: var(--palette-brand-700);
+  --color-blue-800: var(--palette-brand-800);
+  --color-blue-900: var(--palette-brand-900);
+  --color-blue-950: var(--palette-brand-950);
+  --color-indigo-50: var(--palette-secondary-50);
+  --color-indigo-100: var(--palette-secondary-100);
+  --color-indigo-200: var(--palette-secondary-200);
+  --color-indigo-300: var(--palette-secondary-300);
+  --color-indigo-400: var(--palette-secondary-400);
+  --color-indigo-500: var(--palette-secondary-500);
+  --color-indigo-600: var(--palette-secondary-600);
+  --color-indigo-700: var(--palette-secondary-700);
+  --color-indigo-800: var(--palette-secondary-800);
+  --color-indigo-900: var(--palette-secondary-900);
+  --color-indigo-950: var(--palette-secondary-950);
+  --color-violet-50: var(--palette-secondary-50);
+  --color-violet-100: var(--palette-secondary-100);
+  --color-violet-200: var(--palette-secondary-200);
+  --color-violet-300: var(--palette-secondary-300);
+  --color-violet-400: var(--palette-secondary-400);
+  --color-violet-500: var(--palette-secondary-500);
+  --color-violet-600: var(--palette-secondary-600);
+  --color-violet-700: var(--palette-secondary-700);
+  --color-violet-800: var(--palette-secondary-800);
+  --color-violet-900: var(--palette-secondary-900);
+  --color-violet-950: var(--palette-secondary-950);
+  --color-purple-50: var(--palette-secondary-50);
+  --color-purple-100: var(--palette-secondary-100);
+  --color-purple-200: var(--palette-secondary-200);
+  --color-purple-300: var(--palette-secondary-300);
+  --color-purple-400: var(--palette-secondary-400);
+  --color-purple-500: var(--palette-secondary-500);
+  --color-purple-600: var(--palette-secondary-600);
+  --color-purple-700: var(--palette-secondary-700);
+  --color-purple-800: var(--palette-secondary-800);
+  --color-purple-900: var(--palette-secondary-900);
+  --color-purple-950: var(--palette-secondary-950);
+  --color-champagne: var(--champagne);
+  --color-champagne-soft: var(--champagne-soft);
+  --color-volt: var(--primary);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-/* Dark mode - controlado por clase .dark en el elemento raíz */
+/* Tema oscuro: negro grafito azulado, superficies profundas y texto frío de alto contraste. */
 .dark {
-  --background: #000000;
-  --foreground: #f0f4ff;
+  color-scheme: dark;
 
-  --primary: #4da6ff;
-  --primary-dark: #85bfff;
-  --primary-light: #0a6dff;
-  --secondary: #5b78f9;
-  --accent: #4da6ff;
+  --background: #080c12;
+  --foreground: #f3f6fb;
+  --surface: #101722;
+  --surface-alt: #182333;
+  --surface-hover: #223047;
+  --border: #63738a;
+  --border-light: #2d3b50;
 
-  --success: #34d88f;
-  --warning: #ffc010;
-  --error: #ff6a76;
-  --info: #4da6ff;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #1e40af;
+  --secondary: #3b82f6;
+  --accent: #a9bad0;
 
-  --focus-ring: #4da6ff;
+  --success: #a7dfbc;
+  --warning: #f1c978;
+  --error: #ffaca3;
+  --info: #93c5fd;
+  --focus-ring: #60a5fa;
 
-  --surface: #050505;
-  --surface-alt: #0d0d0d;
-  --surface-hover: rgba(255, 255, 255, 0.05);
+  --palette-neutral-50: #f3f6fb;
+  --palette-neutral-100: #e3eaf4;
+  --palette-neutral-200: #c4d0e0;
+  --palette-neutral-300: #a6b5c9;
+  --palette-neutral-400: #8697af;
+  --palette-neutral-500: #687b94;
+  --palette-neutral-600: #52647d;
+  --palette-neutral-700: #3b4b62;
+  --palette-neutral-800: #28364a;
+  --palette-neutral-900: #1b2636;
+  --palette-neutral-950: #111827;
 
-  --border: rgba(255, 255, 255, 0.12);
-  --border-light: rgba(255, 255, 255, 0.06);
+  --palette-brand-50: #eff6ff;
+  --palette-brand-100: #dbeafe;
+  --palette-brand-200: #bfdbfe;
+  --palette-brand-300: #93c5fd;
+  --palette-brand-400: #60a5fa;
+  --palette-brand-500: #3b82f6;
+  --palette-brand-600: #2563eb;
+  --palette-brand-700: #1d4ed8;
+  --palette-brand-800: #1e40af;
+  --palette-brand-900: #1e3a8a;
+  --palette-brand-950: #172554;
+
+  --palette-secondary-50: #eff6ff;
+  --palette-secondary-100: #dbeafe;
+  --palette-secondary-200: #bfdbfe;
+  --palette-secondary-300: #93c5fd;
+  --palette-secondary-400: #60a5fa;
+  --palette-secondary-500: #3b82f6;
+  --palette-secondary-600: #2563eb;
+  --palette-secondary-700: #1d4ed8;
+  --palette-secondary-800: #1e40af;
+  --palette-secondary-900: #1e3a8a;
+  --palette-secondary-950: #172554;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.28), 0 1px 2px -1px rgb(0 0 0 / 0.24);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.28), 0 2px 4px -2px rgb(0 0 0 / 0.24);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.26);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.32), 0 8px 10px -6px rgb(0 0 0 / 0.28);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.45);
+}
+
+/* Las escalas medias se reservan para rellenos; en texto oscuro usan el sage claro. */
+.dark :is(
+  .text-blue-500,
+  .text-blue-600,
+  .text-blue-700,
+  [class~="dark:text-blue-500"],
+  [class~="dark:text-blue-600"],
+  [class~="dark:text-blue-700"],
+  .text-indigo-500,
+  .text-indigo-600,
+  .text-indigo-700,
+  [class~="dark:text-indigo-500"],
+  [class~="dark:text-indigo-600"],
+  [class~="dark:text-indigo-700"],
+  .text-violet-500,
+  .text-violet-600,
+  .text-violet-700,
+  [class~="dark:text-violet-500"],
+  [class~="dark:text-violet-600"],
+  [class~="dark:text-violet-700"],
+  .text-purple-500,
+  .text-purple-600,
+  .text-purple-700,
+  [class~="dark:text-purple-500"],
+  [class~="dark:text-purple-600"],
+  [class~="dark:text-purple-700"]
+) {
+  color: var(--palette-brand-300);
 }
 
 body {
@@ -230,7 +312,7 @@ body.modal-open {
   background: var(--primary);
 }
 
-/* Utilidades de gradiente - VOLT: lima → cian */
+/* Utilidades de gradiente de marca */
 .gradient-primary {
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
 }
@@ -244,17 +326,17 @@ body.modal-open {
 
 /* Glassmorphism neutro */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(23, 23, 23, 0.08);
+  border: 1px solid color-mix(in srgb, var(--border-light) 72%, transparent);
 }
 
 .glass-dark {
-  background: rgba(10, 10, 10, 0.75);
+  background: color-mix(in srgb, var(--background) 75%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
 }
 
 /* Efectos hover mejorados */
@@ -286,7 +368,7 @@ body.modal-open {
 
 .shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(to right, #f4f4f5 0%, #e4e4e7 20%, #f4f4f5 40%, #f4f4f5 100%);
+  background: linear-gradient(to right, var(--surface-alt) 0%, var(--surface-hover) 20%, var(--surface-alt) 40%, var(--surface-alt) 100%);
   background-size: 1000px 100%;
 }
 
@@ -385,13 +467,13 @@ body.modal-open {
 /* Halo pulse for onboarding spotlight */
 @keyframes haloPulse {
   0% {
-    box-shadow: 0 6px 18px rgba(10, 109, 255, 0.12), 0 0 36px rgba(10, 109, 255, 0.04);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 12%, transparent), 0 0 36px color-mix(in srgb, var(--primary) 4%, transparent);
   }
   50% {
-    box-shadow: 0 10px 30px rgba(10, 109, 255, 0.22), 0 0 56px rgba(77, 166, 255, 0.10);
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--primary) 22%, transparent), 0 0 56px color-mix(in srgb, var(--primary) 10%, transparent);
   }
   100% {
-    box-shadow: 0 6px 18px rgba(10, 109, 255, 0.12), 0 0 36px rgba(10, 109, 255, 0.04);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 12%, transparent), 0 0 36px color-mix(in srgb, var(--primary) 4%, transparent);
   }
 }
 
@@ -399,10 +481,10 @@ body.modal-open {
   animation: haloPulse 3s ease-in-out infinite;
 }
 
-/* Dark mode variant: softly blue halo */
+/* Dark mode halo inherits the forest primary color. */
 .dark .halo-pulse {
-  --halo-1: rgba(77, 166, 255, 0.14);
-  --halo-2: rgba(77, 166, 255, 0.05);
+  --halo-1: color-mix(in srgb, var(--primary) 14%, transparent);
+  --halo-2: color-mix(in srgb, var(--primary) 5%, transparent);
   animation: haloPulse 3s ease-in-out infinite;
 }
 
