@@ -109,15 +109,19 @@ export const BottomNavBar: React.FC = () => {
     ? `/workout/${activeWorkout.routineId}`
     : '/routines';
 
-  // Tabs principales (4 + botón central)
+  // Rutinas y entrenamiento son los accesos primarios; el resto vive en "Más".
   const mainTabs = [
-    { href: '/', icon: Home, label: t('home') },
     { href: '/routines', icon: ClipboardList, label: t('routines') },
-    { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
   ];
 
-  // Items del panel "Más", agrupados por intención en vez de una grilla plana
   const moreGroups = [
+    {
+      title: t('moreGroups.overview'),
+      items: [
+        { href: '/', icon: Home, label: t('home'), color: 'text-blue-500' },
+        { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard'), color: 'text-indigo-500' },
+      ],
+    },
     {
       title: t('moreGroups.progress'),
       items: [
@@ -138,6 +142,7 @@ export const BottomNavBar: React.FC = () => {
     {
       title: t('moreGroups.tools'),
       items: [
+        { href: '/equipment',   icon: Dumbbell,   label: t('equipment'),   color: 'text-blue-500' },
         { href: '/calculators', icon: Calculator, label: t('calculators'), color: 'text-teal-500' },
         { href: '/glossary',    icon: BookOpen,    label: t('glossary'),    color: 'text-sky-500' },
       ],
@@ -193,13 +198,13 @@ export const BottomNavBar: React.FC = () => {
               </div>
 
               {/* Secciones agrupadas por intención */}
-              <div className="max-h-[60vh] overflow-y-auto p-3 space-y-4">
+              <div className="max-h-[70vh] overflow-y-auto p-3 space-y-4">
                 {moreGroups.map((group) => (
                   <div key={group.title}>
                     <h3 className="px-1 mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
                       {group.title}
                     </h3>
-                    <div className="grid grid-cols-4 gap-1">
+                    <div className="grid grid-cols-2 gap-1 min-[380px]:grid-cols-4">
                       {group.items.map((item) => (
                         <Link
                           key={item.href}

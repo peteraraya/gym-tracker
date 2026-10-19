@@ -57,6 +57,7 @@
     "moreSections": "More sections",
     "close": "Close",
     "moreGroups": {
+      "overview": "Overview",
       "progress": "Progress",
       "discover": "Discover",
       "tools": "Tools",
