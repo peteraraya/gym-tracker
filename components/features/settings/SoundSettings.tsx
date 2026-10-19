@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useSoundSettings, SoundType, AVAILABLE_SOUNDS } from '@/lib/audio/soundSystem';
 import { useRestNotifications } from '@/lib/notifications/pwaNotifications';
+import { useTranslations } from '@/context/LocaleContext';
 import {
   Volume2,
   VolumeX,
@@ -23,6 +24,7 @@ interface SoundSettingsProps {
 export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose?: () => void }> = ({ showCloseButton = true, onClose }) => {
   const soundSettings = useSoundSettings();
   const notifications = useRestNotifications();
+  const t = useTranslations('notifications');
   
   const [currentSound, setCurrentSound] = useState<SoundType>(() => 'bell');
   const [volume, setVolume] = useState<number>(1);
@@ -71,17 +73,8 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
   };
 
   const handleRequestNotificationPermission = async () => {
-    const granted = await notifications.requestPermission();
+    await notifications.requestPermission();
     setNotificationPermission(notifications.getPermissionState());
-    
-    if (granted) {
-      // Mostrar notificación de prueba
-      await notifications.showRestComplete({
-        totalTime: 90,
-        nextExercise: 'Press de banca',
-        routineName: 'Rutina de prueba'
-      });
-    }
   };
 
   return (
@@ -90,15 +83,15 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Volume2 className="w-5 h-5" />
-            Sonidos de Descanso
+            {t('soundsTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium">Activar sonidos</h4>
+              <h4 className="font-medium">{t('enableSounds')}</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Reproducir sonido cuando termine el descanso
+                {t('soundDescription')}
               </p>
             </div>
             <Button
@@ -107,16 +100,16 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
               className="flex items-center gap-2"
             >
               {isEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              {isEnabled ? 'Activado' : 'Desactivado'}
+              {isEnabled ? t('enabled') : t('disabled')}
             </Button>
           </div>
 
           {isEnabled && (
             <>
               <div>
-                <h4 className="font-medium mb-3">Tipo de sonido</h4>
+                <h4 className="font-medium mb-3">{t('soundType')}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(AVAILABLE_SOUNDS).map(([key, config]) => (
+                  {Object.entries(AVAILABLE_SOUNDS).map(([key]) => (
                     <div
                       key={key}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -130,10 +123,10 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
                         <div>
                           <div className="font-medium flex items-center gap-2">
                             {currentSound === key && <Check className="w-4 h-4 text-blue-500" />}
-                            {config.name}
+                            {t(`soundNames.${key}`)}
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {config.description}
+                            {t(`soundDescriptions.${key}`)}
                           </div>
                         </div>
                         <Button
@@ -156,7 +149,7 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Volumen: {Math.round(volume * 100)}%</h4>
+                <h4 className="font-medium mb-3">{t('volume').replace('{value}', String(Math.round(volume * 100)))}</h4>
                 <div className="flex items-center gap-4">
                   <VolumeX className="w-4 h-4 text-gray-400" />
                   <input
@@ -164,6 +157,7 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
                     min="0"
                     max="1"
                     step="0.1"
+                    aria-label={t('volumeControl')}
                     value={volume}
                     onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
                     className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
@@ -179,7 +173,7 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
                 className="w-full flex items-center justify-center gap-2"
               >
                 <Play className="w-4 h-4" />
-                {isTestingSound ? 'Reproduciendo...' : 'Probar Sonido'}
+                {isTestingSound ? t('playing') : t('testSound')}
               </Button>
             </>
           )}
@@ -190,17 +184,17 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="w-5 h-5" />
-            Notificaciones PWA
+            {t('pwaTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium">Estado de permisos</h4>
+              <h4 className="font-medium">{t('permissionStatus')}</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {notificationPermission.granted && 'Notificaciones activadas ✅'}
-                {notificationPermission.denied && 'Notificaciones bloqueadas ❌'}
-                {notificationPermission.prompt && 'Permisos no solicitados'}
+                {notificationPermission.granted && t('permissionGranted')}
+                {notificationPermission.denied && t('permissionDenied')}
+                {notificationPermission.prompt && t('permissionPrompt')}
               </p>
             </div>
             {!notificationPermission.granted && (
@@ -211,7 +205,7 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
                 className="flex items-center gap-2"
               >
                 <Bell className="w-4 h-4" />
-                {notificationPermission.denied ? 'Bloqueado' : 'Activar'}
+                {notificationPermission.denied ? t('blocked') : t('enable')}
               </Button>
             )}
           </div>
@@ -221,13 +215,12 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
               <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div className="text-sm">
                 <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-1">
-                  Notificaciones Mejoradas
+                  {t('restNoticeTitle')}
                 </h5>
                 <ul className="text-blue-700 dark:text-blue-300 space-y-1">
-                  <li>• Tiempo de descanso visible en la notificación</li>
-                  <li>• Progreso del descanso en tiempo real</li>
-                  <li>• Botones para saltar o añadir tiempo</li>
-                  <li>• Funciona incluso con la app cerrada</li>
+                  <li>• {t('restNotice')}</li>
+                  <li>• {t('permissionRequired')}</li>
+                  <li>• {t('backgroundAvailability')}</li>
                 </ul>
               </div>
             </div>
@@ -239,11 +232,10 @@ export const SoundSettingsContent: React.FC<{ showCloseButton?: boolean; onClose
                 <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
                 <div className="text-sm">
                   <h5 className="font-medium text-orange-800 dark:text-orange-200 mb-1">
-                    Notificaciones Bloqueadas
+                    {t('blockedTitle')}
                   </h5>
                   <p className="text-orange-700 dark:text-orange-300">
-                    Para activar las notificaciones, ve a la configuración de tu navegador 
-                    y permite las notificaciones para este sitio.
+                    {t('blockedDescription')}
                   </p>
                 </div>
               </div>

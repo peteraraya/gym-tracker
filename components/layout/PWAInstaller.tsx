@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Download, X } from '@/components/icons/lucide';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -10,8 +11,11 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PWAInstaller() {
+  const t = useTranslations('pwa');
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [installationError, setInstallationError] = useState(false);
+  const promptTimeoutRef = useRef<number | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -28,8 +32,13 @@ export function PWAInstaller() {
       setDeferredPrompt(e as BeforeInstallPromptEvent);
 
       // Mostrar el prompt después de un delay
-      setTimeout(() => {
-        const dismissed = localStorage.getItem('pwa-install-dismissed');
+      promptTimeoutRef.current = window.setTimeout(() => {
+        let dismissed = false;
+        try {
+          dismissed = localStorage.getItem('pwa-install-dismissed') === 'true';
+        } catch (error) {
+          console.warn('[PWA] Could not read install prompt preference:', error);
+        }
         if (!dismissed) {
           setShowInstallPrompt(true);
         }
@@ -47,6 +56,9 @@ export function PWAInstaller() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      if (promptTimeoutRef.current !== null) {
+        window.clearTimeout(promptTimeoutRef.current);
+      }
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
@@ -55,20 +67,25 @@ export function PWAInstaller() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      console.log('PWA installed');
+    try {
+      await deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+      setInstallationError(false);
+    } catch (error) {
+      console.error('[PWA] Installation prompt failed:', error);
+      setInstallationError(true);
     }
-
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
   };
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    localStorage.setItem('pwa-install-dismissed', 'true');
+    try {
+      localStorage.setItem('pwa-install-dismissed', 'true');
+    } catch (error) {
+      console.warn('[PWA] Could not save install prompt preference:', error);
+    }
   };
 
   if (isInstalled || !showInstallPrompt) {
@@ -81,7 +98,7 @@ export function PWAInstaller() {
         <button
           onClick={handleDismiss}
           className="absolute top-3 right-3 p-1 hover:bg-white/20 rounded-lg transition-colors"
-          aria-label="Cerrar"
+          aria-label={t('close')}
         >
           <X className="w-5 h-5" />
         </button>
@@ -92,10 +109,10 @@ export function PWAInstaller() {
           </div>
           <div>
             <h3 className="font-bold text-lg mb-1">
-              Instalar Gym Tracker
+              {t('installTitle')}
             </h3>
             <p className="text-sm text-white/90">
-              Instala la app en tu dispositivo para acceso rápido y funciones offline
+              {t('installDescription')}
             </p>
           </div>
         </div>
@@ -103,17 +120,19 @@ export function PWAInstaller() {
         <div className="space-y-2 mb-4 text-sm">
           <div className="flex items-center gap-2">
             <span>✓</span>
-            <span>Acceso instantáneo desde tu pantalla de inicio</span>
+            <span>{t('homeBenefit')}</span>
           </div>
           <div className="flex items-center gap-2">
             <span>✓</span>
-            <span>Funciona sin conexión a internet</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span>✓</span>
-            <span>Notificaciones de recordatorios</span>
+            <span>{t('offlineBenefit')}</span>
           </div>
         </div>
+
+        {installationError && (
+          <p role="alert" className="mb-3 rounded-lg bg-red-950/50 p-2 text-sm text-red-100">
+            {t('installError')}
+          </p>
+        )}
 
         <div className="flex gap-2">
           <Button
@@ -121,14 +140,14 @@ export function PWAInstaller() {
             className="flex-1"
             variant="primary"
           >
-            Instalar Ahora
+            {t('install')}
           </Button>
           <Button
             onClick={handleDismiss}
             variant="ghost"
             className="text-white hover:bg-white/20"
           >
-            Más Tarde
+            {t('later')}
           </Button>
         </div>
       </div>

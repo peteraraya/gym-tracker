@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "@/context/LocaleContext";
+import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { useGym } from "@/context/GymContext";
 import { useWorkout } from "@/context/WorkoutContext";
+import { useToast } from "@/context/NotificationContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import {
   calculateStreak,
@@ -37,19 +38,18 @@ type DayKey =
   | "sunday" | "monday" | "tuesday" | "wednesday"
   | "thursday" | "friday" | "saturday";
 
-const DAY_MAP: DayKey[] = [
-  "sunday", "monday", "tuesday", "wednesday",
-  "thursday", "friday", "saturday",
-];
-
-const DAY_LABELS: Record<DayKey, string> = {
-  sunday: "Domingo", monday: "Lunes", tuesday: "Martes",
-  wednesday: "Miércoles", thursday: "Jueves",
-  friday: "Viernes", saturday: "Sábado",
-};
-
 function getTodayKey(): DayKey {
   return getDayKey(new Date());
+}
+
+function countLabel(
+  t: (key: string) => string,
+  locale: string,
+  key: string,
+  count: number,
+) {
+  const plural = new Intl.PluralRules(locale).select(count);
+  return `${count} ${t(`${key}.${plural}`)}`;
 }
 
 function getThisWeekVolume(sessions: any[]): number {
@@ -90,8 +90,11 @@ const AnimatedFlame: React.FC<{ size?: number }> = ({ size = 24 }) => (
 );
 
 // ——— Card descanso ———
-const RestDayCard: React.FC<{ dayLabel: string; showSetup?: boolean }> = ({ dayLabel, showSetup = false }) => (
-  <motion.div
+const RestDayCard: React.FC<{ dayKey: DayKey; showSetup?: boolean }> = ({ dayKey, showSetup = false }) => {
+  const t = useTranslations("home");
+  const dayLabel = t(`days.${dayKey}`);
+
+  return <motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
     className="rounded-3xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 p-5"
@@ -102,29 +105,29 @@ const RestDayCard: React.FC<{ dayLabel: string; showSetup?: boolean }> = ({ dayL
         <Moon className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
       </div>
       <div>
-        <h2 className="text-zinc-800 dark:text-zinc-100 font-bold text-lg leading-tight">Día de descanso</h2>
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm">Aprovecha para recuperarte</p>
+        <h2 className="text-zinc-800 dark:text-zinc-100 font-bold text-lg leading-tight">{t("restDay.title")}</h2>
+        <p className="text-zinc-500 dark:text-zinc-400 text-sm">{t("restDay.description")}</p>
       </div>
     </div>
     
     <div className="flex flex-col gap-2">
       <Link href="/exercises" className="flex items-center justify-center gap-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-indigo-300 dark:hover:border-indigo-700 text-zinc-700 dark:text-zinc-300 text-sm font-bold px-5 py-3 rounded-xl shadow-sm transition-colors w-full">
         <Flame className="w-4 h-4 text-orange-500" />
-        Sugerencia: Sesión de Movilidad
+        {t("restDay.mobility")}
       </Link>
       
       {showSetup ? (
         <Link href="/planning" className="inline-flex items-center justify-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-xs font-medium hover:text-indigo-600 dark:hover:text-indigo-400 mt-1 transition-colors">
-          Configurar agenda semanal <ChevronRight className="w-3.5 h-3.5" />
+          {t("restDay.configureSchedule")} <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       ) : (
         <Link href="/routines" className="inline-flex items-center justify-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-xs font-medium hover:text-indigo-600 dark:hover:text-indigo-400 mt-1 transition-colors">
-          Forzar entrenamiento hoy <ChevronRight className="w-3.5 h-3.5" />
+          {t("restDay.trainToday")} <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       )}
     </div>
-  </motion.div>
-);
+  </motion.div>;
+};
 
 // ——— Card entrenamiento de hoy ———
 const TodayWorkoutCard: React.FC<{
@@ -136,6 +139,8 @@ const TodayWorkoutCard: React.FC<{
   loading: boolean;
 }> = ({ todayKey, todayRoutineIds, routines, activeWorkout, onStart, loading }) => {
   const router = useRouter();
+  const t = useTranslations("home");
+  const { locale } = useLocale();
 
   if (loading) return <div className="rounded-3xl bg-zinc-100 dark:bg-zinc-800/60 h-40 animate-pulse" />;
 
@@ -149,12 +154,12 @@ const TodayWorkoutCard: React.FC<{
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/40" />
         </div>
         <div className="relative">
-          <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">🔥 Entrenamiento activo</p>
-          <h2 className="text-white font-bold text-xl mb-3">{active?.name || "Entrenamiento"}</h2>
+          <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">🔥 {t("activeWorkout")}</p>
+          <h2 className="text-white font-bold text-xl mb-3">{active?.name || t("workoutFallback")}</h2>
           <button onClick={() => router.push(`/workout/${activeWorkout.routineId}`)}
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
           >
-            <Activity className="w-4 h-4" /> Continuar entrenamiento <ArrowRight className="w-4 h-4" />
+            <Activity className="w-4 h-4" /> {t("continueWorkout")} <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </motion.div>
@@ -163,7 +168,7 @@ const TodayWorkoutCard: React.FC<{
 
   if (todayRoutineIds.length > 0) {
     const planned = todayRoutineIds.map((id) => routines.find((r: any) => r.id === id)).filter(Boolean);
-    if (planned.length === 0) return <RestDayCard dayLabel={DAY_LABELS[todayKey]} />;
+    if (planned.length === 0) return <RestDayCard dayKey={todayKey} />;
     const first = planned[0] as any;
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -175,40 +180,53 @@ const TodayWorkoutCard: React.FC<{
         </div>
         <div className="relative">
           <p className="text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-1">
-            📅 Tu entrenamiento de hoy · {DAY_LABELS[todayKey]}
+            📅 {t("plannedWorkout")} · {t(`days.${todayKey}`)}
           </p>
           <h2 className="text-white font-bold text-2xl truncate mb-1">{first.name}</h2>
           <p className="text-indigo-100 text-sm mb-6">
-            {first.exercises?.length || 0} ejercicios ·{" "}
-            {(first.exercises || []).reduce((s: number, ex: any) => s + (ex.sets?.length || 0), 0)} series
+            {countLabel(t, locale, "exercisesCount", first.exercises?.length || 0)} ·{" "}
+            {countLabel(t, locale, "setsCount", (first.exercises || []).reduce((s: number, ex: any) => s + (ex.sets?.length || 0), 0))}
           </p>
           <button onClick={() => onStart(first.id)}
             className="w-full flex items-center justify-center gap-3 bg-white text-indigo-700 text-base font-bold py-4 rounded-2xl shadow-xl hover:bg-indigo-50 transform hover:scale-[1.02] active:scale-95 transition-all"
           >
-            <Play className="w-5 h-5 fill-indigo-600" /> Iniciar Entrenamiento
+            <Play className="w-5 h-5 fill-indigo-600" /> {t("startWorkout")}
           </button>
           {planned.length > 1 && (
-            <p className="text-indigo-300 text-xs mt-2">+{planned.length - 1} rutina{planned.length > 2 ? "s" : ""} más</p>
+            <p className="text-indigo-300 text-xs mt-2">+{countLabel(t, locale, "moreRoutines", planned.length - 1)}</p>
           )}
         </div>
       </motion.div>
     );
   }
 
-  return <RestDayCard dayLabel={DAY_LABELS[todayKey]} showSetup={routines.length > 0} />;
+  return <RestDayCard dayKey={todayKey} showSetup={routines.length > 0} />;
 };
 
 // ——— Página ———
 export default function Home() {
   const { routines, sessions, loading } = useGym();
   const { activeWorkout, startWorkout } = useWorkout();
+  const { error: showError } = useToast();
   const router = useRouter();
   const t = useTranslations("home");
+  const { locale } = useLocale();
 
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null);
+  const [weeklyPlanError, setWeeklyPlanError] = useState(false);
   const todayKey = getTodayKey();
 
-  useEffect(() => { getWeeklyPlan().then(setWeeklyPlan).catch(() => {}); }, []);
+  const loadWeeklyPlan = useCallback(async () => {
+    try {
+      setWeeklyPlan(await getWeeklyPlan());
+      setWeeklyPlanError(false);
+    } catch (error) {
+      console.error("Error loading weekly plan:", error);
+      setWeeklyPlanError(true);
+    }
+  }, []);
+
+  useEffect(() => { void loadWeeklyPlan(); }, [loadWeeklyPlan]);
 
   const todayRoutineIds = useMemo<string[]>(() => weeklyPlan?.[todayKey]?.routines ?? [], [weeklyPlan, todayKey]);
   const streakCount = useMemo(() => calculateStreak(sessions), [sessions]);
@@ -218,16 +236,29 @@ export default function Home() {
   const monthSessions = useMemo(() => { const n = new Date(); return filterSessionsByMonth(sessions, n.getMonth(), n.getFullYear()).length; }, [sessions]);
   const recentSessions = useMemo(() => sessions.slice(0, 3), [sessions]);
 
-  const handleStart = useCallback((routineId: string) => {
-    if (activeWorkout?.routineId === routineId) { router.push(`/workout/${routineId}`); return; }
-    const routine = routines.find((r) => r.id === routineId);
-    if (routine) { startWorkout(routine); router.push(`/workout/${routineId}`); }
-  }, [activeWorkout, routines, startWorkout, router]);
+  const handleStart = useCallback(async (routineId: string) => {
+    try {
+      if (activeWorkout?.routineId === routineId) {
+        router.push(`/workout/${routineId}`);
+        return;
+      }
+      const routine = routines.find((r) => r.id === routineId);
+      if (!routine) {
+        showError(t("startError"));
+        return;
+      }
+      await startWorkout(routine);
+      router.push(`/workout/${routineId}`);
+    } catch (error) {
+      console.error("Error starting workout from home:", error);
+      showError(t("startError"));
+    }
+  }, [activeWorkout, routines, startWorkout, router, showError, t]);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
-    return h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
-  }, []);
+    return h < 12 ? t("greeting.morning") : h < 19 ? t("greeting.afternoon") : t("greeting.evening");
+  }, [t]);
 
   return (
     <ProtectedRoute>
@@ -240,9 +271,9 @@ export default function Home() {
           >
             <div>
               <p className="text-zinc-500 dark:text-zinc-400 text-sm">{greeting} 👋</p>
-              <h1 className="text-zinc-900 dark:text-zinc-50 font-bold text-2xl leading-tight">Hoy</h1>
+              <h1 className="text-zinc-900 dark:text-zinc-50 font-bold text-2xl leading-tight">{t("today")}</h1>
               <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-0.5">
-                {new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })}
+                {new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(new Date())}
               </p>
             </div>
             {streakCount > 0 && (
@@ -252,11 +283,20 @@ export default function Home() {
                 >
                   <AnimatedFlame size={22} />
                   <span className="text-orange-600 dark:text-orange-400 font-black text-xl leading-none">{streakCount}</span>
-                  <span className="text-orange-400/70 dark:text-orange-400/60 text-[10px] font-medium">días</span>
+                  <span className="text-orange-400/70 dark:text-orange-400/60 text-[10px] font-medium">{t(`streakDays.${new Intl.PluralRules(locale).select(streakCount)}`)}</span>
                 </motion.div>
               </Link>
             )}
           </motion.div>
+
+          {weeklyPlanError && (
+            <div role="alert" className="lg:col-span-12 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+              <span>{t("planLoadError")}</span>
+              <button type="button" onClick={() => void loadWeeklyPlan()} className="shrink-0 font-semibold underline underline-offset-2">
+                {t("retry")}
+              </button>
+            </div>
+          )}
 
           {/* Card principal */}
           <section className="lg:col-span-7">
@@ -296,21 +336,21 @@ export default function Home() {
                     <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">
                       {thisWeekVol >= 1000 ? `${(thisWeekVol / 1000).toFixed(1)}t` : `${thisWeekVol}kg`}
                     </p>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Vol. semana</p>
+                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{t("volumeThisWeek")}</p>
                   </div>
                 </Link>
                 <Link href="/sessions">
                   <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
                     <Calendar className="w-4 h-4 text-blue-500 mb-1" />
                     <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{monthSessions}</p>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">Mes actual</p>
+                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{t("currentMonth")}</p>
                   </div>
                 </Link>
                 <Link href="/achievements">
                   <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
                     <Trophy className="w-4 h-4 text-amber-500 mb-1" />
                     <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{streakCount > 0 ? streakCount : sessions.length}</p>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{streakCount > 0 ? "Racha actual" : "Sesiones"}</p>
+                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{streakCount > 0 ? t("currentStreak") : t("sessions")}</p>
                   </div>
                 </Link>
               </>
@@ -334,8 +374,8 @@ export default function Home() {
                       <ClipboardList className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Rutinas</p>
-                      <p className="text-zinc-400 text-xs">{routines.length} creadas</p>
+                      <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">{t("routines")}</p>
+                      <p className="text-zinc-400 text-xs">{t("routinesCount").replace("{count}", String(routines.length))}</p>
                     </div>
                   </div>
                 </Link>
@@ -345,8 +385,8 @@ export default function Home() {
                       <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">Dashboard</p>
-                      <p className="text-zinc-400 text-xs">{sessions.length} sesiones</p>
+                      <p className="text-zinc-800 dark:text-zinc-200 font-semibold text-sm">{t("dashboard")}</p>
+                      <p className="text-zinc-400 text-xs">{t("sessionsCount").replace("{count}", String(sessions.length))}</p>
                     </div>
                   </div>
                 </Link>
@@ -355,12 +395,12 @@ export default function Home() {
           </motion.div>
 
           {/* Inicio rápido: cuando no hay plan semanal pero sí rutinas */}
-          {!loading && weeklyPlan === null && routines.length > 0 && todayRoutineIds.length === 0 && (
+          {!loading && !weeklyPlanError && weeklyPlan === null && routines.length > 0 && todayRoutineIds.length === 0 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">Inicio rápido</h2>
+                <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">{t("quickStart")}</h2>
                 <Link href="/planning" className="text-indigo-600 dark:text-indigo-400 text-xs font-medium flex items-center gap-0.5 hover:underline">
-                  Planificar <ChevronRight className="w-3.5 h-3.5" />
+                  {t("plan")} <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
               <div className="space-y-2">
@@ -373,7 +413,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{r.name}</p>
-                      <p className="text-zinc-400 text-xs">{r.exercises?.length ?? 0} ejercicios</p>
+                      <p className="text-zinc-400 text-xs">{countLabel(t, locale, "exercisesCount", r.exercises?.length ?? 0)}</p>
                     </div>
                     <ArrowRight className="w-4 h-4 text-zinc-400 shrink-0" />
                   </button>
@@ -387,9 +427,9 @@ export default function Home() {
             {recentSessions.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">Recientes</h2>
+                  <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">{t("recent")}</h2>
                   <Link href="/sessions" className="text-indigo-600 dark:text-indigo-400 text-xs font-medium flex items-center gap-0.5 hover:underline">
-                    Ver todo <ChevronRight className="w-3.5 h-3.5" />
+                    {t("viewAll")} <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
                 <div className="space-y-2">
@@ -408,9 +448,9 @@ export default function Home() {
                           <Dumbbell className="w-4 h-4 text-zinc-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{session.routineName || "Entrenamiento"}</p>
+                          <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{session.routineName || t("workoutFallback")}</p>
                           <p className="text-zinc-400 text-xs">
-                            {session.date ? new Date(session.date).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }) : ""}
+                            {session.date ? new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" }).format(new Date(session.date)) : ""}
                             {exCount > 0 && <span className="ml-1.5">· {exCount} ejerc.</span>}
                           </p>
                         </div>

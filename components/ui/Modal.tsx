@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 
 interface ModalProps {
 	isOpen: boolean;
@@ -27,21 +27,57 @@ export const Modal: React.FC<ModalProps> = ({
 	closeOnEscape = true,
 	backdropClassName,
 }) => {
+	const contentRef = useRef<HTMLDivElement>(null);
+	const onCloseRef = useRef(onClose);
+	const titleId = useId();
+
 	useEffect(() => {
-		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === 'Escape' && closeOnEscape) onClose();
+		onCloseRef.current = onClose;
+	}, [onClose]);
+
+	useEffect(() => {
+		if (!isOpen) return;
+		const previousFocus = document.activeElement instanceof HTMLElement
+			? document.activeElement
+			: null;
+		const previousOverflow = document.body.style.overflow;
+		const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+		const focusableElements = contentRef.current?.querySelectorAll<HTMLElement>(focusableSelector);
+		(focusableElements?.[0] ?? contentRef.current)?.focus();
+		document.body.style.overflow = 'hidden';
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape' && closeOnEscape) {
+				onCloseRef.current();
+				return;
+			}
+			if (event.key !== 'Tab') return;
+
+			const elements = contentRef.current?.querySelectorAll<HTMLElement>(focusableSelector);
+			if (!elements?.length) {
+				event.preventDefault();
+				contentRef.current?.focus();
+				return;
+			}
+
+			const first = elements[0];
+			const last = elements[elements.length - 1];
+			if (event.shiftKey && document.activeElement === first) {
+				event.preventDefault();
+				last.focus();
+			} else if (!event.shiftKey && document.activeElement === last) {
+				event.preventDefault();
+				first.focus();
+			}
 		};
 
-		if (isOpen) {
-			document.addEventListener('keydown', handleEscape);
-			document.body.style.overflow = 'hidden';
-		}
-
+		document.addEventListener('keydown', handleKeyDown);
 		return () => {
-			document.removeEventListener('keydown', handleEscape);
-			document.body.style.overflow = 'unset';
+			document.removeEventListener('keydown', handleKeyDown);
+			document.body.style.overflow = previousOverflow;
+			if (previousFocus?.isConnected) previousFocus.focus();
 		};
-	}, [isOpen, onClose, closeOnEscape]);
+	}, [isOpen, closeOnEscape]);
 
 	if (!isOpen) return null;
 
@@ -51,17 +87,27 @@ export const Modal: React.FC<ModalProps> = ({
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
 			<div
 				className={`fixed inset-0 ${backdropClassName ? backdropClassName : defaultBackdrop}`}
+				aria-hidden="true"
 				onClick={closeOnClickOutside ? onClose : undefined}
 			/>
-			<div className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto ${contentClassName ?? 'max-w-2xl'}`}>
+			<div
+				ref={contentRef}
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby={hideHeader ? undefined : titleId}
+				aria-label={hideHeader ? title : undefined}
+				tabIndex={-1}
+				className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto ${contentClassName ?? 'max-w-2xl'}`}
+			>
 				{!hideHeader ? (
 					<>
 						<div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
-							<h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 pr-2">{title}</h2>
+							<h2 id={titleId} className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 pr-2">{title}</h2>
 							<button
+								type="button"
 								onClick={onClose}
 								className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl sm:text-2xl shrink-0 w-8 h-8 flex items-center justify-center"
-								aria-label="Cerrar"
+								aria-label={`Cerrar ${title}`}
 							>
 								×
 							</button>
@@ -72,8 +118,9 @@ export const Modal: React.FC<ModalProps> = ({
 					<>
 						{!suppressCloseOverlay && (
 							<button
+								type="button"
 								onClick={onClose}
-								aria-label="Cerrar"
+								aria-label={`Cerrar ${title}`}
 								className="absolute top-3 right-3 z-20 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-white/0 hover:bg-white/10 rounded-full p-1.5"
 							>
 								×

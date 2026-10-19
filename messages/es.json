@@ -32,6 +32,72 @@
     "completeSet": "Completar Serie",
     "helper": "💡 El cronómetro mide el tiempo de cada serie. Puedes pausar si necesitas un descanso."
   },
+  "notifications": {
+    "soundsTitle": "Sonidos de descanso",
+    "enableSounds": "Activar sonidos",
+    "soundDescription": "Reproducir un sonido cuando termine el descanso",
+    "enabled": "Activado",
+    "disabled": "Desactivado",
+    "soundType": "Tipo de sonido",
+    "volume": "Volumen: {value}%",
+    "playing": "Reproduciendo...",
+    "testSound": "Probar sonido",
+    "pwaTitle": "Avisos de descanso",
+    "permissionStatus": "Estado de permisos",
+    "permissionGranted": "Notificaciones activadas ✅",
+    "permissionDenied": "Notificaciones bloqueadas ❌",
+    "permissionPrompt": "Permiso no solicitado",
+    "blocked": "Bloqueado",
+    "enable": "Activar",
+    "restNoticeTitle": "Avisos de descanso",
+    "restNotice": "Recibe un aviso al terminar el descanso",
+    "permissionRequired": "Requiere permiso del navegador",
+    "backgroundAvailability": "La disponibilidad en segundo plano depende del dispositivo",
+    "blockedTitle": "Notificaciones bloqueadas",
+    "blockedDescription": "Para activarlas, permite las notificaciones de este sitio en la configuración del navegador.",
+    "volumeControl": "Control de volumen",
+    "soundNames": {
+      "beep": "Pitido clásico",
+      "chime": "Campanilla",
+      "bell": "Campana",
+      "horn": "Bocina",
+      "whistle": "Silbato",
+      "custom": "Personalizado"
+    },
+    "soundDescriptions": {
+      "beep": "Sonido simple y claro",
+      "chime": "Sonido suave y melodioso",
+      "bell": "Sonido fuerte y claro",
+      "horn": "Sonido potente para entrenamientos intensos",
+      "whistle": "Sonido agudo y penetrante",
+      "custom": "Configuración personalizada"
+    }
+  },
+  "settingsPage": {
+    "title": "Configuración",
+    "subtitle": "Personaliza tu experiencia",
+    "soundNotifications": "Sonidos y notificaciones",
+    "appearance": "Apariencia",
+    "pwa": "Aplicación web progresiva (PWA)",
+    "installable": "Instalable",
+    "installableDescription": "Instala la aplicación en tu dispositivo para acceder rápidamente.",
+    "offline": "Acceso sin conexión",
+    "offlineDescription": "Las pantallas y los datos disponibles sin conexión dependen de lo guardado o cargado previamente en este dispositivo."
+  },
+  "pwa": {
+    "updateTitle": "Nueva versión disponible",
+    "updatePrompt": "Hay una nueva versión de la aplicación. ¿Deseas actualizar ahora?",
+    "cancel": "Cancelar",
+    "update": "Actualizar",
+    "installTitle": "Instalar Gym Tracker",
+    "installDescription": "Instala la app en tu dispositivo para acceder rápidamente.",
+    "homeBenefit": "Acceso directo desde la pantalla de inicio",
+    "offlineBenefit": "La app puede abrirse sin conexión; algunos datos requieren conexión.",
+    "install": "Instalar ahora",
+    "later": "Más tarde",
+    "installError": "No se pudo abrir el instalador. Inténtalo de nuevo desde el menú de tu navegador.",
+    "close": "Cerrar"
+  },
   "nav": {
     "home": "Inicio",
     "routines": "Rutinas",
@@ -90,6 +156,64 @@
     "submitting": "Enviando..."
   },
   "home": {
+    "greeting": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
+    },
+    "today": "Hoy",
+    "streakDays": {
+      "one": "día",
+      "other": "días"
+    },
+    "days": {
+      "sunday": "Domingo",
+      "monday": "Lunes",
+      "tuesday": "Martes",
+      "wednesday": "Miércoles",
+      "thursday": "Jueves",
+      "friday": "Viernes",
+      "saturday": "Sábado"
+    },
+    "restDay": {
+      "title": "Día de descanso",
+      "description": "Aprovecha para recuperarte",
+      "mobility": "Sugerencia: sesión de movilidad",
+      "configureSchedule": "Configurar agenda semanal",
+      "trainToday": "Elegir una rutina para hoy"
+    },
+    "activeWorkout": "Entrenamiento activo",
+    "continueWorkout": "Continuar entrenamiento",
+    "workoutFallback": "Entrenamiento",
+    "plannedWorkout": "Tu entrenamiento de hoy",
+    "exercisesCount": {
+      "one": "ejercicio",
+      "other": "ejercicios"
+    },
+    "setsCount": {
+      "one": "serie",
+      "other": "series"
+    },
+    "startWorkout": "Iniciar entrenamiento",
+    "moreRoutines": {
+      "one": "rutina más",
+      "other": "rutinas más"
+    },
+    "volumeThisWeek": "Volumen semanal",
+    "currentMonth": "Mes actual",
+    "currentStreak": "Racha actual",
+    "sessions": "Sesiones",
+    "routines": "Rutinas",
+    "routinesCount": "{count} creadas",
+    "dashboard": "Panel de control",
+    "sessionsCount": "{count} sesiones",
+    "quickStart": "Inicio rápido",
+    "plan": "Planificar",
+    "planLoadError": "No se pudo cargar tu planificación semanal.",
+    "retry": "Reintentar",
+    "recent": "Recientes",
+    "viewAll": "Ver todo",
+    "startError": "No se pudo iniciar el entrenamiento. Inténtalo de nuevo.",
     "welcome": "Bienvenido a Gym Tracker",
     "subtitle": "Registra y sigue tus rutinas de gimnasio de manera sencilla",
     "routinesCard": "Rutinas",
@@ -615,6 +739,12 @@
     "more": "más",
     "continueWorkout": "Continuar Entrenamiento",
     "startWorkout": "Iniciar Entrenamiento",
+    "startError": "No se pudo iniciar el entrenamiento. Revisa tu conexión e inténtalo de nuevo.",
+    "generationError": "No se pudieron crear las rutinas. Inténtalo de nuevo.",
+    "generationPartialError": "Se crearon {count} de {total} rutinas. Revisa tus rutinas antes de volver a generar.",
+    "generationSuccess": "Se crearon {count} rutinas. Ya puedes editarlas o iniciar un entrenamiento.",
+    "viewRoutines": "Ver rutinas",
+    "routineNotFound": "No se encontró la rutina.",
     "edit": "Editar",
     "delete": "Eliminar",
     "modal": {
@@ -635,7 +765,10 @@
     },
     "toast": {
       "deleteSuccess": "Rutina eliminada exitosamente",
-      "deleteError": "Error al eliminar la rutina"
+      "deleteError": "Error al eliminar la rutina",
+      "duplicateError": "No se pudo duplicar la rutina. Inténtalo de nuevo.",
+      "duplicateSuccess": "Rutina duplicada correctamente.",
+      "duplicateInProgress": "Duplicando rutina..."
     }
   },
   "warmup": {

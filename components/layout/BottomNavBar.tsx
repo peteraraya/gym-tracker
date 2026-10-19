@@ -70,6 +70,7 @@ export const BottomNavBar: React.FC = () => {
   const [moreOpen, setMoreOpen] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -87,6 +88,22 @@ export const BottomNavBar: React.FC = () => {
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMoreOpen(false);
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusableElements?.length) return;
+
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
 
@@ -174,10 +191,12 @@ export const BottomNavBar: React.FC = () => {
               onClick={() => setMoreOpen(false)}
             />
             <motion.div
+              ref={dialogRef}
               className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-49 mx-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
               role="dialog"
               aria-modal="true"
-              aria-label={t('moreSections')}
+              aria-labelledby="mobile-more-title"
+              tabIndex={-1}
               initial={{ y: 24, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 24, opacity: 0, scale: 0.97 }}
@@ -185,7 +204,7 @@ export const BottomNavBar: React.FC = () => {
             >
               {/* Cabecera */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('moreSections')}</span>
+                <h2 id="mobile-more-title" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('moreSections')}</h2>
                 <button
                   ref={closeBtnRef}
                   type="button"

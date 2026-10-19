@@ -1,41 +1,67 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useEffect, useSyncExternalStore } from 'react';
 import esMessages from '@/messages/es.json';
 import enMessages from '@/messages/en.json';
 
 type Messages = typeof esMessages | typeof enMessages;
+type Locale = 'es' | 'en';
 
 interface LocaleContextType {
-  locale: string;
+  locale: Locale;
   messages: Messages;
   setLocale: (locale: string) => void;
   t: (key: string) => string;
 }
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
+const localeListeners = new Set<() => void>();
+
+function getLocaleSnapshot(): Locale {
+  try {
+    return localStorage.getItem('locale') === 'en' ? 'en' : 'es';
+  } catch {
+    return 'es';
+  }
+}
+
+function subscribeToLocaleChanges(listener: () => void) {
+  localeListeners.add(listener);
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === 'locale') listener();
+  };
+  window.addEventListener('storage', handleStorage);
+
+  return () => {
+    localeListeners.delete(listener);
+    window.removeEventListener('storage', handleStorage);
+  };
+}
+
+function getServerLocaleSnapshot(): Locale {
+  return 'es';
+}
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('locale') || 'es';
-    }
-    return 'es';
-  });
-  const [messages, setMessages] = useState<Messages>(() => {
-    if (typeof window !== 'undefined') {
-      const savedLocale = localStorage.getItem('locale') || 'es';
-      return savedLocale === 'en' ? enMessages : esMessages;
-    }
-    return esMessages;
-  });
+  const locale = useSyncExternalStore(
+    subscribeToLocaleChanges,
+    getLocaleSnapshot,
+    getServerLocaleSnapshot,
+  );
+  const messages = locale === 'en' ? enMessages : esMessages;
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const setLocale = useCallback((newLocale: string) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('locale', newLocale);
+    const nextLocale: Locale = newLocale === 'en' ? 'en' : 'es';
+    try {
+      localStorage.setItem('locale', nextLocale);
+    } catch {
+      // The current page can still use the selected locale for this session.
     }
-    setLocaleState(newLocale);
-    setMessages(newLocale === 'en' ? enMessages : esMessages);
+    localeListeners.forEach((listener) => listener());
   }, []);
 
   // Función helper para obtener traducciones anidadas
@@ -73,9 +99,9 @@ export function useLocale() {
 
 export function useTranslations(namespace?: string) {
   const { t } = useLocale();
-  
-  return (key: string) => {
+
+  return useCallback((key: string) => {
     const fullKey = namespace ? `${namespace}.${key}` : key;
     return t(fullKey);
-  };
+  }, [namespace, t]);
 }

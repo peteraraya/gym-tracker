@@ -125,24 +125,37 @@ export default function RoutinesPage() {
   }, [confirm, editingRoutine]);
 
   const handleWizardComplete = async (data: any) => {
+    let createdCount = 0;
+    let generatedCount = 0;
     try {
       // Generar rutinas usando el generador inteligente (ahora retorna array)
       const generatedRoutines = await generateRoutine(data);
+      generatedCount = generatedRoutines.length;
 
       // Agregar todas las rutinas al contexto
       for (const generatedRoutine of generatedRoutines) {
         // Remover campos que addRoutine no espera (id, createdAt, updatedAt)
         const { id, createdAt, updatedAt, ...routineData } = generatedRoutine;
         await addRoutine(routineData);
+        createdCount += 1;
       }
 
       setIsWizardOpen(false);
-      success(
-        `¡${generatedRoutines.length} rutina(s) creada(s) exitosamente! Puedes editarlas si lo deseas.`,
-      );
+      success(t("generationSuccess").replace("{count}", String(generatedRoutines.length)));
     } catch (err) {
       console.error("Error generating routine:", err);
-      error("Error al generar la rutina. Intenta de nuevo.");
+      if (createdCount > 0) {
+        setIsWizardOpen(false);
+        const message = t("generationPartialError")
+          .replace("{count}", String(createdCount))
+          .replace("{total}", String(generatedCount));
+        error(message, 8000, {
+          label: t("viewRoutines"),
+          onClick: () => router.push("/routines"),
+        });
+      } else {
+        error(t("generationError"));
+      }
     }
   };
 
@@ -199,7 +212,7 @@ export default function RoutinesPage() {
       try {
         const routineToDuplicate = routines.find((r) => r.id === id);
         if (!routineToDuplicate) {
-          error("Rutina no encontrada");
+          error(t("routineNotFound"));
           return;
         }
 
@@ -212,12 +225,6 @@ export default function RoutinesPage() {
 
         if (confirmed) {
           setDuplicatingId(id);
-
-          // Toast de progreso
-          success("⏳ Duplicando rutina...");
-
-          // Pequeño delay para que el usuario vea el feedback
-          await new Promise((resolve) => setTimeout(resolve, 300));
 
           const duplicatedRoutine = {
             ...routineToDuplicate,
@@ -232,7 +239,7 @@ export default function RoutinesPage() {
           await addRoutine(duplicatedRoutine);
 
           // Toast de éxito
-          success("✅ Rutina duplicada exitosamente");
+          success(t("toast.duplicateSuccess"));
 
           try {
             if (typeof window !== "undefined" && (window as any).gtag) {
@@ -246,7 +253,7 @@ export default function RoutinesPage() {
         }
       } catch (e) {
         console.error("Error duplicating routine:", e);
-        error("❌ Error al duplicar la rutina");
+        error(t("toast.duplicateError"));
       } finally {
         setDuplicatingId(null);
       }
@@ -282,10 +289,13 @@ export default function RoutinesPage() {
             startWorkout(routine);
           }
           router.push(`/workout/${routineId}`);
+        } else {
+          error(t("routineNotFound"));
         }
       } catch (e) {
         console.error("Error starting workout:", e);
         setStartingWorkoutId(null);
+        error(t("startError"));
       }
     },
     [
