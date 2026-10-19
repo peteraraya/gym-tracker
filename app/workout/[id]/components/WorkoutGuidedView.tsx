@@ -47,16 +47,16 @@ export function WorkoutGuidedView({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white via-white/95 to-transparent dark:from-gray-900 dark:via-gray-900/95 dark:to-transparent pointer-events-none z-20" />
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-28 bg-linear-to-t from-white via-white/95 to-transparent dark:from-black dark:via-black/95 dark:to-transparent" />
 
-      <div className="fixed bottom-0 left-0 right-0 z-30 px-0">
+      <div className="fixed inset-x-0 bottom-0 z-30 px-3 pt-5 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         {!setExecution.isExecutingSet ? (
           <Button
             variant="primary"
             onClick={() => {
               setExecution.startSet();
             }}
-            className="w-full py-6 text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-3 rounded-2xl border-2 border-white/20"
+            className="min-h-16 w-full justify-center gap-3 rounded-2xl border border-blue-400/30 bg-blue-600 py-3 text-base font-bold shadow-xl shadow-blue-950/15 touch-manipulation hover:bg-blue-700"
           >
             <span className="text-2xl">▶️</span>
             <div className="flex flex-col items-start">
@@ -74,7 +74,7 @@ export function WorkoutGuidedView({
             </div>
           </Button>
         ) : (
-          <div className="px-4 pb-4">
+          <div>
             <SwipeButton
               key={`complete-set-${workoutState.currentSet}-${currentExercise.id}`}
               onComplete={() => handleCompleteSet(workoutState.currentSet)}

@@ -184,6 +184,21 @@ body {
   font-feature-settings: 'rlig' 1, 'calt' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+html {
+  scroll-behavior: auto;
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Prevenir movimientos del modal cuando aparece el teclado virtual */
@@ -213,11 +228,6 @@ body.modal-open {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
-}
-
-/* Animaciones suaves */
-* {
-  @apply transition-colors duration-200;
 }
 
 /* Utilidades de gradiente - VOLT: lima → cian */
@@ -294,6 +304,17 @@ body.modal-open {
 
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Responsive typography */

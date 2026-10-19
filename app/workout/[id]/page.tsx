@@ -33,11 +33,14 @@ const SetExecutionModal = lazy(() =>
   }))
 );
 
-const QuickEditMode = lazy(() =>
-  import("./components/QuickEditMode").then((m) => ({
-    default: memo(m.QuickEditMode),
-  }))
-);
+const QuickEditMode = lazy(async () => {
+  const mod = await import("./components/QuickEditMode");
+  const Component = mod.QuickEditMode ?? mod.default;
+
+  return {
+    default: memo(Component),
+  };
+});
 
 export default function WorkoutPage() {
   const params = useParams();
@@ -157,7 +160,7 @@ export default function WorkoutPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8 pb-32">
+      <div className="mx-auto w-full max-w-3xl px-3 pt-2 pb-[calc(9rem+env(safe-area-inset-bottom))] sm:px-4 sm:pt-4">
         {state.timerHandlers.showTimer && state.timerHandlers.timerMinimized && (
           <MinimizedTimer
             timeLeft={state.timerHandlers.currentTimeLeft}
@@ -168,8 +171,8 @@ export default function WorkoutPage() {
           />
         )}
 
-        <div className={`mb-4 ${!state.isQuickEditMode ? 'sticky top-16 z-20' : ''}`}>
-          <div className="rounded-lg bg-white dark:bg-gray-800 shadow-lg">
+        <div className={`mb-3 ${!state.isQuickEditMode ? 'sticky top-0 z-20 -mx-3 px-3 pt-[env(safe-area-inset-top)] sm:mx-0 sm:px-0 sm:pt-0' : ''}`}>
+          <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white/95 shadow-sm backdrop-blur-xl dark:border-gray-800 dark:bg-gray-900/95">
             <CompactWorkoutHeader
               routine={state.routine}
               currentExerciseIndex={state.workoutState.currentExerciseIndex}
@@ -189,12 +192,12 @@ export default function WorkoutPage() {
             />
           </div>
           
-          <div className="mt-1 flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+          <div className="mt-2 flex gap-1 rounded-xl border border-gray-200 bg-gray-100 p-1 dark:border-gray-800 dark:bg-gray-900">
             <button
               onClick={() => state.setIsQuickEditMode(false)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+              className={`min-h-10 flex-1 rounded-lg px-3 py-2 text-sm font-semibold touch-manipulation ${
                 !state.isQuickEditMode
-                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  ? "bg-white text-blue-600 shadow-sm dark:bg-gray-800 dark:text-blue-400"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
             >
@@ -202,9 +205,9 @@ export default function WorkoutPage() {
             </button>
             <button
               onClick={() => state.setIsQuickEditMode(true)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium text-sm transition-all ${
+              className={`min-h-10 flex-1 rounded-lg px-3 py-2 text-sm font-semibold touch-manipulation ${
                 state.isQuickEditMode
-                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  ? "bg-white text-blue-600 shadow-sm dark:bg-gray-800 dark:text-blue-400"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
               }`}
             >

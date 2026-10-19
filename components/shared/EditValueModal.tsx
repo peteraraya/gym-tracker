@@ -270,7 +270,7 @@ export function EditValueModal({
         <button
           onClick={handleConfirm}
           disabled={!isValid}
-          className="w-full py-4 text-xl font-bold rounded-2xl bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 shadow-lg active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation select-none"
+          className="min-h-14 w-full rounded-xl bg-blue-600 px-4 py-3 text-base font-semibold text-white shadow-md shadow-blue-950/15 active:scale-[0.98] transition-transform disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation select-none"
         >
           ✓ Guardar{isValid ? ` (${display}${field === 'weight' ? ' kg' : ' reps'})` : ''}
         </button>

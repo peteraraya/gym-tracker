@@ -2357,3 +2357,5 @@ export function QuickEditMode({
     </div>
   );
 }
+
+export default QuickEditMode;

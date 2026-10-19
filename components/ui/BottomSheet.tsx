@@ -16,7 +16,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   onClose,
   title,
   children,
-  maxHeight = '80vh'
+  maxHeight = '80dvh'
 }) => {
   const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
@@ -111,7 +111,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl z-50 overflow-hidden"
+        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl z-50 overflow-hidden pb-[env(safe-area-inset-bottom)]"
         style={{
           maxHeight,
           transform: isOpen ? 'translateY(0)' : 'translateY(100%)',

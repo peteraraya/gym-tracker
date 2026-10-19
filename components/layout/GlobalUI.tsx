@@ -19,6 +19,7 @@ export const GlobalUI: React.FC = () => {
   // Ocultar Navbar y CTA en la página de auth (incluye rutas con prefijo de idioma: /es/auth, /en/auth)
   if (!pathname) return null;
   if (pathname.includes('/auth')) return null;
+  if (pathname.startsWith('/workout')) return null;
 
   return (
     <>
