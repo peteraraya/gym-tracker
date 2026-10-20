@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-// Guard: retornar error si la base de datos está deshabilitada
+// ⚠️ DEPRECATED: Esta API Route duplica la lógica de lib/supabase/shared-service.ts.
+// Se mantiene para compatibilidad con SSR. Nuevos clientes deben usar service.ts
+// (cliente) o shared-service.ts (servidor) para evitar duplicación de código.
 function dbDisabledResponse() {
   if (process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
     return NextResponse.json(

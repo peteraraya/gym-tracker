@@ -26,7 +26,8 @@
     "mobile:open": "cap open android",
     "vercel:deploy": "npx vercel --prod",
     "analyze": "cross-env ANALYZE=true next build",
-    "clean:next": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\""
+    "clean:next": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
+    "check:bundle-budget": "node scripts/check-bundle-budget.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
