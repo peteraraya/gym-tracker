@@ -43,7 +43,7 @@ const NavTab: React.FC<{
       whileTap={{ scale: 0.82 }}
       className={`p-1.5 rounded-xl transition-colors ${
         isActive
-          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
@@ -52,7 +52,7 @@ const NavTab: React.FC<{
     <span
       className={`max-w-full truncate text-[11px] font-medium leading-none ${
         isActive
-          ? 'text-blue-700 dark:text-blue-300'
+          ? 'text-emerald-800 dark:text-emerald-200'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
@@ -153,7 +153,7 @@ export const BottomNavBar: React.FC = () => {
       items: [
         { href: '/exercises',    icon: Lightbulb, label: t('exercises'),   color: 'text-cyan-500' },
         { href: '/recommended',  icon: Target,    label: t('recommended'), color: 'text-emerald-500' },
-        { href: '/ai-assistant', icon: Sparkles,  label: t('aiAssistant'), color: 'text-violet-500' },
+        { href: '/ai-assistant', icon: Sparkles,  label: t('aiAssistant'), color: 'text-emerald-600 dark:text-emerald-300' },
       ],
     },
     {
@@ -300,16 +300,12 @@ export const BottomNavBar: React.FC = () => {
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.05 }}
-                className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg ${
-                  activeWorkout
-                    ? 'bg-linear-to-br from-blue-700 to-blue-500 shadow-blue-600/40'
-                    : 'bg-blue-600 shadow-blue-700/40'
-                }`}
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700 shadow-lg shadow-emerald-900/20 dark:bg-emerald-300 dark:shadow-emerald-950/30"
               >
                 <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.4} />
               </motion.div>
               {activeWorkout && (
-                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-blue-400 border-2 border-white dark:border-zinc-900 animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 dark:border-zinc-900 dark:bg-emerald-300" />
               )}
               <span className="text-[11px] font-semibold leading-none text-zinc-700 dark:text-zinc-300">
                 {activeWorkout ? t('activeWorkout') : t('train')}
@@ -341,7 +337,7 @@ export const BottomNavBar: React.FC = () => {
                 whileTap={{ scale: 0.82 }}
                 className={`p-1.5 rounded-xl transition-colors ${
                   isMoreActive || moreOpen
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >
@@ -350,7 +346,7 @@ export const BottomNavBar: React.FC = () => {
               <span
                 className={`text-[11px] font-medium leading-none ${
                   isMoreActive || moreOpen
-                    ? 'text-blue-700 dark:text-blue-300'
+                    ? 'text-emerald-800 dark:text-emerald-200'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >

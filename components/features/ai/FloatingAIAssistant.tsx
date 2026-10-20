@@ -5,7 +5,6 @@ import { WorkoutSession } from "@/types";
 import { useGym } from "@/context/GymContext";
 import { Button } from "@/components/ui/Button";
 import {
-  Bot,
   X,
   Send,
   Sparkles,
@@ -348,11 +347,11 @@ export function FloatingAIAssistant() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed ${isInWorkout ? 'bottom-[120px]' : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6'} right-4 lg:right-6 z-40 rounded-full bg-blue-600 p-3.5 text-white shadow-xl shadow-blue-950/20 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950 group`}
+        className={`group fixed ${isInWorkout ? 'bottom-[120px]' : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6'} right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700 text-white shadow-lg shadow-emerald-950/20 transition-transform hover:scale-105 hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-gray-950 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300 dark:focus-visible:ring-offset-zinc-950 lg:right-6`}
         aria-label="Abrir asistente IA"
+        aria-haspopup="dialog"
       >
-        <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+        <Sparkles aria-hidden="true" className="h-6 w-6 transition-transform group-hover:rotate-6" />
       </button>
     );
   }
@@ -360,28 +359,32 @@ export function FloatingAIAssistant() {
   // Widget del chat
   return (
     <div
+      id="floating-ai-assistant"
+      role="dialog"
+      aria-label="Asistente IA"
+      aria-modal="false"
       className={`fixed z-40 transition-all duration-300 ${
         isMinimized
           ? `${isInWorkout ? 'bottom-[120px]' : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6'} right-4 w-[calc(100vw-2rem)] max-w-80 lg:right-6`
           : `${isInWorkout ? 'bottom-[120px]' : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-6'} right-4 h-[min(600px,70dvh)] w-[calc(100vw-2rem)] max-w-96 lg:right-6 lg:w-96`
       }`}
     >
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-950">
         {/* Header */}
-        <div className="bg-linear-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
+        <div className="flex items-center justify-between bg-emerald-900 p-4 text-white dark:bg-emerald-950">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Bot className="w-6 h-6 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-800 text-emerald-100 dark:bg-emerald-900 dark:text-emerald-200">
+              <Sparkles aria-hidden="true" className="h-5 w-5" />
             </div>
             <div>
               <h3 className="text-white font-bold">Asistente IA</h3>
-              <p className="text-white/80 text-xs">Siempre disponible</p>
+              <p className="text-emerald-100/80 text-xs">Asistente de entrenamiento</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTrainerMode(!trainerMode)}
-              className={`p-2 rounded-lg transition-colors ${trainerMode ? "bg-white/20" : "hover:bg-white/20"}`}
+              className={`min-h-10 rounded-lg px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${trainerMode ? "bg-white/20" : "hover:bg-white/20"}`}
               aria-pressed={trainerMode}
               aria-label="Modo entrenador"
             >
@@ -391,7 +394,7 @@ export function FloatingAIAssistant() {
             </button>
             <button
               onClick={() => setIsMinimized(!isMinimized)}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="min-h-10 min-w-10 rounded-lg p-2 transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label={isMinimized ? "Maximizar" : "Minimizar"}
             >
               {isMinimized ? (
@@ -402,7 +405,7 @@ export function FloatingAIAssistant() {
             </button>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="min-h-10 min-w-10 rounded-lg p-2 transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Cerrar"
             >
               <X className="w-4 h-4 text-white" />
@@ -495,7 +498,8 @@ export function FloatingAIAssistant() {
                           onClick={() => {
                             setModalSelection(idx + 1);
                           }}
-                          className={`text-left px-3 py-2 rounded-lg border ${modalSelection === idx + 1 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                          aria-pressed={modalSelection === idx + 1}
+                          className={`min-h-11 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === idx + 1 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                         >
                           <strong className="mr-2">{idx + 1}.</strong> {ex.name}{" "}
                           <span className="text-xs text-gray-500">
@@ -518,43 +522,50 @@ export function FloatingAIAssistant() {
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => setModalSelection(1)}
-                        className={`px-3 py-2 rounded-lg border ${modalSelection === 1 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                        aria-pressed={modalSelection === 1}
+                        className={`min-h-11 rounded-lg border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === 1 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                       >
                         1. Full-body
                       </button>
                       <button
                         onClick={() => setModalSelection(2)}
-                        className={`px-3 py-2 rounded-lg border ${modalSelection === 2 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                        aria-pressed={modalSelection === 2}
+                        className={`min-h-11 rounded-lg border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === 2 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                       >
                         2. Upper/Lower
                       </button>
                       <button
                         onClick={() => setModalSelection(3)}
-                        className={`px-3 py-2 rounded-lg border ${modalSelection === 3 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                        aria-pressed={modalSelection === 3}
+                        className={`min-h-11 rounded-lg border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === 3 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                       >
                         3. Push/Pull/Legs
                       </button>
                       <button
                         onClick={() => setModalSelection(4)}
-                        className={`px-3 py-2 rounded-lg border ${modalSelection === 4 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                        aria-pressed={modalSelection === 4}
+                        className={`min-h-11 rounded-lg border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === 4 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                       >
                         4. Fuerza
                       </button>
                       <button
                         onClick={() => setModalSelection(5)}
-                        className={`px-3 py-2 rounded-lg border ${modalSelection === 5 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                        aria-pressed={modalSelection === 5}
+                        className={`min-h-11 rounded-lg border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === 5 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                       >
                         5. Hipertrofia
                       </button>
                       <button
                         onClick={() => setModalSelection(6)}
-                        className={`px-3 py-2 rounded-lg border ${modalSelection === 6 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                        aria-pressed={modalSelection === 6}
+                        className={`min-h-11 rounded-lg border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === 6 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                       >
                         6. Resistencia
                       </button>
                       <button
                         onClick={() => setModalSelection(7)}
-                        className={`col-span-2 px-3 py-2 rounded-lg border ${modalSelection === 7 ? "border-purple-500 bg-purple-50 dark:bg-gray-800" : "border-gray-200 dark:border-gray-700"}`}
+                        aria-pressed={modalSelection === 7}
+                        className={`col-span-2 min-h-11 rounded-lg border px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${modalSelection === 7 ? "border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/50" : "border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"}`}
                       >
                         7. Personalizada
                       </button>
@@ -689,7 +700,7 @@ export function FloatingAIAssistant() {
                         ? modalSelection === null && !modalInput.trim()
                         : modalSelection === null
                     }
-                    className={`px-4 py-2 rounded-lg text-white ${modalAction === "search" ? (modalSelection === null && !modalInput.trim() ? "bg-gray-400" : "bg-linear-to-r from-purple-600 to-blue-600") : modalSelection === null ? "bg-gray-400" : "bg-linear-to-r from-purple-600 to-blue-600"}`}
+                    className="min-h-11 rounded-lg bg-emerald-700 px-4 py-2 text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600 dark:bg-emerald-300 dark:text-gray-950 dark:hover:bg-emerald-200 dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
                   >
                     Aceptar
                   </button>
@@ -709,14 +720,14 @@ export function FloatingAIAssistant() {
                   <div
                     className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       message.role === "user"
-                        ? "bg-linear-to-br from-blue-600 to-cyan-600"
-                        : "bg-linear-to-br from-purple-600 to-blue-600"
+                        ? "bg-emerald-700 dark:bg-emerald-300"
+                        : "bg-emerald-100 dark:bg-emerald-900/60"
                     }`}
                   >
                     {message.role === "user" ? (
                       <span className="text-white text-xs font-bold">Tú</span>
                     ) : (
-                      <Bot className="w-4 h-4 text-white" />
+                      <Sparkles aria-hidden="true" className="h-4 w-4 text-emerald-800 dark:text-emerald-200" />
                     )}
                   </div>
 
@@ -724,7 +735,7 @@ export function FloatingAIAssistant() {
                   <div
                     className={`flex-1 rounded-2xl p-3 text-sm ${
                       message.role === "user"
-                        ? "bg-linear-to-br from-blue-600 to-cyan-600 text-white"
+                        ? "bg-emerald-700 text-white dark:bg-emerald-300 dark:text-gray-950"
                         : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     }`}
                   >
@@ -737,8 +748,8 @@ export function FloatingAIAssistant() {
 
               {isLoading && (
                 <div className="flex gap-2">
-                  <div className="w-8 h-8 bg-linear-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60">
+                    <Sparkles aria-hidden="true" className="h-4 w-4 text-emerald-800 dark:text-emerald-200" />
                   </div>
                   <div className="bg-white dark:bg-gray-700 rounded-2xl p-3">
                     <div className="flex gap-1">
@@ -761,15 +772,17 @@ export function FloatingAIAssistant() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
+                  aria-label="Escribe tu pregunta"
                   placeholder="Escribe tu pregunta..."
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-gray-100"
+                  className="min-h-11 flex-1 rounded-xl border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:ring-emerald-300"
                   disabled={isLoading}
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
-                  className="px-3 py-2 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="min-h-11 bg-emerald-700 px-3 py-2 text-white hover:bg-emerald-800 focus-visible:ring-emerald-600 dark:bg-emerald-300 dark:text-gray-950 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300"
                   size="sm"
+                  aria-label="Enviar mensaje"
                 >
                   <Send className="w-4 h-4" />
                 </Button>

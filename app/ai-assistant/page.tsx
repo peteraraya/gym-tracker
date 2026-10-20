@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/shared';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
-import { Send, Bot, User, Sparkles, Dumbbell, TrendingUp, AlertCircle } from '@/components/icons/lucide';
+import { Send, User, Sparkles, Dumbbell, TrendingUp, AlertCircle } from '@/components/icons/lucide';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
 
@@ -150,13 +150,13 @@ export default function AIAssistantPage() {
       <PageLayout>
         <PageHeader
           title="Asistente IA"
-          subtitle="Tu entrenador personal inteligente"
+          subtitle="Orientación de entrenamiento basada en reglas"
           icon={<Sparkles className="w-7 h-7 text-white" />}
-          gradient="from-indigo-600 to-violet-600"
+          gradient="from-emerald-900 to-emerald-700"
         >
           {/* Info Cards */}
           <div className="grid md:grid-cols-3 gap-3 mt-4">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 shadow-md">
+            <div className="rounded-xl border border-white/15 bg-white/10 p-3">
               <div className="flex items-center gap-3">
                 <Dumbbell className="w-6 h-6 text-white" />
                 <div>
@@ -170,7 +170,7 @@ export default function AIAssistantPage() {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 shadow-md">
+            <div className="rounded-xl border border-white/15 bg-white/10 p-3">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-6 h-6 text-white" />
                 <div>
@@ -184,9 +184,9 @@ export default function AIAssistantPage() {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 shadow-md">
+            <div className="rounded-xl border border-white/15 bg-white/10 p-3">
               <div className="flex items-center gap-3">
-                <Bot className="w-6 h-6 text-white" />
+                <Sparkles className="w-6 h-6 text-white" />
                 <div>
                   <p className="text-xl font-bold text-white">
                     24/7
@@ -203,10 +203,10 @@ export default function AIAssistantPage() {
         <PageContent maxWidth="4xl">
 
           {/* Chat Container */}
-          <Card className="shadow-2xl">
+          <Card className="shadow-md">
             <CardContent className="p-0">
               {/* Messages */}
-              <div className="h-[500px] overflow-y-auto p-4 space-y-4">
+              <div className="h-[min(60dvh,500px)] min-h-72 space-y-4 overflow-y-auto p-4" role="log" aria-live="polite" aria-relevant="additions">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -218,14 +218,14 @@ export default function AIAssistantPage() {
                     <div
                       className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                         message.role === 'user'
-                          ? 'bg-linear-to-br from-blue-600 to-cyan-600'
-                          : 'bg-linear-to-br from-purple-600 to-blue-600'
+                          ? 'bg-emerald-700 dark:bg-emerald-300'
+                          : 'bg-emerald-100 dark:bg-emerald-900/60'
                       }`}
                     >
                       {message.role === 'user' ? (
                         <User className="w-5 h-5 text-white" />
                       ) : (
-                        <Bot className="w-5 h-5 text-white" />
+                        <Sparkles className="w-5 h-5 text-emerald-800 dark:text-emerald-200" />
                       )}
                     </div>
 
@@ -238,7 +238,7 @@ export default function AIAssistantPage() {
                       <div
                         className={`rounded-2xl p-3 ${
                           message.role === 'user'
-                            ? 'bg-linear-to-br from-blue-600 to-cyan-600 text-white'
+                            ? 'bg-emerald-700 text-white dark:bg-emerald-300 dark:text-gray-950'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                         }`}
                       >
@@ -257,7 +257,7 @@ export default function AIAssistantPage() {
                             <button
                               key={idx}
                               onClick={() => handleSuggestionClick(suggestion)}
-                              className="block w-full text-left px-3 py-2 text-sm bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors"
+                              className="block min-h-11 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus-visible:ring-emerald-300"
                             >
                               {suggestion}
                             </button>
@@ -277,8 +277,8 @@ export default function AIAssistantPage() {
 
                 {isLoading && (
                   <div className="flex gap-3 items-center">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-linear-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                      <Bot className="w-5 h-5 text-white" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60">
+                      <Sparkles className="h-5 w-5 text-emerald-800 dark:text-emerald-200" />
                     </div>
                     <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 flex items-center gap-3">
                       <LoadingSpinner size="sm" color="gray" />
@@ -299,13 +299,15 @@ export default function AIAssistantPage() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Escribe tu pregunta..."
-                    className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-gray-100"
+                    aria-label="Escribe tu pregunta"
+                    className="min-h-11 flex-1 rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:ring-emerald-300"
                     disabled={isLoading}
                   />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!input.trim() || isLoading}
-                    className="px-5 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    className="min-h-11 bg-emerald-700 px-5 text-white hover:bg-emerald-800 focus-visible:ring-emerald-600 dark:bg-emerald-300 dark:text-gray-950 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300"
+                    aria-label="Enviar mensaje"
                   >
                     <Send className="w-5 h-5" />
                   </Button>

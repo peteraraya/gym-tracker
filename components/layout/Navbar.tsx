@@ -72,13 +72,12 @@ export const Navbar: React.FC = () => {
                   icon={ClipboardList}
                   label={t("routines")}
                   isActive={isActive("/routines")}
-                  color="blue"
                   data-tour="routines"
                 />
                 <Link
                   href={workoutHref}
                   aria-label={workoutLabel}
-                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900"
+                  className="flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-gray-950 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300 dark:focus-visible:ring-offset-zinc-900"
                 >
                   <Dumbbell className="h-4 w-4" />
                   <span>{workoutLabel}</span>
@@ -181,7 +180,6 @@ interface NavLinkProps {
   icon: React.ElementType;
   label: string;
   isActive: boolean;
-  color: string;
   "data-tour"?: string;
 }
 
@@ -190,26 +188,15 @@ const NavLink: React.FC<NavLinkProps> = ({
   icon: Icon,
   label,
   isActive,
-  color,
   "data-tour": dataTour,
 }) => {
-  const colorClasses = {
-    blue: "from-blue-600 to-blue-500 shadow-blue-500/30",
-    cyan: "from-cyan-600 to-cyan-500 shadow-cyan-500/30",
-    purple: "from-purple-600 to-purple-500 shadow-purple-500/30",
-    emerald: "from-emerald-600 to-emerald-500 shadow-emerald-500/30",
-    indigo: "from-indigo-600 to-indigo-500 shadow-indigo-500/30",
-    amber: "from-amber-600 to-amber-500 shadow-amber-500/30",
-    teal: "from-teal-600 to-teal-500 shadow-teal-500/30",
-  };
-
   return (
     <Link
       href={href}
       data-tour={dataTour}
       className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
         isActive
-          ? `bg-linear-to-r ${colorClasses[color as keyof typeof colorClasses]} text-zinc-950 shadow-lg`
+          ? "bg-emerald-700 text-white shadow-sm dark:bg-emerald-300 dark:text-gray-950"
           : "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
       }`}
     >
@@ -261,7 +248,7 @@ const DropdownNav: React.FC<DropdownNavProps> = ({
         onClick={() => setOpen((v) => !v)}
         className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
           {
-            true: "bg-linear-to-r from-cyan-600 to-cyan-500 text-zinc-950 shadow-lg",
+            true: "bg-emerald-700 text-white shadow-sm dark:bg-emerald-300 dark:text-gray-950",
           }[String(parentActive)] ||
           "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
         }`}
