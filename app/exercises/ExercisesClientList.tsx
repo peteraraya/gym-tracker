@@ -10,7 +10,21 @@ import { VirtualList } from "@/components/shared/VirtualList";
 import { ExerciseListItem, EmptyStateCard } from "@/components/shared";
 import { useFilteredData } from "@/hooks/ui/useFilteredData";
 import { APP_CONFIG } from "@/config/app.config";
-import { ExerciseDetails } from "@/components/features/exercises/ExerciseDetails";
+import dynamic from 'next/dynamic';
+
+const ExerciseDetails = dynamic(
+  () => import("@/components/features/exercises/ExerciseDetails").then((mod) => mod.ExerciseDetails),
+  {
+    loading: () => (
+      <div className="animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800 h-96 p-4">
+        <div className="h-4 bg-zinc-300 dark:bg-zinc-700 rounded w-1/3 mb-4" />
+        <div className="h-4 bg-zinc-300 dark:bg-zinc-700 rounded w-1/2 mb-2" />
+        <div className="h-32 bg-zinc-300 dark:bg-zinc-700 rounded" />
+      </div>
+    ),
+    ssr: false,
+  }
+);
 import { MuscleGroupIcon } from "@/components/icons/MuscleGroupIcons";
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 

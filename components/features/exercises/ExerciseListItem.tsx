@@ -44,7 +44,7 @@ function ExerciseImage({ exercise }: { exercise: ExerciseTemplate }) {
             src="/images/not-available-thumb.svg"
             alt=""
             fill
-            unoptimized
+            loading="lazy"
             className="object-cover"
           />
         </div>
@@ -79,7 +79,7 @@ function ExerciseImage({ exercise }: { exercise: ExerciseTemplate }) {
         src={imageUrl}
         alt={exercise.name}
         fill
-        unoptimized
+        loading="lazy"
         className="object-cover hover:scale-105 transition-transform duration-300"
         sizes="(max-width: 640px) 100vw, 160px"
         onError={() => setFailed(true)}

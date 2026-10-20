@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { triggerHaptic } from '@/lib/utils/haptics';
 
 interface ToggleProps {
   /** Estado controlado del toggle */
@@ -35,7 +36,10 @@ export const Toggle: React.FC<ToggleProps> = ({
       aria-checked={checked}
       aria-label={label}
       disabled={disabled}
-      onClick={() => onChange(!checked)}
+      onClick={() => {
+        triggerHaptic('light');
+        onChange(!checked);
+      }}
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
         checked ? activeColor : 'bg-gray-300 dark:bg-gray-600'
       } ${className}`}

@@ -34,3 +34,13 @@ export { PageSection, PageSectionCard } from './PageSection';
 // ─── Utilidades ──────────────────────────────────────────────────────────────
 export { ClientOnly } from './ClientOnly';
 export { VirtualList } from './VirtualList';
+export { ExerciseImage } from './ExerciseImage';
+export { Typography } from './Typography';
+export type { TypographyVariant } from './Typography';
+export {
+  ExerciseListSkeleton,
+  GridSkeleton,
+  DashboardSkeleton,
+  DetailSkeleton,
+  ContentSkeleton,
+} from './PageLoading';

@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
       "lucide-react",
       "framer-motion",
       "@phosphor-icons/react",
+      "phosphor-react",
     ],
     // typedRoutes: true, // Requiere migrar todas las rutas string a Route<T> — pendiente
   },
@@ -32,7 +33,16 @@ const nextConfig: NextConfig = {
         hostname: "hplrrjqgzefkdevbporx.supabase.co",
         pathname: "/storage/v1/object/public/routine-images/**",
       },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+        pathname: "/vi/**",
+      },
     ],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [320, 420, 768, 1024, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 200, 256, 300],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
   },
   trailingSlash: true,
 };

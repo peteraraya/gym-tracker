@@ -229,6 +229,17 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
               label={t("description")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onBlur={() =>
+                setTouchedFields((prev) =>
+                  new Set(prev).add("routine-description")
+                )
+              }
+              error={
+                (showBasicErrors || touchedFields.has("routine-description")) &&
+                !description.trim()
+                  ? "La descripción es obligatoria"
+                  : undefined
+              }
               placeholder={t("descriptionPlaceholder")}
               rows={4}
             />

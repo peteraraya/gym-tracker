@@ -11,3 +11,5 @@
 export { useProfile } from "./useProfile";
 export { useRoutines } from "./useRoutines";
 export { useSessions } from "./useSessions";
+
+export { useExercisesByMuscleGroup, useExerciseIndex } from "./useExercises";

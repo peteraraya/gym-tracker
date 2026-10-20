@@ -378,7 +378,8 @@ export function useRoutineForm(
     [exercises, restBetweenSets, restBetweenExercises],
   );
 
-  const canProceedToExercises = name.trim().length > 0;
+  const canProceedToExercises =
+    name.trim().length > 0 && description.trim().length > 0;
 
   const validateExercises = useCallback((): {
     errors: ValidationError[];
