@@ -39,68 +39,11 @@ import logger from '@/lib/logger';
 import { initializeWorkout } from "../services/workoutInitService";
 import { WorkoutSession } from "../types/workout.types";
 import { getExerciseRecommendations } from '@/lib/exercises/exerciseRecommendations';
-
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number,
-): ((...args: Parameters<T>) => void) & { cancel: () => void; flush: () => void } {
-  let timeout: NodeJS.Timeout | null = null;
-  let lastArgs: Parameters<T> | null = null;
-  const executedFunction = function(...args: Parameters<T>) {
-    lastArgs = args;
-    const later = () => {
-      timeout = null;
-      lastArgs = null;
-      func(...args);
-    };
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-  executedFunction.cancel = function() {
-    if (timeout) {
-      clearTimeout(timeout);
-      timeout = null;
-    }
-    lastArgs = null;
-  };
-  // Ejecuta inmediatamente la última llamada pendiente (si hay una) y
-  // cancela el timeout, en vez de esperar los `wait` ms restantes.
-  // Se usa al pausar/backgroundear la app para no perder la última
-  // actualización que quedó atrapada dentro de la ventana del debounce.
-  executedFunction.flush = function() {
-    if (timeout) {
-      clearTimeout(timeout);
-      timeout = null;
-    }
-    if (lastArgs) {
-      const args = lastArgs;
-      lastArgs = null;
-      func(...args);
-    }
-  };
-  return executedFunction;
-}
-
-function countCompletedFlags(flags: boolean[] = [], totalSets = flags.length): number {
-  return flags.slice(0, totalSets).filter(Boolean).length;
-}
-
-function getCompletionFlagsForExercise(params: {
-  completedSetFlags?: Record<string, boolean[]>;
-  completedSets?: Record<string, number>;
-  exerciseId: string;
-  totalSets: number;
-}): boolean[] {
-  const explicitFlags = params.completedSetFlags?.[params.exerciseId];
-  if (Array.isArray(explicitFlags)) {
-    return explicitFlags.slice(0, params.totalSets).map(Boolean);
-  }
-  const completedCount = Math.min(
-    params.completedSets?.[params.exerciseId] ?? 0,
-    params.totalSets,
-  );
-  return Array.from({ length: params.totalSets }, (_, idx) => idx < completedCount);
-}
+import {
+  createDebounce,
+  countCompletedFlags,
+  getCompletionFlagsForExercise,
+} from "@/lib/domain/workout";
 
 export function useWorkoutPageState(id: string) {
   const router = useRouter();
@@ -427,10 +370,10 @@ export function useWorkoutPageState(id: string) {
     if (performSaveRef.current) performSaveRef.current(data);
   }, []);
 
-  const debouncedSaveRef = useRef<ReturnType<typeof debounce> | null>(null);
+  const debouncedSaveRef = useRef<ReturnType<typeof createDebounce> | null>(null);
 
   useEffect(() => {
-    debouncedSaveRef.current = debounce(saveWrapper, 500);
+    debouncedSaveRef.current = createDebounce(saveWrapper, 500);
     return () => { if (debouncedSaveRef.current) debouncedSaveRef.current.cancel(); };
   }, [saveWrapper]);
 
