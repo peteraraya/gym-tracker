@@ -86,7 +86,7 @@ export function EmptyState({
         <div className="flex items-center justify-center gap-3">
           {actionLabel && (
             <Button
-              variant={variant === 'success' ? 'success' : 'primary'}
+              variant="primary"
               onClick={onAction}
               className="px-6 py-3 font-medium shadow-sm hover:shadow-md"
             >

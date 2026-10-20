@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useGym } from "@/context/GymContext";
 import { useToast } from "@/context/NotificationContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
@@ -194,6 +195,7 @@ export default function SessionsPage() {
   const { success, error: showError } = useToast();
   const { confirm } = useConfirm();
   const { t } = useLocale();
+  const router = useRouter();
   const tS = useCallback((key: string) => t(`sessions.${key}`), [t]);
 
   const { updateModifiedRoutine } = useWorkout();

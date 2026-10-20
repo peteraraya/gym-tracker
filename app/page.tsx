@@ -8,6 +8,7 @@ import { useGym } from "@/context/GymContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { useToast } from "@/context/NotificationContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import {
   calculateStreak,
   calculateTotalVolume,
@@ -214,6 +215,8 @@ export default function Home() {
 
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null);
   const [weeklyPlanError, setWeeklyPlanError] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const todayKey = getTodayKey();
 
   const loadWeeklyPlan = useCallback(async () => {
@@ -225,6 +228,21 @@ export default function Home() {
       setWeeklyPlanError(true);
     }
   }, []);
+
+  // Reiniciar estado de inicialización cuando el componente se monte
+  // (cubre el caso de navegar a otra ruta y volver)
+  useEffect(() => {
+    setIsInitializing(true); // eslint-disable-line react-hooks/set-state-in-effect
+    setInitialLoadComplete(false); // eslint-disable-line react-hooks/set-state-in-effect
+  }, []);
+
+  // Cuando GymContext termine de cargar (loading pasa a false), ocultar el skeleton
+  useEffect(() => {
+    if (!loading && !initialLoadComplete) {
+      setInitialLoadComplete(true); // eslint-disable-line react-hooks/set-state-in-effect
+      setIsInitializing(false); // eslint-disable-line react-hooks/set-state-in-effect
+    }
+  }, [loading, initialLoadComplete]);
 
   useEffect(() => { void loadWeeklyPlan(); }, [loadWeeklyPlan]);
 
@@ -262,7 +280,10 @@ export default function Home() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      {isInitializing ? (
+        <PageSkeleton variant="dashboard" className="h-screen" />
+      ) : (
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <div className="mx-auto max-w-lg space-y-4 px-4 pt-4 pb-8 sm:px-6 sm:pt-6 lg:grid lg:max-w-7xl lg:grid-cols-12 lg:items-start lg:gap-6 lg:space-y-0">
 
           {/* Cabecera */}
@@ -490,6 +511,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      )}
     </ProtectedRoute>
   );
 }
