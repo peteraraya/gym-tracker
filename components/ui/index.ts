@@ -52,3 +52,4 @@ export { A11yAlert } from './A11yAlert';
 export type { A11yAlertProps } from './A11yAlert';
 export { IconButton } from './IconButton';
 export type { IconButtonProps } from './IconButton';
+export { PageSkeleton } from './PageSkeleton';

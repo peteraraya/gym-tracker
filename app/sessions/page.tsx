@@ -19,9 +19,10 @@ import { getWeekStart } from '@/lib/shared/utils/dateUtils';
 import { formatVolume } from '@/lib/shared/utils/volumeCalculations';
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
-  EmptyStateCard,
   SessionCard as SharedSessionCard,
 } from "@/components/shared";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ListItemSkeleton } from "@/components/ui/Skeleton";
 import type { WorkoutSession as WS } from "@/types";
@@ -391,12 +392,7 @@ export default function SessionsPage() {
             gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
-            <div className="space-y-4 max-w-3xl mx-auto mt-4">
-              <ListItemSkeleton />
-              <ListItemSkeleton />
-              <ListItemSkeleton />
-              <ListItemSkeleton />
-            </div>
+            <PageSkeleton variant="list" className="max-w-3xl mx-auto mt-4" />
           </PageContent>
         </PageLayout>
       </ProtectedRoute>
@@ -463,10 +459,14 @@ export default function SessionsPage() {
 
         <PageContent>
           {sessions.length === 0 ? (
-            <EmptyStateCard
+            <EmptyState
               icon="📊"
               title="No hay sesiones registradas"
               description="Completa tu primera rutina para ver tu historial aquí"
+              actionLabel="Crear primera rutina"
+              actionIcon={<Calendar className="w-5 h-5" />}
+              onAction={() => router.push("/routines")}
+              variant="info"
             />
           ) : (
             <>
@@ -516,10 +516,11 @@ export default function SessionsPage() {
                 {/* Session list */}
                 <div className="lg:col-span-3">
                   {filteredSessions.length === 0 ? (
-                    <EmptyStateCard
+                    <EmptyState
                       icon="🔍"
                       title="No se encontraron sesiones"
                       description="Intenta cambiar los filtros de búsqueda"
+                      variant="default"
                     />
                   ) : (
                     <>

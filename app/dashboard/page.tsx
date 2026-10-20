@@ -30,7 +30,7 @@ import {
 import { useGym } from "@/context/GymContext";
 import { useValidSessions } from "@/hooks/useValidSessions";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
-import { EmptyStateCard } from "@/components/shared";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { motion } from "framer-motion";
 
 // Lazy loaded components
@@ -460,12 +460,14 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         {validSessions.length === 0 && (
-          <EmptyStateCard
-            icon={<Dumbbell className="w-16 h-16" />}
+          <EmptyState
+            icon={<Dumbbell className="w-16 h-16 text-gray-400" />}
             title={t("quickActions.startFitnessJourneyTitle")}
             description={t("quickActions.startFitnessJourneyDescription")}
             actionLabel={t("quickActions.viewRoutines")}
+            actionIcon={<BarChart3 className="w-5 h-5" />}
             onAction={() => router.push("/routines")}
+            variant="info"
           />
         )}
       </PageContent>
