@@ -17,11 +17,11 @@ import {
   saveWeeklyPlan,
   getMonthlyPlan,
   saveMonthlyPlan,
-} from "@/lib/storage/storage";
+} from "@/lib/infrastructure/storage/storage";
 import MonthlyCalendar from "@/components/features/planning/MonthlyCalendar";
 import DayPlanModal from "@/components/features/planning/DayPlanModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { getDayKey } from '@/lib/utils/dateUtils';
+import { getDayKey } from '@/lib/shared/utils/dateUtils';
 import { Plus, Play } from "@/components/icons/lucide";
 
 type DayKey =

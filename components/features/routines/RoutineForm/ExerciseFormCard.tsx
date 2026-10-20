@@ -501,7 +501,7 @@ export const ExerciseFormCard: React.FC<ExerciseFormCardProps> = ({
                           ) / exercise.sets.length,
                         );
 
-                        import("@/lib/workout/restCalculator").then(
+                        import("@/lib/application/workout/restCalculator").then(
                           ({ calculateRestBetweenSets }) => {
                             const restRecommendation =
                               calculateRestBetweenSets(

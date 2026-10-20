@@ -14,12 +14,12 @@ import { useToast } from "@/context/NotificationContext";
 import { useConfirm } from "@/context/NotificationContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { getExerciseByName } from "@/data/exercises";
-import { getRoutineStats } from "@/lib/routines/routineEstimation";
-import { getExerciseRecommendations } from "@/lib/exercises/exerciseRecommendations";
-import logger from "@/lib/logger";
-import { getRecommendedWeight } from '@/lib/routines/routineGenerator';
+import { getRoutineStats } from "@/lib/application/routines/routineEstimation";
+import { getExerciseRecommendations } from "@/lib/domain/exercises/exerciseRecommendations";
+import logger from "@/lib/shared/logger";
+import { getRecommendedWeight } from '@/lib/application/routines/routineGenerator';
 import { useEquipment } from '@/context/EquipmentContext';
-import * as storageService from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
 import {
   isBodyweightExercise,
   validateRoutineExercises,
@@ -201,11 +201,11 @@ export function useRoutineForm(
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const { isLocalStorageMode } = await import("@/lib/storageConfig");
+        const { isLocalStorageMode } = await import("@/lib/infrastructure/storage/storageConfig");
 
         if (isLocalStorageMode()) {
           if (typeof window !== "undefined") {
-            const { getProfileLocally } = await import("@/lib/user/localProfile");
+            const { getProfileLocally } = await import("@/lib/domain/user/localProfile");
             const localProfile = getProfileLocally();
             if (localProfile) {
               logger.log(

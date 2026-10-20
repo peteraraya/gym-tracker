@@ -7,8 +7,8 @@ import AchievementsGrid from "@/components/features/achievements/AchievementsGri
 import { Button } from "@/components/ui/Button";
 import { useGym } from "@/context/GymContext"; // ✨ Usar el contexto existente
 import type { WorkoutSession } from "@/types";
-import { calculateAchievements, calculateStreak } from "@/lib/achievements/achievements";
-import { calculateTotalVolume, formatVolume } from "@/lib/utils/volumeCalculations";
+import { calculateAchievements, calculateStreak } from "@/lib/domain/achievements/achievements";
+import { calculateTotalVolume, formatVolume } from "@/lib/shared/utils/volumeCalculations";
 import {
   Trophy,
   Flame,
@@ -17,7 +17,7 @@ import {
   TrendingUp,
   Zap,
 } from "@/components/icons/lucide";
-import logger from "@/lib/logger";
+import logger from "@/lib/shared/logger";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import {

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy } from '@/components/icons/lucide';
-import { soundManager } from '@/lib/audio/soundSystem';
+import { soundManager } from '@/lib/infrastructure/audio/soundSystem';
 
 const CONFETTI_COLORS = [
   'bg-yellow-400', 'bg-indigo-400', 'bg-emerald-400',

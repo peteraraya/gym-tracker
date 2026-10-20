@@ -3,7 +3,7 @@
  * Sin dependencias de React, contexto de aplicación o Supabase.
  */
 
-import type { ActiveWorkout } from "@/lib/storage/storage";
+import type { ActiveWorkout } from "@/lib/infrastructure/storage/storage";
 import type { WorkoutData } from "./workoutTypes";
 
 /**

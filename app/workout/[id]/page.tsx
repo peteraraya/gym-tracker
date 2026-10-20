@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { PRCelebration } from "@/components/features/workout/PRCelebration";
 import { useWorkoutPageState } from "./hooks/useWorkoutPageState";
 
-import { getRoutineStats } from '@/lib/routines/routineEstimation';
+import { getRoutineStats } from '@/lib/application/routines/routineEstimation';
 import { applySmartRestToAllSets } from "./services/restCalculationService";
 import type { Exercise } from "@/types";
 

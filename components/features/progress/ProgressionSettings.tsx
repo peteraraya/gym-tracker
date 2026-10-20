@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Info } from '@/components/icons/lucide';
-import type { ProgressionStrategy } from '@/lib/workout/progression-advanced';
+import type { ProgressionStrategy } from '@/lib/application/workout/progression-advanced';
 
 interface ProgressionSettingsProps {
   currentStrategy?: ProgressionStrategy;

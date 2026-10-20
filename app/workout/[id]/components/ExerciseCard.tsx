@@ -8,10 +8,10 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { WeightSuggestionBanner } from "@/components/features/workout/WeightSuggestionBanner";
 import { EditValueModal } from "@/components/shared/EditValueModal";
 import { useToast } from "@/context/NotificationContext";
-import { formatRestTime } from "@/lib/utils/formatTime";
-import { soundManager } from "@/lib/audio/soundSystem";
+import { formatRestTime } from "@/lib/shared/utils/formatTime";
+import { soundManager } from "@/lib/infrastructure/audio/soundSystem";
 import type { Exercise } from "@/types";
-import type { WeightSuggestion } from "@/lib/data/weightSuggestions";
+import type { WeightSuggestion } from "@/lib/shared/utils/weightSuggestions";
 
 interface ExerciseCardProps {
   exercise: Exercise;

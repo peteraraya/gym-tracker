@@ -121,7 +121,7 @@ export interface Mesocycle {
   updatedAt: string;
 }
 
-import { getWeekStart } from '@/lib/utils/dateUtils';
+import { getWeekStart } from '@/lib/shared/utils/dateUtils';
 
 /** Estructura raíz persistida en localStorage */
 export interface PlanningData {

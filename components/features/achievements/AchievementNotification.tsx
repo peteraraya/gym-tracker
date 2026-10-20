@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Achievement } from '@/types';
-import { getTierColor } from '@/lib/achievements/achievements';
+import { getTierColor } from '@/lib/domain/achievements/achievements';
 import { 
   Trophy, 
   Star, 

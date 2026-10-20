@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { useSoundSettings, SoundType, AVAILABLE_SOUNDS } from '@/lib/audio/soundSystem';
-import { useRestNotifications } from '@/lib/notifications/pwaNotifications';
+import { useSoundSettings, SoundType, AVAILABLE_SOUNDS } from '@/lib/infrastructure/audio/soundSystem';
+import { useRestNotifications } from '@/lib/infrastructure/notifications/pwaNotifications';
 import { useTranslations } from '@/context/LocaleContext';
 import {
   Volume2,

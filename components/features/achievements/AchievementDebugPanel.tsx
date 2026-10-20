@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { useGym } from "@/context/GymContext";
-import { calculateAchievements, calculateStreak } from "@/lib/achievements/achievements";
-import { calculateTotalVolume } from "@/lib/utils/dateUtils";
+import { calculateAchievements, calculateStreak } from "@/lib/domain/achievements/achievements";
+import { calculateTotalVolume } from "@/lib/shared/utils/dateUtils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import {

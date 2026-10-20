@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/react-query/queryKeys';
-import * as storageService from '@/lib/storage/storage';
+import { queryKeys } from '@/lib/infrastructure/react-query/queryKeys';
+import * as storageService from '@/lib/infrastructure/storage/storage';
 
 const STALE_TIME = 5 * 60 * 1000;
 

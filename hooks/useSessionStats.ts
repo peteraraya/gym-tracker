@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 import type { WorkoutSession } from '@/types';
-import { calculateTotalVolume, calculateTotalSets } from '@/lib/utils/dateUtils';
+import { calculateTotalVolume, calculateTotalSets } from '@/lib/shared/utils/dateUtils';
 
 export interface SessionStats {
   totalVolume: number;

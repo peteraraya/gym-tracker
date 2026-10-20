@@ -10,12 +10,12 @@ import React, {
 } from "react";
 import { Routine, WorkoutSession } from "@/types";
 import { useAuth } from "./AuthContext";
-import * as storageService from "@/lib/storage/storage";
-import { recommendForSession } from "@/lib/workout/progression";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import { recommendForSession } from "@/lib/application/workout/progression";
 import { useRoutines as useRoutinesQuery } from "@/hooks/queries/useRoutines";
 import { useSessions as useSessionsQuery } from "@/hooks/queries/useSessions";
-import { achievementManager } from "@/lib/achievements/achievementManager"; // ✨ Importar el gestor de logros
-import logger from "@/lib/logger";
+import { achievementManager } from "@/lib/domain/achievements/achievementManager"; // ✨ Importar el gestor de logros
+import logger from "@/lib/shared/logger";
 
 interface RoutinesContextType {
   routines: Routine[];
@@ -177,7 +177,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
 
       try {
         const { getWeeklyPlan, saveWeeklyPlan } =
-          await import("@/lib/storage/storage");
+          await import("@/lib/infrastructure/storage/storage");
         const weeklyPlan = await getWeeklyPlan();
 
         if (weeklyPlan) {

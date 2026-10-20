@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import type { WorkoutSession } from '@/types';
 import { Calendar } from '@/components/icons/lucide';
-import { getISOWeekdayIndex } from '@/lib/utils/dateUtils';
+import { getISOWeekdayIndex } from '@/lib/shared/utils/dateUtils';
 import { useTranslations } from '@/context/LocaleContext';
 
 interface TrainingFrequencyProps {

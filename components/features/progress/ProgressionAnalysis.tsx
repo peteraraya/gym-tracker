@@ -1,7 +1,7 @@
 'use client';
 
 import { TrendingUp, TrendingDown, Minus, Activity, Target, Zap } from '@/components/icons/lucide';
-import type { ProgressionRecommendation } from '@/lib/workout/progression-advanced';
+import type { ProgressionRecommendation } from '@/lib/application/workout/progression-advanced';
 
 interface ProgressionAnalysisProps {
   recommendation: ProgressionRecommendation;

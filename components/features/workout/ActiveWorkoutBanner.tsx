@@ -5,7 +5,7 @@ import { useConfirm, useToast } from "@/context/NotificationContext";
 import { useRouter, usePathname } from "next/navigation";
 import { Activity, X } from "@/components/icons/lucide";
 import { useState } from "react";
-import logger from "@/lib/logger";
+import logger from "@/lib/shared/logger";
 
 export function ActiveWorkoutBanner() {
   const { activeWorkout, cancelWorkout } = useWorkout();

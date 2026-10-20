@@ -4,8 +4,8 @@ import {
   startRestNotification,
   updateRestNotification,
   endRestNotification,
-} from '@/lib/notifications/restNotification';
-import logger from '@/lib/logger';
+} from '@/lib/infrastructure/notifications/restNotification';
+import logger from '@/lib/shared/logger';
 
 export interface TimerState {
   showTimer: boolean;

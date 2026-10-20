@@ -1,4 +1,4 @@
-﻿import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/workout/restCalculator';
+﻿import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/application/workout/restCalculator';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 
 interface RestCalculationParams {

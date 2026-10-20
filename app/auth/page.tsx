@@ -7,7 +7,7 @@ import {
   authSchema,
   getRegisterSchema,
   type AuthFormData,
-} from "@/lib/schemas/auth";
+} from "@/lib/shared/validation/auth";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/NotificationContext";
 import { useRouter } from "next/navigation";

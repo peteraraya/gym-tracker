@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { triggerHaptic } from '@/lib/utils/haptics';
+import { triggerHaptic } from '@/lib/shared/utils/haptics';
 
 interface ToggleProps {
   /** Estado controlado del toggle */

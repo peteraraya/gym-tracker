@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useAchievementManager } from '@/lib/achievements/achievementManager';
+import { useAchievementManager } from '@/lib/domain/achievements/achievementManager';
 import { useConfirm } from '@/context/NotificationContext';
 import { usePlanning } from '@/hooks/usePlanning';
 import { EXERCISE_DATABASE } from '@/data/exercises';
@@ -218,7 +218,7 @@ export function useWorkoutCompletion({
 
       // Fallback: intentar guardar la sesión localmente para no perder datos
       try {
-        const localSvc = await import('@/lib/storage/localStorage');
+        const localSvc = await import('@/lib/infrastructure/storage/localStorage');
         await localSvc.saveSession(newSession as any);
         onSuccess('Sesión guardada localmente (sin conexión)', 4000);
 

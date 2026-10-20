@@ -13,8 +13,8 @@ import { Toggle } from "@/components/ui/Toggle";
 import { RestTimeSelector } from "@/components/features/workout/RestTimeSelector";
 import { ExerciseSelector } from "@/components/features/exercises/ExerciseSelector";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import { generateRoutine } from "@/lib/routines/routineGenerator";
-import { getRoutineStats } from "@/lib/routines/routineEstimation";
+import { generateRoutine } from "@/lib/application/routines/routineGenerator";
+import { getRoutineStats } from "@/lib/application/routines/routineEstimation";
 import { Zap } from "@/components/icons/lucide";
 import { useFreeWorkoutState, clearFreeWorkoutStorage } from "./hooks/useFreeWorkoutState";
 import { FreeWorkoutExerciseCard } from "./components/FreeWorkoutExerciseCard";
@@ -62,9 +62,9 @@ export default function FreeWorkoutPage() {
   useEffect(() => {
     (async () => {
       try {
-        const { isLocalStorageMode } = await import("@/lib/storageConfig");
+        const { isLocalStorageMode } = await import("@/lib/infrastructure/storage/storageConfig");
         if (isLocalStorageMode()) {
-          const { getProfileLocally } = await import("@/lib/user/localProfile");
+          const { getProfileLocally } = await import("@/lib/domain/user/localProfile");
           const localProfile = getProfileLocally();
           if (localProfile) setUserProfile(localProfile);
         } else {

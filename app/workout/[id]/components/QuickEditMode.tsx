@@ -13,7 +13,7 @@ import { SwipeButton } from "@/components/ui/SwipeButton";
 import { AddExerciseButton } from "./AddExerciseButton";
 import { useConfirm } from "@/context/NotificationContext";
 import { useToast } from "@/context/NotificationContext";
-import { compareWithRecord } from "@/lib/exercises/personalRecords";
+import { compareWithRecord } from "@/lib/domain/exercises/personalRecords";
 import { PRCelebration } from "@/components/features/workout";
 import type { ExerciseTemplate } from "@/data/exercises";
 import type { SetType, Routine, WorkoutSession } from "@/types";

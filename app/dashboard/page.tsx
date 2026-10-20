@@ -13,12 +13,12 @@ import {
   calculateAchievements,
   getRecentAchievements,
   calculateStreak,
-} from "@/lib/achievements/achievements";
+} from "@/lib/domain/achievements/achievements";
 import {
   calculateTotalVolume,
   calculateTotalSets,
   filterSessionsByMonth,
-} from "@/lib/utils/dateUtils";
+} from "@/lib/shared/utils/dateUtils";
 import {
   Dumbbell,
   TrendingUp,
@@ -44,7 +44,7 @@ import {
   ProgressDashboard,
 } from "./components.lazy";
 import { LazyErrorBoundary } from "@/components/shared/LazyErrorBoundary";
-import logger from "@/lib/logger";
+import logger from "@/lib/shared/logger";
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
   return (
@@ -94,13 +94,13 @@ export default function DashboardPage() {
       try {
         // Verificar modo de almacenamiento
         const { isLocalStorageMode: shouldUseLocalStorage } = await import(
-          "@/lib/storageConfig"
+          "@/lib/infrastructure/storage/storageConfig"
         );
 
         if (shouldUseLocalStorage()) {
           // Modo LOCAL: Cargar desde localStorage
           if (typeof window !== "undefined") {
-            const { getProfileLocally } = await import("@/lib/user/localProfile");
+            const { getProfileLocally } = await import("@/lib/domain/user/localProfile");
             const localProfile = getProfileLocally();
 
             if (mounted && localProfile) {

@@ -2,7 +2,7 @@
 
 import { Achievement, AchievementCategory } from '@/types';
 import AchievementBadge from './AchievementBadge';
-import { getCategoryProgress } from '@/lib/achievements/achievements';
+import { getCategoryProgress } from '@/lib/domain/achievements/achievements';
 import { Trophy, Flame, Calendar, Target } from '@/components/icons/lucide';
 
 interface AchievementsGridProps {

@@ -56,7 +56,7 @@ export function useConnectionStatus() {
   // Función para verificar conexión a Supabase
   const checkSupabaseConnection = async (): Promise<boolean> => {
     try {
-      const { getStorageStatus } = await import('@/lib/storage/storage');
+      const { getStorageStatus } = await import('@/lib/infrastructure/storage/storage');
       const storageStatus = getStorageStatus();
       
       const isConnected = storageStatus.mode === 'supabase' && !storageStatus.hasError;

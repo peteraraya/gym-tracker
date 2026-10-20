@@ -25,10 +25,10 @@ import React, {
 } from "react";
 import type { Routine } from "@/types";
 import { useWorkoutLifecycle } from "@/hooks/useWorkoutLifecycle";
-import type { WorkoutState } from "@/lib/workout/normalizeWorkoutState";
-import * as storageService from "@/lib/storage/storage";
-import logger from "@/lib/logger";
-import { saveQueue } from "@/lib/utils/saveQueue";
+import type { WorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import logger from "@/lib/shared/logger";
+import { saveQueue } from "@/lib/shared/utils/saveQueue";
 
 export type { WorkoutState };
 
@@ -156,7 +156,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         try {
           queueMicrotask(() => {
             saveQueue
-              .save(newActive as unknown as import('@/lib/storage/storage').ActiveWorkout)
+              .save(newActive as unknown as import('@/lib/infrastructure/storage/storage').ActiveWorkout)
               .catch((err) => {
                 logger.error('[WorkoutContext] immediate save failed', err instanceof Error ? err : undefined);
                 try {
@@ -190,7 +190,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     // Guardar la rutina modificada en Supabase inmediatamente para que
     // sobreviva a recargas (F5). Importación dinámica para evitar ciclos.
     try {
-      const { updateRoutine } = await import("@/lib/storage/storage");
+      const { updateRoutine } = await import("@/lib/infrastructure/storage/storage");
       await updateRoutine(routine.id, {
         name: routine.name,
         description: routine.description,

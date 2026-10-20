@@ -4,7 +4,7 @@ import {
 } from '@/data/exercises/lazy';
 import {
   staticQueryOptions,
-} from '@/lib/react-query/queryClient';
+} from '@/lib/infrastructure/react-query/queryClient';
 import type { ExerciseTemplate } from '@/data/exercises';
 import type { MuscleGroup } from '@/data/exercises/groups';
 

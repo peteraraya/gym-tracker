@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { Routine, Exercise } from '@/types';
-import logger from '@/lib/logger';
+import logger from '@/lib/shared/logger';
 
 /**
  * Hook que centraliza todo el estado del workout

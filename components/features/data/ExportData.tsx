@@ -9,7 +9,7 @@ import {
   exportRoutinesToCSV, 
   exportToJSON, 
   downloadFile 
-} from '@/lib/data/dataExport';
+} from '@/lib/shared/utils/dataExport';
 import type { WorkoutSession, Routine, UserProfile } from '@/types';
 
 interface ExportDataProps {

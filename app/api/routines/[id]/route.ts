@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/infrastructure/supabase/server'
 import { NextResponse } from 'next/server'
 
 // Guard: retornar error si la base de datos está deshabilitada

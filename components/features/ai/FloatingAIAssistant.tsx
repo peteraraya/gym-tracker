@@ -15,7 +15,7 @@ import { EXERCISE_DATABASE } from "@/data/exercises";
 import { useToast } from "@/context/NotificationContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { useRouter, usePathname } from "next/navigation";
-import { getTrainerReply, TrainerLevel } from "@/lib/ai/trainerPersona";
+import { getTrainerReply, TrainerLevel } from "@/lib/application/ai/trainerPersona";
 import { Modal } from "@/components/ui/Modal";
 
 interface Message {

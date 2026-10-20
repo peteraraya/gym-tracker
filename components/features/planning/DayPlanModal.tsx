@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { getDayName } from '@/lib/utils/dateUtils';
+import { getDayName } from '@/lib/shared/utils/dateUtils';
 import type { Routine } from '@/types';
 
 type DayPlan = { routines: string[]; blocked?: boolean; note?: string };

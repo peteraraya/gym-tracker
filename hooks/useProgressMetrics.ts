@@ -1,7 +1,7 @@
 import { useSessions } from "@/context/GymContext";
 import { useMemo } from "react";
-import { calculateProgressMetrics } from "@/lib/progress/progressAggregator";
-import type { ProgressMetrics } from "@/lib/progress/progressAggregator";
+import { calculateProgressMetrics } from "@/lib/domain/progress/progressAggregator";
+import type { ProgressMetrics } from "@/lib/domain/progress/progressAggregator";
 import type { WorkoutSession } from "@/types";
 
 /**

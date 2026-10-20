@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Toggle } from '@/components/ui/Toggle';
-import { requestNotificationPermission } from '@/lib/workout/restCalculator';
+import { requestNotificationPermission } from '@/lib/application/workout/restCalculator';
 
 /**
  * Componente para gestionar las preferencias de notificaciones

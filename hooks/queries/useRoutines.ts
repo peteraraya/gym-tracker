@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as storageService from '@/lib/storage/storage';
-import { queryKeys } from '@/lib/react-query/queryKeys';
+import * as storageService from '@/lib/infrastructure/storage/storage';
+import { queryKeys } from '@/lib/infrastructure/react-query/queryKeys';
 import type { Routine } from '@/types';
 
 export function useRoutines() {

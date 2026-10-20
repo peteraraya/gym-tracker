@@ -48,12 +48,12 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       // Verificar modo de almacenamiento
-      const { isLocalStorageMode } = await import('@/lib/storageConfig');
+      const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
 
       if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== 'undefined') {
-          const { getProfileLocally } = await import('@/lib/user/localProfile');
+          const { getProfileLocally } = await import('@/lib/domain/user/localProfile');
           const localProfile = getProfileLocally();
 
           if (localProfile) {
@@ -115,12 +115,12 @@ export default function ProfilePage() {
       };
 
       // Verificar modo de almacenamiento
-      const { isLocalStorageMode } = await import('@/lib/storageConfig');
+      const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
 
       if (isLocalStorageMode()) {
         // Modo LOCAL: Guardar en localStorage
         if (typeof window !== 'undefined') {
-          const { saveProfileLocally } = await import('@/lib/user/localProfile');
+          const { saveProfileLocally } = await import('@/lib/domain/user/localProfile');
           saveProfileLocally(profileData);
           // console.log('[Profile] ✅ Saved to localStorage');
           setProfileMessage('✓ Perfil guardado localmente correctamente');
@@ -173,10 +173,10 @@ export default function ProfilePage() {
       weightHistory: history
     };
 
-    const { isLocalStorageMode } = await import('@/lib/storageConfig');
+    const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
     if (isLocalStorageMode()) {
       if (typeof window === 'undefined') return;
-      const { saveProfileLocally } = await import('@/lib/user/localProfile');
+      const { saveProfileLocally } = await import('@/lib/domain/user/localProfile');
       saveProfileLocally(payload);
     } else {
       const response = await fetch('/api/profile', {
@@ -254,7 +254,7 @@ export default function ProfilePage() {
     setLoading(true);
 
     try {
-      const { createClient } = await import('@/lib/supabase/client');
+      const { createClient } = await import('@/lib/infrastructure/supabase/client');
       const supabase = createClient();
 
       // Primero verificamos la contraseña actual intentando hacer signIn

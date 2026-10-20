@@ -384,7 +384,7 @@ jest.mock('../hooks/useWorkoutSuggestions', () => ({
   })
 }));
 
-jest.mock('@/lib/storage/storage', () => ({
+jest.mock('@/lib/infrastructure/storage/storage', () => ({
   getActiveWorkout: jest.fn().mockResolvedValue(null),
   saveActiveWorkout: jest.fn().mockResolvedValue({}),
   clearActiveWorkout: jest.fn().mockResolvedValue({})
@@ -401,7 +401,7 @@ jest.mock('@/data/exercises', () => ({
   ]
 }));
 
-jest.mock('@/lib/workout/restCalculator', () => ({
+jest.mock('@/lib/application/workout/restCalculator', () => ({
   calculateRestBetweenSets: () => ({
     recommended: 90,
     min: 60,
@@ -410,7 +410,7 @@ jest.mock('@/lib/workout/restCalculator', () => ({
 }));
 
 // Mock generator de rutinas para evitar operaciones pesadas en tests
-jest.mock('@/lib/routines/routineGenerator', () => ({
+jest.mock('@/lib/application/routines/routineGenerator', () => ({
   generateRoutine: jest.fn(() => Promise.resolve([])),
 }));
 

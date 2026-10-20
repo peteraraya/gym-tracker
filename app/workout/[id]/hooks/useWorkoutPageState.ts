@@ -9,8 +9,8 @@ import { useRouter } from "next/navigation";
 import { useGym } from "@/context/GymContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { useToast, useConfirm } from "@/context/NotificationContext";
-import * as storageService from "@/lib/storage/storage";
-import type { ActiveWorkout } from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import type { ActiveWorkout } from "@/lib/infrastructure/storage/storage";
 import { useWorkoutState, type WorkoutData } from "./useWorkoutState";
 import { useWorkoutTimer } from "./useWorkoutTimer";
 import { useWeightPrediction } from "./useWeightPrediction";
@@ -24,21 +24,21 @@ import { useSoundSettingsModal } from "@/components/features/settings/SoundSetti
 import { EXERCISE_DATABASE } from "@/data/exercises";
 import type { Routine, Exercise, Set, SetType, UserProfile } from "@/types";
 import type { ExerciseTemplate } from "@/data/exercises";
-import { getProfileLocally } from '@/lib/user/localProfile';
+import { getProfileLocally } from '@/lib/domain/user/localProfile';
 import { useEquipment } from '@/context/EquipmentContext';
-import { generateRoutine } from '@/lib/routines/routineGenerator';
+import { generateRoutine } from '@/lib/application/routines/routineGenerator';
 import {
   calculateNextRestTime,
   calculateExerciseRestTime,
   calculateSmartRestTime,
   applySmartRestToAllSets,
 } from "../services/restCalculationService";
-import { saveQueue } from '@/lib/utils/saveQueue';
-import { extendRestNotification } from '@/lib/notifications/restNotification';
-import logger from '@/lib/logger';
+import { saveQueue } from '@/lib/shared/utils/saveQueue';
+import { extendRestNotification } from '@/lib/infrastructure/notifications/restNotification';
+import logger from '@/lib/shared/logger';
 import { initializeWorkout } from "../services/workoutInitService";
 import { WorkoutSession } from "../types/workout.types";
-import { getExerciseRecommendations } from '@/lib/exercises/exerciseRecommendations';
+import { getExerciseRecommendations } from '@/lib/domain/exercises/exerciseRecommendations';
 import {
   createDebounce,
   countCompletedFlags,

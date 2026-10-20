@@ -17,15 +17,15 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import * as storageService from "@/lib/storage/storage";
-import type { ActiveWorkout } from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import type { ActiveWorkout } from "@/lib/infrastructure/storage/storage";
 import { useAppLifecycle } from "@/hooks/useAppLifecycle";
-import { WorkoutStateSchema, validateDataWithLogging } from "@/lib/validation";
-import { saveQueue } from "@/lib/utils/saveQueue";
-import { saveBackup, attemptPartialRecovery } from "@/lib/utils/workoutBackup";
-import { normalizeWorkoutState } from "@/lib/workout/normalizeWorkoutState";
-import type { WorkoutState } from "@/lib/workout/normalizeWorkoutState";
-import logger from "@/lib/logger";
+import { WorkoutStateSchema, validateDataWithLogging } from "@/lib/shared/validation";
+import { saveQueue } from "@/lib/shared/utils/saveQueue";
+import { saveBackup, attemptPartialRecovery } from "@/lib/shared/utils/workoutBackup";
+import { normalizeWorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
+import type { WorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
+import logger from "@/lib/shared/logger";
 
 export type { WorkoutState };
 

@@ -10,13 +10,13 @@ import { EditSessionModal } from "@/components/features/sessions/EditSessionModa
 import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/hooks/ui/usePagination";
 import type { WorkoutSession, Routine } from "@/types";
-import * as storageService from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
 import { useConfirm } from "@/context/NotificationContext";
 import { useLocale } from "@/context/LocaleContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { Calendar, Filter } from "@/components/icons/lucide";
-import { getWeekStart } from '@/lib/utils/dateUtils';
-import { formatVolume } from '@/lib/utils/volumeCalculations';
+import { getWeekStart } from '@/lib/shared/utils/dateUtils';
+import { formatVolume } from '@/lib/shared/utils/volumeCalculations';
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
   EmptyStateCard,

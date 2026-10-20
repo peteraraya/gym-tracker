@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { TrendingUp, TrendingDown, Minus } from '@/components/icons/lucide';
 import type { WorkoutSession } from '@/types';
-import { calculateExerciseProgress } from '@/lib/exercises/personalRecords';
+import { calculateExerciseProgress } from '@/lib/domain/exercises/personalRecords';
 import { useTranslations } from '@/context/LocaleContext';
 
 interface ExerciseProgressProps {

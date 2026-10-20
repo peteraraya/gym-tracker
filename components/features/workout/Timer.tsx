@@ -16,9 +16,9 @@ import {
 import { 
   getRestMessage, 
   formatRestTime
-} from '@/lib/workout/restCalculator';
-import { soundManager } from '@/lib/audio/soundSystem';
-import { extendRestNotification } from '@/lib/notifications/restNotification';
+} from '@/lib/application/workout/restCalculator';
+import { soundManager } from '@/lib/infrastructure/audio/soundSystem';
+import { extendRestNotification } from '@/lib/infrastructure/notifications/restNotification';
 
 interface TimerProps {
   duration: number; // duración en segundos

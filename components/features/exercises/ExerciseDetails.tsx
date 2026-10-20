@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import * as storageService from '@/lib/storage/storage';
+import * as storageService from '@/lib/infrastructure/storage/storage';
 import { ExerciseTemplate } from '@/data/exercises';
-import type { ProgressRecommendation } from '@/lib/storage/localStorage';
+import type { ProgressRecommendation } from '@/lib/infrastructure/storage/localStorage';
 import YouTubeEmbed from '@/components/shared/YouTubeEmbed';
 
 interface ExerciseDetailsProps {

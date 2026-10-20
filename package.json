@@ -27,7 +27,8 @@
     "vercel:deploy": "npx vercel --prod",
     "analyze": "cross-env ANALYZE=true next build",
     "clean:next": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
-    "check:bundle-budget": "node scripts/check-bundle-budget.mjs"
+    "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
+    "docs:api": "typedoc"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
@@ -55,6 +56,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.5",
+    "@capacitor/haptics": "^8.0.2",
     "@fast-check/jest": "^2.2.0",
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.44.0",
@@ -76,6 +78,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.14.1",
     "typescript": "^5",
     "undici": "^7.25.0"
   }

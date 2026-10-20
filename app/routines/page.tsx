@@ -15,7 +15,7 @@ import { RoutineForm } from "@/components/features/routines/RoutineForm";
 import RoutineWizard from "@/components/features/routines/RoutineWizard";
 import WeeklyPlanner from "@/components/features/planning/WeeklyPlanner";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import { generateRoutine } from "@/lib/routines/routineGenerator";
+import { generateRoutine } from "@/lib/application/routines/routineGenerator";
 import {
   Plus,
   ClipboardList,
@@ -39,7 +39,7 @@ import {
   CardGrid,
 } from "@/components/shared";
 import { usePlanning } from "@/hooks/usePlanning";
-import { getDayKey } from '@/lib/utils/dateUtils';
+import { getDayKey } from '@/lib/shared/utils/dateUtils';
 import { GOAL_LABELS, DAYS, DAY_LABELS_SHORT } from "@/types/planning";
 import Link from "next/link";
 

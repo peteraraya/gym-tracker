@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { UserProfile } from '@/types';
-import { getExerciseRecommendations } from '@/lib/exercises/exerciseRecommendations';
+import { getExerciseRecommendations } from '@/lib/domain/exercises/exerciseRecommendations';
 import { EXERCISE_DATABASE, type ExerciseTemplate } from '@/data/exercises';
-import { calculateRestBetweenSets } from '@/lib/workout/restCalculator';
+import { calculateRestBetweenSets } from '@/lib/application/workout/restCalculator';
 
 interface FreeExerciseSet {
   reps: number;

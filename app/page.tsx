@@ -14,9 +14,9 @@ import {
   filterSessionsByMonth,
   getWeekStart,
   getDayKey,
-} from "@/lib/utils/dateUtils";
-import { getWeeklyPlan } from "@/lib/storage/storage";
-import type { WeeklyPlan } from "@/lib/storage/localStorage";
+} from "@/lib/shared/utils/dateUtils";
+import { getWeeklyPlan } from "@/lib/infrastructure/storage/storage";
+import type { WeeklyPlan } from "@/lib/infrastructure/storage/localStorage";
 import {
   Dumbbell,
   Play,

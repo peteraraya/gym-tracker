@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 import { initializeWorkout, type InitWorkoutParams } from "../workoutInitService";
-import * as storageService from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
 
-jest.mock("@/lib/storage/storage", () => ({
+jest.mock("@/lib/infrastructure/storage/storage", () => ({
   getActiveWorkout: jest.fn(),
 }));
 

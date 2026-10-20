@@ -11,7 +11,7 @@ import {
   calculateTotalSets,
   calculateStreak,
   filterSessionsByMonth
-} from '@/lib/utils/dateUtils';
+} from '@/lib/shared/utils/dateUtils';
 
 export interface DashboardStats {
   totalSessions: number;

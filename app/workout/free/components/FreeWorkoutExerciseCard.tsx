@@ -11,7 +11,7 @@ import { PreparationCountdown } from '@/components/features/workout/PreparationC
 import SetTypeSelector, { SetTypeBadge } from '@/components/features/workout/SetTypeSelector';
 import { Dumbbell, Trash2 } from '@/components/icons/lucide';
 import { EXERCISE_DATABASE } from '@/data/exercises';
-import { calculateRestBetweenSets, formatRestTime } from '@/lib/workout/restCalculator';
+import { calculateRestBetweenSets, formatRestTime } from '@/lib/application/workout/restCalculator';
 import type { SetType } from '@/types';
 import type { FreeExercise } from '../hooks/useFreeWorkoutState';
 

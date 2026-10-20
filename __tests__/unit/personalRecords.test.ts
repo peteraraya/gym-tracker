@@ -3,7 +3,7 @@ import {
   calculateExerciseProgress,
   compareSessions,
   getRecentRoutineSessions 
-} from '@/lib/exercises/personalRecords'
+} from '@/lib/domain/exercises/personalRecords'
 import { createMockSession, createMultipleSessions } from '@/__tests__/helpers/mockData'
 
 describe('Personal Records Library - Unit Tests', () => {

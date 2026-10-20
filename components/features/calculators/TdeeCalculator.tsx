@@ -78,13 +78,13 @@ useEffect(() => {
   const loadProfile = async () => {
     try {
       // Verificar modo de almacenamiento
-      const { isLocalStorageMode } = await import('@/lib/storageConfig');
+      const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
       let usedProfile = false;
 
       if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== 'undefined') {
-          const { getProfileLocally } = await import('@/lib/user/localProfile');
+          const { getProfileLocally } = await import('@/lib/domain/user/localProfile');
           const localProfile = getProfileLocally();
 
           if (localProfile) {
@@ -172,7 +172,7 @@ useEffect(() => {
         // Intentar enviar al backend (guardado automático remoto) solo si la base de datos está habilitada
         (async () => {
           try {
-            const { isLocalStorageMode } = await import('@/lib/storageConfig');
+            const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
             
             if (!isLocalStorageMode()) {
               // Modo DATABASE: Guardar en Supabase

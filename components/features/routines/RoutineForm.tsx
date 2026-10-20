@@ -905,7 +905,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                         );
 
                                         // Importar la función de cálculo
-                                        import("@/lib/workout/restCalculator").then(
+                                        import("@/lib/application/workout/restCalculator").then(
                                           ({ calculateRestBetweenSets }) => {
                                             const restRecommendation =
                                               calculateRestBetweenSets(

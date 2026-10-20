@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Upload, FileJson, FileSpreadsheet, AlertCircle, CheckCircle, Info } from '@/components/icons/lucide';
-import { importFromJSON, importCSVAuto, detectCSVFormat } from '@/lib/data/dataExport';
+import { importFromJSON, importCSVAuto, detectCSVFormat } from '@/lib/shared/utils/dataExport';
 import type { WorkoutSession } from '@/types';
 
 interface ImportDataProps {

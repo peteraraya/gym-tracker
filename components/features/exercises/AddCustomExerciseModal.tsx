@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { MuscleGroup, DifficultyLevel, ExerciseCategory } from '@/data/exercises/types';
 import { MUSCLE_GROUPS } from '@/data/exercises/types';
-import { saveCustomExercise, validateExercise } from '@/lib/exercises/customExercises';
+import { saveCustomExercise, validateExercise } from '@/lib/domain/exercises/customExercises';
 import { EquipmentDropdown } from '@/components/features/equipment/EquipmentDropdown';
 
 interface AddCustomExerciseModalProps {

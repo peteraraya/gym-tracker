@@ -1,8 +1,8 @@
-import * as storageService from "@/lib/storage/storage";
-import type { ActiveWorkout } from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import type { ActiveWorkout } from "@/lib/infrastructure/storage/storage";
 import type { Routine, Exercise } from "@/types";
 import { WorkoutData } from "../hooks/useWorkoutState";
-import logger from "@/lib/logger";
+import logger from "@/lib/shared/logger";
 
 interface RestorableWorkout extends Partial<WorkoutData> {
   routineId: string;

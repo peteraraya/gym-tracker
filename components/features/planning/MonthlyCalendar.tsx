@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from '@/components/icons/lucide';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Routine } from '@/types';
-import { getISOWeekdayIndex, getDayKey } from '@/lib/utils/dateUtils';
+import { getISOWeekdayIndex, getDayKey } from '@/lib/shared/utils/dateUtils';
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',

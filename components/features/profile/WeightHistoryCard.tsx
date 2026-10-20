@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Plus, Trash2 } from '@/components/icons/lucide';
 import type { WeightEntry } from '@/types';
-import { formatWeight, weightToUnit, type WeightUnit } from '@/lib/utils/weight';
+import { formatWeight, weightToUnit, type WeightUnit } from '@/lib/shared/utils/weight';
 
 interface WeightHistoryCardProps {
   entries: WeightEntry[];

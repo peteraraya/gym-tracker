@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/context/NotificationContext";
-import * as storageService from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
 import { RefreshCw } from "@/components/icons/lucide";
 
 export function SyncSessionsButton() {

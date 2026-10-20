@@ -3,7 +3,7 @@ import {
   createSupabaseServerClient,
   getSessionsFromDb,
   createSessionInDb,
-} from '@/lib/supabase/shared-service'
+} from '@/lib/infrastructure/supabase/shared-service'
 
 // ⚠️ DEPRECATED: Esta API Route usa lib/supabase/shared-service.ts internamente.
 // Se mantiene para compatibilidad con SSR. Nuevos clientes deben usar service.ts

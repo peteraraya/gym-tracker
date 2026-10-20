@@ -13,7 +13,7 @@ import SetTypeCycleButton from '@/components/features/workout/SetTypeCycleButton
 import { Plus } from '@/components/icons/lucide';
 import type { Exercise, SetType, Routine } from '@/types';
 import { calculateNextRestTime } from '../utils/workoutCalculations';
-import { triggerHaptic } from '@/lib/utils/haptics';
+import { triggerHaptic } from '@/lib/shared/utils/haptics';
 
 interface SeriesTableProps {
   exercise: Exercise;
