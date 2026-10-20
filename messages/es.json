@@ -130,6 +130,16 @@
       "account": "Cuenta"
     }
   },
+  "connection": {
+    "localTitle": "Modo local",
+    "localDescription": "Los datos se guardan en este dispositivo y no se sincronizan con la nube.",
+    "offlineTitle": "Sin conexión",
+    "offlineDescription": "Algunas funciones que necesitan sincronización pueden no estar disponibles.",
+    "cloudUnavailableTitle": "Sincronización en la nube pausada",
+    "cloudUnavailableDescription": "No se pudo completar una operación en la nube. Comprueba la conexión y la configuración antes de continuar.",
+    "connectedTitle": "Conectado",
+    "connectedDescription": "Los datos se sincronizan con la base de datos."
+  },
   "auth": {
     "signIn": "Iniciar Sesión",
     "signUp": "Crear Cuenta",
@@ -182,6 +192,13 @@
       "configureSchedule": "Configurar agenda semanal",
       "trainToday": "Elegir una rutina para hoy"
     },
+    "noPlan": {
+      "eyebrow": "Planificación",
+      "title": "Aún no tienes una agenda semanal",
+      "description": "Organiza tus rutinas por día para ver aquí tu próximo entrenamiento.",
+      "cta": "Configurar agenda",
+      "routineUnavailable": "La rutina planificada ya no está disponible."
+    },
     "activeWorkout": "Entrenamiento activo",
     "continueWorkout": "Continuar entrenamiento",
     "workoutFallback": "Entrenamiento",
@@ -195,6 +212,7 @@
       "other": "series"
     },
     "startWorkout": "Iniciar entrenamiento",
+    "startPending": "Preparando entrenamiento…",
     "moreRoutines": {
       "one": "rutina más",
       "other": "rutinas más"
@@ -210,8 +228,10 @@
     "quickStart": "Inicio rápido",
     "plan": "Planificar",
     "planLoadError": "No se pudo cargar tu planificación semanal.",
+    "dataLoadError": "No se pudieron cargar tus datos de entrenamiento.",
     "retry": "Reintentar",
     "recent": "Recientes",
+    "exerciseAbbreviation": "ejercicios",
     "viewAll": "Ver todo",
     "startError": "No se pudo iniciar el entrenamiento. Inténtalo de nuevo.",
     "welcome": "Bienvenido a GymLogiX",

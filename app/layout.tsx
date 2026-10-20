@@ -24,15 +24,26 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "GymLogiX - Tus rutinas, complementos y progreso",
-  description: "Planifica tus rutinas, registra tus complementos y sigue tu progreso con GymLogiX.",
+  description: "Planifica tus rutinas de entrenamiento, registra series y pesos, y sigue tu progreso físico con estadísticas detalladas.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "GymLogiX",
   },
   formatDetection: {
     telephone: false,
+  },
+  openGraph: {
+    title: "GymLogiX - Entrenamiento y Progreso",
+    description: "Planifica tus rutinas, registra series y pesos, y sigue tu progreso físico.",
+    type: "website",
+    locale: "es_ES",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GymLogiX - Entrenamiento y Progreso",
+    description: "Planifica tus rutinas, registra series y pesos, y sigue tu progreso físico.",
   },
 };
 
@@ -40,8 +51,11 @@ export function generateViewport() {
   return {
     width: "device-width",
     initialScale: 1,
-    themeColor: "#08090b",
+    maximumScale: 1,
+    userScalable: "no",
+    themeColor: "#0a0a0c",
     viewportFit: "cover",
+    interactiveWidget: "resizes-content",
   };
 }
 
@@ -56,8 +70,17 @@ export default function RootLayout({
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
         <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-180x180.png" sizes="180x180" type="image/png" />
         <link rel="icon" href="/icons/icon-192x192.png" sizes="192x192" type="image/png" />
         <link rel="icon" href="/icons/icon-512x512.png" sizes="512x512" type="image/png" />
+        {/* Metaetiquetas PWA para iOS */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="GymLogiX" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        {/* Prevenir selección de texto y gestos por defecto del navegador */}
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="theme-color" content="#0a0a0c" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

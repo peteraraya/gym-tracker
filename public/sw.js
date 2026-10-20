@@ -1,48 +1,86 @@
-// Service Worker para PWA con soporte offline completo
-const CACHE_NAME = 'gym-tracker-v1';
-const RUNTIME_CACHE = 'gym-tracker-runtime-v1';
-const IMAGE_CACHE = 'gym-tracker-images-v2';
+// ─── Service Worker Profesional GymLogiX ───
+// Estrategias de caché avanzadas, offline-first, sync en segundo plano,
+// notificaciones push y temporizadores de descanso en background.
 
-// Recursos críticos para cachear en la instalación
+const CACHE_NAME = 'gym-tracker-shell-v3';
+const RUNTIME_CACHE = 'gym-tracker-runtime-v3';
+const API_CACHE = 'gym-tracker-api-v3';
+const IMAGE_CACHE = 'gym-tracker-images-v3';
+const FONT_CACHE = 'gym-tracker-fonts-v3';
+
+const SW_VERSION = '3.0.0';
+
 const PRECACHE_URLS = [
   '/',
-  '/dashboard',
-  '/routines',
-  '/progress',
-  '/sessions',
-  '/exercises',
-  '/ai-assistant',
+  '/manifest.json',
+  '/favicon-32x32.png',
+  '/favicon-16x16.png',
+  '/apple-touch-icon.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/badge-72x72.png',
   '/offline',
-  '/manifest.json'
 ];
 
-// Instalación del Service Worker
+const CACHEABLE_API_PATTERNS = [
+  /\/api\/routines/,
+  /\/api\/sessions/,
+  /\/api\/profile/,
+  /supabase\.co\/rest\/v1\/routines/,
+  /supabase\.co\/rest\/v1\/sessions/,
+  /supabase\.co\/rest\/v1\/profiles/,
+];
+
+const NO_CACHE_PATTERNS = [
+  /\/api\/auth/,
+  /\/api\/webhook/,
+  /\/share/,
+];
+
+function isCacheableAPI(url) {
+  return CACHEABLE_API_PATTERNS.some((pattern) => pattern.test(url));
+}
+
+function isNoCacheAPI(url) {
+  return NO_CACHE_PATTERNS.some((pattern) => pattern.test(url));
+}
+
+function shouldCacheRequest(request) {
+  const url = new URL(request.url);
+  if (request.method !== 'GET') return false;
+  if (url.origin !== self.location.origin && !url.hostname.includes('supabase.co')) return false;
+  if (isNoCacheAPI(url.href)) return false;
+  return true;
+}
+
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
-  
+  console.log('[SW v' + SW_VERSION + '] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Precaching app shell');
+        console.log('[SW] Precaching app shell resources');
         return cache.addAll(PRECACHE_URLS);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[SW] App shell precached, forcing activation');
+        return self.skipWaiting();
+      })
+      .catch((err) => {
+        console.error('[SW] Precaching failed:', err);
+      })
   );
 });
 
-// Activación del Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
-  
+  console.log('[SW v' + SW_VERSION + '] Activating...');
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
             .filter((cacheName) => {
-              return cacheName !== CACHE_NAME && 
-                     cacheName !== RUNTIME_CACHE && 
-                     cacheName !== IMAGE_CACHE;
+              const currentCaches = [CACHE_NAME, RUNTIME_CACHE, API_CACHE, IMAGE_CACHE, FONT_CACHE];
+              return !currentCaches.includes(cacheName);
             })
             .map((cacheName) => {
               console.log('[SW] Deleting old cache:', cacheName);
@@ -54,52 +92,53 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Estrategia de caché para diferentes tipos de recursos
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ignorar requests que no sean GET
-  if (request.method !== 'GET') {
+  if (request.method !== 'GET') return;
+
+  // App Shell - Cache First
+  if (PRECACHE_URLS.some((p) => request.url.includes(p) || request.url.endsWith(p))) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          }
+          return response;
+        });
+      })
+    );
     return;
   }
 
-  // Ignorar requests a APIs externas (Supabase, etc.)
-  if (url.origin !== self.location.origin) {
-    // Para Supabase, intentar network first, luego cache
-    if (url.hostname.includes('supabase')) {
-      event.respondWith(
-        fetch(request)
-          .then((response) => {
-            // Cachear respuestas exitosas de Supabase
-            if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(RUNTIME_CACHE).then((cache) => {
-                cache.put(request, responseClone);
-              });
-            }
-            return response;
-          })
-          .catch(() => {
-            // Si falla, intentar desde cache
-            return caches.match(request);
-          })
-      );
-      return;
-    }
-    // Otras APIs externas, solo network
-    return;
-  }
-
-  // Estrategia para imágenes: Cache First
+  // Imágenes - Cache First
   if (request.destination === 'image') {
     event.respondWith(
       caches.open(IMAGE_CACHE).then((cache) => {
         return cache.match(request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
+          if (cachedResponse) return cachedResponse;
+          return fetch(request).then((response) => {
+            if (response.ok) {
+              cache.put(request, response.clone());
+            }
+            return response;
+          }).catch(() => cachedResponse || new Response('', { status: 404 }));
+        });
+      })
+    );
+    return;
+  }
 
+  // Fuentes - Cache First
+  if (request.destination === 'font' || request.url.includes('/_next/static/')) {
+    event.respondWith(
+      caches.open(FONT_CACHE).then((cache) => {
+        return cache.match(request).then((cached) => {
+          if (cached) return cached;
           return fetch(request).then((response) => {
             if (response.ok) {
               cache.put(request, response.clone());
@@ -112,565 +151,275 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Estrategia para páginas HTML: Network First, luego Cache
-  if (request.mode === 'navigate' || request.headers.get('accept').includes('text/html')) {
+  // Navegación HTML - Network First con fallback a Cache /offline
+  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cachear la respuesta
-          const responseClone = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => {
-            cache.put(request, responseClone);
-          });
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, responseClone));
+          }
           return response;
         })
         .catch(() => {
-          // Si falla, buscar en cache
-          return caches.match(request)
-            .then((cachedResponse) => {
-              if (cachedResponse) {
-                return cachedResponse;
-              }
-              // Si no está en cache, mostrar página offline
+          return caches.match(request).then((cached) => {
+            if (cached) return cached;
+            return caches.match('/offline');
+          });
+        })
+    );
+    return;
+  }
+
+  // API Requests - Network First con Cache fallback
+  if (shouldCacheRequest(request)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok && request.method === 'GET' && !isNoCacheAPI(url.href)) {
+            const responseClone = response.clone();
+            caches.open(API_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            if (cached) return cached;
+            if (request.mode === 'navigate') {
               return caches.match('/offline');
+            }
+            return new Response(JSON.stringify({ error: 'offline', message: 'Sin conexión a internet' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
             });
+          });
         })
     );
     return;
   }
 
-  // Estrategia para otros recursos: Cache First, luego Network
+  // Otros recursos - Network First
   event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          // Actualizar cache en background
-          fetch(request).then((response) => {
-            if (response.ok) {
-              caches.open(RUNTIME_CACHE).then((cache) => {
-                cache.put(request, response);
-              });
-            }
-          }).catch(() => {});
-          
-          return cachedResponse;
-        }
-
-        return fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(RUNTIME_CACHE).then((cache) => {
-                cache.put(request, responseClone);
-              });
-            }
-            return response;
-          });
-      })
+    fetch(request).catch(() => caches.match(request))
   );
 });
 
-// Push Notifications
-self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received');
-  
-  event.waitUntil(
-    (async () => {
-      // Cerrar cualquier notificación existente antes de mostrar una nueva
-      const existing = await self.registration.getNotifications();
-      existing.forEach(n => n.close());
-
-      const data = event.data ? event.data.json() : {};
-      const title = data.title || 'GymLogiX';
-      const options = {
-        body: data.body || 'Tienes una nueva notificación',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/badge-72x72.png',
-        vibrate: [400, 200, 400, 200, 400],
-        tag: 'gym-tracker-push',
-        data: data.data || {},
-        actions: data.actions || [
-          {
-            action: 'open',
-            title: 'Abrir'
-          },
-          {
-            action: 'close',
-            title: 'Cerrar'
-          }
-        ],
-        requireInteraction: data.requireInteraction || false
-      };
-
-      return self.registration.showNotification(title, options);
-    })()
-  );
-});
-
-// Manejo de clicks en notificaciones
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.action);
-  
-  event.notification.close();
-
-  // ✨ NEW: Manejar acciones específicas de notificaciones de descanso
-  if (event.action === 'skip') {
-    // Enviar mensaje a la app para saltar el descanso
-    event.waitUntil(
-      clients.matchAll({ type: 'window', includeUncontrolled: true })
-        .then((clientList) => {
-          clientList.forEach(client => {
-            client.postMessage({
-              type: 'notification-action',
-              action: 'skip',
-              notificationData: event.notification.data
-            });
-          });
-        })
-    );
-    return;
-  }
-
-  if (event.action === 'add-30s') {
-    // Enviar mensaje a la app para añadir 30 segundos
-    event.waitUntil(
-      clients.matchAll({ type: 'window', includeUncontrolled: true })
-        .then((clientList) => {
-          clientList.forEach(client => {
-            client.postMessage({
-              type: 'notification-action',
-              action: 'add-30s',
-              notificationData: event.notification.data
-            });
-          });
-        })
-    );
-    return;
-  }
-
-  if (event.action === 'continue') {
-    // Enviar mensaje a la app para continuar
-    event.waitUntil(
-      clients.matchAll({ type: 'window', includeUncontrolled: true })
-        .then((clientList) => {
-          clientList.forEach(client => {
-            client.postMessage({
-              type: 'notification-action',
-              action: 'continue',
-              notificationData: event.notification.data
-            });
-          });
-        })
-    );
-  }
-
-  if (event.action === 'more-rest') {
-    // Enviar mensaje a la app para más descanso
-    event.waitUntil(
-      clients.matchAll({ type: 'window', includeUncontrolled: true })
-        .then((clientList) => {
-          clientList.forEach(client => {
-            client.postMessage({
-              type: 'notification-action',
-              action: 'more-rest',
-              notificationData: event.notification.data
-            });
-          });
-        })
-    );
-  }
-
-  if (event.action === 'close') {
-    return;
-  }
-
-  // Abrir o enfocar la app
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        // Si ya hay una ventana abierta, enfocarla
-        for (const client of clientList) {
-          if (client.url === self.location.origin && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        // Si no, abrir una nueva ventana
-        if (clients.openWindow) {
-          const urlToOpen = event.notification.data?.url || '/';
-          return clients.openWindow(urlToOpen);
-        }
-      })
-  );
-});
-
-// Background Sync para sincronizar datos cuando vuelva la conexión
+// ─── 4. BACKGROUND SYNC: Sincronización en segundo plano ───
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag);
-  
-  if (event.tag === 'sync-workouts') {
-    event.waitUntil(syncWorkouts());
+  console.log('[SW] Background sync triggered:', event.tag);
+  if (event.tag === 'sync-workout-data') {
+    event.waitUntil(syncWorkoutData());
+  }
+  if (event.tag === 'sync-user-profile') {
+    event.waitUntil(syncUserProfile());
   }
 });
 
-async function syncWorkouts() {
+async function openIDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('gym-tracker-sync', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('pending-workouts')) {
+        db.createObjectStore('pending-workouts', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('pending-profile')) {
+        db.createObjectStore('pending-profile', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+async function syncWorkoutData() {
   try {
-    // Obtener datos pendientes de sincronización desde IndexedDB
-    const pendingData = await getPendingSyncData();
-    
-    if (pendingData.length === 0) {
-      return;
-    }
-
-    // Intentar sincronizar con el servidor
-    for (const data of pendingData) {
+    const db = await openIDB();
+    const tx = db.transaction('pending-workouts', 'readonly');
+    const store = tx.objectStore('pending-workouts');
+    const pendingWorkouts = await new Promise((resolve, reject) => {
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    for (const workout of pendingWorkouts) {
       try {
-        const response = await fetch(data.url, {
-          method: data.method,
-          headers: data.headers,
-          body: JSON.stringify(data.body)
+        await fetch('/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(workout.data),
         });
-
-        if (response.ok) {
-          // Marcar como sincronizado
-          await markAsSynced(data.id);
-        }
-      } catch (error) {
-        console.error('[SW] Error syncing data:', error);
+        const delTx = db.transaction('pending-workouts', 'readwrite');
+        const delStore = delTx.objectStore('pending-workouts');
+        await new Promise((resolve, reject) => {
+          const delReq = delStore.delete(workout.id);
+          delReq.onsuccess = () => resolve();
+          delReq.onerror = () => reject(delReq.error);
+        });
+        console.log('[SW] Synced workout:', workout.id);
+      } catch (err) {
+        console.error('[SW] Failed to sync workout:', workout.id, err);
+        break;
       }
     }
-  } catch (error) {
-    console.error('[SW] Error in syncWorkouts:', error);
+    const clients = await self.clients.matchAll();
+    clients.forEach((client) => {
+      client.postMessage({
+        type: 'SYNC_COMPLETED',
+        tag: 'sync-workout-data',
+        success: true,
+      });
+    });
+  } catch (err) {
+    console.error('[SW] Background sync error:', err);
   }
 }
 
-// Helpers para IndexedDB (simplificado)
-async function getPendingSyncData() {
-  // Implementar lectura de IndexedDB
-  return [];
-}
-
-async function markAsSynced(id) {
-  // Implementar actualización en IndexedDB
-}
-
-// Periodic Background Sync (experimental)
-self.addEventListener('periodicsync', (event) => {
-  console.log('[SW] Periodic sync:', event.tag);
-  
-  if (event.tag === 'update-stats') {
-    event.waitUntil(updateStats());
+async function syncUserProfile() {
+  try {
+    const db = await openIDB();
+    const tx = db.transaction('pending-profile', 'readonly');
+    const store = tx.objectStore('pending-profile');
+    const pendingProfile = await new Promise((resolve, reject) => {
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    for (const profile of pendingProfile) {
+      try {
+        await fetch('/api/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profile.data),
+        });
+        const delTx = db.transaction('pending-profile', 'readwrite');
+        const delStore = delTx.objectStore('pending-profile');
+        await new Promise((resolve, reject) => {
+          const delReq = delStore.delete(profile.id);
+          delReq.onsuccess = () => resolve();
+          delReq.onerror = () => reject(delReq.error);
+        });
+      } catch (err) {
+        console.error('[SW] Failed to sync profile:', err);
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('[SW] Profile sync error:', err);
   }
-});
-
-async function updateStats() {
-  // Actualizar estadísticas en background
-  console.log('[SW] Updating stats in background');
 }
 
-// Helper: formatea segundos a MM:SS
-function formatSeconds(seconds) {
-  const s = Math.max(0, Math.floor(seconds));
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${m}:${String(sec).padStart(2, '0')}`;
-}
-
-// Genera un data URL SVG con el número grande (para usar en `notification.image`)
-function createNumberSVGDataUrl(number, opts = {}) {
-  const width = opts.width || 512;
-  const height = opts.height || 256;
-  const bg = opts.bg || '#0f172a'; // fondo oscuro
-  const fg = opts.fg || '#ffffff'; // texto claro
-  const fontSize = opts.fontSize || Math.floor(height * 0.85);
-  const fontFamily = opts.fontFamily || 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial';
-  const sanitized = String(number)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
-    `<rect width="100%" height="100%" rx="28" fill="${bg}"/>` +
-    `<text x="50%" y="50%" fill="${fg}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="900" dominant-baseline="middle" text-anchor="middle">${sanitized}</text>` +
-    `</svg>`;
-
-  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-}
-
-// Message handling para comunicación con la app
+// ─── 5. MESSAGES: Comunicación con clientes ───
 self.addEventListener('message', (event) => {
-  console.log('[SW] Message received:', event.data);
-  
-  if (!event.data || !event.data.type) return;
-
-  if (event.data.type === 'SKIP_WAITING') {
+  const { type, payload } = event.data || {};
+  if (type === 'SKIP_WAITING') {
     self.skipWaiting();
     return;
   }
-
-  if (event.data.type === 'CACHE_URLS') {
+  if (type === 'GET_CLIENTS') {
     event.waitUntil(
-      caches.open(RUNTIME_CACHE).then((cache) => {
-        return cache.addAll(event.data.urls);
+      self.clients.matchAll().then((clients) => {
+        event.ports[0].postMessage({ clients: clients.length });
       })
     );
     return;
   }
-
-  // ===== REST TIMER MESSAGES =====
-  // START_REST -> inicia/actualiza una notificación con cuenta regresiva
-  if (event.data.type === 'START_REST') {
-    const duration = Number(event.data.duration) || 0;
-    // Forzamos siempre el título 'Descanso' en la notificación para evitar
-    // que otros mensajes (p.ej. de bienvenida) sobreescriban el texto.
-    const title = 'Descanso';
-    const nextExercise = event.data.nextExercise;
-    const tag = event.data.tag || 'rest-timer';
-    const endTime = Number(event.data.endTime) || (Date.now() + duration * 1000);
-
-    self._restNotifications = self._restNotifications || {};
-    self._restIntervals = self._restIntervals || {};
-    self._restActive = self._restActive || {};
-
-    // Marcar descanso como activo (suprime notificaciones genéricas)
-    self._restActive[tag] = true;
-
-    // Limpiar intervalo anterior antes de crear uno nuevo
-    if (self._restIntervals[tag]) {
-      clearInterval(self._restIntervals[tag]);
-      delete self._restIntervals[tag];
-    }
-
-    // Poner centinela inmediatamente para que UPDATE_REST no se cuele
-    // antes de que el intervalo real esté configurado (race condition)
-    self._restIntervals[tag] = true;
-
-    self._restNotifications[tag] = { endTime, title, nextExercise };
-
-    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-    const formatted = formatSeconds(remaining);
-
-    // Cerrar cualquier notificación previa que no sea del rest timer
-    self.registration.getNotifications().then(list => {
-      list.forEach(n => { if (n.tag !== tag) n.close(); });
-    });
-
-    // Base options for the notification updates. Use the same `tag` so updates replace the notification.
-    const baseOptions = {
-      body: title,
-      tag,
-      renotify: false, // actualizar sin volver a notificar (sin sonido/vibración cada vez)
-      requireInteraction: true,
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/badge-72x72.png',
-      data: { endTime, nextExercise },
-      actions: event.data.actions || [
-        { action: 'skip', title: 'Saltar' },
-        { action: 'add-30s', title: '+30s' },
-        { action: 'close', title: 'Cerrar' }
-      ]
-    };
-
-    // Notificación inicial con vibración
-    const initialOptions = Object.assign({}, baseOptions, {
-      vibrate: [400, 200, 400],
-      image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
-    });
-
-    self.registration.showNotification(formatted, initialOptions);
-
-    // Actualizar la notificación cada 5s para evitar spam de notificaciones en móvil.
-    // El chequeo del fin del timer sigue siendo cada 1s para que el aviso "¡A entrenar!" sea inmediato.
-    let tickCount = 0;
-    self._restIntervals[tag] = setInterval(() => {
-      try {
-        const meta = self._restNotifications[tag];
-        if (!meta) {
-          clearInterval(self._restIntervals[tag]);
-          delete self._restIntervals[tag];
-          return;
-        }
-        const remainingSec = Math.max(0, Math.ceil((meta.endTime - Date.now()) / 1000));
-
-        // Solo refrescar la UI de la notificación cada 5 ticks (cada 5s)
-        tickCount++;
-        if (remainingSec > 0 && tickCount % 5 === 0) {
-          const fmt = formatSeconds(remainingSec);
-          const opts = Object.assign({}, baseOptions, {
-            data: { endTime: meta.endTime, nextExercise: meta.nextExercise },
-            image: createNumberSVGDataUrl(fmt, { width: 512, height: 256 })
-          });
-          self.registration.showNotification(fmt, opts);
-        }
-
-        if (remainingSec <= 0) {
-          clearInterval(self._restIntervals[tag]);
-          delete self._restIntervals[tag];
-          self._restActive[tag] = false;
-
-          self.registration.getNotifications().then(list => {
-            list.forEach(n => n.close());
-          });
-
-          self.registration.showNotification('¡A entrenar!', {
-            body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
-            tag,
-            renotify: true,
-            vibrate: [500, 200, 500, 200, 500],
-            icon: '/icons/icon-192x192.png',
-            badge: '/icons/badge-72x72.png',
-          });
-
-          delete self._restNotifications[tag];
-        }
-      } catch (err) {
-        console.error('[SW] Error updating rest notification:', err);
-      }
-    }, 1000);
-
-    return;
-  }
-
-  // EXTEND_REST -> ajustar el endTime real de un descanso activo (p.ej. botón
-  // "+30s" tocado desde la propia notificación o desde la app). A diferencia
-  // de UPDATE_REST, esto SÍ se aplica aunque el intervalo del SW esté activo:
-  // es un ajuste puntual del deadline, no una actualización periódica que
-  // compita con el propio intervalo.
-  if (event.data.type === 'EXTEND_REST') {
-    const tag = event.data.tag || 'rest-timer';
-    const deltaSeconds = Number(event.data.deltaSeconds) || 0;
-
-    self._restNotifications = self._restNotifications || {};
-    const meta = self._restNotifications[tag];
-    if (!meta || !deltaSeconds) return;
-
-    meta.endTime += deltaSeconds * 1000;
-
-    const remaining = Math.max(0, Math.ceil((meta.endTime - Date.now()) / 1000));
-    const formatted = formatSeconds(remaining);
-    self.registration.showNotification(formatted, {
-      body: meta.title || 'Descanso',
-      tag,
-      renotify: false,
-      requireInteraction: true,
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/badge-72x72.png',
-      data: { endTime: meta.endTime, nextExercise: meta.nextExercise },
-      actions: [
-        { action: 'skip', title: 'Saltar' },
-        { action: 'add-30s', title: '+30s' },
-        { action: 'close', title: 'Cerrar' }
-      ],
-      image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
-    });
-    return;
-  }
-
-  // UPDATE_REST -> ignorar si el SW ya tiene un intervalo activo para este tag
-  // Así evitamos que la app y el SW compitan generando notificaciones duplicadas
-  if (event.data.type === 'UPDATE_REST') {
-    const tag = event.data.tag || 'rest-timer';
-
-    self._restIntervals = self._restIntervals || {};
-    self._restNotifications = self._restNotifications || {};
-    self._restActive = self._restActive || {};
-
-    // Si el SW ya gestiona este temporizador, ignorar el UPDATE_REST del cliente
-    if (self._restIntervals[tag]) {
-      return;
-    }
-
-    // Si no hay intervalo activo (SW reiniciado, etc.), actualizar manualmente
-    const remaining = Number(event.data.remaining) || 0;
-    const meta = self._restNotifications[tag] || { nextExercise: event.data.nextExercise };
-    const formatted = formatSeconds(Math.max(0, remaining));
-
-    // Limpiar notificaciones previas antes de mostrar
-    self.registration.getNotifications().then(list => {
-      list.forEach(n => n.close());
-    });
-
-    self.registration.showNotification(formatted, {
-      body: 'Descanso',
-      tag,
-      renotify: false,
-      requireInteraction: true,
-      data: { remaining },
-      image: createNumberSVGDataUrl(formatted, { width: 512, height: 256 })
-    });
-
-    if (remaining <= 0) {
-      self._restActive[tag] = false;
-      self.registration.showNotification('¡A entrenar!', {
-        body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
-        tag,
-        renotify: true,
-        vibrate: [500, 200, 500, 200, 500],
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/badge-72x72.png',
-      });
-      delete self._restNotifications[tag];
-    }
-
-    return;
-  }
-
-  // END_REST -> terminar y mostrar aviso final
-  if (event.data.type === 'END_REST') {
-    const tag = event.data.tag || 'rest-timer';
-
-    self._restIntervals = self._restIntervals || {};
-    self._restNotifications = self._restNotifications || {};
-    self._restActive = self._restActive || {};
-
-    if (self._restIntervals[tag]) {
-      clearInterval(self._restIntervals[tag]);
-      delete self._restIntervals[tag];
-    }
-    if (self._restNotifications[tag]) {
-      const meta = self._restNotifications[tag];
-      self.registration.getNotifications().then(list => {
-        list.forEach(n => n.close());
-      });
-      self.registration.showNotification('¡A entrenar!', {
-        body: meta.nextExercise ? `Siguiente: ${meta.nextExercise}` : 'Descanso finalizado',
-        tag,
-        renotify: true,
-        vibrate: [500, 200, 500, 200, 500],
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/badge-72x72.png',
-      });
-      delete self._restNotifications[tag];
-    }
-    self._restActive[tag] = false;
-    return;
-  }
-
-  // SHOW_NOTIFICATION -> notificación genérica (bienvenida, etc.)
-  // Se suprime si hay un descanso activo para evitar interrumpir el temporizador
-  if (event.data.type === 'SHOW_NOTIFICATION') {
-    self._restActive = self._restActive || {};
-
-    const hasActiveRest = Object.values(self._restActive).some(Boolean);
-    if (hasActiveRest) {
-      console.log('[SW] Notificación genérica suprimida: hay un descanso activo');
-      return;
-    }
-
-    const { title = 'GymLogiX', options = {} } = event.data;
+  if (type === 'STORE_FOR_SYNC') {
+    const { store, data } = payload;
     event.waitUntil(
       (async () => {
-        const existing = await self.registration.getNotifications();
-        existing.forEach(n => n.close());
-        return self.registration.showNotification(title, {
-          tag: 'gym-tracker-general',
-          icon: '/icons/icon-192x192.png',
-          badge: '/icons/badge-72x72.png',
-          ...options
+        const db = await openIDB();
+        const tx = db.transaction(store, 'readwrite');
+        const objStore = tx.objectStore(store);
+        await new Promise((resolve, reject) => {
+          const req = objStore.put({ data, timestamp: Date.now() });
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
         });
       })()
     );
     return;
+  }
+  if (type === 'BROADCAST') {
+    self.clients.matchAll().then((clients) => {
+      clients.forEach((client) => {
+        client.postMessage(payload);
+      });
+    });
+  }
+});
+
+// ─── 6. NOTIFICACIONES PUSH ───
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push received');
+  const options = {
+    body: event.data ? event.data.text() : 'Nueva notificación de GymLogiX',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+    vibrate: [200, 100, 200],
+    tag: 'gym-tracker-push',
+    renotify: true,
+    actions: [
+      { action: 'open', title: 'Abrir', icon: '/icons/icon-192x192.png' },
+      { action: 'close', title: 'Cerrar' },
+    ],
+    data: {
+      url: '/',
+      timestamp: Date.now(),
+    },
+  };
+  event.waitUntil(
+    self.registration.showNotification('GymLogiX', options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  if (event.action === 'close') {
+    return;
+  }
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(url) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
+      }
+    })
+  );
+});
+
+// ─── 7. TEMPORIZADORES DE DESCANSO EN BACKGROUND ───
+const restTimers = new Map();
+
+self.addEventListener('message', (event) => {
+  const { type, payload } = event.data || {};
+  if (type === 'START_REST_TIMER') {
+    const { tag, duration, nextExercise } = payload;
+    const endTime = Date.now() + duration * 1000;
+    restTimers.set(tag, { endTime, nextExercise });
+    setTimeout(() => {
+      self.registration.showNotification('¡Descanso finalizado!', {
+        body: nextExercise ? 'Siguiente ejercicio: ' + nextExercise : '¡Es hora de entrenar!',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+        vibrate: [500, 200, 500],
+        tag: 'rest-' + tag,
+        renotify: true,
+        requireInteraction: true,
+      });
+      restTimers.delete(tag);
+    }, duration * 1000);
+  }
+  if (type === 'STOP_REST_TIMER') {
+    const { tag } = payload;
+    restTimers.delete(tag);
   }
 });

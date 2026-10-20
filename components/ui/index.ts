@@ -53,3 +53,5 @@ export type { A11yAlertProps } from './A11yAlert';
 export { IconButton } from './IconButton';
 export type { IconButtonProps } from './IconButton';
 export { PageSkeleton } from './PageSkeleton';
+export { MobileGestures } from './MobileGestures';
+export type { MobileGesturesProps } from './MobileGestures';

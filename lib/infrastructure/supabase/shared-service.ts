@@ -9,26 +9,13 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { getSupabaseConfig } from '@/lib/infrastructure/supabase/config'
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies()
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  const { url, anonKey } = getSupabaseConfig()
 
-  if (!supabaseUrl || !supabaseAnonKey || !supabaseUrl.startsWith('http')) {
-    return createServerClient(
-      'https://placeholder.supabase.co',
-      'placeholder-key',
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll() },
-          setAll() { /* Server Component - no-op */ },
-        },
-      }
-    )
-  }
-
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(url, anonKey, {
     cookies: {
       getAll() { return cookieStore.getAll() },
       setAll() { /* Server Component - no-op */ },

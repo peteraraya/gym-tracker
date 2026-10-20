@@ -38,7 +38,13 @@ interface SessionsContextType {
   refreshSessions: () => Promise<void>;
 }
 
-interface GymContextType extends RoutinesContextType, SessionsContextType {}
+interface GymContextType extends RoutinesContextType, SessionsContextType {
+  routinesLoading: boolean;
+  sessionsLoading: boolean;
+  routinesError: boolean;
+  sessionsError: boolean;
+  refreshAll: () => Promise<void>;
+}
 
 const RoutinesContext = createContext<RoutinesContextType | undefined>(
   undefined,
@@ -307,8 +313,25 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
     () => ({
       ...routinesValue,
       ...sessionsValue,
+      loading: routinesValue.loading || sessionsValue.loading,
+      routinesLoading: routinesIsLoading,
+      sessionsLoading: sessionsIsLoading,
+      routinesError: reactQueryRoutines.isError,
+      sessionsError: reactQuerySessions.isError,
+      refreshAll: async () => {
+        await Promise.all([refetchRoutines(), refetchSessions()]);
+      },
     }),
-    [routinesValue, sessionsValue],
+    [
+      routinesValue,
+      sessionsValue,
+      routinesIsLoading,
+      sessionsIsLoading,
+      reactQueryRoutines.isError,
+      reactQuerySessions.isError,
+      refetchRoutines,
+      refetchSessions,
+    ],
   );
 
   React.useEffect(() => {

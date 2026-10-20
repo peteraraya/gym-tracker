@@ -5,6 +5,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { BottomNavBar } from '@/components/layout/BottomNavBar';
+import { ConnectionIndicator } from '@/components/shared/ConnectionIndicator';
 import FloatingCreateRoutine from '@/components/features/routines/FloatingCreateRoutine';
 import dynamic from 'next/dynamic';
 
@@ -16,17 +17,19 @@ const FloatingAIAssistant = dynamic(
 export const GlobalUI: React.FC = () => {
   const pathname = usePathname() || '/';
 
-  // Ocultar Navbar y CTA en la página de auth (incluye rutas con prefijo de idioma: /es/auth, /en/auth)
-  if (!pathname) return null;
-  if (pathname.includes('/auth')) return null;
-  if (pathname.startsWith('/workout')) return null;
+  const hideNavigation = pathname.includes('/auth') || pathname.startsWith('/workout');
 
   return (
     <>
-      <Navbar />
-      <BottomNavBar />
-      <FloatingCreateRoutine />
-      <FloatingAIAssistant />
+      <ConnectionIndicator />
+      {!hideNavigation && (
+        <>
+          <Navbar />
+          <BottomNavBar />
+          <FloatingCreateRoutine />
+          <FloatingAIAssistant />
+        </>
+      )}
     </>
   );
 };

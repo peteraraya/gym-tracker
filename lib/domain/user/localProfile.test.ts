@@ -18,7 +18,7 @@ describe('localProfile', () => {
     jest.restoreAllMocks();
   });
 
-  it('creates a complete local profile with default identity fields', () => {
+  it('saves local profile data without inventing identity fields', () => {
     getItemSpy.mockReturnValue(null);
 
     const saved = saveProfileLocally({
@@ -28,10 +28,8 @@ describe('localProfile', () => {
     });
 
     expect(saved).toMatchObject({
-      id: 'local-profile',
-      userId: 'local-user',
-      name: 'Usuario',
-      email: 'local@user.com',
+      name: '',
+      email: '',
       age: 34,
       currentWeight: 82,
       fitnessGoal: 'strength',
@@ -39,8 +37,8 @@ describe('localProfile', () => {
 
     const storedValue = setItemSpy.mock.calls[0][1];
     expect(JSON.parse(storedValue)).toMatchObject({
-      name: 'Usuario',
-      email: 'local@user.com',
+      name: '',
+      email: '',
       age: 34,
       currentWeight: 82,
       fitnessGoal: 'strength',

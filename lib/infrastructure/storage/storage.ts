@@ -74,17 +74,21 @@ class SupabaseStrategy implements StorageStrategy {
   async updateProfile(d: Partial<UserProfile>) { return (await this.svc()).updateProfile(d); }
   async getWeeklyPlan() { return (await this.svc()).getWeeklyPlan(); }
   async saveWeeklyPlan(p: WeeklyPlan) { return (await this.svc()).saveWeeklyPlan(p); }
-  async getMonthlyPlan() { return (await this.svc()).getMonthlyPlan?.() ?? {}; }
-  async saveMonthlyPlan(p: MonthlyPlan) { return (await this.svc()).saveMonthlyPlan?.(p); }
-  async getRecommendations() { return (await this.svc()).getRecommendations?.() ?? []; }
-  async saveRecommendations(r: ProgressRecommendation[]) { return (await this.svc()).saveRecommendations?.(r); }
-  async getLastWeights() { return (await this.svc()).getLastWeights?.() ?? {}; }
+  async getMonthlyPlan() { return this.unsupportedRemoteOperation('monthly plans'); }
+  async saveMonthlyPlan() { return this.unsupportedRemoteOperation('monthly plans'); }
+  async getRecommendations() { return this.unsupportedRemoteOperation('recommendations'); }
+  async saveRecommendations() { return this.unsupportedRemoteOperation('recommendations'); }
+  async getLastWeights() { return (await this.svc()).getLastWeights(); }
   async saveLastWeights(w: Record<string, number[]>) { return (await this.svc()).saveLastWeights?.(w); }
-  async getActiveWorkout() { return (await this.svc()).getActiveWorkout?.() ?? null; }
-  async saveActiveWorkout(p: ActiveWorkout) { return (await this.svc()).saveActiveWorkout?.(p); }
-  async clearActiveWorkout() { return (await this.svc()).clearActiveWorkout?.(); }
-  async rebuildRoutinesFromSessions() { return []; }
-  async migrateLegacySessions() { return { migrated: 0, total: 0 }; }
+  async getActiveWorkout() { return (await this.svc()).getActiveWorkout(); }
+  async saveActiveWorkout(p: ActiveWorkout) { return (await this.svc()).saveActiveWorkout(p); }
+  async clearActiveWorkout() { return (await this.svc()).clearActiveWorkout(); }
+  async rebuildRoutinesFromSessions() { return this.unsupportedRemoteOperation('routine rebuilding'); }
+  async migrateLegacySessions() { return this.unsupportedRemoteOperation('legacy session migration'); }
+
+  private unsupportedRemoteOperation(operation: string): never {
+    throw new Error(`Supabase does not support ${operation}; using local storage is required.`);
+  }
 }
 
 // ==================== Concrete Strategy: LocalStorage ====================
@@ -159,11 +163,19 @@ class StorageRouter {
   private onError(): void {
     this.lastError = new Date();
     this.mode = 'localStorage';
+    this.notifyStatusChange();
   }
 
   private onSuccess(): void {
     this.mode = 'supabase';
     this.lastError = null;
+    this.notifyStatusChange();
+  }
+
+  private notifyStatusChange(): void {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('gym-logix:storage-status'));
+    }
   }
 
   get status() {
@@ -171,6 +183,7 @@ class StorageRouter {
       mode: this.mode || (this.isDbEnabled() ? 'supabase' : 'localStorage'),
       hasError: this.lastError !== null,
       lastError: this.lastError,
+      hasVerifiedConnection: this.mode === 'supabase',
     };
   }
 
@@ -179,19 +192,24 @@ class StorageRouter {
     const strategy = this.pick();
     try {
       const result = await fn(strategy);
-      this.onSuccess();
+      if (strategy === this.supabase) this.onSuccess();
       return result;
-    } catch {
-      // Try local as fallback
+    } catch (primaryError) {
       if (strategy === this.supabase) {
         this.onError();
         try {
+          logger.warn('Supabase operation failed; falling back to localStorage', {
+            operation: 'STORAGE_FALLBACK',
+            error: primaryError instanceof Error ? primaryError.message : String(primaryError),
+          });
           return await fn(this.localStore);
-        } catch {
-          // rethrow
+        } catch (fallbackError) {
+          throw new Error(
+            `Supabase operation failed (${primaryError instanceof Error ? primaryError.message : String(primaryError)}); local fallback failed (${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}).`,
+          );
         }
       }
-      throw new Error('Operación fallida en ambos backends');
+      throw primaryError;
     }
   }
 
@@ -203,9 +221,21 @@ class StorageRouter {
   /** Supabase mode → Supabase only; localStorage mode → local only. No cross-fallback, throws on error. */
   async critical<T>(fn: (s: StorageStrategy) => Promise<T>): Promise<T> {
     const strategy = this.isDbEnabled() ? this.supabase : this.localStore;
-    const result = await fn(strategy);
-    if (strategy === this.supabase) this.onSuccess();
-    return result;
+    try {
+      const result = await fn(strategy);
+      if (strategy === this.supabase) this.onSuccess();
+      return result;
+    } catch (error) {
+      if (strategy === this.supabase) {
+        this.onError();
+        logger.error(
+          'Critical Supabase storage operation failed',
+          { operation: 'CRITICAL_STORAGE' },
+          error instanceof Error ? error : undefined,
+        );
+      }
+      throw error;
+    }
   }
 
 /** Critical with draft saving on Supabase failure.
@@ -242,8 +272,12 @@ class StorageRouter {
       try {
         await fn(this.supabase as unknown as LocalStorageStrategy);
         this.onSuccess();
-      } catch {
-        logger.warn('Supabase failed, localStorage succeeded', { operation: 'DUAL_WRITE' });
+      } catch (error) {
+        this.onError();
+        logger.warn('Supabase failed, localStorage succeeded', {
+          operation: 'DUAL_WRITE',
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
     return result;
@@ -266,8 +300,12 @@ class StorageRouter {
         const result = await fnSupabase(this.supabase);
         this.onSuccess();
         return result;
-      } catch {
-        logger.warn('Supabase read failed, trying localStorage', { operation: 'DUAL_READ' });
+      } catch (error) {
+        this.onError();
+        logger.warn('Supabase read failed, trying localStorage', {
+          operation: 'DUAL_READ',
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
     const result = await fnLocal(this.localStore);
@@ -406,103 +444,90 @@ export async function migrateLegacySessions(): Promise<{ migrated: number; total
 }
 
 export async function syncLocalSessionsToDatabase(): Promise<{ synced: number; errors: number }> {
-  if (!router.isDbEnabled()) return { synced: 0, errors: 0 };
+  if (!router.isDbEnabled()) {
+    throw new Error('Session sync requires an enabled database connection.');
+  }
 
-  try {
-    const localSvc = await import('@/lib/infrastructure/storage/localStorage');
-    const localSessions = await localSvc.getSessions();
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  const localSessions = await localSvc.getSessions();
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const dbSessions = await dbSvc.getSessions();
+  let synced = 0;
+  let errors = 0;
 
-    const dbSvc = await import('@/lib/infrastructure/supabase/service');
-    let dbSessions: WorkoutSession[] = [];
-    try { dbSessions = await dbSvc.getSessions(); } catch { return { synced: 0, errors: 0 }; }
-
-    const dbIds = new Map(dbSessions.map(s => [s.id, s]));
-    let synced = 0;
-    let errors = 0;
-
-    for (const session of localSessions) {
-      try {
-        const existing = dbSessions.find(s => s.id === session.id);
-        if (existing) {
-          await dbSvc.updateSession(session);
-          synced++;
-        } else {
-          await dbSvc.saveSession(session);
-          synced++;
-        }
-      } catch {
-        errors++;
-        logger.error('Error syncing session', { sessionId: session.id });
+  for (const session of localSessions) {
+    try {
+      const existing = dbSessions.find((savedSession) => savedSession.id === session.id);
+      if (existing) {
+        await dbSvc.updateSession(session);
+      } else {
+        await dbSvc.saveSession(session);
       }
+      synced++;
+    } catch (error) {
+      errors++;
+      logger.error(
+        'Error syncing session',
+        { sessionId: session.id },
+        error instanceof Error ? error : undefined,
+      );
     }
+  }
 
-    if (synced > 0) logger.info('Sessions synced to database', { synced, errors });
-    return { synced, errors };
-  } catch { return { synced: 0, errors: 0 }; }
+  if (synced > 0) logger.info('Sessions synced to database', { synced, errors });
+  return { synced, errors };
 }
 
 export async function syncLocalRoutinesToDatabase(): Promise<{ synced: number; errors: number }> {
-  if (!router.isDbEnabled()) return { synced: 0, errors: 0 };
+  if (!router.isDbEnabled()) {
+    throw new Error('Routine sync requires an enabled database connection.');
+  }
 
-  try {
-    const localSvc = await import('@/lib/infrastructure/storage/localStorage');
-    const localRoutines = await localSvc.getRoutines();
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  const localRoutines = await localSvc.getRoutines();
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const dbRoutines = await dbSvc.getRoutines();
+  const dbMap = new Map(dbRoutines.map((routine) => [routine.name, routine]));
+  let synced = 0;
+  let errors = 0;
 
-    const dbSvc = await import('@/lib/infrastructure/supabase/service');
-    let dbRoutines: any[] = [];
-    try { dbRoutines = await dbSvc.getRoutines(); } catch { return { synced: 0, errors: 0 }; }
+  for (const routine of localRoutines) {
+    try {
+      const existing = dbMap.get(routine.name);
+      const data: Parameters<typeof dbSvc.createRoutine>[0] = {
+        name: routine.name,
+        description: routine.description,
+        image: routine.image,
+        exercises: routine.exercises.map((exercise) => ({
+          name: exercise.name,
+          sets: exercise.sets,
+          equipment: exercise.equipment,
+          notes: exercise.notes,
+          restBetweenSets: exercise.restBetweenSets,
+          useSmartRest: exercise.useSmartRest,
+        })),
+        restBetweenSets: routine.restBetweenSets,
+        restBetweenExercises: routine.restBetweenExercises,
+      };
 
-    const dbMap = new Map(dbRoutines.map((r: any) => [r.name, r]));
-    let synced = 0;
-    let errors = 0;
-
-    for (const routine of localRoutines) {
-      try {
-        const existing = dbMap.get(routine.name);
-        if (existing) {
-          await dbSvc.updateRoutine(existing.id, {
-            name: routine.name,
-            description: routine.description,
-            image: routine.image,
-            exercises: routine.exercises.map((ex: any) => ({
-              name: ex.name,
-              sets: ex.sets,
-              equipment: ex.equipment,
-              notes: ex.notes,
-              restBetweenSets: ex.restBetweenSets,
-              useSmartRest: ex.useSmartRest,
-            })),
-            restBetweenSets: routine.restBetweenSets,
-            restBetweenExercises: routine.restBetweenExercises,
-          });
-          synced++;
-        } else {
-          await dbSvc.createRoutine({
-            name: routine.name,
-            description: routine.description,
-            image: routine.image,
-            exercises: routine.exercises.map((ex: any) => ({
-              name: ex.name,
-              sets: ex.sets,
-              equipment: ex.equipment,
-              notes: ex.notes,
-              restBetweenSets: ex.restBetweenSets,
-              useSmartRest: ex.useSmartRest,
-            })),
-            restBetweenSets: routine.restBetweenSets,
-            restBetweenExercises: routine.restBetweenExercises,
-          });
-          synced++;
-        }
-      } catch (e) {
-        errors++;
-        logger.error('Error syncing routine', { routineName: routine.name }, e instanceof Error ? e : undefined);
+      if (existing) {
+        await dbSvc.updateRoutine(existing.id, data);
+      } else {
+        await dbSvc.createRoutine(data);
       }
+      synced++;
+    } catch (error) {
+      errors++;
+      logger.error(
+        'Error syncing routine',
+        { routineName: routine.name },
+        error instanceof Error ? error : undefined,
+      );
     }
+  }
 
-    if (synced > 0) logger.info('Routines synced to database', { synced, errors });
-    return { synced, errors };
-  } catch { return { synced: 0, errors: 0 }; }
+  if (synced > 0) logger.info('Routines synced to database', { synced, errors });
+  return { synced, errors };
 }
 
 // ==================== Dev Tools ====================

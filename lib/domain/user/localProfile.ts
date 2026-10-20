@@ -24,10 +24,10 @@ export function saveProfileLocally(profile: Partial<Omit<UserProfile, 'id' | 'us
   };
   
   const updatedProfile: UserProfile = {
-    id: existingProfile?.id || 'local-profile',
-    userId: existingProfile?.userId || 'local-user',
-    name: profile.name ?? existingProfile?.name ?? 'Usuario',
-    email: profile.email ?? existingProfile?.email ?? 'local@user.com',
+    id: existingProfile?.id,
+    userId: existingProfile?.userId,
+    name: profile.name ?? existingProfile?.name ?? '',
+    email: profile.email ?? existingProfile?.email ?? '',
     avatarUrl: normalizeValue(profile.avatarUrl ?? existingProfile?.avatarUrl),
     age: normalizeValue(profile.age ?? existingProfile?.age),
     gender: normalizeValue(profile.gender ?? existingProfile?.gender),

@@ -346,10 +346,9 @@ export async function getProfile(): Promise<UserProfile> {
     const profile = getFromStorage<UserProfile | null>(STORAGE_KEYS.PROFILE, null);
 
     if (!profile) {
-        // Return default profile
         return {
-            name: 'Usuario',
-            email: 'local@user.com',
+            name: '',
+            email: '',
         };
     }
 

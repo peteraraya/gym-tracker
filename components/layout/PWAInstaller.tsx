@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Download, X } from '@/components/icons/lucide';
 import { useTranslations } from '@/context/LocaleContext';
+import { Card } from '@/components/ui/Card';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -26,12 +27,10 @@ export function PWAInstaller() {
   });
 
   useEffect(() => {
-    // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
 
-      // Mostrar el prompt después de un delay
       promptTimeoutRef.current = window.setTimeout(() => {
         let dismissed = false;
         try {
@@ -42,12 +41,11 @@ export function PWAInstaller() {
         if (!dismissed) {
           setShowInstallPrompt(true);
         }
-      }, 3000);
+      }, 4000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Detectar cuando se instala
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setShowInstallPrompt(false);
@@ -93,43 +91,43 @@ export function PWAInstaller() {
   }
 
   return (
-    <div className="fixed top-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-slide-in-top">
-      <div className="bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-800 text-white rounded-2xl shadow-2xl p-6 relative">
+    <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 animate-slide-in-bottom">
+      <Card className="bg-linear-to-br from-neutral-900 via-neutral-800 to-neutral-950 border border-neutral-700 shadow-2xl p-5 relative">
         <button
           onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1 hover:bg-white/20 rounded-lg transition-colors"
+          className="absolute top-2 right-2 p-1.5 hover:bg-white/10 rounded-lg transition-colors"
           aria-label={t('close')}
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 text-neutral-300" />
         </button>
 
-        <div className="flex items-start gap-4 mb-4">
-          <div className="w-12 h-12 bg-blue-500/20 border border-blue-400/30 rounded-xl flex items-center justify-center shrink-0 text-blue-200">
-            <Download className="w-6 h-6" />
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-10 h-10 bg-brand-500/20 border border-brand-400/30 rounded-xl flex items-center justify-center shrink-0 text-brand-300">
+            <Download className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-1">
+            <h3 className="font-semibold text-neutral-50 mb-0.5 text-sm">
               {t('installTitle')}
             </h3>
-            <p className="text-sm text-white/90">
+            <p className="text-neutral-400 text-xs leading-relaxed">
               {t('installDescription')}
             </p>
           </div>
         </div>
 
-        <div className="space-y-2 mb-4 text-sm">
-          <div className="flex items-center gap-2">
-            <span>✓</span>
-            <span>{t('homeBenefit')}</span>
+        <div className="space-y-2 mb-3 text-[11px]">
+          <div className="flex items-center gap-1.5">
+            <span className="text-brand-400">✓</span>
+            <span className="text-neutral-300">{t('homeBenefit')}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span>✓</span>
-            <span>{t('offlineBenefit')}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-brand-400">✓</span>
+            <span className="text-neutral-300">{t('offlineBenefit')}</span>
           </div>
         </div>
 
         {installationError && (
-          <p role="alert" className="mb-3 rounded-lg bg-red-950/50 p-2 text-sm text-red-100">
+          <p role="alert" className="mb-2 rounded-lg bg-red-900/30 p-2 text-[11px] text-red-100 border border-red-500/20">
             {t('installError')}
           </p>
         )}
@@ -137,7 +135,7 @@ export function PWAInstaller() {
         <div className="flex gap-2">
           <Button
             onClick={handleInstallClick}
-            className="flex-1"
+            className="flex-1 min-h-[44px]"
             variant="primary"
           >
             {t('install')}
@@ -145,12 +143,12 @@ export function PWAInstaller() {
           <Button
             onClick={handleDismiss}
             variant="ghost"
-            className="text-white hover:bg-white/20"
+            className="text-neutral-300 hover:bg-white/10 min-h-[44px]"
           >
             {t('later')}
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

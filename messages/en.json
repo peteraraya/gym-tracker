@@ -130,6 +130,16 @@
       "account": "Account"
     }
   },
+  "connection": {
+    "localTitle": "Local mode",
+    "localDescription": "Data is saved on this device and is not synced to the cloud.",
+    "offlineTitle": "Offline",
+    "offlineDescription": "Some features that require sync may be unavailable.",
+    "cloudUnavailableTitle": "Cloud sync paused",
+    "cloudUnavailableDescription": "A cloud operation could not be completed. Check the connection and configuration before continuing.",
+    "connectedTitle": "Connected",
+    "connectedDescription": "Data is synced with the database."
+  },
   "auth": {
     "signIn": "Sign In",
     "signUp": "Create Account",
@@ -182,6 +192,13 @@
       "configureSchedule": "Set up your weekly schedule",
       "trainToday": "Choose a routine for today"
     },
+    "noPlan": {
+      "eyebrow": "Planning",
+      "title": "You don't have a weekly schedule yet",
+      "description": "Schedule your routines by day to see your next workout here.",
+      "cta": "Set up schedule",
+      "routineUnavailable": "The scheduled routine is no longer available."
+    },
     "activeWorkout": "Workout in progress",
     "continueWorkout": "Continue workout",
     "workoutFallback": "Workout",
@@ -195,6 +212,7 @@
       "other": "sets"
     },
     "startWorkout": "Start workout",
+    "startPending": "Preparing workout…",
     "moreRoutines": {
       "one": "more routine",
       "other": "more routines"
@@ -210,8 +228,10 @@
     "quickStart": "Quick start",
     "plan": "Plan",
     "planLoadError": "Your weekly plan could not be loaded.",
+    "dataLoadError": "Your training data could not be loaded.",
     "retry": "Retry",
     "recent": "Recent",
+    "exerciseAbbreviation": "exercises",
     "viewAll": "View all",
     "startError": "The workout could not be started. Please try again.",
     "welcome": "Welcome to GymLogiX",

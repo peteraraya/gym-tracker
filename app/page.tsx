@@ -18,6 +18,8 @@ import {
 } from "@/lib/shared/utils/dateUtils";
 import { getWeeklyPlan } from "@/lib/infrastructure/storage/storage";
 import type { WeeklyPlan } from "@/lib/infrastructure/storage/localStorage";
+import type { Routine, WorkoutSession } from "@/types";
+import type { WorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
 import {
   Dumbbell,
   Play,
@@ -53,7 +55,7 @@ function countLabel(
   return `${count} ${t(`${key}.${plural}`)}`;
 }
 
-function getThisWeekVolume(sessions: any[]): number {
+function getThisWeekVolume(sessions: WorkoutSession[]): number {
   const now = new Date();
   const monday = getWeekStart(now, "monday");
   const weekEnd = new Date(monday);
@@ -66,7 +68,7 @@ function getThisWeekVolume(sessions: any[]): number {
   );
 }
 
-function getLastWeekVolume(sessions: any[]): number {
+function getLastWeekVolume(sessions: WorkoutSession[]): number {
   const now = new Date();
   const thisMonday = getWeekStart(now, "monday");
   const lastMonday = new Date(thisMonday);
@@ -130,15 +132,56 @@ const RestDayCard: React.FC<{ dayKey: DayKey; showSetup?: boolean }> = ({ dayKey
   </motion.div>;
 };
 
+const NoScheduleCard: React.FC = () => {
+  const t = useTranslations("home");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-3xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
+    >
+      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{t("noPlan.eyebrow")}</p>
+      <h2 className="mt-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">{t("noPlan.title")}</h2>
+      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{t("noPlan.description")}</p>
+      <Link
+        href="/planning"
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-zinc-950 dark:hover:bg-emerald-200"
+      >
+        {t("noPlan.cta")} <ChevronRight className="h-4 w-4" />
+      </Link>
+    </motion.div>
+  );
+};
+
 // ——— Card entrenamiento de hoy ———
 const TodayWorkoutCard: React.FC<{
   todayKey: DayKey;
   todayRoutineIds: string[];
-  routines: any[];
-  activeWorkout: any;
+  routines: Routine[];
+  activeWorkout: WorkoutState | null;
   onStart: (id: string) => void;
   loading: boolean;
-}> = ({ todayKey, todayRoutineIds, routines, activeWorkout, onStart, loading }) => {
+  planLoading: boolean;
+  planError: boolean;
+  routinesError: boolean;
+  hasWeeklySchedule: boolean;
+  startingRoutineId: string | null;
+  onRetryPlan: () => void;
+}> = ({
+  todayKey,
+  todayRoutineIds,
+  routines,
+  activeWorkout,
+  onStart,
+  loading,
+  planLoading,
+  planError,
+  routinesError,
+  hasWeeklySchedule,
+  startingRoutineId,
+  onRetryPlan,
+}) => {
   const router = useRouter();
   const t = useTranslations("home");
   const { locale } = useLocale();
@@ -146,7 +189,7 @@ const TodayWorkoutCard: React.FC<{
   if (loading) return <div className="rounded-3xl bg-zinc-100 dark:bg-zinc-800/60 h-40 animate-pulse" />;
 
   if (activeWorkout?.routineId) {
-    const active = routines.find((r: any) => r.id === activeWorkout.routineId);
+    const active = routines.find((r) => r.id === activeWorkout.routineId);
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-3xl bg-linear-to-br from-emerald-500 to-green-600 p-5 shadow-xl shadow-emerald-500/20"
@@ -156,7 +199,7 @@ const TodayWorkoutCard: React.FC<{
         </div>
         <div className="relative">
           <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">🔥 {t("activeWorkout")}</p>
-          <h2 className="text-white font-bold text-xl mb-3">{active?.name || t("workoutFallback")}</h2>
+          <h2 className="text-white font-bold text-xl mb-3">{active?.name || activeWorkout.routineName || t("workoutFallback")}</h2>
           <button onClick={() => router.push(`/workout/${activeWorkout.routineId}`)}
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
           >
@@ -167,10 +210,45 @@ const TodayWorkoutCard: React.FC<{
     );
   }
 
+  if (routinesError) {
+    return (
+      <div role="alert" className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+        <h2 className="font-semibold">{t("dataLoadError")}</h2>
+        <button type="button" onClick={onRetryPlan} className="mt-3 min-h-11 font-semibold underline underline-offset-2">
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
+
+  if (planLoading) return <div className="h-40 animate-pulse rounded-3xl bg-zinc-100 dark:bg-zinc-800/60" />;
+
+  if (planError) {
+    return (
+      <div role="alert" className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+        <h2 className="font-semibold">{t("planLoadError")}</h2>
+        <button type="button" onClick={onRetryPlan} className="mt-3 min-h-11 font-semibold underline underline-offset-2">
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
+
   if (todayRoutineIds.length > 0) {
-    const planned = todayRoutineIds.map((id) => routines.find((r: any) => r.id === id)).filter(Boolean);
-    if (planned.length === 0) return <RestDayCard dayKey={todayKey} />;
-    const first = planned[0] as any;
+    const planned = todayRoutineIds
+      .map((id) => routines.find((routine) => routine.id === id))
+      .filter((routine): routine is Routine => Boolean(routine));
+    if (planned.length === 0) {
+      return (
+        <div role="status" className="rounded-3xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">{t("noPlan.routineUnavailable")}</h2>
+          <Link href="/planning" className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-700 dark:text-emerald-300">
+            {t("noPlan.cta")} <ChevronRight className="ml-1 h-4 w-4" />
+          </Link>
+        </div>
+      );
+    }
+    const first = planned[0];
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-3xl bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-800 p-5 shadow-xl shadow-black/25"
@@ -186,12 +264,15 @@ const TodayWorkoutCard: React.FC<{
           <h2 className="text-white font-bold text-2xl truncate mb-1">{first.name}</h2>
           <p className="text-indigo-100 text-sm mb-6">
             {countLabel(t, locale, "exercisesCount", first.exercises?.length || 0)} ·{" "}
-            {countLabel(t, locale, "setsCount", (first.exercises || []).reduce((s: number, ex: any) => s + (ex.sets?.length || 0), 0))}
+            {countLabel(t, locale, "setsCount", first.exercises.reduce((total, exercise) => total + (exercise.sets?.length ?? 0), 0))}
           </p>
-          <button onClick={() => onStart(first.id)}
-            className="w-full flex items-center justify-center gap-3 bg-white text-indigo-700 text-base font-bold py-4 rounded-2xl shadow-xl hover:bg-indigo-50 transform hover:scale-[1.02] active:scale-95 transition-all"
+          <button
+            onClick={() => onStart(first.id)}
+            disabled={startingRoutineId !== null}
+            aria-busy={startingRoutineId === first.id}
+            className="w-full flex items-center justify-center gap-3 bg-white text-indigo-700 text-base font-bold py-4 rounded-2xl shadow-xl hover:bg-indigo-50 transform hover:scale-[1.02] active:scale-95 transition-all disabled:cursor-wait disabled:opacity-70"
           >
-            <Play className="w-5 h-5 fill-indigo-600" /> {t("startWorkout")}
+            <Play className="w-5 h-5 fill-indigo-600" /> {startingRoutineId === first.id ? t("startPending") : t("startWorkout")}
           </button>
           {planned.length > 1 && (
             <p className="text-indigo-300 text-xs mt-2">+{countLabel(t, locale, "moreRoutines", planned.length - 1)}</p>
@@ -201,12 +282,23 @@ const TodayWorkoutCard: React.FC<{
     );
   }
 
-  return <RestDayCard dayKey={todayKey} showSetup={routines.length > 0} />;
+  if (!hasWeeklySchedule) {
+    return routines.length > 0 ? <NoScheduleCard /> : null;
+  }
+
+  return <RestDayCard dayKey={todayKey} />;
 };
 
 // ——— Página ———
 export default function Home() {
-  const { routines, sessions, loading } = useGym();
+  const {
+    routines,
+    sessions,
+    loading,
+    routinesError,
+    sessionsError,
+    refreshAll,
+  } = useGym();
   const { activeWorkout, startWorkout } = useWorkout();
   const { error: showError } = useToast();
   const router = useRouter();
@@ -215,38 +307,33 @@ export default function Home() {
 
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null);
   const [weeklyPlanError, setWeeklyPlanError] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [isWeeklyPlanLoading, setIsWeeklyPlanLoading] = useState(true);
+  const [startingRoutineId, setStartingRoutineId] = useState<string | null>(null);
   const todayKey = getTodayKey();
 
   const loadWeeklyPlan = useCallback(async () => {
+    setIsWeeklyPlanLoading(true);
     try {
       setWeeklyPlan(await getWeeklyPlan());
       setWeeklyPlanError(false);
     } catch (error) {
       console.error("Error loading weekly plan:", error);
+      setWeeklyPlan(null);
       setWeeklyPlanError(true);
+    } finally {
+      setIsWeeklyPlanLoading(false);
     }
   }, []);
-
-  // Reiniciar estado de inicialización cuando el componente se monte
-  // (cubre el caso de navegar a otra ruta y volver)
-  useEffect(() => {
-    setIsInitializing(true); // eslint-disable-line react-hooks/set-state-in-effect
-    setInitialLoadComplete(false); // eslint-disable-line react-hooks/set-state-in-effect
-  }, []);
-
-  // Cuando GymContext termine de cargar (loading pasa a false), ocultar el skeleton
-  useEffect(() => {
-    if (!loading && !initialLoadComplete) {
-      setInitialLoadComplete(true); // eslint-disable-line react-hooks/set-state-in-effect
-      setIsInitializing(false); // eslint-disable-line react-hooks/set-state-in-effect
-    }
-  }, [loading, initialLoadComplete]);
 
   useEffect(() => { void loadWeeklyPlan(); }, [loadWeeklyPlan]);
 
   const todayRoutineIds = useMemo<string[]>(() => weeklyPlan?.[todayKey]?.routines ?? [], [weeklyPlan, todayKey]);
+  const hasWeeklySchedule = useMemo(
+    () => Object.values(weeklyPlan ?? {}).some(
+      (day) => Array.isArray(day?.routines) && day.routines.length > 0,
+    ),
+    [weeklyPlan],
+  );
   const streakCount = useMemo(() => calculateStreak(sessions), [sessions]);
   const thisWeekVol = useMemo(() => getThisWeekVolume(sessions), [sessions]);
   const lastWeekVol = useMemo(() => getLastWeekVolume(sessions), [sessions]);
@@ -255,6 +342,7 @@ export default function Home() {
   const recentSessions = useMemo(() => sessions.slice(0, 3), [sessions]);
 
   const handleStart = useCallback(async (routineId: string) => {
+    if (startingRoutineId) return;
     try {
       if (activeWorkout?.routineId === routineId) {
         router.push(`/workout/${routineId}`);
@@ -265,13 +353,20 @@ export default function Home() {
         showError(t("startError"));
         return;
       }
+      setStartingRoutineId(routineId);
       await startWorkout(routine);
       router.push(`/workout/${routineId}`);
     } catch (error) {
       console.error("Error starting workout from home:", error);
       showError(t("startError"));
+    } finally {
+      setStartingRoutineId(null);
     }
-  }, [activeWorkout, routines, startWorkout, router, showError, t]);
+  }, [activeWorkout, routines, startWorkout, router, showError, t, startingRoutineId]);
+
+  const retryDataLoad = useCallback(async () => {
+    await Promise.all([refreshAll(), loadWeeklyPlan()]);
+  }, [refreshAll, loadWeeklyPlan]);
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -280,7 +375,7 @@ export default function Home() {
 
   return (
     <ProtectedRoute>
-      {isInitializing ? (
+      {loading ? (
         <PageSkeleton variant="dashboard" className="h-screen" />
       ) : (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -310,10 +405,10 @@ export default function Home() {
             )}
           </motion.div>
 
-          {weeklyPlanError && (
-            <div role="alert" className="lg:col-span-12 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
-              <span>{t("planLoadError")}</span>
-              <button type="button" onClick={() => void loadWeeklyPlan()} className="shrink-0 font-semibold underline underline-offset-2">
+          {sessionsError && (
+            <div role="alert" className="lg:col-span-12 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+              <span>{t("dataLoadError")}</span>
+              <button type="button" onClick={() => void retryDataLoad()} className="shrink-0 font-semibold underline underline-offset-2">
                 {t("retry")}
               </button>
             </div>
@@ -328,6 +423,12 @@ export default function Home() {
               activeWorkout={activeWorkout}
               onStart={handleStart}
               loading={loading}
+              planLoading={isWeeklyPlanLoading}
+              planError={weeklyPlanError}
+              routinesError={routinesError}
+              hasWeeklySchedule={hasWeeklySchedule}
+              startingRoutineId={startingRoutineId}
+              onRetryPlan={() => void retryDataLoad()}
             />
           </section>
 
@@ -336,7 +437,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
             className="grid grid-cols-3 gap-3"
           >
-            {loading ? (
+            {loading || sessionsError ? (
               <>
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="bg-zinc-100 dark:bg-zinc-800/60 rounded-2xl p-3 h-[72px] animate-pulse" />
@@ -382,7 +483,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
             className="grid grid-cols-2 gap-3"
           >
-            {loading ? (
+            {loading || routinesError || sessionsError ? (
               <>
                 <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-2xl h-[60px] animate-pulse" />
                 <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-2xl h-[60px] animate-pulse" />
@@ -416,7 +517,7 @@ export default function Home() {
           </motion.div>
 
           {/* Inicio rápido: cuando no hay plan semanal pero sí rutinas */}
-          {!loading && !weeklyPlanError && weeklyPlan === null && routines.length > 0 && todayRoutineIds.length === 0 && (
+          {!loading && !weeklyPlanError && !routinesError && !hasWeeklySchedule && routines.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">{t("quickStart")}</h2>
@@ -426,8 +527,12 @@ export default function Home() {
               </div>
               <div className="space-y-2">
                 {routines.slice(0, 3).map((r) => (
-                  <button key={r.id} onClick={() => handleStart(r.id)}
-                    className="w-full flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 py-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors text-left"
+                  <button
+                    key={r.id}
+                    onClick={() => void handleStart(r.id)}
+                    disabled={startingRoutineId !== null}
+                    aria-busy={startingRoutineId === r.id}
+                    className="w-full flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl px-4 py-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors text-left disabled:cursor-wait disabled:opacity-70"
                   >
                     <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
                       <Play className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
@@ -445,7 +550,7 @@ export default function Home() {
 
           {/* Sesiones recientes */}
           <AnimatePresence>
-            {recentSessions.length > 0 && (
+            {!sessionsError && recentSessions.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-zinc-700 dark:text-zinc-300 font-semibold text-sm">{t("recent")}</h2>
@@ -472,7 +577,7 @@ export default function Home() {
                           <p className="text-zinc-800 dark:text-zinc-200 font-medium text-sm truncate">{session.routineName || t("workoutFallback")}</p>
                           <p className="text-zinc-400 text-xs">
                             {session.date ? new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" }).format(new Date(session.date)) : ""}
-                            {exCount > 0 && <span className="ml-1.5">· {exCount} ejerc.</span>}
+                            {exCount > 0 && <span className="ml-1.5">· {exCount} {t("exerciseAbbreviation")}</span>}
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-0.5 shrink-0">
@@ -494,17 +599,18 @@ export default function Home() {
           </AnimatePresence>
 
           {/* Estado vacío */}
-          {!loading && routines.length === 0 && (
+          {!loading && !routinesError && routines.length === 0 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
               className="rounded-3xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 p-8 text-center"
             >
               <Dumbbell className="w-10 h-10 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
-              <p className="text-zinc-700 dark:text-zinc-300 font-semibold mb-1">{t("createFirstRoutine") || "Crea tu primera rutina"}</p>
-              <p className="text-zinc-400 text-sm mb-4">{t("getStartedDesc") || "Empieza a registrar tus entrenamientos"}</p>
-              <Link href="/routines">
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors">
-                  Crear rutina
-                </button>
+              <p className="text-zinc-700 dark:text-zinc-300 font-semibold mb-1">{t("createFirstRoutine")}</p>
+              <p className="text-zinc-400 text-sm mb-4">{t("getStartedDesc")}</p>
+              <Link
+                href="/routines"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+              >
+                {t("cta.create")}
               </Link>
             </motion.div>
           )}

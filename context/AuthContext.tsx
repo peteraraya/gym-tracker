@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/infrastructure/supabase/client';
+import { hasSupabaseConfig } from '@/lib/infrastructure/supabase/config';
 import type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -21,20 +22,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isDatabaseEnabled = process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true';
 
   // Check if Supabase is configured at initialization (only if database is enabled)
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const initialIsConfigured = isDatabaseEnabled ? !!(
-    supabaseUrl &&
-    supabaseKey &&
-    supabaseUrl !== 'your-project-url' &&
-    supabaseUrl.startsWith('http') &&
-    !supabaseUrl.includes('sb_publishable')
-  ) : true; // Always configured when database is disabled
+  const initialIsConfigured = isDatabaseEnabled && hasSupabaseConfig();
 
-  const [user, setUser] = useState<User | null>(
-    // If database is disabled, use a mock local user immediately
-    isDatabaseEnabled ? null : { id: 'local-user', email: 'local@user.com' } as User
-  );
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(!initialIsConfigured ? false : (isDatabaseEnabled ? true : false));
   const [isConfigured] = useState(initialIsConfigured);
 
@@ -68,12 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = useCallback(async (email: string, password: string) => {
     if (!isDatabaseEnabled) {
-      console.warn('Authentication is disabled in localStorage mode');
-      // Simulate a successful signup in local mode
-      const mockUser = { id: 'local-user', email } as User;
-      setUser(mockUser);
-      setLoading(false);
-      return { error: null };
+      return { error: new Error('La autenticación requiere una conexión de base de datos configurada.') };
     }
 
     const supabase = createClient();
@@ -86,12 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     if (!isDatabaseEnabled) {
-      console.warn('Authentication is disabled in localStorage mode');
-      // Simulate a successful signin in local mode
-      const mockUser = { id: 'local-user', email } as User;
-      setUser(mockUser);
-      setLoading(false);
-      return { error: null };
+      return { error: new Error('La autenticación requiere una conexión de base de datos configurada.') };
     }
 
     const supabase = createClient();
@@ -104,9 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     if (!isDatabaseEnabled) {
-      console.warn('Authentication is disabled in localStorage mode');
-      setUser(null);
-      setLoading(false);
       return;
     }
 
@@ -127,8 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = useCallback(async (email: string) => {
     if (!isDatabaseEnabled) {
-      console.warn('Authentication is disabled in localStorage mode');
-      return { error: null };
+      return { error: new Error('La recuperación de contraseña requiere una conexión de base de datos configurada.') };
     }
 
     const supabase = createClient();
