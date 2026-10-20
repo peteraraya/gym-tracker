@@ -225,25 +225,29 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
   const finishWorkout = useCallback(async () => {
     logger.log("[WorkoutContext] finishWorkout");
-    markFinished();
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
     try {
+      markFinished();
+      await saveQueue.flush();
       await storageService.clearActiveWorkout();
     } catch (e) {
       logger.error("[WorkoutContext] Error clearing on finish:", e);
+      throw e;
     }
   }, [markFinished, setActiveWorkout, activeWorkoutRef]);
 
   const cancelWorkout = useCallback(async () => {
     logger.log("[WorkoutContext] cancelWorkout");
-    markCancelled();
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
     try {
+      markCancelled();
+      await saveQueue.flush();
       await storageService.clearActiveWorkout();
     } catch (e) {
       logger.error("[WorkoutContext] Error clearing on cancel:", e);
+      throw e;
     }
   }, [markCancelled, setActiveWorkout, activeWorkoutRef]);
 
@@ -305,5 +309,4 @@ export function useWorkout() {
   }
   return context;
 }
-
 

@@ -477,6 +477,7 @@ export async function clearActiveWorkout(): Promise<void> {
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
     } catch (e) { 
         console.error('[localStorage] Error limpiando active workout:', e);
+        throw e;
     }
 }
 

@@ -42,18 +42,29 @@ const CLEARED_EVENT_TIMEOUT_MS = 1_500;
 
 // ─── Helpers de marcadores de storage ────────────────────────────────────────
 
-function setFinishMarkers() {
+function setOperationMarkers(sessionKey: string, persistentKey: string) {
   if (typeof window === "undefined") return;
   const ts = Date.now().toString();
-  sessionStorage.setItem("workout_finished", ts);
-  localStorage.setItem("workout_finished_persistent", ts);
+
+  try {
+    sessionStorage.setItem(sessionKey, ts);
+  } catch (error) {
+    logger.warn("[useWorkoutLifecycle] Could not set session operation marker", error);
+  }
+
+  try {
+    localStorage.setItem(persistentKey, ts);
+  } catch (error) {
+    logger.warn("[useWorkoutLifecycle] Could not set persistent operation marker", error);
+  }
+}
+
+function setFinishMarkers() {
+  setOperationMarkers("workout_finished", "workout_finished_persistent");
 }
 
 function setCancelMarkers() {
-  if (typeof window === "undefined") return;
-  const ts = Date.now().toString();
-  sessionStorage.setItem("workout_cancelled", ts);
-  localStorage.setItem("workout_cancelled_persistent", ts);
+  setOperationMarkers("workout_cancelled", "workout_cancelled_persistent");
 }
 
 function emitClearedEvent() {

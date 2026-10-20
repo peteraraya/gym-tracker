@@ -1,15 +1,19 @@
 "use client";
 
 import { useWorkout } from "@/context/WorkoutContext";
-import { useConfirm } from "@/context/NotificationContext";
+import { useConfirm, useToast } from "@/context/NotificationContext";
 import { useRouter, usePathname } from "next/navigation";
 import { Activity, X } from "@/components/icons/lucide";
+import { useState } from "react";
+import logger from "@/lib/logger";
 
 export function ActiveWorkoutBanner() {
   const { activeWorkout, cancelWorkout } = useWorkout();
   const { confirm } = useConfirm();
+  const { error } = useToast();
   const router = useRouter();
   const pathname = usePathname();
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // No mostrar el banner si no hay workout activo
   if (!activeWorkout) return null;
@@ -28,6 +32,7 @@ export function ActiveWorkoutBanner() {
   };
 
   const handleCancel = async () => {
+    if (isCancelling) return;
     const confirmed = await confirm({
       title: "Cancelar entrenamiento",
       message: "¿Cancelar entrenamiento activo? Se perderá todo el progreso.",
@@ -37,40 +42,16 @@ export function ActiveWorkoutBanner() {
     });
 
     if (confirmed) {
-      // console.log("[ActiveWorkoutBanner] User confirmed cancellation");
-
-      // Marcar la cancelación antes de llamar a cancelWorkout
+      setIsCancelling(true);
       try {
-        const timestamp = Date.now().toString();
-        localStorage.setItem("gym-tracker-cancelled", timestamp);
-        sessionStorage.setItem("workout_cancelled", timestamp);
-        localStorage.setItem("workout_cancelled_persistent", timestamp);
-        // console.log(
-        //   "[ActiveWorkoutBanner] Set cancellation markers:",
-        //   timestamp,
-        // );
-      } catch (e) {
-        console.error(
-          "[ActiveWorkoutBanner] Error setting cancellation markers:",
-          e,
-        );
-      }
-
-      // Remove possible modal/backdrop elements left in the DOM
-      try {
-        document
-          .querySelectorAll(".modal-backdrop, .modal-overlay, [data-backdrop]")
-          .forEach((el) => el.remove());
-      } catch (e) {}
-
-      // Cancelar el workout
-      await cancelWorkout();
-
-
-      // Redirigir después de un pequeño delay para asegurar que el estado se limpió
-      setTimeout(() => {
+        await cancelWorkout();
         router.replace("/routines");
-      }, 100);
+      } catch (err) {
+        logger.error("[ActiveWorkoutBanner] Error cancelling workout:", err);
+        error("No se pudo descartar el entrenamiento. Inténtalo de nuevo.", 4000);
+      } finally {
+        setIsCancelling(false);
+      }
     }
   };
 
@@ -108,11 +89,15 @@ export function ActiveWorkoutBanner() {
               </button>
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 text-sm font-semibold bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all hover:scale-105 shadow-md flex items-center gap-1.5"
+                disabled={isCancelling}
+                aria-busy={isCancelling}
+                className="px-4 py-2 text-sm font-semibold bg-red-500 hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60 text-white rounded-lg transition-all hover:scale-105 shadow-md flex items-center gap-1.5"
                 aria-label="Descartar entrenamiento"
               >
                 <X className="w-4 h-4" />
-                <span className="hidden sm:inline">Descartar</span>
+                <span className="hidden sm:inline">
+                  {isCancelling ? "Descartando..." : "Descartar"}
+                </span>
               </button>
             </div>
           </div>

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { NumericInput } from "@/components/ui/NumericInput";
+import { useTranslations } from "@/context/LocaleContext";
 import { Timer } from "@/components/features/workout/Timer";
 import { motion, AnimatePresence } from "framer-motion";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
@@ -15,6 +16,7 @@ import { WorkoutModals } from "./components/WorkoutModals";
 import { WorkoutGuidedView } from "./components/WorkoutGuidedView";
 import { WorkoutStartSplash } from "@/components/features/workout/WorkoutStartSplash";
 import { WorkoutCompleteSplash } from "@/components/features/workout/WorkoutCompleteSplash";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { PRCelebration } from "@/components/features/workout/PRCelebration";
 import { useWorkoutPageState } from "./hooks/useWorkoutPageState";
 
@@ -43,10 +45,31 @@ const QuickEditMode = lazy(async () => {
 });
 
 export default function WorkoutPage() {
+  const t = useTranslations("workout");
   const params = useParams();
   const id = params.id as string;
 
   const state = useWorkoutPageState(id);
+
+  if (!state.isInitialized) {
+    return (
+      <div
+        className="mx-auto w-full max-w-3xl space-y-3 px-3 pt-4 sm:px-4"
+        role="status"
+        aria-busy="true"
+        aria-label={t("preparingWorkout")}
+      >
+        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <Skeleton className="mb-3 h-5 w-2/5" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-xl" />
+        <span className="sr-only">{t("preparingWorkout")}</span>
+      </div>
+    );
+  }
 
   if (!state.routine || !state.routine.exercises || state.routine.exercises.length === 0) {
     if (state.gymLoading) {
@@ -446,7 +469,9 @@ export default function WorkoutPage() {
             onComplete: state.handleCompleteSet,
             onCancel: () => state.setExecution.cancelSetExecution(),
           }}
-          showStartSplash={state.showStartSplash}
+          showStartSplash={
+            state.showStartSplash && state.activeWorkout?.routineId === id
+          }
           routineName={state.routine?.name || "Entrenamiento"}
           exerciseCount={state.routine?.exercises?.length || 0}
           totalSets={(state.routine?.exercises || []).reduce((sum: number, ex: Exercise) => sum + (ex.sets?.length || 0), 0)}

@@ -532,14 +532,12 @@ export function useWorkoutPageState(id: string) {
     return found?.id ?? routine.exercises[0]?.id ?? null;
   }, [routine, workoutState.workoutData.completedSets, workoutState.workoutData.skippedExercises]);
 
-  const [initState, setInitState] = useState({
-    lastRoutineId: null as string | null,
-    hasLoadedModified: false,
-    isInitialized: false,
-  });
-
   useEffect(() => {
     if (gymLoading) return;
+    let isCurrent = true;
+    setIsInitialized(false);
+    setShowStartSplash(false);
+
     initializeWorkout({
       id,
       activeWorkout,
@@ -552,12 +550,20 @@ export function useWorkoutPageState(id: string) {
       setRoutine,
       setOriginalRoutine,
       setIsInitialized,
-      setInitState,
       routerPush: router.push,
-      initState,
+      shouldContinue: () => isCurrent,
+    }).catch((err: unknown) => {
+      if (!isCurrent) return;
+      logger.error("[useWorkoutPageState] Error initializing workout:", err);
+      error("No se pudo iniciar el entrenamiento. Inténtalo de nuevo.", 4000);
+      router.replace("/routines");
     });
+
+    return () => {
+      isCurrent = false;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, gymLoading, initState.lastRoutineId, initState.hasLoadedModified]);
+  }, [id, gymLoading]);
 
   useEffect(() => {
     if (!currentExercise || !isInitialized) return;
@@ -964,10 +970,15 @@ export function useWorkoutPageState(id: string) {
       variant: "danger",
     });
     if (confirmed) {
-      cancelWorkout();
-      router.push("/routines");
+      try {
+        await cancelWorkout();
+        router.replace("/routines");
+      } catch (err) {
+        logger.error("[useWorkoutPageState] Error cancelling workout:", err);
+        error("No se pudo descartar el entrenamiento. Inténtalo de nuevo.", 4000);
+      }
     }
-  }, [confirm, cancelWorkout, router]);
+  }, [confirm, cancelWorkout, router, error]);
 
   const handlePauseWorkout = useCallback(() => {
     if (isPaused) {
@@ -1605,6 +1616,7 @@ export function useWorkoutPageState(id: string) {
 
   return {
     router,
+    activeWorkout,
     routine,
     setRoutine,
     originalRoutine,

@@ -1,10 +1,26 @@
 import * as storageService from "@/lib/storage/storage";
+import type { ActiveWorkout } from "@/lib/storage/storage";
 import type { Routine, Exercise } from "@/types";
 import { WorkoutData } from "../hooks/useWorkoutState";
+import logger from "@/lib/logger";
 
-interface InitWorkoutParams {
+interface RestorableWorkout extends Partial<WorkoutData> {
+  routineId: string;
+  startedAt?: string | Date;
+  currentExerciseIndex?: number;
+  currentSet?: number;
+  isResting?: boolean;
+  restTimerDuration?: number;
+  restTimerRemaining?: number;
+  restTimerStartedAt?: number;
+  restTimerTitle?: string;
+  restTimerNextExercise?: string;
+  modifiedRoutine?: Routine;
+}
+
+export interface InitWorkoutParams {
   id: string;
-  activeWorkout: any;
+  activeWorkout: RestorableWorkout | null;
   getRoutineById: (id: string) => Routine | undefined;
   startWorkout: (routine: Routine) => void;
   workoutState: {
@@ -22,9 +38,18 @@ interface InitWorkoutParams {
   setRoutine: (routine: Routine) => void;
   setOriginalRoutine: (routine: Routine | null) => void;
   setIsInitialized: (val: boolean) => void;
-  setInitState: (updater: any) => void;
   routerPush: (path: string) => void;
-  initState: { hasLoadedModified: boolean; lastRoutineId: string | null };
+  shouldContinue: () => boolean;
+}
+
+function isRestorableWorkout(
+  workout: ActiveWorkout | null,
+): workout is ActiveWorkout & RestorableWorkout {
+  return Boolean(
+    workout &&
+      typeof workout.routineId === "string" &&
+      workout.routineId.length > 0,
+  );
 }
 
 export const initializeWorkout = async ({
@@ -39,30 +64,23 @@ export const initializeWorkout = async ({
   setRoutine,
   setOriginalRoutine,
   setIsInitialized,
-  setInitState,
   routerPush,
-  initState,
+  shouldContinue,
 }: InitWorkoutParams): Promise<void> => {
+  if (!shouldContinue()) return;
+
   let foundRoutine: Routine | undefined | null = null;
 
-  if (activeWorkout?.modifiedRoutine && !initState.hasLoadedModified) {
+  if (activeWorkout?.routineId === id && activeWorkout.modifiedRoutine) {
     foundRoutine = activeWorkout.modifiedRoutine as Routine;
-    setInitState((prev: any) => ({ ...prev, hasLoadedModified: true }));
   }
 
   if (!foundRoutine) {
     foundRoutine = getRoutineById(id);
   }
 
-  try {
-    const canonical = getRoutineById(id);
-    setOriginalRoutine(canonical ? JSON.parse(JSON.stringify(canonical)) : null);
-  } catch (e) {
-    setOriginalRoutine(null);
-  }
-
   if (!foundRoutine) {
-    routerPush("/routines");
+    if (shouldContinue()) routerPush("/routines");
     return;
   }
 
@@ -74,12 +92,29 @@ export const initializeWorkout = async ({
     })),
   };
 
+  const storedWorkoutValue = await storageService.getActiveWorkout();
+  if (!shouldContinue()) return;
+
+  const storedWorkout = isRestorableWorkout(storedWorkoutValue)
+    ? storedWorkoutValue
+    : null;
+  const existingWorkout =
+    storedWorkout?.routineId === id
+      ? storedWorkout
+      : activeWorkout?.routineId === id
+        ? activeWorkout
+        : null;
   setRoutine(routineWithDefaults);
 
-  const storedWorkout = await storageService.getActiveWorkout();
+  try {
+    const canonical = getRoutineById(id);
+    setOriginalRoutine(canonical ? JSON.parse(JSON.stringify(canonical)) : null);
+  } catch {
+    setOriginalRoutine(null);
+  }
 
-  if (storedWorkout && storedWorkout.routineId === id) {
-    const s = storedWorkout as any;
+  if (existingWorkout) {
+    const s = existingWorkout;
 
     if (s.startedAt) {
       const startTime = new Date(s.startedAt).getTime();
@@ -145,9 +180,12 @@ export const initializeWorkout = async ({
 
   try {
     const ts = sessionStorage.getItem('workout_splash_ts');
-    if (ts && Date.now() - parseInt(ts) < 8000) {
+    const age = ts ? Date.now() - Number(ts) : Number.NaN;
+    if (Number.isFinite(age) && age >= 0 && age < 8000) {
       setShowStartSplash(true);
-      sessionStorage.removeItem('workout_splash_ts');
     }
-  } catch {}
+    sessionStorage.removeItem('workout_splash_ts');
+  } catch (err) {
+    logger.warn("[workoutInitService] Could not read start splash marker:", err);
+  }
 };

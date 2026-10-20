@@ -323,6 +323,7 @@
     "cardio": "Cardio"
   },
   "workout": {
+    "preparingWorkout": "Preparando tu entrenamiento...",
     "exercise": "Ejercicio",
     "set": "Serie",
     "progress": "Progreso",
