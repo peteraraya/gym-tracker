@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { NumericInput } from "@/components/ui/NumericInput";
 import { useTranslations } from "@/context/LocaleContext";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Timer } from "@/components/features/workout/Timer";
 import { motion, AnimatePresence } from "framer-motion";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
@@ -105,6 +106,21 @@ export default function WorkoutPage() {
       </div>
     );
   }
+
+  {/* Breadcrumb de navegación */}
+
+  <div className="container mx-auto px-4 py-2">
+    <Breadcrumb
+      items={[
+        { label: "Inicio", href: "/" },
+        { label: "Rutinas", href: "/routines" },
+        {
+          label: state.routine?.name || "Entrenamiento",
+          href: undefined,
+        },
+      ]}
+    />
+  </div>
 
   if (!state.currentExercise) {
     return null;

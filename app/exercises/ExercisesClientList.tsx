@@ -301,13 +301,14 @@ export function ExercisesClientList({
               }, [])
               .map((p, idx) =>
                 p === "..." ? (
-                  <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
+                  <span key={`ellipsis-${idx}`} className="px-1 text-gray-400" aria-hidden="true">
                     …
                   </span>
                 ) : (
                   <button
                     key={p}
                     onClick={() => currentData.setCurrentPage(p as number)}
+                    aria-label={`Ir a la página ${p}`}
                     className={`w-9 h-9 rounded-xl font-semibold transition-all text-sm ${
                       currentData.currentPage === p
                         ? "bg-blue-600 text-white shadow-md"

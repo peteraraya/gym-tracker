@@ -86,6 +86,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        {/* Skip link para navegación por teclado */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-white focus:text-blue-600 focus:rounded-lg focus:shadow-lg"
+        >
+          Saltar al contenido principal
+        </a>
         <ErrorBoundary>
           <ReactQueryProvider>
             <ThemeProvider>
@@ -97,7 +104,7 @@ export default function RootLayout({
                     <GlobalUI />
                     <Onboarding />
                   </ClientOnly>
-                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-950 dark:to-black pb-16 lg:pb-0">
+                  <main id="main-content" className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-950 dark:to-black pb-16 lg:pb-0">
                     {children}
                   </main>
                 </OnboardingProvider>

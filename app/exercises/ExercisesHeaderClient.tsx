@@ -124,6 +124,7 @@ export function ExercisesHeaderClient() {
                         toast.success(`${eq.name} seleccionado`);
                       }
                     }}
+                    aria-label={`${eq.name}, ${eq.description}. ${isSelected ? 'Seleccionado' : 'No seleccionado'}`}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                       isSelected
                         ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-500"
