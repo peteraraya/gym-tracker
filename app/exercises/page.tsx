@@ -9,6 +9,9 @@ import {
 import {
   getExercisesByMuscleGroupLazy,
 } from "@/data/exercises/lazy";
+import {
+  getAllWarmupGroupsLazy,
+} from "@/data/warmups/lazy";
 
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { MuscleGroupIcon } from "@/components/icons/MuscleGroupIcons";
@@ -42,10 +45,17 @@ export default async function ExercisesPage(props: {
   let muscleWarmups: WarmupExercise[] = [];
   let globalResults: ExerciseTemplate[] = [];
 
+  // ⚡ Carga diferida de TODOS los warmups en un solo chunk (~149 entradas, mucho menor que los 280 ejercicios)
+  const allWarmupGroups = await getAllWarmupGroupsLazy();
+  const allWarmupsFlat: WarmupExercise[] = (Object.values(allWarmupGroups).flat() as WarmupExercise[]);
+
   if (selectedMuscle) {
     // ⚡ Carga diferida: solo el grupo muscular seleccionado (~20-30 ejercicios)
-    muscleExercises = await getExercisesByMuscleGroupLazy(selectedMuscle as MuscleGroup);
-    muscleWarmups = [];
+    const muscle = selectedMuscle as MuscleGroup;
+    muscleExercises = await getExercisesByMuscleGroupLazy(muscle);
+    muscleWarmups = allWarmupsFlat.filter((w) =>
+      w.muscleGroup === muscle || w.targetMuscles?.includes(muscle),
+    );
   } else {
     // Vista global: usar índice ligero (~35 KB) en lugar de toda la BD de ejercicios (~500 KB+)
     globalResults = EXERCISE_INDEX as unknown as ExerciseTemplate[];
@@ -113,7 +123,10 @@ export default async function ExercisesPage(props: {
                 {MUSCLE_GROUPS.map((muscle) => {
                   // ⚡ Índice ligero: solo metadatos, no se carga toda la BD de ejercicios
                   const total = getIndexByMuscleGroup(muscle.id as MuscleGroup).length;
-                  const warmupCount: number = 0;
+                  // ⚡ Contar warmups de este grupo (desde la carga diferida ya realizada arriba)
+                  const warmupCount = allWarmupsFlat.filter((w) =>
+                    w.muscleGroup === muscle.id || w.targetMuscles?.includes(muscle.id as MuscleGroup),
+                  ).length;
                   
                   return (
                     <Link

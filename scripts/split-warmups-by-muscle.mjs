@@ -1,0 +1,163 @@
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+const ROOT = process.cwd();
+const SRC = join(ROOT, 'data', 'warmupExercises.ts');
+const OUT_DIR = join(ROOT, 'data', 'warmups', 'by-muscle');
+
+if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
+
+const raw = readFileSync(SRC, 'utf8');
+
+// Extraer el bloque del array WARMUP_DATABASE
+const startMarker = "export const WARMUP_DATABASE: WarmupExercise[] = [";
+const startIdx = raw.indexOf(startMarker);
+if (startIdx === -1) {
+  throw new Error('No se encontró la declaración de WARMUP_DATABASE');
+}
+
+// Buscar el final del array antes de "export const getWarmupsByMuscleGroup"
+const endMarker = "export const getWarmupsByMuscleGroup";
+const endIdx = raw.indexOf(endMarker, startIdx);
+if (endIdx === -1) {
+  throw new Error('No se encontró getWarmupsByMuscleGroup después de WARMUP_DATABASE');
+}
+
+const arrayBlock = raw.slice(startIdx + startMarker.length, endIdx);
+
+// Función para extraer objetos literales de nivel superior mediante balanceo de llaves {}
+function extractTopLevelObjects(block) {
+  const objects = [];
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let stringChar = null;
+
+  for (let i = 0; i < block.length; i++) {
+    const ch = block[i];
+    const prev = i > 0 ? block[i - 1] : '';
+
+    if (inString) {
+      if (ch === stringChar && prev !== '\\') inString = false;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      inString = true;
+      stringChar = ch;
+      continue;
+    }
+    if (ch === '{') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        objects.push(block.slice(start, i + 1));
+        start = -1;
+      }
+    }
+  }
+  return objects;
+}
+
+const warmupBlocks = extractTopLevelObjects(arrayBlock);
+console.log(`Warmups extraídos: ${warmupBlocks.length}`);
+
+// Agrupar por muscleGroup (incluyendo targetMuscles)
+const groups = {};
+for (const block of warmupBlocks) {
+  // Obtener muscleGroup principal
+  const muscleMatch = block.match(/muscleGroup:\s*'([^']+)'/);
+  const muscleGroup = muscleMatch ? muscleMatch[1] : null;
+
+  // Obtener targetMuscles (array)
+  const targetMusclesMatch = block.match(/targetMuscles:\s*\[([^\]]*)\]/);
+  const targetMuscles = targetMusclesMatch
+    ? targetMusclesMatch[1].split(',').map(s => s.replace(/['"]/g, '').trim()).filter(Boolean)
+    : [];
+
+  // El warmup pertenece a su muscleGroup principal Y a todos sus targetMuscles
+  const allGroups = new Set();
+  if (muscleGroup) allGroups.add(muscleGroup);
+  targetMuscles.forEach(m => allGroups.add(m));
+
+  for (const g of allGroups) {
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(block);
+  }
+}
+
+const muscleOrder = [
+  'pecho', 'espalda', 'piernas', 'gluteos', 'hombros', 'biceps', 'triceps',
+  'antebrazos', 'trapecio', 'cuello', 'core', 'gemelos', 'cardio',
+];
+
+const URL_STORAGE = "https://hplrrjqgzefkdevbporx.supabase.co/storage/v1/object/public/routine-images/";
+
+for (const muscle of muscleOrder) {
+  const items = groups[muscle] || [];
+  if (items.length === 0) continue;
+
+  const safeName = muscle.replace(/[^a-z0-9]/gi, '_');
+  const fileName = `warmups-${safeName}.ts`;
+  const filePath = join(OUT_DIR, fileName);
+  const constName = `WARMUPS_${muscle.charAt(0).toUpperCase() + muscle.slice(1)}`;
+
+  const header = `/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Auto-generado por scripts/split-warmups-by-muscle.mjs
+ * No editar manualmente. Los warmups de este grupo viven aquí para carga diferida.
+ */
+import type { WarmupExercise } from '@/data/warmupExercises';
+
+const URL_STORAGE = '${URL_STORAGE}';
+
+export const ${constName}: WarmupExercise[] = [`;
+
+  const footer = `];
+`;
+
+  const content = items.join(',\n') + '\n';
+  const fileContent = header + '\n' + content + footer;
+
+  writeFileSync(filePath, fileContent, 'utf8');
+  console.log(`✅ ${fileName}: ${items.length} warmups`);
+}
+
+// Generar barrel warmups.ts
+const barrelLines = [
+  '/* eslint-disable @typescript-eslint/no-explicit-any */',
+  '/**',
+  ' * Auto-generado por scripts/split-warmups-by-muscle.mjs',
+  ' * Barrel de warmups por grupo muscular para carga diferida.',
+  ' */',
+  '',
+];
+
+for (const muscle of muscleOrder) {
+  const safeName = muscle.replace(/[^a-z0-9]/gi, '_');
+  const constName = `WARMUPS_${muscle.charAt(0).toUpperCase() + muscle.slice(1)}`;
+  barrelLines.push(`export { ${constName} } from './by-muscle/warmups-${safeName}';`);
+}
+
+barrelLines.push('');
+barrelLines.push('export type WarmupCategory =');
+barrelLines.push("  | 'warmup'");
+barrelLines.push("  | 'mobility'");
+barrelLines.push("  | 'activation';");
+barrelLines.push('');
+barrelLines.push('export const WARMUP_GROUP_FILES: Record<string, string> = {');
+for (const muscle of muscleOrder) {
+  const safeName = muscle.replace(/[^a-z0-9]/gi, '_');
+  barrelLines.push(`  '${muscle}': './by-muscle/warmups-${safeName}',`);
+}
+barrelLines.push('};');
+barrelLines.push('');
+
+writeFileSync(join(ROOT, 'data', 'warmups', 'index.ts'), barrelLines.join('\n'), 'utf8');
+console.log('\n✅ Generado data/warmups/index.ts');
+
+console.log('\nResumen por grupo:');
+for (const muscle of muscleOrder) {
+  console.log(`  ${muscle}: ${(groups[muscle] || []).length}`);
+}
