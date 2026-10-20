@@ -63,6 +63,7 @@ export function useWorkoutPageState(id: string) {
     clearRestState,
     finishWorkout: finishWorkoutContext,
     cancelWorkout,
+    markCancelled,
   } = useWorkout();
 
   const { success, error } = useToast();
@@ -71,6 +72,7 @@ export function useWorkoutPageState(id: string) {
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [originalRoutine, setOriginalRoutine] = useState<Routine | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [showStartSplash, setShowStartSplash] = useState(false);
   
   const [isQuickEditMode, setIsQuickEditMode] = useState(true);
@@ -479,6 +481,7 @@ export function useWorkoutPageState(id: string) {
     if (gymLoading) return;
     let isCurrent = true;
     setIsInitialized(false);
+    setIsWorkoutActive(false);
     setShowStartSplash(false);
 
     initializeWorkout({
@@ -495,6 +498,14 @@ export function useWorkoutPageState(id: string) {
       setIsInitialized,
       routerPush: router.push,
       shouldContinue: () => isCurrent,
+    }).then(() => {
+      if (!isCurrent) return;
+      setIsInitialized(true);
+      setIsWorkoutActive(true);
+      // Solo mostrar splash motivacional si el entrenamiento está realmente activo
+      if (activeWorkout?.routineId === id) {
+        setShowStartSplash(true);
+      }
     }).catch((err: unknown) => {
       if (!isCurrent) return;
       logger.error("[useWorkoutPageState] Error initializing workout:", err);
@@ -914,14 +925,38 @@ export function useWorkoutPageState(id: string) {
     });
     if (confirmed) {
       try {
+        // Marcar como cancelado para evitar restauraciones automáticas
+        markCancelled?.();
         await cancelWorkout();
+        
+        // Limpiar almacenamiento local relacionado
+        try {
+          sessionStorage.removeItem('workout_splash_ts');
+          sessionStorage.removeItem('workout_cancelled');
+          sessionStorage.removeItem('workout_cancelled_persistent');
+          localStorage.removeItem('workout_cancelled');
+          localStorage.removeItem('workout_cancelled_persistent');
+          localStorage.setItem('workout_cancelled', Date.now().toString());
+          localStorage.setItem('workout_cancelled_persistent', Date.now().toString());
+        } catch (e) {
+          logger.warn("[useWorkoutPageState] Error clearing storage on cancel:", e);
+        }
+
+        // Resetear estado local
+        setIsInitialized(false);
+        setIsWorkoutActive(false);
+        setShowStartSplash(false);
+        setRoutine(null);
+        setOriginalRoutine(null);
+
         router.replace("/routines");
       } catch (err) {
         logger.error("[useWorkoutPageState] Error cancelling workout:", err);
         error("No se pudo descartar el entrenamiento. Inténtalo de nuevo.", 4000);
       }
     }
-  }, [confirm, cancelWorkout, router, error]);
+  }, [confirm, cancelWorkout,
+    markCancelled, router, error, setIsInitialized, setIsWorkoutActive, setShowStartSplash, setRoutine, setOriginalRoutine]);
 
   const handlePauseWorkout = useCallback(() => {
     if (isPaused) {
@@ -1644,6 +1679,7 @@ export function useWorkoutPageState(id: string) {
     error,
     confirm,
     cancelWorkout,
+    markCancelled,
     hasRoutineChanges,
     handleFinish,
     handleCancelWorkout,
@@ -1672,5 +1708,6 @@ export function useWorkoutPageState(id: string) {
     handleUnskipExercise,
     handleQuickAddSet,
     handleCompleteSet,
+  isWorkoutActive,
   };
 }

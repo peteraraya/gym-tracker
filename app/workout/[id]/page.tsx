@@ -55,18 +55,27 @@ export default function WorkoutPage() {
   if (!state.isInitialized) {
     return (
       <div
-        className="mx-auto w-full max-w-3xl space-y-3 px-3 pt-4 sm:px-4"
+        className="mx-auto w-full max-w-3xl space-y-6 px-3 pt-8 sm:px-4"
         role="status"
         aria-busy="true"
         aria-label={t("preparingWorkout")}
       >
-        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <Skeleton className="mb-3 h-5 w-2/5" />
-          <Skeleton className="h-4 w-1/3" />
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-full max-w-md">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+              <div className="flex flex-col items-center justify-center">
+                <Skeleton className="mb-3 h-5 w-2/5" />
+                <Skeleton className="h-4 w-1/3" />
+              </div>
+              <div className="space-y-2 pt-4">
+                <Skeleton className="h-12 w-full rounded-xl" />
+                <Skeleton className="h-28 w-full rounded-xl" />
+                <Skeleton className="h-28 w-full rounded-xl" />
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">{t("preparingWorkout")}</p>
         </div>
-        <Skeleton className="h-12 w-full rounded-xl" />
-        <Skeleton className="h-28 w-full rounded-xl" />
-        <Skeleton className="h-28 w-full rounded-xl" />
         <span className="sr-only">{t("preparingWorkout")}</span>
       </div>
     );
@@ -486,7 +495,7 @@ export default function WorkoutPage() {
             onCancel: () => state.setExecution.cancelSetExecution(),
           }}
           showStartSplash={
-            state.showStartSplash && state.activeWorkout?.routineId === id
+            state.showStartSplash && state.isWorkoutActive && state.activeWorkout?.routineId === id
           }
           routineName={state.routine?.name || "Entrenamiento"}
           exerciseCount={state.routine?.exercises?.length || 0}

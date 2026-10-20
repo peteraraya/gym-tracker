@@ -63,6 +63,7 @@ interface WorkoutContextType {
   clearRestState: () => void;
   finishWorkout: () => Promise<void>;
   cancelWorkout: () => Promise<void>;
+  markCancelled: () => void;
   skipExercise: (exerciseId: string) => void;
   unskipExercise: (exerciseId: string) => void;
 }
@@ -279,6 +280,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       clearRestState,
       finishWorkout,
       cancelWorkout,
+      markCancelled,
       skipExercise,
       unskipExercise,
     }),
@@ -290,6 +292,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       clearRestState,
       finishWorkout,
       cancelWorkout,
+      markCancelled,
       skipExercise,
       unskipExercise,
     ],
