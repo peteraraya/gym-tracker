@@ -1,149 +1,1693 @@
 /**
- * Índice de ejercicios con carga dinámica
- * 
- * Implementa code splitting para reducir el bundle inicial.
- * Los ejercicios se cargan bajo demanda por grupo muscular.
+ * Auto-generado por scripts/generate-exercise-index.mjs
+ * Índice LIGERO de ejercicios (solo metadatos esenciales).
+ * Se usa para la vista de grupos, conteos y búsqueda rápida sin cargar detalles completos.
+ * No incluir technique, instructions, ni arrays grandes.
  */
+import type { MuscleGroup } from '@/data/exercises';
 
-import type { ExerciseTemplate, MuscleGroup } from './types';
-
-// Cache para evitar cargas múltiples del mismo grupo
-const exerciseCache = new Map<MuscleGroup, ExerciseTemplate[]>();
-
-/**
- * Obtiene ejercicios de un grupo muscular específico
- * Carga bajo demanda y cachea el resultado
- */
-export async function getExercisesByMuscleGroup(group: MuscleGroup): Promise<ExerciseTemplate[]> {
-  // Retornar del cache si ya está cargado
-  if (exerciseCache.has(group)) {
-    return exerciseCache.get(group)!;
-  }
-
-  try {
-    // Cargar dinámicamente el módulo del grupo muscular
-    const module = await import(`./groups/${group}`);
-    const exercises = module.exercises;
-    
-    // Guardar en cache
-    exerciseCache.set(group, exercises);
-    
-    return exercises;
-  } catch (error) {
-    console.error(`Error loading exercises for group: ${group}`, error);
-    return [];
-  }
+export interface ExerciseIndexEntry {
+  id: string;
+  name: string;
+  muscleGroup: MuscleGroup;
+  equipment?: string;
+  image?: string;
+  youtubeVideoId?: string;
 }
 
-/**
- * Obtiene todos los ejercicios de todos los grupos
- * Útil para búsquedas globales o cuando se necesita la base de datos completa
- */
-export async function getAllExercises(): Promise<ExerciseTemplate[]> {
-  const groups: MuscleGroup[] = [
-    'pecho',
-    'espalda',
-    'piernas',
-    'gluteos',
-    'hombros',
-    'biceps',
-    'triceps',
-    'antebrazos',
-    'trapecio',
-    'cuello',
-    'core',
-    'gemelos',
-    'cardio'
-  ];
-
-  // Cargar todos los grupos en paralelo
-  const allExercises = await Promise.all(
-    groups.map(group => getExercisesByMuscleGroup(group))
-  );
-
-  // Aplanar el array de arrays
-  return allExercises.flat();
-}
-
-/**
- * Busca un ejercicio por ID en todos los grupos
- */
-export async function getExerciseById(id: string): Promise<ExerciseTemplate | undefined> {
-  const allExercises = await getAllExercises();
-  return allExercises.find(ex => ex.id === id);
-}
-
-/**
- * Busca un ejercicio por nombre (búsqueda parcial)
- */
-export async function getExerciseByName(name: string): Promise<ExerciseTemplate | undefined> {
-  const allExercises = await getAllExercises();
-  return allExercises.find(ex => ex.name.toLowerCase() === name.toLowerCase());
-}
-
-/**
- * Busca ejercicios por nombre (búsqueda parcial)
- */
-export async function searchExercises(query: string): Promise<ExerciseTemplate[]> {
-  const allExercises = await getAllExercises();
-  const lowerQuery = query.toLowerCase();
-  
-  return allExercises.filter(ex => 
-    ex.name.toLowerCase().includes(lowerQuery) ||
-    ex.description?.toLowerCase().includes(lowerQuery)
-  );
-}
-
-/**
- * Limpia el cache de ejercicios
- * Útil para testing o cuando se necesita recargar los datos
- */
-export function clearExerciseCache(): void {
-  exerciseCache.clear();
-}
-
-// COMPATIBILIDAD: Export síncrono para componentes que aún usan EXERCISE_DATABASE
-// Importa todos los ejercicios de forma síncrona (no code-split)
-import { exercises as pechoExercises } from './groups/pecho';
-import { exercises as espaldaExercises } from './groups/espalda';
-import { exercises as piernasExercises } from './groups/piernas';
-import { exercises as gluteosExercises } from './groups/gluteos';
-import { exercises as hombrosExercises } from './groups/hombros';
-import { exercises as bicepsExercises } from './groups/biceps';
-import { exercises as tricepsExercises } from './groups/triceps';
-import { exercises as antebrazosExercises } from './groups/antebrazos';
-import { exercises as trapecioExercises } from './groups/trapecio';
-import { exercises as cuelExercises } from './groups/cuello';
-import { exercises as coreExercises } from './groups/core';
-import { exercises as gemelosExercises } from './groups/gemelos';
-import { exercises as cardioExercises } from './groups/cardio';
-
-/**
- * Base de datos completa de ejercicios (export síncrono para compatibilidad)
- * @deprecated Usa getAllExercises() o getExercisesByMuscleGroup() para mejor performance
- */
-export const EXERCISE_DATABASE: ExerciseTemplate[] = [
-  ...pechoExercises,
-  ...espaldaExercises,
-  ...piernasExercises,
-  ...gluteosExercises,
-  ...hombrosExercises,
-  ...bicepsExercises,
-  ...tricepsExercises,
-  ...antebrazosExercises,
-  ...trapecioExercises,
-  ...cuelExercises,
-  ...coreExercises,
-  ...gemelosExercises,
-  ...cardioExercises
+export const EXERCISE_INDEX: ExerciseIndexEntry[] = [
+  {
+    id: 'bench-press',
+    name: "Press de Banca",
+    muscleGroup: 'pecho',
+    equipment: "Barra",
+    youtubeVideoId: "rT7DgCr-3pg",
+  },
+  {
+    id: 'incline-bench',
+    name: "Press Inclinado",
+    muscleGroup: 'pecho',
+    equipment: "Barra/Mancuernas",
+  },
+  {
+    id: 'chest-fly',
+    name: "Aperturas con Mancuernas",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'push-ups',
+    name: "Flexiones",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'cable-crossover',
+    name: "Cruces en Polea",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'decline-bench',
+    name: "Press Declinado",
+    muscleGroup: 'pecho',
+    equipment: "Barra",
+  },
+  {
+    id: 'dumbbell-pullover',
+    name: "Pullover con Mancuerna",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'pec-deck',
+    name: "Pec Deck (Mariposa)",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+  },
+  {
+    id: 'diamond-push-ups',
+    name: "Flexiones Diamante",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'seated-cable-fly',
+    name: "Aperturas en Polea Sentado",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'incline-cable-fly',
+    name: "Aperturas en Polea Inclinado",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'low-cable-fly',
+    name: "Aperturas en Polea Baja",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-press',
+    name: "Press en Polea",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'incline-dumbbell-press',
+    name: "Press Inclinado con Mancuernas",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'decline-dumbbell-press',
+    name: "Press Declinado con Mancuernas",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'dumbbell-press',
+    name: "Press con Mancuernas",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'incline-cable-press',
+    name: "Press Inclinado en Polea",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'chest-dips',
+    name: "Fondos en Paralelas (Pecho)",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'svend-press',
+    name: "Press Svend",
+    muscleGroup: 'pecho',
+    equipment: "Discos",
+  },
+  {
+    id: 'deadlift',
+    name: "Peso Muerto",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'pull-ups',
+    name: "Dominadas",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'barbell-row',
+    name: "Remo con Barra",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'lat-pulldown',
+    name: "Jalón al Pecho",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+  },
+  {
+    id: 'dumbbell-row',
+    name: "Remo con Mancuerna",
+    muscleGroup: 'espalda',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'face-pulls',
+    name: "Face Pulls",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 't-bar-row',
+    name: "Remo en T",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'seated-cable-row',
+    name: "Remo en Polea Baja",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'chin-ups',
+    name: "Dominadas Supinas",
+    muscleGroup: 'espalda',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'inverted-row',
+    name: "Remo Invertido",
+    muscleGroup: 'espalda',
+    equipment: "TRX/Barra baja",
+  },
+  {
+    id: 'straight-arm-pulldown',
+    name: "Pulldown con Brazos Rectos",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'wide-grip-cable-row',
+    name: "Remo en Polea Agarre Ancho",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'one-arm-cable-row',
+    name: "Remo Unilateral en Polea",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-pullover',
+    name: "Pullover en Polea",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'reverse-grip-lat-pulldown',
+    name: "Jalón Agarre Supino",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+  },
+  {
+    id: 'close-grip-lat-pulldown',
+    name: "Jalón Agarre Cerrado",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+  },
+  {
+    id: 'pendlay-row',
+    name: "Remo Pendlay",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'meadows-row',
+    name: "Remo Meadows",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'seal-row',
+    name: "Remo Seal",
+    muscleGroup: 'espalda',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'cable-high-row',
+    name: "Remo Alto en Polea",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'rack-pulls',
+    name: "Rack Pulls",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'squat',
+    name: "Sentadilla",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+    youtubeVideoId: "bEv6CCg2BC8",
+  },
+  {
+    id: 'leg-press',
+    name: "Prensa de Piernas",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'leg-extension',
+    name: "Extensión de Piernas",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'leg-curl',
+    name: "Curl de Piernas",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'lunges',
+    name: "Zancadas",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'front-squat',
+    name: "Sentadilla Frontal",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+  },
+  {
+    id: 'romanian-deadlift',
+    name: "Peso Muerto Rumano",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+  },
+  {
+    id: 'goblet-squat',
+    name: "Sentadilla Goblet",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'leg-press-single',
+    name: "Prensa Unilateral",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'hack-squat',
+    name: "Sentadilla Hack",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'box-jumps',
+    name: "Saltos al Cajón",
+    muscleGroup: 'piernas',
+    equipment: "Cajón pliométrico",
+  },
+  {
+    id: 'machine-adduction',
+    name: "Aducción en Máquina",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'machine-abduction',
+    name: "Abducción en Máquina",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'barbell-good-morning',
+    name: "Buenos Días con Barra",
+    muscleGroup: 'piernas',
+    equipment: "Barra",
+  },
+  {
+    id: 'sissy-squat',
+    name: "Sissy Squat",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'dumbbell-single-leg-deadlift',
+    name: "Peso Muerto a Una Pierna",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'walking-lunges',
+    name: "Zancadas Caminando",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'sumo-squat',
+    name: "Sentadilla Sumo",
+    muscleGroup: 'piernas',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'nordic-curl',
+    name: "Nordic Curl",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'wall-sit',
+    name: "Sentadilla Isométrica en Pared",
+    muscleGroup: 'piernas',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'hip-thrust',
+    name: "Hip Thrust",
+    muscleGroup: 'gluteos',
+    equipment: "Barra",
+  },
+  {
+    id: 'bulgarian-split-squat',
+    name: "Sentadilla Búlgara",
+    muscleGroup: 'gluteos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'glute-bridge',
+    name: "Puente de Glúteos",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'cable-kickback',
+    name: "Patada de Glúteo en Polea",
+    muscleGroup: 'gluteos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'sumo-deadlift',
+    name: "Peso Muerto Sumo",
+    muscleGroup: 'gluteos',
+    equipment: "Barra",
+  },
+  {
+    id: 'donkey-kicks',
+    name: "Patadas de Burro",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'step-ups',
+    name: "Step Ups",
+    muscleGroup: 'gluteos',
+    equipment: "Banco/Cajón",
+  },
+  {
+    id: 'single-leg-hip-thrust',
+    name: "Hip Thrust a Una Pierna",
+    muscleGroup: 'gluteos',
+    equipment: "Banco",
+  },
+  {
+    id: 'cable-pull-through',
+    name: "Pull Through en Polea",
+    muscleGroup: 'gluteos',
+    equipment: "Polea baja",
+  },
+  {
+    id: 'reverse-lunge',
+    name: "Zancada Inversa",
+    muscleGroup: 'gluteos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'frog-pumps',
+    name: "Frog Pumps",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'overhead-press',
+    name: "Press Militar",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+  },
+  {
+    id: 'lateral-raises',
+    name: "Elevaciones Laterales",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'front-raises',
+    name: "Elevaciones Frontales",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'arnold-press',
+    name: "Press Arnold",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'rear-delt-fly',
+    name: "Elevaciones Posteriores",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'upright-row',
+    name: "Remo al Cuello",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+  },
+  {
+    id: 'seated-dumbbell-press',
+    name: "Press con Mancuernas Sentado",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'cable-lateral-raise',
+    name: "Elevaciones Laterales en Polea",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+  },
+  {
+    id: 'machine-shoulder-press',
+    name: "Press de Hombros en Máquina",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+  },
+  {
+    id: 'dumbbell-shrugs-shoulders',
+    name: "Encogimientos con Mancuernas",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'cable-face-pull-rear',
+    name: "Face Pull con Cuerda",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+  },
+  {
+    id: 'barbell-curl',
+    name: "Curl con Barra",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+  },
+  {
+    id: 'tricep-dips',
+    name: "Fondos en Paralelas",
+    muscleGroup: 'triceps',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'hammer-curl',
+    name: "Curl Martillo",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'tricep-extension',
+    name: "Extensión de Tríceps",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas/Polea",
+  },
+  {
+    id: 'concentration-curl',
+    name: "Curl Concentrado",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'close-grip-bench',
+    name: "Press de Banca Agarre Cerrado",
+    muscleGroup: 'triceps',
+    equipment: "Barra",
+  },
+  {
+    id: 'preacher-curl',
+    name: "Curl en Banco Scott",
+    muscleGroup: 'biceps',
+    equipment: "Barra/Mancuernas",
+  },
+  {
+    id: 'skull-crushers',
+    name: "Rompecráneos",
+    muscleGroup: 'triceps',
+    equipment: "Barra",
+  },
+  {
+    id: 'cable-curl',
+    name: "Curl en Polea",
+    muscleGroup: 'biceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'tricep-pushdown',
+    name: "Extensión de Tríceps en Polea",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'zottman-curl',
+    name: "Curl Zottman",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'plank',
+    name: "Plancha",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'crunches',
+    name: "Abdominales",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'russian-twist',
+    name: "Giros Rusos",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'leg-raises',
+    name: "Elevaciones de Piernas",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'bicycle-crunches',
+    name: "Bicicleta en el Aire",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'mountain-climbers',
+    name: "Escaladores",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'dead-bug',
+    name: "Dead Bug",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'cable-woodchop',
+    name: "Leñador en Polea",
+    muscleGroup: 'core',
+    equipment: "Poleas",
+  },
+  {
+    id: 'hanging-knee-raise',
+    name: "Elevación de Rodillas Colgado",
+    muscleGroup: 'core',
+    equipment: "Barra",
+  },
+  {
+    id: 'ab-wheel',
+    name: "Rueda Abdominal",
+    muscleGroup: 'core',
+    equipment: "Rueda abdominal",
+  },
+  {
+    id: 'side-plank',
+    name: "Plancha Lateral",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'calf-raises',
+    name: "Elevación de Talones",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina/Mancuernas",
+  },
+  {
+    id: 'seated-calf-raises',
+    name: "Elevación de Talones Sentado",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina",
+  },
+  {
+    id: 'donkey-calf-raises',
+    name: "Elevación de Talones tipo Burro",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina/Peso corporal",
+  },
+  {
+    id: 'single-leg-calf-raise',
+    name: "Elevación de Talón a Una Pierna",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'leg-press-calf-raise',
+    name: "Elevación de Talones en Prensa",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina",
+  },
+  {
+    id: 'smith-machine-calf-raise',
+    name: "Elevación de Talones en Smith",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina Smith",
+  },
+  {
+    id: 'tibialis-raise',
+    name: "Elevación de Tibial Anterior",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'jump-rope-calves',
+    name: "Saltar la Cuerda (Gemelos)",
+    muscleGroup: 'gemelos',
+    equipment: "Cuerda de saltar",
+  },
+  {
+    id: 'farmer-walk-calves',
+    name: "Caminata de Granjero en Puntas",
+    muscleGroup: 'gemelos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'chest-press-machine',
+    name: "Press de Pecho en Máquina",
+    muscleGroup: 'pecho',
+    equipment: "Máquina",
+  },
+  {
+    id: 'incline-dumbbell-press',
+    name: "Press Inclinado con Mancuernas",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'decline-dumbbell-press',
+    name: "Press Declinado con Mancuernas",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'dumbbell-bench-press',
+    name: "Press de Banca con Mancuernas",
+    muscleGroup: 'pecho',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'smith-bench-press',
+    name: "Press de Banca en Smith",
+    muscleGroup: 'pecho',
+    equipment: "Máquina Smith",
+  },
+  {
+    id: 'low-cable-fly',
+    name: "Aperturas en Polea Baja",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'high-cable-fly',
+    name: "Aperturas en Polea Alta",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'incline-cable-fly',
+    name: "Aperturas Inclinadas en Polea",
+    muscleGroup: 'pecho',
+    equipment: "Poleas",
+  },
+  {
+    id: 'chest-dip',
+    name: "Fondos para Pecho",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'svend-press',
+    name: "Svend Press",
+    muscleGroup: 'pecho',
+    equipment: "Disco",
+  },
+  {
+    id: 'wide-push-ups',
+    name: "Flexiones Abiertas",
+    muscleGroup: 'pecho',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'close-grip-pulldown',
+    name: "Jalón Agarre Cerrado",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+  },
+  {
+    id: 'single-arm-cable-row',
+    name: "Remo Unilateral en Polea",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'machine-row',
+    name: "Remo en Máquina",
+    muscleGroup: 'espalda',
+    equipment: "Máquina",
+  },
+  {
+    id: 'pendlay-row',
+    name: "Remo Pendlay",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'rack-pulls',
+    name: "Rack Pulls",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'cable-pullover',
+    name: "Pullover en Polea",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'hyperextension',
+    name: "Hiperextensiones",
+    muscleGroup: 'espalda',
+    equipment: "Banco romano",
+  },
+  {
+    id: 'meadows-row',
+    name: "Remo Meadows",
+    muscleGroup: 'espalda',
+    equipment: "Barra",
+  },
+  {
+    id: 'wide-grip-seated-row',
+    name: "Remo Sentado Agarre Ancho",
+    muscleGroup: 'espalda',
+    equipment: "Poleas",
+  },
+  {
+    id: 'smith-squat',
+    name: "Sentadilla en Smith",
+    muscleGroup: 'piernas',
+    equipment: "Máquina Smith",
+  },
+  {
+    id: 'pendulum-squat',
+    name: "Sentadilla Péndulo",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'belt-squat',
+    name: "Belt Squat",
+    muscleGroup: 'piernas',
+    equipment: "Máquina",
+  },
+  {
+    id: 'hip-thrust-machine',
+    name: "Hip Thrust en Máquina",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina",
+  },
+  {
+    id: 'smith-hip-thrust',
+    name: "Hip Thrust en Smith",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina Smith",
+  },
+  {
+    id: 'cable-hip-abduction',
+    name: "Abducción de Cadera en Polea",
+    muscleGroup: 'gluteos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'barbell-glute-bridge',
+    name: "Puente de Glúteos con Barra",
+    muscleGroup: 'gluteos',
+    equipment: "Barra",
+  },
+  {
+    id: 'curtsy-lunge',
+    name: "Zancada Cruzada",
+    muscleGroup: 'gluteos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'lateral-band-walk',
+    name: "Caminata Lateral con Banda",
+    muscleGroup: 'gluteos',
+    equipment: "Banda elástica",
+  },
+  {
+    id: 'kickback-machine',
+    name: "Patadas en Máquina",
+    muscleGroup: 'gluteos',
+    equipment: "Máquina",
+  },
+  {
+    id: 'fire-hydrants',
+    name: "Fire Hydrants",
+    muscleGroup: 'gluteos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'good-morning-dumbbell',
+    name: "Buenos Días con Mancuernas",
+    muscleGroup: 'gluteos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'cable-squat',
+    name: "Sentadilla en Polea",
+    muscleGroup: 'gluteos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-romanian-deadlift-glutes',
+    name: "Peso Muerto Rumano en Polea",
+    muscleGroup: 'gluteos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-single-leg-rdl',
+    name: "Peso Muerto Rumano Unilateral en Polea",
+    muscleGroup: 'gluteos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-reverse-lunge-glutes',
+    name: "Zancada Inversa en Polea",
+    muscleGroup: 'gluteos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-hip-abduction-standing',
+    name: "Abducción de Cadera en Polea de Pie",
+    muscleGroup: 'gluteos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'lateral-lunge',
+    name: "Zancada Lateral",
+    muscleGroup: 'gluteos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'curtsy-lunge-dumbbell',
+    name: "Zancada Reverencia con Mancuernas",
+    muscleGroup: 'gluteos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'good-morning-barbell',
+    name: "Buenos Días con Barra",
+    muscleGroup: 'gluteos',
+    equipment: "Barra",
+  },
+  {
+    id: 'kettlebell-swing',
+    name: "Balanceo con Kettlebell",
+    muscleGroup: 'gluteos',
+    equipment: "Kettlebell",
+  },
+  {
+    id: 'behind-neck-press',
+    name: "Press Tras Nuca",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+  },
+  {
+    id: 'smith-overhead-press',
+    name: "Press Militar en Smith",
+    muscleGroup: 'hombros',
+    equipment: "Máquina Smith",
+  },
+  {
+    id: 'cable-front-raise',
+    name: "Elevación Frontal en Polea",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+  },
+  {
+    id: 'reverse-pec-deck',
+    name: "Pec Deck Inverso",
+    muscleGroup: 'hombros',
+    equipment: "Máquina",
+  },
+  {
+    id: 'landmine-press',
+    name: "Press Landmine",
+    muscleGroup: 'hombros',
+    equipment: "Barra",
+  },
+  {
+    id: 'plate-front-raise',
+    name: "Elevación Frontal con Disco",
+    muscleGroup: 'hombros',
+    equipment: "Disco",
+  },
+  {
+    id: 'band-pull-apart',
+    name: "Band Pull Apart",
+    muscleGroup: 'hombros',
+    equipment: "Banda elástica",
+  },
+  {
+    id: 'cable-rear-delt-fly',
+    name: "Aperturas Posteriores en Polea",
+    muscleGroup: 'hombros',
+    equipment: "Poleas",
+  },
+  {
+    id: 'dumbbell-y-raise',
+    name: "Elevación en Y con Mancuernas",
+    muscleGroup: 'hombros',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'spider-curl',
+    name: "Spider Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'incline-dumbbell-curl',
+    name: "Curl Inclinado con Mancuernas",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'overhead-cable-curl',
+    name: "Curl Alto en Polea",
+    muscleGroup: 'biceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'dip-machine',
+    name: "Fondos en Máquina",
+    muscleGroup: 'triceps',
+    equipment: "Máquina",
+  },
+  {
+    id: 'cable-overhead-tricep',
+    name: "Extensión de Tríceps sobre Cabeza en Polea",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'reverse-curl',
+    name: "Curl Inverso",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+  },
+  {
+    id: 'bayesian-curl',
+    name: "Curl Bayesiano en Polea",
+    muscleGroup: 'biceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'drag-curl',
+    name: "Drag Curl",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+  },
+  {
+    id: '21s-curl',
+    name: "Curl 21s",
+    muscleGroup: 'biceps',
+    equipment: "Barra",
+  },
+  {
+    id: 'waiter-curl',
+    name: "Waiter Curl",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'cross-body-hammer-curl',
+    name: "Curl Martillo Cruzado",
+    muscleGroup: 'biceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'ez-bar-curl',
+    name: "Curl con Barra Z",
+    muscleGroup: 'biceps',
+    equipment: "Barra Z",
+  },
+  {
+    id: 'cable-rope-curl',
+    name: "Curl con Cuerda en Polea",
+    muscleGroup: 'biceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'single-arm-cable-curl',
+    name: "Curl Unilateral en Polea",
+    muscleGroup: 'biceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'seated-cable-curl',
+    name: "Curl Sentado en Polea",
+    muscleGroup: 'biceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'chin-up-biceps',
+    name: "Dominadas Supinas (Bíceps)",
+    muscleGroup: 'biceps',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'kickback-tricep',
+    name: "Patada de Tríceps",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'diamond-push-up-tricep',
+    name: "Flexiones Diamante para Tríceps",
+    muscleGroup: 'triceps',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'overhead-dumbbell-extension',
+    name: "Extensión con Mancuerna sobre Cabeza",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'cable-rope-overhead-extension',
+    name: "Extensión con Cuerda sobre Cabeza",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'bench-dips',
+    name: "Fondos en Banco",
+    muscleGroup: 'triceps',
+    equipment: "Banco",
+  },
+  {
+    id: 'tate-press',
+    name: "Tate Press",
+    muscleGroup: 'triceps',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'jm-press',
+    name: "JM Press",
+    muscleGroup: 'triceps',
+    equipment: "Barra",
+  },
+  {
+    id: 'cable-tricep-extension-single',
+    name: "Extensión de Tríceps Unilateral en Polea",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'reverse-grip-pushdown',
+    name: "Extensión en Polea con Agarre Supino",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-lying-tricep-extension',
+    name: "Extensión Acostado en Polea",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'incline-cable-tricep-extension',
+    name: "Extensión Inclinado en Polea",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-high-cross-tricep-extension',
+    name: "Extensión Cruzada Alta en Polea",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'cable-concentration-tricep-extension',
+    name: "Extensión Concentrada en Polea",
+    muscleGroup: 'triceps',
+    equipment: "Poleas",
+  },
+  {
+    id: 'wrist-curl',
+    name: "Curl de Muñeca",
+    muscleGroup: 'antebrazos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'reverse-wrist-curl',
+    name: "Curl de Muñeca Inverso",
+    muscleGroup: 'antebrazos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'barbell-wrist-curl',
+    name: "Curl de Muñeca con Barra",
+    muscleGroup: 'antebrazos',
+    equipment: "Barra",
+  },
+  {
+    id: 'barbell-reverse-wrist-curl',
+    name: "Curl de Muñeca Inverso con Barra",
+    muscleGroup: 'antebrazos',
+    equipment: "Barra",
+  },
+  {
+    id: 'farmers-walk',
+    name: "Caminata de Granjero",
+    muscleGroup: 'antebrazos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'plate-pinch',
+    name: "Pinza con Discos",
+    muscleGroup: 'antebrazos',
+    equipment: "Discos",
+  },
+  {
+    id: 'dead-hang',
+    name: "Colgarse de la Barra",
+    muscleGroup: 'antebrazos',
+    equipment: "Barra",
+  },
+  {
+    id: 'towel-pull-ups',
+    name: "Dominadas con Toalla",
+    muscleGroup: 'antebrazos',
+    equipment: "Toalla",
+  },
+  {
+    id: 'hammer-curl-forearm',
+    name: "Curl Martillo (Énfasis Antebrazo)",
+    muscleGroup: 'antebrazos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'reverse-curl-forearm',
+    name: "Curl Inverso (Énfasis Antebrazo)",
+    muscleGroup: 'antebrazos',
+    equipment: "Barra",
+  },
+  {
+    id: 'wrist-roller',
+    name: "Rodillo de Muñeca",
+    muscleGroup: 'antebrazos',
+    equipment: "Rodillo de muñeca",
+  },
+  {
+    id: 'fat-grip-curl',
+    name: "Curl con Agarre Grueso",
+    muscleGroup: 'antebrazos',
+    equipment: "Mancuernas + Fat Grips",
+  },
+  {
+    id: 'finger-curls',
+    name: "Curl de Dedos",
+    muscleGroup: 'antebrazos',
+    equipment: "Barra",
+  },
+  {
+    id: 'gripper-squeeze',
+    name: "Apretón con Gripper",
+    muscleGroup: 'antebrazos',
+    equipment: "Hand gripper",
+  },
+  {
+    id: 'radial-deviation',
+    name: "Desviación Radial",
+    muscleGroup: 'antebrazos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'barbell-shrugs',
+    name: "Encogimientos con Barra",
+    muscleGroup: 'trapecio',
+    equipment: "Barra",
+  },
+  {
+    id: 'dumbbell-shrugs-trapezius',
+    name: "Encogimientos con Mancuernas",
+    muscleGroup: 'trapecio',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'trap-bar-shrugs',
+    name: "Encogimientos con Barra Hexagonal",
+    muscleGroup: 'trapecio',
+    equipment: "Barra hexagonal",
+  },
+  {
+    id: 'cable-shrugs',
+    name: "Encogimientos en Polea",
+    muscleGroup: 'trapecio',
+    equipment: "Poleas",
+  },
+  {
+    id: 'behind-back-shrugs',
+    name: "Encogimientos por Detrás",
+    muscleGroup: 'trapecio',
+    equipment: "Barra",
+  },
+  {
+    id: 'upright-row-trap',
+    name: "Remo al Cuello (Énfasis Trapecio)",
+    muscleGroup: 'trapecio',
+    equipment: "Barra",
+  },
+  {
+    id: 'farmer-walk-trap',
+    name: "Caminata de Granjero (Énfasis Trapecio)",
+    muscleGroup: 'trapecio',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'overhead-shrugs',
+    name: "Encogimientos sobre Cabeza",
+    muscleGroup: 'trapecio',
+    equipment: "Barra",
+  },
+  {
+    id: 'snatch-grip-high-pull',
+    name: "Jalón Alto con Agarre Arrancada",
+    muscleGroup: 'trapecio',
+    equipment: "Barra",
+  },
+  {
+    id: 'rack-pulls-trap',
+    name: "Rack Pulls (Énfasis Trapecio)",
+    muscleGroup: 'trapecio',
+    equipment: "Barra",
+  },
+  {
+    id: 'incline-shrugs',
+    name: "Encogimientos en Banco Inclinado",
+    muscleGroup: 'trapecio',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'cable-upright-row',
+    name: "Remo al Cuello en Polea",
+    muscleGroup: 'trapecio',
+    equipment: "Poleas",
+  },
+  {
+    id: 'neck-flexion',
+    name: "Flexión de Cuello",
+    muscleGroup: 'cuello',
+    equipment: "Disco/Arnés",
+  },
+  {
+    id: 'neck-extension',
+    name: "Extensión de Cuello",
+    muscleGroup: 'cuello',
+    equipment: "Disco/Arnés",
+  },
+  {
+    id: 'neck-lateral-flexion',
+    name: "Flexión Lateral de Cuello",
+    muscleGroup: 'cuello',
+    equipment: "Disco/Arnés",
+  },
+  {
+    id: 'neck-harness-extension',
+    name: "Extensión con Arnés de Cuello",
+    muscleGroup: 'cuello',
+    equipment: "Arnés de cuello",
+  },
+  {
+    id: 'isometric-neck-hold',
+    name: "Isométrico de Cuello",
+    muscleGroup: 'cuello',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'neck-bridge',
+    name: "Puente de Cuello",
+    muscleGroup: 'cuello',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'resistance-band-neck',
+    name: "Cuello con Banda Elástica",
+    muscleGroup: 'cuello',
+    equipment: "Banda elástica",
+  },
+  {
+    id: 'manual-resistance-neck',
+    name: "Resistencia Manual de Cuello",
+    muscleGroup: 'cuello',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'neck-rotation',
+    name: "Rotación de Cuello con Resistencia",
+    muscleGroup: 'cuello',
+    equipment: "Banda elástica",
+  },
+  {
+    id: 'prone-neck-raise',
+    name: "Elevación de Cuello Prono",
+    muscleGroup: 'cuello',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'cable-crunch',
+    name: "Crunch en Polea",
+    muscleGroup: 'core',
+    equipment: "Poleas",
+  },
+  {
+    id: 'pallof-press',
+    name: "Pallof Press",
+    muscleGroup: 'core',
+    equipment: "Poleas",
+  },
+  {
+    id: 'hanging-leg-raise',
+    name: "Elevación de Piernas Colgado",
+    muscleGroup: 'core',
+    equipment: "Barra",
+  },
+  {
+    id: 'decline-crunch',
+    name: "Crunch Declinado",
+    muscleGroup: 'core',
+    equipment: "Banco declinado",
+  },
+  {
+    id: 'dragon-flag',
+    name: "Dragon Flag",
+    muscleGroup: 'core',
+    equipment: "Banco",
+  },
+  {
+    id: 'v-ups',
+    name: "V-ups",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'suitcase-carry',
+    name: "Caminata con Maleta",
+    muscleGroup: 'core',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'landmine-rotation',
+    name: "Rotación con Landmine",
+    muscleGroup: 'core',
+    equipment: "Barra",
+  },
+  {
+    id: 'toe-touches',
+    name: "Toe Touches",
+    muscleGroup: 'core',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'standing-calf-raise-machine',
+    name: "Gemelos de Pie en Máquina",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina",
+  },
+  {
+    id: 'calf-raise-hack-machine',
+    name: "Gemelos en Hack",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina",
+  },
+  {
+    id: 'deficit-calf-raise',
+    name: "Gemelos con Déficit",
+    muscleGroup: 'gemelos',
+    equipment: "Mancuernas",
+  },
+  {
+    id: 'barbell-seated-calf-raise',
+    name: "Gemelos Sentado con Barra",
+    muscleGroup: 'gemelos',
+    equipment: "Barra",
+  },
+  {
+    id: 'toe-press-leg-press',
+    name: "Toe Press en Prensa",
+    muscleGroup: 'gemelos',
+    equipment: "Máquina",
+  },
+  {
+    id: 'eccentric-calf-raise',
+    name: "Gemelos Excéntricos",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'explosive-calf-jump',
+    name: "Saltos Explosivos para Gemelos",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'cable-calf-raise',
+    name: "Gemelos en Polea",
+    muscleGroup: 'gemelos',
+    equipment: "Poleas",
+  },
+  {
+    id: 'stair-calf-raise',
+    name: "Gemelos en Escalón",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'banded-calf-raise',
+    name: "Gemelos con Banda",
+    muscleGroup: 'gemelos',
+    equipment: "Banda elástica",
+  },
+  {
+    id: 'box-calf-raise',
+    name: "Gemelos en Cajón",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'squat-hold-calf-raise',
+    name: "Gemelos en Posición de Sentadilla",
+    muscleGroup: 'gemelos',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'treadmill-running',
+    name: "Correr en Trotadora",
+    muscleGroup: 'cardio',
+    equipment: "Trotadora",
+  },
+  {
+    id: 'treadmill-walking',
+    name: "Caminar en Trotadora",
+    muscleGroup: 'cardio',
+    equipment: "Trotadora",
+  },
+  {
+    id: 'treadmill-incline-walk',
+    name: "Caminata Inclinada en Trotadora",
+    muscleGroup: 'cardio',
+    equipment: "Trotadora",
+  },
+  {
+    id: 'treadmill-hiit',
+    name: "HIIT en Trotadora",
+    muscleGroup: 'cardio',
+    equipment: "Trotadora",
+  },
+  {
+    id: 'stationary-bike',
+    name: "Bicicleta Estática",
+    muscleGroup: 'cardio',
+    equipment: "Bicicleta estática",
+  },
+  {
+    id: 'spin-bike',
+    name: "Bicicleta de Spinning",
+    muscleGroup: 'cardio',
+    equipment: "Bicicleta de spinning",
+  },
+  {
+    id: 'recumbent-bike',
+    name: "Bicicleta Reclinada",
+    muscleGroup: 'cardio',
+    equipment: "Bicicleta reclinada",
+  },
+  {
+    id: 'elliptical',
+    name: "Elíptica",
+    muscleGroup: 'cardio',
+    equipment: "Elíptica",
+  },
+  {
+    id: 'elliptical-reverse',
+    name: "Elíptica Reversa",
+    muscleGroup: 'cardio',
+    equipment: "Elíptica",
+  },
+  {
+    id: 'stair-climber',
+    name: "Escaladora",
+    muscleGroup: 'cardio',
+    equipment: "Escaladora",
+  },
+  {
+    id: 'stairmaster',
+    name: "StairMaster",
+    muscleGroup: 'cardio',
+    equipment: "StairMaster",
+  },
+  {
+    id: 'rowing-machine',
+    name: "Remo en Máquina",
+    muscleGroup: 'cardio',
+    equipment: "Máquina de remo",
+  },
+  {
+    id: 'rowing-intervals',
+    name: "Remo por Intervalos",
+    muscleGroup: 'cardio',
+    equipment: "Máquina de remo",
+  },
+  {
+    id: 'assault-bike',
+    name: "Assault Bike",
+    muscleGroup: 'cardio',
+    equipment: "Assault bike",
+  },
+  {
+    id: 'ski-erg',
+    name: "Ski Erg",
+    muscleGroup: 'cardio',
+    equipment: "Ski erg",
+  },
+  {
+    id: 'jump-rope',
+    name: "Saltar la Cuerda",
+    muscleGroup: 'cardio',
+    equipment: "Cuerda de saltar",
+  },
+  {
+    id: 'battle-ropes',
+    name: "Cuerdas de Batalla",
+    muscleGroup: 'cardio',
+    equipment: "Cuerdas de batalla",
+  },
+  {
+    id: 'burpees',
+    name: "Burpees",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'high-knees',
+    name: "Rodillas Altas",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'mountain-climbers-cardio',
+    name: "Escaladores (Cardio)",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'box-jumps-cardio',
+    name: "Saltos al Cajón (Cardio)",
+    muscleGroup: 'cardio',
+    equipment: "Cajón pliométrico",
+  },
+  {
+    id: 'swimming',
+    name: "Natación",
+    muscleGroup: 'cardio',
+    equipment: "Piscina",
+  },
+  {
+    id: 'shadow-boxing',
+    name: "Boxeo de Sombra",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'heavy-bag',
+    name: "Saco de Boxeo",
+    muscleGroup: 'cardio',
+    equipment: "Saco de boxeo",
+  },
+  {
+    id: 'cycling-outdoor',
+    name: "Ciclismo al Aire Libre",
+    muscleGroup: 'cardio',
+    equipment: "Bicicleta",
+  },
+  {
+    id: 'running-outdoor',
+    name: "Correr al Aire Libre",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+  },
+  {
+    id: 'hiking',
+    name: "Senderismo",
+    muscleGroup: 'cardio',
+    equipment: "Peso corporal",
+  },
 ];
 
-/**
- * Array de todos los ejercicios (alias de EXERCISE_DATABASE)
- * @deprecated Usa getAllExercises() para carga asíncrona
- */
-export const exercises = EXERCISE_DATABASE;
+export const EXERCISE_INDEX_COUNT = EXERCISE_INDEX.length;
 
-// Re-export types
-export type { ExerciseTemplate, MuscleGroup, DifficultyLevel, ExerciseCategory } from './types';
-export { URL_STORAGE, MUSCLE_GROUPS } from './types';
+export function getIndexByMuscleGroup(muscleGroup: MuscleGroup): ExerciseIndexEntry[] {
+  return EXERCISE_INDEX.filter((e) => e.muscleGroup === muscleGroup);
+}
+
+export function getIndexEntryById(id: string): ExerciseIndexEntry | undefined {
+  return EXERCISE_INDEX.find((e) => e.id === id);
+}

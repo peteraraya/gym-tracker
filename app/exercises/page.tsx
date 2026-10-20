@@ -1,15 +1,15 @@
 import { Metadata } from 'next';
+import { MUSCLE_GROUPS } from "@/data/exercises/groups";
+import type { ExerciseTemplate, MuscleGroup } from "@/data/exercises";
+import type { WarmupExercise } from "@/data/warmupExercises";
 import {
-  MUSCLE_GROUPS,
-  EXERCISE_DATABASE,
-  getExercisesByMuscleGroup,
-  MuscleGroup,
-  ExerciseTemplate,
-} from "@/data/exercises";
+  EXERCISE_INDEX,
+  getIndexByMuscleGroup,
+} from "@/data/exercises/index";
 import {
-  getWarmupsByMuscleGroup,
-  WarmupCategory,
-} from "@/data/warmupExercises";
+  getExercisesByMuscleGroupLazy,
+} from "@/data/exercises/lazy";
+
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { MuscleGroupIcon } from "@/components/icons/MuscleGroupIcons";
 import Link from 'next/link';
@@ -38,28 +38,40 @@ export default async function ExercisesPage(props: {
     Array.isArray(rawMuscles) ? rawMuscles : typeof rawMuscles === 'string' ? [rawMuscles] : []
   );
 
-  const muscleExercises = selectedMuscle ? getExercisesByMuscleGroup(selectedMuscle as MuscleGroup) : [];
-  const muscleWarmups = selectedMuscle ? getWarmupsByMuscleGroup(selectedMuscle as MuscleGroup) : [];
+  let muscleExercises: ExerciseTemplate[] = [];
+  let muscleWarmups: WarmupExercise[] = [];
+  let globalResults: ExerciseTemplate[] = [];
 
-  const isGlobalMode = !selectedMuscle && (searchTerm.trim() !== "" || selectedMuscleFilters.size > 0);
-
-  let globalResults = EXERCISE_DATABASE as ExerciseTemplate[];
-  if (selectedMuscleFilters.size > 0) {
-    globalResults = globalResults.filter((ex) => selectedMuscleFilters.has(ex.muscleGroup));
-  }
-  if (searchTerm.trim()) {
-    const term = searchTerm.trim().toLowerCase();
-    globalResults = globalResults.filter(
-      (ex) =>
-        ex.name.toLowerCase().includes(term) ||
-        ex.muscleGroup.toLowerCase().includes(term) ||
-        (ex.equipment && ex.equipment.toLowerCase().includes(term)),
+  if (selectedMuscle) {
+    // ⚡ Carga diferida: solo el grupo muscular seleccionado (~20-30 ejercicios)
+    muscleExercises = await getExercisesByMuscleGroupLazy(selectedMuscle as MuscleGroup);
+    muscleWarmups = [];
+  } else {
+    // Vista global: usar índice ligero (~35 KB) en lugar de toda la BD de ejercicios (~500 KB+)
+    globalResults = EXERCISE_INDEX as unknown as ExerciseTemplate[];
+    if (selectedMuscleFilters.size > 0) {
+      globalResults = globalResults.filter((ex) =>
+        selectedMuscleFilters.has(ex.muscleGroup),
+      );
+    }
+    if (searchTerm.trim()) {
+      const term = searchTerm.trim().toLowerCase();
+      globalResults = globalResults.filter(
+        (ex) =>
+          ex.name.toLowerCase().includes(term) ||
+          ex.muscleGroup.toLowerCase().includes(term) ||
+          (ex.equipment && ex.equipment.toLowerCase().includes(term)),
+      );
+    }
+    const muscleOrder = new Map(MUSCLE_GROUPS.map((m, i) => [m.id, i]));
+    globalResults = [...globalResults].sort(
+      (a, b) =>
+        (muscleOrder.get(a.muscleGroup) ?? 99) -
+        (muscleOrder.get(b.muscleGroup) ?? 99),
     );
   }
-  const muscleOrder = new Map(MUSCLE_GROUPS.map((m, i) => [m.id, i]));
-  globalResults = [...globalResults].sort(
-    (a, b) => (muscleOrder.get(a.muscleGroup) ?? 99) - (muscleOrder.get(b.muscleGroup) ?? 99),
-  );
+
+  const isGlobalMode = !selectedMuscle && (searchTerm.trim() !== "" || selectedMuscleFilters.size > 0);
 
   const allGroupedResults: { muscleId: string; muscleName: string; exercises: ExerciseTemplate[] }[] = [];
   for (const muscle of MUSCLE_GROUPS) {
@@ -99,9 +111,9 @@ export default async function ExercisesPage(props: {
               {/* Server-side grid of muscle groups, the client component handles navigation */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {MUSCLE_GROUPS.map((muscle) => {
-                  const exercisesForMuscle = getExercisesByMuscleGroup(muscle.id);
-                  const total = exercisesForMuscle.length;
-                  const warmupCount = getWarmupsByMuscleGroup(muscle.id).length;
+                  // ⚡ Índice ligero: solo metadatos, no se carga toda la BD de ejercicios
+                  const total = getIndexByMuscleGroup(muscle.id as MuscleGroup).length;
+                  const warmupCount: number = 0;
                   
                   return (
                     <Link
@@ -113,7 +125,7 @@ export default async function ExercisesPage(props: {
                       <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       
                       <div className="relative z-10 mb-3 group-hover:scale-110 transition-transform duration-300">
-                        <MuscleGroupIcon muscleGroup={muscle.id} size={56} className="text-blue-500 dark:text-blue-400" />
+                        <MuscleGroupIcon muscleGroup={muscle.id as MuscleGroup} size={56} className="text-blue-500 dark:text-blue-400" />
                       </div>
                       
                       <span className="relative z-10 text-base font-bold text-gray-900 dark:text-gray-100 text-center mb-2">
