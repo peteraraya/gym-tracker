@@ -17,7 +17,7 @@
     "test:integration": "jest --testPathPattern=__tests__/integration",
     "test:e2e": "jest --testPathPattern=__tests__/e2e",
     "test:coverage": "jest --coverage --watchAll=false",
-    "build:mobile": "cp next.config.mobile.ts next.config.ts && next build && git checkout next.config.ts",
+    "build:mobile": "NEXT_MOBILE_BUILD=true next build",
     "cap:init": "cap init gym-tracker com.gymtracker.app",
     "cap:add:android": "cap add android",
     "cap:sync": "cap sync",

@@ -11,6 +11,8 @@ try {
   // bundle analyzer not installed — skip
 }
 
+const isMobileBuild = process.env.NEXT_MOBILE_BUILD === 'true';
+
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
@@ -23,7 +25,7 @@ const nextConfig: NextConfig = {
     ],
     // typedRoutes: true, // Requiere migrar todas las rutas string a Route<T> — pendiente
   },
-  output: "standalone",
+  output: isMobileBuild ? "export" : "standalone",
   // Only use static export for mobile builds
   // output: "export", // Commented out - only uncomment for mobile build
   images: {
