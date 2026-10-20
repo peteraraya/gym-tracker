@@ -18,7 +18,7 @@ Se agregó un tooltip flotante que aparece en la parte superior de la pantalla c
 
 **Características:**
 - Posición fija en la parte superior central
-- Fondo azul con texto blanco
+- Fondo turquesa con texto blanco
 - Sombra para destacar
 - Animación de fade-in suave
 - No interfiere con los clics (pointer-events-none)
@@ -33,14 +33,14 @@ Se agregó un tooltip flotante que aparece en la parte superior de la pantalla c
    - Stroke-width: `1.5`
 
 2. **Hover** (mouse encima):
-   - Fill: `url(#muscleGrad)` (gradiente azul)
-   - Stroke: `#1e40af` (azul oscuro)
+   - Fill: `url(#muscleGrad)` (gradiente turquesa)
+   - Stroke: `#007a5e` (turquesa oscuro)
    - Stroke-width: `2`
    - Filter: `url(#glow)` (efecto de brillo)
 
 3. **Seleccionado**:
-   - Fill: `url(#muscleGrad)` (gradiente azul)
-   - Stroke: `#1e40af` (azul oscuro)
+   - Fill: `url(#muscleGrad)` (gradiente turquesa)
+   - Stroke: `#007a5e` (turquesa oscuro)
    - Stroke-width: `2`
    - Filter: `url(#glow)` (efecto de brillo)
 
@@ -48,13 +48,13 @@ Se agregó un tooltip flotante que aparece en la parte superior de la pantalla c
 
 ```tsx
 <linearGradient id="muscleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8" />
-  <stop offset="100%" stopColor="#2563eb" stopOpacity="0.9" />
+  <stop offset="0%" stopColor="#00d6a4" stopOpacity="0.8" />
+  <stop offset="100%" stopColor="#007a5e" stopOpacity="0.9" />
 </linearGradient>
 
 <linearGradient id="muscleHover" x1="0%" y1="0%" x2="100%" y2="100%">
-  <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
-  <stop offset="100%" stopColor="#3b82f6" stopOpacity="1" />
+  <stop offset="0%" stopColor="#31d4a5" stopOpacity="0.9" />
+  <stop offset="100%" stopColor="#00d6a4" stopOpacity="1" />
 </linearGradient>
 ```
 
@@ -122,7 +122,7 @@ Agregar al archivo CSS global:
 - Aspecto básico
 
 ### Después:
-- Gradientes azules profesionales
+- Gradientes turquesaes profesionales
 - Tooltip flotante visible
 - Efecto de brillo al hover
 - Transiciones suaves
@@ -209,7 +209,7 @@ Para aplicar todas las mejoras a todos los grupos musculares, se necesita:
 
 2. Actualizar cada `<path>` con:
    - `fill={isActive(muscle) ? 'url(#muscleGrad)' : '#f3f4f6'}`
-   - `stroke={isActive(muscle) ? '#1e40af' : '#d1d5db'}`
+   - `stroke={isActive(muscle) ? '#007a5e' : '#d1d5db'}`
    - `strokeWidth={isActive(muscle) ? '2' : '1.5'}`
    - `className="transition-all duration-200"`
 

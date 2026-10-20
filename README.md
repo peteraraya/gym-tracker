@@ -1,4 +1,4 @@
-# 💪 Gym Tracker
+# 💪 GymLogiX
 
 Una aplicación web moderna y completa para el seguimiento de entrenamientos en el gimnasio, construida con Next.js 16, React 19, TypeScript y Supabase.
 
@@ -11,7 +11,9 @@ Una aplicación web moderna y completa para el seguimiento de entrenamientos en 
 
 ## 📋 Descripción del Proyecto
 
-Gym Tracker es una aplicación full-stack diseñada para ayudar a usuarios de todos los niveles a planificar, ejecutar y seguir su progreso en entrenamientos de fuerza. La aplicación ofrece:
+GymLogiX es una aplicación full-stack diseñada para ayudar a usuarios de todos los niveles a planificar, ejecutar y seguir su progreso en entrenamientos de fuerza. La aplicación ofrece:
+
+Consulta la [guía de identidad visual de GymLogiX](./docs/IDENTIDAD_VISUAL_GYMLOGIX.md) para los colores institucionales y recursos de marca.
 
 - **Gestión integral de rutinas**: Crear, personalizar y seguir rutinas de entrenamiento
 - **Base de datos extensa de ejercicios**: Más de 180 ejercicios con demostraciones visuales
@@ -231,7 +233,7 @@ export function StatsCard({
 
 ## 🤝 Contribución
 
-¡Gracias por considerar contribuir a Gym Tracker! Para asegurar una colaboración efectiva, por favor sigue estas guías:
+¡Gracias por considerar contribuir a GymLogiX! Para asegurar una colaboración efectiva, por favor sigue estas guías:
 
 ### Reportando Issues
 - Usa el [issue tracker](https://github.com/peteraraya/gym-tracker/issues)

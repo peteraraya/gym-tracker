@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "@/context/LocaleContext";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Timer, ArrowRight, Plus, Check } from "@/components/icons/lucide";
@@ -92,6 +93,7 @@ export function QuickEditMode({
   hideHeader = false,
   activeSet = null,
 }: QuickEditModeProps) {
+  const t = useTranslations("workout");
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
     setIndex: number;
@@ -977,7 +979,7 @@ export function QuickEditMode({
                     : isNext
                       ? "ring-2 ring-orange-400 shadow-md"
                       : isFullyCompleted
-                        ? "opacity-75"
+                        ? "ring-2 ring-emerald-700 dark:ring-emerald-300"
                         : ""
               }`}
             >
@@ -1063,6 +1065,19 @@ export function QuickEditMode({
                               SIGUIENTE
                             </span>
                           )}
+                          {!isSkipped && isFullyCompleted && (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-700 text-[10px] font-bold text-white shadow-sm shrink-0 dark:bg-emerald-300 dark:text-gray-950">
+                              ✓ {t("exerciseCompleted")}
+                            </span>
+                          )}
+                          {!isSkipped &&
+                            !isFullyCompleted &&
+                            !isCurrent &&
+                            !isNext && (
+                              <span className="px-2 py-0.5 rounded-full bg-gray-200 text-[10px] font-bold text-gray-800 shrink-0 dark:bg-gray-700 dark:text-gray-200">
+                                {t("exercisePending")}
+                              </span>
+                            )}
                         </div>
 
                         {/* Información del ejercicio */}
@@ -1522,16 +1537,17 @@ export function QuickEditMode({
                       return (
                         <div key={`${exerciseId}-${setIdx}`}>
                           <div
-                          className={`flex items-center gap-1 px-2 py-1.5 transition-colors ${
-                            isSkipped ? 'pointer-events-none opacity-60' : ''
-                          } ${
-                            isCompleted
-                              ? "bg-green-50/60 dark:bg-green-900/10"
-                              : isReadyToComplete
-                                ? "bg-blue-50/40 dark:bg-blue-900/5"
-                                : "bg-white dark:bg-transparent"
-                          }`}
-                        >
+                            data-completion-state={
+                              isCompleted ? "completed" : "pending"
+                            }
+                            className={`flex items-center gap-1 border-l-4 px-2 py-1.5 transition-colors ${
+                              isSkipped ? 'pointer-events-none opacity-60' : ''
+                            } ${
+                              isCompleted
+                                ? "border-emerald-700 bg-emerald-50 dark:border-emerald-300 dark:bg-emerald-950/40"
+                                : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
+                            }`}
+                          >
                           {/* Datos  */}
                           <div className="grid grid-cols-[32px_80px_80px_32px_12px_24px] md:grid-cols-[32px_2fr_2fr_32px_18px_34px] gap-1 items-center flex-1">
                             {/* Número */}
@@ -1539,8 +1555,8 @@ export function QuickEditMode({
                               <div
                                 className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
                                   isCompleted
-                                    ? "bg-green-500 text-white"
-                                    : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                                    ? "bg-emerald-700 text-white dark:bg-emerald-300 dark:text-gray-950"
+                                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
                                 }`}
                               >
                                 {setIdx + 1}
@@ -1844,14 +1860,19 @@ export function QuickEditMode({
                                   }
                                   className={`relative h-12 w-14 md:h-10 md:w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
                                     isCompleted
-                                      ? // ✅ COMPLETADO — verde sólido, sin borde
-                                        "bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-300 dark:shadow-green-900"
+                                      ? "bg-emerald-700 text-white shadow-md shadow-emerald-200 hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-gray-950 dark:shadow-emerald-900 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300"
                                       : isReadyToComplete
-                                        ? // 🟠 LISTO — naranja/ámbar llamativo, pide acción
-                                          "bg-orange-400 hover:bg-orange-500 text-white shadow-md shadow-orange-200 dark:shadow-orange-900"
-                                        : // ⬜ VACÍO — gris sutil, borde discontinuo
-                                          "bg-transparent border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-300 dark:text-gray-600"
-                                  } ${!isReadyToComplete && !isCompleted ? "opacity-60 cursor-pointer" : ""}`}
+                                        ? "bg-orange-700 text-white shadow-md shadow-orange-200 hover:bg-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-700 focus-visible:ring-offset-2 dark:bg-orange-300 dark:text-gray-950 dark:shadow-orange-900 dark:hover:bg-orange-200 dark:focus-visible:ring-orange-300"
+                                        : "border-2 border-dashed border-gray-400 bg-gray-100 text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:ring-offset-2 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-300 dark:focus-visible:ring-gray-300"
+                                  }`}
+                                  aria-label={`${t("set")} ${setIdx + 1}: ${
+                                    isCompleted
+                                      ? t("setCompleted")
+                                      : isReadyToComplete
+                                        ? t("setReady")
+                                        : t("setPending")
+                                  }`}
+                                  aria-pressed={isCompleted}
                                 >
                                   {isToggling ? (
                                     <Spinner size="sm" className="text-white" />

@@ -158,7 +158,7 @@ export default function ImportData({ onImportSessions }: ImportDataProps) {
                   </h4>
                 </div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Restaura un backup completo exportado desde Gym Tracker
+                  Restaura un backup completo exportado desde GymLogiX
                 </p>
               </div>
               <div>

@@ -1,5 +1,5 @@
 ````markdown
-# 🧪 Test Suite - Gym Tracker
+# 🧪 Test Suite - GymLogiX
 
 Suite completa de pruebas unitarias e integración para garantizar la calidad y estabilidad de la aplicación.
 

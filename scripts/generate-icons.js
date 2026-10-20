@@ -4,8 +4,7 @@ const path = require('path');
 
 const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
 
-// Puedes cambiar esto a 'icon-gt.svg' o 'icon-dumbbell.svg'
-const inputFile = process.argv[2] || 'public/icon-gt.svg';
+const inputFile = process.argv[2] || 'public/gymlogix-mark.svg';
 const outputDir = 'public/icons';
 
 // Crear directorio si no existe
@@ -70,13 +69,9 @@ promises.push(
 );
 
 // Generar shortcuts icons
-const shortcutIcons = [
-  { name: 'workout', color: '#f97316' },  // Orange
-  { name: 'progress', color: '#10b981' }, // Green
-  { name: 'ai', color: '#8b5cf6' }        // Purple
-];
+const shortcutIcons = ['workout', 'progress', 'ai'];
 
-shortcutIcons.forEach(({ name, color }) => {
+shortcutIcons.forEach(name => {
   // Para shortcuts, usamos el mismo icono base
   // En una implementación más avanzada, podrías modificar el SVG para cada uno
   promises.push(
@@ -100,8 +95,7 @@ Promise.all(promises).then(() => {
   console.log('3. Prueba la PWA en Chrome DevTools → Application → Manifest');
   console.log('4. Ejecuta Lighthouse para verificar el score PWA');
   console.log('\n💡 Para cambiar el diseño del icono:');
-  console.log('   npm run generate:icons public/icon-gt.svg (letras GT)');
-  console.log('   npm run generate:icons public/icon-dumbbell.svg (mancuerna)');
+  console.log('   npm run generate:icons -- public/gymlogix-mark.svg');
 }).catch(err => {
   console.error('\n❌ Error durante la generación:', err);
 });

@@ -3,68 +3,68 @@
 /* Configuración de dark mode por clase */
 @variant dark (&:where(.dark, .dark *));
 
-/* Paletas semánticas: grafito frío para estructura y azul profundo para la marca. */
+/* Identidad GymLogiX: negro grafito, blanco y verde turquesa. */
 :root {
   color-scheme: light;
 
-  --background: #f3f6fa;
-  --foreground: #111827;
+  --background: #f4f6f5;
+  --foreground: #111513;
   --surface: #ffffff;
-  --surface-alt: #eaf0f7;
-  --surface-hover: #dce5f0;
-  --border: #748398;
-  --border-light: #d8e1ed;
+  --surface-alt: #e9eeec;
+  --surface-hover: #dce5e1;
+  --border: #73827c;
+  --border-light: #d2dcd7;
 
-  --primary: #1e40af;
-  --primary-dark: #1e3a8a;
-  --primary-light: #172554;
-  --secondary: #2563eb;
-  --accent: #52677f;
+  --primary: #007a5e;
+  --primary-dark: #005b47;
+  --primary-light: #c9f7e8;
+  --secondary: #007a5e;
+  --accent: #007a5e;
 
   --success: #246344;
   --warning: #73500e;
   --error: #983d36;
-  --info: #1e40af;
-  --focus-ring: #2563eb;
+  --info: #007a5e;
+  --focus-ring: #007a5e;
 
-  --palette-neutral-50: #f3f6fa;
-  --palette-neutral-100: #eaf0f7;
-  --palette-neutral-200: #d8e1ed;
-  --palette-neutral-300: #b8c6d8;
-  --palette-neutral-400: #8495aa;
-  --palette-neutral-500: #5d6d82;
-  --palette-neutral-600: #46566b;
-  --palette-neutral-700: #344256;
-  --palette-neutral-800: #232f40;
-  --palette-neutral-900: #151f2e;
-  --palette-neutral-950: #0b1220;
+  --palette-neutral-50: #f4f6f5;
+  --palette-neutral-100: #e9eeec;
+  --palette-neutral-200: #d2dcd7;
+  --palette-neutral-300: #b5c2bc;
+  --palette-neutral-400: #87968f;
+  --palette-neutral-500: #63716a;
+  --palette-neutral-600: #4b5851;
+  --palette-neutral-700: #37423c;
+  --palette-neutral-800: #252e29;
+  --palette-neutral-900: #171e1a;
+  --palette-neutral-950: #0b100d;
 
-  --palette-brand-50: #eff6ff;
-  --palette-brand-100: #dbeafe;
-  --palette-brand-200: #bfdbfe;
-  --palette-brand-300: #93c5fd;
-  --palette-brand-400: #60a5fa;
-  --palette-brand-500: #3b82f6;
-  --palette-brand-600: #2563eb;
-  --palette-brand-700: #1d4ed8;
-  --palette-brand-800: #1e40af;
-  --palette-brand-900: #1e3a8a;
-  --palette-brand-950: #172554;
+  --palette-brand-50: #e8fff7;
+  --palette-brand-100: #cefaeb;
+  --palette-brand-200: #a5f2da;
+  --palette-brand-300: #007a5e;
+  --palette-brand-400: #007a5e;
+  --palette-brand-500: #007a5e;
+  --palette-brand-600: #00634d;
+  --palette-brand-700: #004d3c;
+  --palette-brand-800: #003a2e;
+  --palette-brand-900: #002a21;
+  --palette-brand-950: #001c15;
 
-  --palette-secondary-50: #eff6ff;
-  --palette-secondary-100: #dbeafe;
-  --palette-secondary-200: #bfdbfe;
-  --palette-secondary-300: #93c5fd;
-  --palette-secondary-400: #60a5fa;
-  --palette-secondary-500: #3b82f6;
-  --palette-secondary-600: #2563eb;
-  --palette-secondary-700: #1d4ed8;
-  --palette-secondary-800: #1e40af;
-  --palette-secondary-900: #1e3a8a;
-  --palette-secondary-950: #172554;
+  --palette-secondary-50: #e8fff7;
+  --palette-secondary-100: #cefaeb;
+  --palette-secondary-200: #a5f2da;
+  --palette-secondary-300: #007a5e;
+  --palette-secondary-400: #007a5e;
+  --palette-secondary-500: #007a5e;
+  --palette-secondary-600: #00634d;
+  --palette-secondary-700: #004d3c;
+  --palette-secondary-800: #003a2e;
+  --palette-secondary-900: #002a21;
+  --palette-secondary-950: #001c15;
 
-  --champagne: #52677f;
-  --champagne-soft: #a9bad0;
+  --champagne: #007a5e;
+  --champagne-soft: #72e8c4;
 
   --shadow-sm: 0 1px 2px 0 rgb(17 24 39 / 0.05);
   --shadow: 0 1px 3px 0 rgb(17 24 39 / 0.09), 0 1px 2px -1px rgb(17 24 39 / 0.08);
@@ -161,65 +161,65 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Tema oscuro: negro grafito azulado, superficies profundas y texto frío de alto contraste. */
+/* Tema oscuro: negro grafito y acentos turquesa de alto contraste. */
 .dark {
   color-scheme: dark;
 
-  --background: #080c12;
-  --foreground: #f3f6fb;
-  --surface: #101722;
-  --surface-alt: #182333;
-  --surface-hover: #223047;
-  --border: #63738a;
-  --border-light: #2d3b50;
+  --background: #08090b;
+  --foreground: #f4f6f5;
+  --surface: #111315;
+  --surface-alt: #1a1e1c;
+  --surface-hover: #252b28;
+  --border: #68756f;
+  --border-light: #303834;
 
-  --primary: #2563eb;
-  --primary-dark: #1d4ed8;
-  --primary-light: #1e40af;
-  --secondary: #3b82f6;
-  --accent: #a9bad0;
+  --primary: #00d6a4;
+  --primary-dark: #00b98a;
+  --primary-light: #004d3c;
+  --secondary: #31d4a5;
+  --accent: #72e8c4;
 
   --success: #a7dfbc;
   --warning: #f1c978;
   --error: #ffaca3;
-  --info: #93c5fd;
-  --focus-ring: #60a5fa;
+  --info: #72e8c4;
+  --focus-ring: #31d4a5;
 
-  --palette-neutral-50: #f3f6fb;
-  --palette-neutral-100: #e3eaf4;
-  --palette-neutral-200: #c4d0e0;
-  --palette-neutral-300: #a6b5c9;
-  --palette-neutral-400: #8697af;
-  --palette-neutral-500: #687b94;
-  --palette-neutral-600: #52647d;
-  --palette-neutral-700: #3b4b62;
-  --palette-neutral-800: #28364a;
-  --palette-neutral-900: #1b2636;
-  --palette-neutral-950: #111827;
+  --palette-neutral-50: #f4f6f5;
+  --palette-neutral-100: #e3e9e6;
+  --palette-neutral-200: #c4d0ca;
+  --palette-neutral-300: #a6b5ad;
+  --palette-neutral-400: #86958d;
+  --palette-neutral-500: #68766e;
+  --palette-neutral-600: #526057;
+  --palette-neutral-700: #3b4740;
+  --palette-neutral-800: #29332d;
+  --palette-neutral-900: #1b231e;
+  --palette-neutral-950: #101512;
 
-  --palette-brand-50: #eff6ff;
-  --palette-brand-100: #dbeafe;
-  --palette-brand-200: #bfdbfe;
-  --palette-brand-300: #93c5fd;
-  --palette-brand-400: #60a5fa;
-  --palette-brand-500: #3b82f6;
-  --palette-brand-600: #2563eb;
-  --palette-brand-700: #1d4ed8;
-  --palette-brand-800: #1e40af;
-  --palette-brand-900: #1e3a8a;
-  --palette-brand-950: #172554;
+  --palette-brand-50: #e8fff7;
+  --palette-brand-100: #cefaeb;
+  --palette-brand-200: #a5f2da;
+  --palette-brand-300: #72e8c4;
+  --palette-brand-400: #31d4a5;
+  --palette-brand-500: #007a5e;
+  --palette-brand-600: #00634d;
+  --palette-brand-700: #004d3c;
+  --palette-brand-800: #003a2e;
+  --palette-brand-900: #002a21;
+  --palette-brand-950: #001c15;
 
-  --palette-secondary-50: #eff6ff;
-  --palette-secondary-100: #dbeafe;
-  --palette-secondary-200: #bfdbfe;
-  --palette-secondary-300: #93c5fd;
-  --palette-secondary-400: #60a5fa;
-  --palette-secondary-500: #3b82f6;
-  --palette-secondary-600: #2563eb;
-  --palette-secondary-700: #1d4ed8;
-  --palette-secondary-800: #1e40af;
-  --palette-secondary-900: #1e3a8a;
-  --palette-secondary-950: #172554;
+  --palette-secondary-50: #e8fff7;
+  --palette-secondary-100: #cefaeb;
+  --palette-secondary-200: #a5f2da;
+  --palette-secondary-300: #72e8c4;
+  --palette-secondary-400: #31d4a5;
+  --palette-secondary-500: #007a5e;
+  --palette-secondary-600: #00634d;
+  --palette-secondary-700: #004d3c;
+  --palette-secondary-800: #003a2e;
+  --palette-secondary-900: #002a21;
+  --palette-secondary-950: #001c15;
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.28), 0 1px 2px -1px rgb(0 0 0 / 0.24);
@@ -481,7 +481,7 @@ body.modal-open {
   animation: haloPulse 3s ease-in-out infinite;
 }
 
-/* Dark mode halo inherits the forest primary color. */
+/* Dark mode halo inherits the GymLogiX turquoise accent. */
 .dark .halo-pulse {
   --halo-1: color-mix(in srgb, var(--primary) 14%, transparent);
   --halo-2: color-mix(in srgb, var(--primary) 5%, transparent);

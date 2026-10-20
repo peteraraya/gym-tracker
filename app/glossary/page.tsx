@@ -15,7 +15,7 @@ import { GlossaryTermModal } from './GlossaryTermModal';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Glosario | Gym Tracker',
+  title: 'Glosario | GymLogiX',
   description: 'Glosario de términos de fitness y entrenamiento.',
 };
 

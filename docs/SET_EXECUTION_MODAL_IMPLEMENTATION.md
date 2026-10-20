@@ -149,7 +149,7 @@ const startTimeRef = useRef<number>(Date.now());
 ### Estilos Destacados
 - Fondo oscuro semi-transparente (overlay)
 - Modal centrado con sombra prominente
-- Timer con gradiente azul/púrpura
+- Timer con gradiente verde/turquesa
 - Inputs grandes (text-2xl) para fácil lectura
 - Botones con altura aumentada (py-4)
 

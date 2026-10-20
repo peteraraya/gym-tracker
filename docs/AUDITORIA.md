@@ -1,4 +1,4 @@
-# 🔍 Auditoría Integral — Gym Tracker
+# 🔍 Auditoría Integral — GymLogiX
 
 **Fecha:** 2026-09-10
 **Alcance:** UX/UI, producto y desarrollo técnico. Cada hallazgo incluye referencia `archivo:línea`.

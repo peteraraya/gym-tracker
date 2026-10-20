@@ -19,7 +19,7 @@ import { ExercisesFilters } from "./ExercisesFilters";
 import { ExercisesHeaderClient } from "./ExercisesHeaderClient";
 
 export const metadata: Metadata = {
-  title: 'Ejercicios | Gym Tracker',
+  title: 'Ejercicios | GymLogiX',
   description: 'Guía de ejercicios con técnicas profesionales',
 };
 

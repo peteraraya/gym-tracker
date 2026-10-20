@@ -1,5 +1,5 @@
 /**
- * Utilidades de testing para Gym Tracker
+ * Utilidades de testing para GymLogiX
  * Setup común para tests con providers y mocks
  */
 

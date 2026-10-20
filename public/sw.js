@@ -1,7 +1,7 @@
 // Service Worker para PWA con soporte offline completo
 const CACHE_NAME = 'gym-tracker-v1';
 const RUNTIME_CACHE = 'gym-tracker-runtime-v1';
-const IMAGE_CACHE = 'gym-tracker-images-v1';
+const IMAGE_CACHE = 'gym-tracker-images-v2';
 
 // Recursos críticos para cachear en la instalación
 const PRECACHE_URLS = [
@@ -181,7 +181,7 @@ self.addEventListener('push', (event) => {
       existing.forEach(n => n.close());
 
       const data = event.data ? event.data.json() : {};
-      const title = data.title || 'Gym Tracker';
+      const title = data.title || 'GymLogiX';
       const options = {
         body: data.body || 'Tienes una nueva notificación',
         icon: '/icons/icon-192x192.png',
@@ -658,7 +658,7 @@ self.addEventListener('message', (event) => {
       return;
     }
 
-    const { title = 'Gym Tracker', options = {} } = event.data;
+    const { title = 'GymLogiX', options = {} } = event.data;
     event.waitUntil(
       (async () => {
         const existing = await self.registration.getNotifications();

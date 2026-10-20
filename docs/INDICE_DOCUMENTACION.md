@@ -1,4 +1,6 @@
-# 📚 Índice de Documentación - Gym Tracker
+# 📚 Índice de Documentación - GymLogiX
+
+Consulta la [identidad visual de GymLogiX](./IDENTIDAD_VISUAL_GYMLOGIX.md) para la paleta, el logotipo y las reglas de uso de marca.
 
 ## 🎯 Inicio Rápido
 

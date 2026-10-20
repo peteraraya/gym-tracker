@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Dumbbell } from '@/components/icons/lucide';
+import Image from 'next/image';
 import React from 'react';
 import { useTranslations } from '@/context/LocaleContext';
 
@@ -10,19 +10,24 @@ interface AppLogoProps {
 
 export const AppLogo: React.FC<AppLogoProps> = ({ large = false, oneLine = false }) => {
   const t = useTranslations('nav');
-  const appName = t ? t('appName') : 'Gym Tracker';
+  const appName = t ? t('appName') : 'GymLogiX';
   const containerClass = large
-    ? 'p-3 bg-linear-to-br from-zinc-950 to-zinc-700 dark:from-zinc-100 dark:to-zinc-400 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg'
-    : 'p-2 bg-linear-to-br from-zinc-950 to-zinc-700 dark:from-zinc-100 dark:to-zinc-400 rounded-xl transform group-hover:scale-110 transition-transform shadow-lg';
+    ? 'p-2.5 bg-[#08090b] rounded-xl transform group-hover:scale-110 transition-transform shadow-lg'
+    : 'p-2 bg-[#08090b] rounded-xl transform group-hover:scale-110 transition-transform shadow-lg';
 
-  const iconClass = large ? 'w-8 h-8 text-white dark:text-zinc-950' : 'w-5 h-5 text-white dark:text-zinc-950';
-
+  const iconSize = large ? 32 : 20;
   const textClass = large
-    ? 'text-3xl font-extrabold bg-linear-to-r from-zinc-900 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-500 text-center leading-none'
-    : 'text-xl font-extrabold bg-linear-to-r from-zinc-900 to-zinc-500 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-500 hidden sm:block';
+    ? 'text-3xl font-extrabold text-zinc-900 dark:text-zinc-100 text-center leading-none'
+    : 'text-xl font-extrabold text-zinc-900 dark:text-zinc-100 hidden sm:block';
+  const brandName = (
+    <span className={textClass}>
+      {appName.slice(0, -1)}
+      <span className="text-[#007a5e] dark:text-[#00d6a4]">{appName.slice(-1)}</span>
+    </span>
+  );
 
   const renderText = () => {
-    if (oneLine) return <span className={textClass}>{appName}</span>;
+    if (oneLine) return brandName;
 
     const parts = appName.split(' ');
     if (parts.length >= 2) {
@@ -34,13 +39,20 @@ export const AppLogo: React.FC<AppLogoProps> = ({ large = false, oneLine = false
       );
     }
 
-    return <span className={textClass}>{appName}</span>;
+    return brandName;
   };
 
   return (
-    <Link href="/" className="flex items-center justify-center space-x-4 group">
+    <Link href="/" aria-label={appName} className="flex items-center justify-center space-x-4 group">
       <div className={containerClass}>
-        <Dumbbell className={iconClass} />
+        <Image
+          src="/gymlogix-mark.svg"
+          alt=""
+          aria-hidden="true"
+          width={iconSize}
+          height={iconSize}
+          priority
+        />
       </div>
       <span className="-ml-1">{renderText()}</span>
     </Link>

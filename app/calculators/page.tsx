@@ -31,7 +31,7 @@ import {
 } from '@/components/icons/lucide';
 
 export const metadata: Metadata = {
-  title: 'Calculadoras | Gym Tracker',
+  title: 'Calculadoras | GymLogiX',
   description: 'Calculadoras de entrenamiento y composición corporal',
 };
 

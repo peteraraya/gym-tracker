@@ -285,7 +285,7 @@ No aparece el botón de instalación de la PWA.
 4. Verificar que el score sea 100/100
 
 ### Forzar Instalación
-En Chrome: Menú (⋮) → "Instalar Gym Tracker"
+En Chrome: Menú (⋮) → "Instalar GymLogiX"
 
 ---
 

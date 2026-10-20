@@ -6,10 +6,10 @@
 - Aparece en la parte superior de la pantalla
 - Muestra el nombre del músculo en español
 - Animación fade-in suave
-- Fondo azul con texto blanco
+- Fondo turquesa con texto blanco
 
 ### 2. Gradientes Modernos y Profesionales
-- Gradiente azul de 3 colores para músculos activos
+- Gradiente turquesa de 3 colores para músculos activos
 - Efecto de brillo (glow) al hacer hover
 - Transiciones suaves de 200ms
 - Bordes más gruesos cuando está activo

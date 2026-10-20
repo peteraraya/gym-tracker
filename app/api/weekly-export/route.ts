@@ -40,17 +40,17 @@ export async function POST(req: NextRequest) {
     }).join('\n');
 
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Plan semanal</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-      body{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;margin:0;padding:60px 28px 80px;color:#0f172a;background:#f8fafc}
+      body{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;margin:0;padding:60px 28px 80px;color:#111513;background:#f4f6f5}
       h1{font-size:20px;margin:0 0 12px 0}
       main{display:flex;flex-wrap:wrap;gap:12px}
       article{background:transparent}
-      .header{position:fixed;left:0;right:0;top:0;height:56px;background:linear-gradient(90deg,#ffffff00,#ffffff00);display:flex;align-items:center;justify-content:space-between;padding:12px 28px;border-bottom:1px solid #eee}
+      .header{position:fixed;left:0;right:0;top:0;height:56px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;border-bottom:2px solid #00d6a4}
       .footer{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 28px;border-top:1px solid #eee;font-size:12px;color:#6b7280}
       @media print{body{background:#fff} .header, .footer{position:fixed}}
     </style></head><body>
-      <div class="header"><div style="display:flex;align-items:center;gap:10px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" fill="#000000"/><path d="M7 12h10M7 16h10M7 8h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Gym Tracker</strong></div><div>${new Date().toLocaleString()}</div></div>
+      <div class="header"><div style="display:flex;align-items:center;gap:10px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="6" fill="#08090b"/><path d="M20 5H10C7.5 5 6 7.3 6 12s1.5 7 4 7h6l4-4v-3" stroke="#f4f6f5" stroke-width="2" stroke-linejoin="round"/><path d="m15.8 8.2 3.3-3.2h2v2.9l-2.1 2.1zM9 12h7m-8-2v4m2-5v6m7-6v6m2-4v4" stroke="#00d6a4" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>GymLogi<span style="color:#007a5e">X</span></strong></div><div>${new Date().toLocaleString()}</div></div>
       <main>${content}</main>
-      <div class="footer"><div>Gym Tracker</div><div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div></div>
+      <div class="footer"><div>GymLogiX</div><div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div></div>
     </body></html>`;
 
     // Launch puppeteer and render PDF

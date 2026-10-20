@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.gymtracker.app',
-  appName: 'Gym Tracker',
+  appName: 'GymLogiX',
   webDir: 'out',
   // `bundledWebRuntime` is not part of the current `CapacitorConfig` type
   // Remove or keep as runtime option if needed. Commenting out to satisfy types.
@@ -15,7 +15,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#1e293b',
+      backgroundColor: '#08090b',
       showSpinner: false,
     },
   },

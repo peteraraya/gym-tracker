@@ -1,4 +1,4 @@
-# Mejoras Pendientes - Gym Tracker 2026
+# Mejoras Pendientes - GymLogiX 2026
 
 ## 🔴 Prioridad Alta (Críticas)
 
@@ -579,4 +579,4 @@ Actualizar en:
 ---
 
 **Última actualización**: Febrero 2026  
-**Mantenedor**: Equipo Gym Tracker
+**Mantenedor**: Equipo GymLogiX

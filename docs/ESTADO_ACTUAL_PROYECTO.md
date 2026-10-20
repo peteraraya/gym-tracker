@@ -1,4 +1,4 @@
-# 📊 Estado Actual del Proyecto - Gym Tracker
+# 📊 Estado Actual del Proyecto - GymLogiX
 
 **Fecha:** 2026-02-28  
 **Última actualización:** Continuación de conversación (mensaje 20+)

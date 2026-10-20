@@ -1,4 +1,4 @@
-# Estructura de Carpetas del Proyecto Gym Tracker
+# Estructura de Carpetas del Proyecto GymLogiX
 
 A continuación se detalla la jerarquía de directorios organizada y su función específica dentro del proyecto:
 

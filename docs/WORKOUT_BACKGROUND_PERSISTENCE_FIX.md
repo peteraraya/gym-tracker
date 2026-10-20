@@ -156,7 +156,7 @@ El plugin no requiere permisos especiales, pero verifica que `capacitor.config.t
 3. Presionar el botón Home (salir de la app)
 4. Abrir otra app (WhatsApp, Chrome, etc.)
 5. Esperar 30 segundos
-6. Volver a la app de Gym Tracker
+6. Volver a la app de GymLogiX
 7. ✅ El entrenamiento debe continuar donde se quedó
 ```
 

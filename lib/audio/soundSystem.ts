@@ -1,5 +1,5 @@
 /**
- * Sistema de Audio Mejorado para Gym Tracker
+ * Sistema de Audio Mejorado para GymLogiX
  * Sonidos más fuertes, personalizables y con mejor UX
  */
 

@@ -3,7 +3,7 @@
 
 ## ✅ Estado de Preparación
 
-Tu app **Gym Tracker** está 100% lista para convertirse en APK y publicarse en Google Play.
+Tu app **GymLogiX** está 100% lista para convertirse en APK y publicarse en Google Play.
 
 ### Análisis de Compatibilidad
 
@@ -33,7 +33,7 @@ npm run cap:init
 
 Esto ya está preconfigurado para:
 - **App ID**: `com.gymtracker.app`
-- **App Name**: `Gym Tracker`
+- **App Name**: `GymLogiX`
 - **WebDir**: `out` (carpeta de build estático de Next.js)
 
 ### 3️⃣ Generar Build Estático
@@ -99,7 +99,7 @@ Ya está configurado con:
 ```typescript
 {
   appId: 'com.gymtracker.app',
-  appName: 'Gym Tracker',
+  appName: 'GymLogiX',
   webDir: 'out',
   androidScheme: 'https',
 }

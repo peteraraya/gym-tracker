@@ -1,6 +1,6 @@
 # Evaluación Técnica: Integración de `exercises-dataset`
 
-Este documento detalla el análisis de viabilidad para integrar la colección de GIFs animados y datos del repositorio [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) en la aplicación Gym Tracker.
+Este documento detalla el análisis de viabilidad para integrar la colección de GIFs animados y datos del repositorio [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) en la aplicación GymLogiX.
 
 ## 1. Implicaciones Legales y Licencias (CRÍTICO)
 
@@ -11,7 +11,7 @@ El factor más importante y bloqueante para esta integración es el aspecto lega
     *   Los archivos multimedia son propiedad exclusiva de **Gym visual** (https://gymvisual.com/).
     *   El repositorio original tiene un *permiso especial y por escrito* para redistribuir el material a una resolución máxima de 180x180.
     *   El archivo `NOTICE.md` especifica claramente: *"Este repositorio no le otorga ningún derecho sobre los medios más allá de lo que permiten los términos de Gym visual — clonar este repositorio no es una licencia"*.
-    *   **Conclusión Legal:** Para integrar y alojar estos GIFs en Gym Tracker, **es obligatorio** revisar los Términos y Condiciones de Gym visual y, con alta probabilidad, **adquirir una licencia comercial** directamente con ellos. Usar los GIFs sin dicha licencia constituye una infracción de derechos de autor.
+    *   **Conclusión Legal:** Para integrar y alojar estos GIFs en GymLogiX, **es obligatorio** revisar los Términos y Condiciones de Gym visual y, con alta probabilidad, **adquirir una licencia comercial** directamente con ellos. Usar los GIFs sin dicha licencia constituye una infracción de derechos de autor.
 
 ## 2. Métodos de Integración Potenciales
 
@@ -20,7 +20,7 @@ Suponiendo que se resuelva el aspecto legal (o se use únicamente la parte de da
 1.  **Mapeo de Datos:** El dataset incluye un archivo `data/exercises.json` muy completo con más de 1300 ejercicios. Sus IDs no coinciden con nuestro formato actual en `EXERCISE_DATABASE` (ej. `bench-press` vs `0001`).
     *   *Acción:* Se requeriría un script de migración (`scripts/sync_exercises.ts`) que cruce los nombres de los ejercicios o permita un mapeo manual.
 2.  **Traducciones:** Una gran ventaja del dataset es que incluye instrucciones paso a paso en español (`es`), lo que enriquecería la información técnica que actualmente tenemos hardcodeada en `data/exercises.ts`.
-3.  **Gestión de Atribución:** De adquirir los derechos, la UI de Gym Tracker (específicamente la tarjeta del ejercicio o la vista de detalles) deberá ser actualizada para mostrar permanentemente el texto de atribución obligatorio: `© Gym visual — https://gymvisual.com/`.
+3.  **Gestión de Atribución:** De adquirir los derechos, la UI de GymLogiX (específicamente la tarjeta del ejercicio o la vista de detalles) deberá ser actualizada para mostrar permanentemente el texto de atribución obligatorio: `© Gym visual — https://gymvisual.com/`.
 
 ## 3. Consideraciones de Rendimiento y Recursos
 
@@ -72,4 +72,4 @@ Sin embargo, a nivel legal, la integración de los GIFs es **inviable sin adquir
 
 1.  No integrar los archivos `.gif` ni `.jpg` de este repositorio directamente.
 2.  Considerar extraer únicamente los **datos de texto y descripciones en español** (MIT License) para mejorar la base de datos actual.
-3.  Si las animaciones son un requerimiento crítico, contactar a Gym Visual para consultar el costo de la licencia de uso para una aplicación del tamaño de Gym Tracker.
+3.  Si las animaciones son un requerimiento crítico, contactar a Gym Visual para consultar el costo de la licencia de uso para una aplicación del tamaño de GymLogiX.

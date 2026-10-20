@@ -13,7 +13,7 @@ El usuario quería ver únicamente el día actual al abrir el planificador, sin 
 - **Fecha completa** en formato legible (ej: "viernes, 6 de marzo de 2026")
 - **Badge "HOY"** animado con pulse
 - **Gradiente de fondo** según estado:
-  - Azul-Púrpura: Día con rutinas
+  - Verde y turquesa: Día con rutinas
   - Rojo: Día de descanso
   - Gris: Sin rutinas
 - **Lista detallada de rutinas** con:
@@ -30,7 +30,7 @@ El usuario quería ver únicamente el día actual al abrir el planificador, sin 
 ### 2. Vista de Toda la Semana (Expandible)
 - Se muestra al presionar "Ver Toda la Semana"
 - Lista vertical de todos los días
-- Día actual destacado con ring azul
+- Día actual destacado con ring turquesa
 - **Botón "Ver Solo Hoy"** para volver a la vista compacta
 
 ### 3. Toggle de Modos

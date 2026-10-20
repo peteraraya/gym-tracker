@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design document outlines the comprehensive performance optimization strategy for the Gym Tracker application. The optimization focuses on four key areas:
+This design document outlines the comprehensive performance optimization strategy for the GymLogiX application. The optimization focuses on four key areas:
 
 1. **React Query Integration**: Replace manual data fetching in Context API with TanStack Query for automatic caching, revalidation, and optimized state management
 2. **Virtualization**: Implement virtual scrolling for long lists (sessions, exercises) to render only visible items
@@ -1612,6 +1612,6 @@ The performance optimizations will be considered successful when:
 
 ## Conclusion
 
-This design provides a comprehensive approach to optimizing the Gym Tracker application's performance through React Query integration, virtualization, code splitting, and memoization. The phased migration plan ensures stability while delivering measurable improvements in bundle size, API efficiency, rendering performance, and user experience.
+This design provides a comprehensive approach to optimizing the GymLogiX application's performance through React Query integration, virtualization, code splitting, and memoization. The phased migration plan ensures stability while delivering measurable improvements in bundle size, API efficiency, rendering performance, and user experience.
 
 The combination of unit tests and property-based tests ensures correctness across all scenarios, while the monitoring and rollback plans provide safety nets for production deployment. The success criteria provide clear, measurable goals to validate the effectiveness of these optimizations.

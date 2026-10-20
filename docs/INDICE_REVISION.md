@@ -1,6 +1,6 @@
 # 📑 ÍNDICE: REVISIÓN COMPLETA DE LA APP
 
-**Bienvenido a la revisión completa de Gym Tracker**
+**Bienvenido a la revisión completa de GymLogiX**
 
 Esta es tu guía para navegar toda la documentación generada.
 

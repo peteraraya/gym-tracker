@@ -1,7 +1,7 @@
 ---
 name: ux-compactar
 description: >
-  Aplica mejoras transversales de UX y compactación visual en Gym Tracker.
+  Aplica mejoras transversales de UX y compactación visual en GymLogiX.
   Usar cuando: compactar una vista o módulo; reducir espaciado excesivo; virtualizar
   listas largas; agregar skeleton/loading states; migrar Modal a BottomSheet en móvil;
   mejorar empty states; reducir bundle size de un componente grande.

@@ -23,13 +23,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gym Tracker - Registra tus rutinas de gimnasio",
-  description: "Aplicación para registrar y seguir tus rutinas de gimnasio",
+  title: "GymLogiX - Tus rutinas, complementos y progreso",
+  description: "Planifica tus rutinas, registra tus complementos y sigue tu progreso con GymLogiX.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Gym Tracker",
+    title: "GymLogiX",
   },
   formatDetection: {
     telephone: false,
@@ -40,7 +40,7 @@ export function generateViewport() {
   return {
     width: "device-width",
     initialScale: 1,
-    themeColor: "#000000",
+    themeColor: "#08090b",
     viewportFit: "cover",
   };
 }

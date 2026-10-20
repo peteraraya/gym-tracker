@@ -26,7 +26,7 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
   // Helper para obtener estilos de músculo
   const getMuscleStyles = (muscle: MuscleGroup) => ({
     fill: isActive(muscle) ? 'url(#muscleGrad)' : '#f3f4f6',
-    stroke: isActive(muscle) ? '#1e40af' : '#d1d5db',
+    stroke: isActive(muscle) ? 'var(--primary-dark)' : '#d1d5db',
     strokeWidth: isActive(muscle) ? '2.5' : '1.5',
     className: 'transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600',
     style: { filter: isActive(muscle) ? 'url(#glow)' : 'none' }
@@ -106,7 +106,7 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
           >
             <path d="M 102 60 L 102 78 L 118 78 L 118 60" 
               fill={isActive('cuello') ? 'url(#muscleGrad)' : '#f3f4f6'} 
-              stroke={isActive('cuello') ? '#1e40af' : '#d1d5db'} 
+              stroke={isActive('cuello') ? 'var(--primary-dark)' : '#d1d5db'}
               strokeWidth={isActive('cuello') ? '2.5' : '1.5'}
               className="transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600">
               <title>Cuello</title>
@@ -132,7 +132,7 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             <path className="muscle transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600" 
               d="M 78 78 Q 68 80 60 88 Q 54 95 54 104 L 60 112 Q 68 110 76 106 Q 82 100 84 92 Z" 
               fill={isActive('hombros') ? 'url(#muscleGrad)' : '#f3f4f6'} 
-              stroke={isActive('hombros') ? '#1e40af' : '#d1d5db'} 
+              stroke={isActive('hombros') ? 'var(--primary-dark)' : '#d1d5db'}
               strokeWidth={isActive('hombros') ? '2.5' : '1.5'}>
               <title>Hombros</title>
             </path>
@@ -140,7 +140,7 @@ export const BodyMap: React.FC<BodyMapProps> = ({ selectedMuscles, onMuscleClick
             <path className="muscle transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600" 
               d="M 142 78 Q 152 80 160 88 Q 166 95 166 104 L 160 112 Q 152 110 144 106 Q 138 100 136 92 Z" 
               fill={isActive('hombros') ? 'url(#muscleGrad)' : '#f3f4f6'} 
-              stroke={isActive('hombros') ? '#1e40af' : '#d1d5db'} 
+              stroke={isActive('hombros') ? 'var(--primary-dark)' : '#d1d5db'}
               strokeWidth={isActive('hombros') ? '2.5' : '1.5'}>
               <title>Hombros</title>
             </path>

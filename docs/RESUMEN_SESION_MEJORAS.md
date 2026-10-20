@@ -34,7 +34,7 @@
 
 **Implementación**:
 - Vista tipo acordeón con `<details>` HTML
-- Ejercicio actual: expandido, borde azul, etiqueta "(Actual)"
+- Ejercicio actual: expandido, borde turquesa, etiqueta "(Actual)"
 - Ejercicios completados: colapsados, borde verde, checkmark ✓, botón "Editar"
 - Siguiente ejercicio: colapsado, borde naranja
 - Permite volver a ejercicios anteriores para editar
@@ -89,7 +89,7 @@
 **Implementación**:
 - API nativa HTML5 drag and drop
 - Icono de drag handle (⋮⋮) visible
-- Feedback visual: opacidad 50% al arrastrar, borde azul en área de drop
+- Feedback visual: opacidad 50% al arrastrar, borde turquesa en área de drop
 - Función `handleMoveExercise` para reordenar
 - Números de posición se actualizan automáticamente
 - Estado de expansión se mantiene al reordenar

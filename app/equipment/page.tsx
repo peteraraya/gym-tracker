@@ -7,7 +7,7 @@ import { EquipmentGrid } from './EquipmentGrid';
 import { EquipmentFilters } from './EquipmentFilters';
 
 export const metadata: Metadata = {
-  title: 'Equipamiento | Gym Tracker',
+  title: 'Equipamiento | GymLogiX',
   description: 'Selecciona el equipamiento disponible para tus rutinas',
 };
 
