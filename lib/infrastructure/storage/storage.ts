@@ -219,22 +219,28 @@ class StorageRouter {
   }
 
   /** Supabase mode → Supabase only; localStorage mode → local only. No cross-fallback, throws on error. */
-  async critical<T>(fn: (s: StorageStrategy) => Promise<T>): Promise<T> {
+  async critical<T>(fn: (s: StorageStrategy) => Promise<T>): Promise<T | null> {
     const strategy = this.isDbEnabled() ? this.supabase : this.localStore;
     try {
       const result = await fn(strategy);
       if (strategy === this.supabase) this.onSuccess();
       return result;
     } catch (error) {
+      const isAuthError = error instanceof Error && error.message === 'No autenticado';
       if (strategy === this.supabase) {
         this.onError();
-        logger.error(
-          'Critical Supabase storage operation failed',
-          { operation: 'CRITICAL_STORAGE' },
-          error instanceof Error ? error : undefined,
-        );
+        // "No autenticado" es un estado esperado (usuario sin sesión), no un error crítico del sistema
+        if (!isAuthError) {
+          logger.error(
+            'Critical Supabase storage operation failed',
+            { operation: 'CRITICAL_STORAGE' },
+            error instanceof Error ? error : undefined,
+          );
+        }
       }
-      throw error;
+      // Retornar null para permitir que el llamador maneje gracefulmente la ausencia de usuario
+      // y el sistema pueda hacer fallback a localStorage si corresponde
+      return null as unknown as T;
     }
   }
 
@@ -322,7 +328,7 @@ export function getStorageStatus() { return router.status; }
 
 // --- Routines (critical data) ---
 export async function getRoutines(): Promise<Routine[]> {
-  return router.critical(s => s.getRoutines());
+  return (await router.critical(s => s.getRoutines())) ?? [];
 }
 
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
@@ -354,7 +360,7 @@ export async function deleteRoutine(id: string): Promise<void> {
 
 // --- Sessions (critical data) ---
 export async function getSessions(): Promise<WorkoutSession[]> {
-  return router.critical(s => s.getSessions());
+  return (await router.critical(s => s.getSessions())) ?? [];
 }
 
 export async function saveSession(session: WorkoutSession): Promise<void> {
@@ -366,12 +372,12 @@ export async function updateSession(session: WorkoutSession): Promise<void> {
 }
 
 export async function deleteSession(id: string): Promise<void> {
-  return router.critical(s => s.deleteSession(id));
+  return (await router.critical(s => s.deleteSession(id))) ?? undefined;
 }
 
 // --- Profile ---
-export async function getProfile(): Promise<UserProfile> {
-  return router.critical(s => s.getProfile());
+export async function getProfile(): Promise<UserProfile | null> {
+  return (await router.critical(s => s.getProfile())) ?? null;
 }
 
 export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
@@ -382,8 +388,8 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
 }
 
 // --- Weekly Plan ---
-export async function getWeeklyPlan(): Promise<WeeklyPlan> {
-  return router.critical(s => s.getWeeklyPlan());
+export async function getWeeklyPlan(): Promise<WeeklyPlan | null> {
+  return (await router.critical(s => s.getWeeklyPlan())) ?? null;
 }
 
 export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {

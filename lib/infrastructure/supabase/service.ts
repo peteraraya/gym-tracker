@@ -54,7 +54,7 @@ export async function getRoutines(): Promise<Routine[]> {
   const supabase = createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('No autenticado');
+  if (!user) return [];
 
   const { data: routines, error } = await supabase
     .from('routines')
@@ -697,7 +697,7 @@ export async function getWeeklyPlan(): Promise<any> {
   const supabase = createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('No autenticado');
+  if (!user) return null;
 
   const { data: profile, error } = await supabase
     .from('profiles')
