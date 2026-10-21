@@ -2,7 +2,7 @@
 
 import React, { useEffect, useCallback } from 'react';
 
-interface MobileGesturesProps {
+export interface MobileGesturesProps {
   /** Contenido hijo del componente */
   children: React.ReactNode;
   /** Prevenir selección de texto en elementos interactivos */
@@ -27,16 +27,17 @@ export function MobileGestures({
   preventDoubleTapZoom = true,
   enableHapticFeedback = false,
 }: MobileGesturesProps) {
-  const handleTouchStart = useCallback((e: TouchEvent) => {
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if (preventDoubleTapZoom && e.touches.length === 2) {
       e.preventDefault();
     }
   }, [preventDoubleTapZoom]);
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     if (preventPullToRefresh) {
       // Prevenir scroll en el body para evitar pull-to-refresh
-      if (e.scale !== 1) {
+      const touchEvent = e as React.TouchEvent<HTMLDivElement> & { scale?: number };
+      if (touchEvent.scale !== 1) {
         e.preventDefault();
       }
     }
@@ -62,7 +63,9 @@ export function MobileGestures({
         }
       `;
       document.head.appendChild(style);
-      return () => document.head.removeChild(style);
+      return () => {
+        document.head.removeChild(style);
+      };
     }
   }, [preventTextSelection]);
 
