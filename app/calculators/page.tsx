@@ -1,22 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
-import OneRMCalculator from '@/components/features/calculators/OneRMCalculator';
-import PlateCalculator from '@/components/features/calculators/PlateCalculator';
-import UnitConverter from '@/components/features/calculators/UnitConverter';
-import TdeeCalculator from '@/components/features/calculators/TdeeCalculator';
-import PercentageRMCalculator from '@/components/features/calculators/PercentageRMCalculator';
-import VolumeCalculator from '@/components/features/calculators/VolumeCalculator';
-import RestTimeCalculator from '@/components/features/calculators/RestTimeCalculator';
-import BMICalculator from '@/components/features/calculators/BMICalculator';
-import CaloriesBurnedCalculator from '@/components/features/calculators/CaloriesBurnedCalculator';
-import ProgressionCalculator from '@/components/features/progress/ProgressionCalculator';
-import WilksCalculator from '@/components/features/calculators/WilksCalculator';
-import TempoCalculator from '@/components/features/calculators/TempoCalculator';
-import HeartRateZonesCalculator from '@/components/features/calculators/HeartRateZonesCalculator';
-import MacroSplitCalculator from '@/components/features/calculators/MacroSplitCalculator';
-import WaterIntakeCalculator from '@/components/features/calculators/WaterIntakeCalculator';
-import RepMaxProgressionCalculator from '@/components/features/calculators/RepMaxProgressionCalculator';
+import CalculatorRenderer from './CalculatorRenderer';
 import { Button } from '@/components/ui/Button';
 import {
   Calculator,
@@ -339,24 +324,7 @@ export default async function CalculatorsPage(props: {
           )}
 
           {/* Calculadoras */}
-          <div className="animate-fadeIn">
-            {selectedCalculator === '1rm' && <OneRMCalculator />}
-            {selectedCalculator === 'plates' && <PlateCalculator />}
-            {selectedCalculator === 'units' && <UnitConverter />}
-            {selectedCalculator === 'tdee' && <TdeeCalculator />}
-            {selectedCalculator === 'percentage' && <PercentageRMCalculator />}
-            {selectedCalculator === 'volume' && <VolumeCalculator />}
-            {selectedCalculator === 'rest' && <RestTimeCalculator />}
-            {selectedCalculator === 'bmi' && <BMICalculator />}
-            {selectedCalculator === 'calories' && <CaloriesBurnedCalculator />}
-            {selectedCalculator === 'progression' && <ProgressionCalculator />}
-            {selectedCalculator === 'wilks' && <WilksCalculator />}
-            {selectedCalculator === 'tempo' && <TempoCalculator />}
-            {selectedCalculator === 'heart_rate' && <HeartRateZonesCalculator />}
-            {selectedCalculator === 'macro_split' && <MacroSplitCalculator />}
-            {selectedCalculator === 'water_intake' && <WaterIntakeCalculator />}
-            {selectedCalculator === 'rep_progression' && <RepMaxProgressionCalculator />}
-          </div>
+          <CalculatorRenderer selectedCalculator={selectedCalculator} />
         </div>
       </div>
     </ProtectedRoute>

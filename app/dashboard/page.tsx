@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 
 import AchievementBadge from "@/components/features/achievements/AchievementBadge";
 import type { UserProfile } from "@/types";
-import { EXERCISE_DATABASE } from "@/data/exercises";
+import { EXERCISE_INDEX } from "@/data/exercises/index";
 import {
   calculateAchievements,
   getRecentAchievements,
@@ -67,7 +67,7 @@ export default function DashboardPage() {
   const exerciseNameById = useMemo(
     () =>
       new Map(
-        EXERCISE_DATABASE.map((exercise) => [exercise.id, exercise.name]),
+        EXERCISE_INDEX.map((exercise) => [exercise.id, exercise.name]),
       ),
     [],
   );

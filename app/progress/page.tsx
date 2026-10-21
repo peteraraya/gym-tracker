@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
+import dynamic from "next/dynamic";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import { EXERCISE_DATABASE, type MuscleGroup } from "@/data/exercises";
+import type { MuscleGroup } from "@/data/exercises";
+import { EXERCISE_INDEX } from "@/data/exercises/index";
 import { useValidSessions } from "@/hooks/useValidSessions";
 import { useSessions, useRoutines } from "@/context/GymContext";
 import { APP_CONFIG } from "@/config/app.config";
@@ -14,7 +16,22 @@ import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { EmptyStateCard } from "@/components/shared";
 import { ChartSkeleton } from "@/components/ui/Skeleton";
-import { IntegratedProgressPanel } from "@/components/features/progress";
+
+const IntegratedProgressPanel = dynamic(
+  () =>
+    import("@/components/features/progress/IntegratedProgressPanel").then(
+      (module) => module.IntegratedProgressPanel,
+    ),
+  {
+    loading: () => (
+      <div
+        className="h-48 animate-pulse rounded-xl bg-gray-200 dark:bg-gray-800"
+        aria-busy="true"
+      />
+    ),
+    ssr: false,
+  },
+);
 
 const MUSCLE_GROUPS = Object.keys(
   APP_CONFIG.muscleGroupColors,
@@ -29,13 +46,13 @@ export default function ProgressPage() {
   const { t } = useLocale();
   const tMuscles = useTranslations("muscles");
   const exerciseById = useMemo(
-    () => new Map(EXERCISE_DATABASE.map((exercise) => [exercise.id, exercise])),
+    () => new Map(EXERCISE_INDEX.map((exercise) => [exercise.id, exercise])),
     [],
   );
   const exerciseByName = useMemo(
     () =>
       new Map(
-        EXERCISE_DATABASE.map((exercise) => [
+        EXERCISE_INDEX.map((exercise) => [
           exercise.name.toLowerCase(),
           exercise,
         ]),
