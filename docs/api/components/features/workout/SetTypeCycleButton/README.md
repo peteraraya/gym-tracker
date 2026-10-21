@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/workout/SetTypeCycleButton
+[gym-logic](../../../../README.md) / components/features/workout/SetTypeCycleButton
 
 # components/features/workout/SetTypeCycleButton
 

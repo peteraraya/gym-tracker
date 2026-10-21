@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/performance/monitor](../README.md) / logPerformanceSummary
+[gym-logic](../../../../README.md) / [lib/performance/monitor](../README.md) / logPerformanceSummary
 
 # Function: logPerformanceSummary()
 
 > **logPerformanceSummary**(`metrics`): `void`
 
-Defined in: [lib/performance/monitor.ts:161](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/monitor.ts#L161)
+Defined in: [lib/performance/monitor.ts:161](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/monitor.ts#L161)
 
 ## Parameters
 

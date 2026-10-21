@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/services/restCalculationService](../README.md) / calculateExerciseRestTime
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/services/restCalculationService](../README.md) / calculateExerciseRestTime
 
 # Function: calculateExerciseRestTime()
 
 > **calculateExerciseRestTime**(`__namedParameters`): `number`
 
-Defined in: [app/workout/\[id\]/services/restCalculationService.ts:69](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/restCalculationService.ts#L69)
+Defined in: [app/workout/\[id\]/services/restCalculationService.ts:69](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/restCalculationService.ts#L69)
 
 Calculate rest time between different exercises.
 Priority: routineConfig > smart > default

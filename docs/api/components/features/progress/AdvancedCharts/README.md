@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/progress/AdvancedCharts
+[gym-logic](../../../../README.md) / components/features/progress/AdvancedCharts
 
 # components/features/progress/AdvancedCharts
 

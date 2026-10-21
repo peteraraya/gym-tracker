@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/utils/workoutCalculations](../README.md) / updateNestedArray
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/utils/workoutCalculations](../README.md) / updateNestedArray
 
 # Function: updateNestedArray()
 
 > **updateNestedArray**\<`T`\>(`state`, `key`, `index`, `value`): `Record`\<`string`, `T`[]\>
 
-Defined in: [app/workout/\[id\]/utils/workoutCalculations.ts:105](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/workoutCalculations.ts#L105)
+Defined in: [app/workout/\[id\]/utils/workoutCalculations.ts:105](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/workoutCalculations.ts#L105)
 
 Helper para actualizar arrays anidados en estado
 

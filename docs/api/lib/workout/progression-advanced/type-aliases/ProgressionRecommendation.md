@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/workout/progression-advanced](../README.md) / ProgressionRecommendation
+[gym-logic](../../../../README.md) / [lib/workout/progression-advanced](../README.md) / ProgressionRecommendation
 
 # Type Alias: ProgressionRecommendation
 
 > **ProgressionRecommendation** = `object`
 
-Defined in: [lib/workout/progression-advanced.ts:5](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L5)
+Defined in: [lib/workout/progression-advanced.ts:5](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L5)
 
 ## Properties
 
@@ -16,7 +16,7 @@ Defined in: [lib/workout/progression-advanced.ts:5](https://github.com/peteraray
 
 > **confidence**: `"high"` \| `"medium"` \| `"low"`
 
-Defined in: [lib/workout/progression-advanced.ts:12](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L12)
+Defined in: [lib/workout/progression-advanced.ts:12](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L12)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [lib/workout/progression-advanced.ts:12](https://github.com/peterara
 
 > **createdAt**: `string`
 
-Defined in: [lib/workout/progression-advanced.ts:10](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L10)
+Defined in: [lib/workout/progression-advanced.ts:10](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L10)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [lib/workout/progression-advanced.ts:10](https://github.com/peterara
 
 > **exerciseId**: `string`
 
-Defined in: [lib/workout/progression-advanced.ts:6](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L6)
+Defined in: [lib/workout/progression-advanced.ts:6](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L6)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [lib/workout/progression-advanced.ts:6](https://github.com/peteraray
 
 > `optional` **factors?**: `object`
 
-Defined in: [lib/workout/progression-advanced.ts:13](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L13)
+Defined in: [lib/workout/progression-advanced.ts:13](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L13)
 
 #### consistencyScore
 
@@ -64,7 +64,7 @@ Defined in: [lib/workout/progression-advanced.ts:13](https://github.com/peterara
 
 > `optional` **lastWeights?**: `number`[]
 
-Defined in: [lib/workout/progression-advanced.ts:11](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L11)
+Defined in: [lib/workout/progression-advanced.ts:11](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L11)
 
 ***
 
@@ -72,7 +72,7 @@ Defined in: [lib/workout/progression-advanced.ts:11](https://github.com/peterara
 
 > `optional` **reason?**: `string`
 
-Defined in: [lib/workout/progression-advanced.ts:9](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L9)
+Defined in: [lib/workout/progression-advanced.ts:9](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L9)
 
 ***
 
@@ -80,7 +80,7 @@ Defined in: [lib/workout/progression-advanced.ts:9](https://github.com/peteraray
 
 > **recommend**: `boolean`
 
-Defined in: [lib/workout/progression-advanced.ts:7](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L7)
+Defined in: [lib/workout/progression-advanced.ts:7](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L7)
 
 ***
 
@@ -88,7 +88,7 @@ Defined in: [lib/workout/progression-advanced.ts:7](https://github.com/peteraray
 
 > `optional` **strategy?**: [`ProgressionStrategy`](ProgressionStrategy.md)
 
-Defined in: [lib/workout/progression-advanced.ts:19](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L19)
+Defined in: [lib/workout/progression-advanced.ts:19](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L19)
 
 ***
 
@@ -96,4 +96,4 @@ Defined in: [lib/workout/progression-advanced.ts:19](https://github.com/peterara
 
 > `optional` **suggestedWeight?**: `number`
 
-Defined in: [lib/workout/progression-advanced.ts:8](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L8)
+Defined in: [lib/workout/progression-advanced.ts:8](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L8)

@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/achievements/AchievementCard
+[gym-logic](../../../../README.md) / components/features/achievements/AchievementCard
 
 # components/features/achievements/AchievementCard
 

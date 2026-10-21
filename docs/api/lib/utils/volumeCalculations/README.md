@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/utils/volumeCalculations
+[gym-logic](../../../README.md) / lib/utils/volumeCalculations
 
 # lib/utils/volumeCalculations
 

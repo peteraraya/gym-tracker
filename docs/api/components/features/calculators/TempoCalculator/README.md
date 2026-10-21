@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/calculators/TempoCalculator
+[gym-logic](../../../../README.md) / components/features/calculators/TempoCalculator
 
 # components/features/calculators/TempoCalculator
 

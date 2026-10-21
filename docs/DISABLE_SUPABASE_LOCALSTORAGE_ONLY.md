@@ -126,9 +126,9 @@ Estas funciones YA tenían implementado el fallback a localStorage correctamente
 ```javascript
 // Ejecutar en la consola del navegador
 const data = {
-  routines: JSON.parse(localStorage.getItem('gym_tracker_routines') || '[]'),
-  sessions: JSON.parse(localStorage.getItem('gym_tracker_sessions') || '[]'),
-  activeWorkout: JSON.parse(localStorage.getItem('gym-tracker-active-workout') || 'null')
+  routines: JSON.parse(localStorage.getItem('gym_logic_routines') || '[]'),
+  sessions: JSON.parse(localStorage.getItem('gym_logic_sessions') || '[]'),
+  activeWorkout: JSON.parse(localStorage.getItem('gym-logic-active-workout') || 'null')
 };
 
 // Copiar y guardar en un archivo
@@ -142,10 +142,10 @@ const data = {
   // Pegar aquí los datos exportados
 };
 
-localStorage.setItem('gym_tracker_routines', JSON.stringify(data.routines));
-localStorage.setItem('gym_tracker_sessions', JSON.stringify(data.sessions));
+localStorage.setItem('gym_logic_routines', JSON.stringify(data.routines));
+localStorage.setItem('gym_logic_sessions', JSON.stringify(data.sessions));
 if (data.activeWorkout) {
-  localStorage.setItem('gym-tracker-active-workout', JSON.stringify(data.activeWorkout));
+  localStorage.setItem('gym-logic-active-workout', JSON.stringify(data.activeWorkout));
 }
 
 // Recargar la página

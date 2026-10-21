@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/settings/LanguageSwitcher
+[gym-logic](../../../../README.md) / components/features/settings/LanguageSwitcher
 
 # components/features/settings/LanguageSwitcher
 

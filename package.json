@@ -1,5 +1,5 @@
 {
-  "name": "gym-tracker",
+  "name": "gym-logic",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -18,7 +18,7 @@
     "test:e2e": "jest --testPathPattern=__tests__/e2e",
     "test:coverage": "jest --coverage --watchAll=false",
     "build:mobile": "NEXT_MOBILE_BUILD=true next build",
-    "cap:init": "cap init gym-tracker com.gymtracker.app",
+    "cap:init": "cap init gym-logic com.gymlogic.app",
     "cap:add:android": "cap add android",
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",

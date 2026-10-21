@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/user/localProfile](../README.md) / saveProfileLocally
+[gym-logic](../../../../README.md) / [lib/user/localProfile](../README.md) / saveProfileLocally
 
 # Function: saveProfileLocally()
 
 > **saveProfileLocally**(`profile`): [`UserProfile`](../../../storage/localStorage/interfaces/UserProfile.md)
 
-Defined in: [lib/user/localProfile.ts:13](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/user/localProfile.ts#L13)
+Defined in: [lib/user/localProfile.ts:13](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/user/localProfile.ts#L13)
 
 Guarda el perfil del usuario en localStorage
 

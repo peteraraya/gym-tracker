@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / app/ai-assistant/page
+[gym-logic](../../../README.md) / app/ai-assistant/page
 
 # app/ai-assistant/page
 

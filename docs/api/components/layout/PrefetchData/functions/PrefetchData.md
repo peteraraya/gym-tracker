@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/layout/PrefetchData](../README.md) / PrefetchData
+[gym-logic](../../../../README.md) / [components/layout/PrefetchData](../README.md) / PrefetchData
 
 # Function: PrefetchData()
 
 > **PrefetchData**(): `any`
 
-Defined in: [components/layout/PrefetchData.tsx:16](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/layout/PrefetchData.tsx#L16)
+Defined in: [components/layout/PrefetchData.tsx:16](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/layout/PrefetchData.tsx#L16)
 
 Pre-carga rutinas y sesiones en el caché de React Query al arrancar la app,
 para que las páginas muestren datos al instante sin skeleton en la primera navegación.

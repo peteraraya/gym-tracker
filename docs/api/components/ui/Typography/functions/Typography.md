@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/ui/Typography](../README.md) / Typography
+[gym-logic](../../../../README.md) / [components/ui/Typography](../README.md) / Typography
 
 # Function: Typography()
 
 > **Typography**(`__namedParameters`): `Element`
 
-Defined in: [components/ui/Typography.tsx:34](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/Typography.tsx#L34)
+Defined in: [components/ui/Typography.tsx:34](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/Typography.tsx#L34)
 
 Componente de tipografía semántica para GymLogiX.
 Garantiza consistencia en tamaños, pesos y espaciado de línea en toda la app.

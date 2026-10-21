@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / [lib/logger](../README-1.md) / time
+[gym-logic](../../../README.md) / [lib/logger](../README-1.md) / time
 
 # Variable: time
 
 > **time**: (`label`) => `void`
 
-Defined in: [lib/logger.ts:87](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/logger.ts#L87)
+Defined in: [lib/logger.ts:87](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/logger.ts#L87)
 
 ## Parameters
 

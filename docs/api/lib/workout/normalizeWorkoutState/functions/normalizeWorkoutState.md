@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/workout/normalizeWorkoutState](../README.md) / normalizeWorkoutState
+[gym-logic](../../../../README.md) / [lib/workout/normalizeWorkoutState](../README.md) / normalizeWorkoutState
 
 # Function: normalizeWorkoutState()
 
 > **normalizeWorkoutState**(`data`, `routine?`): [`WorkoutState`](../interfaces/WorkoutState.md)
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:89](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L89)
+Defined in: [lib/workout/normalizeWorkoutState.ts:89](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L89)
 
 Transforma datos crudos de storage en un `WorkoutState` válido.
 

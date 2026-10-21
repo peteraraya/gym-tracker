@@ -31,7 +31,7 @@ interface StoredState {
   globalRestTime: number;
 }
 
-const STORAGE_KEY = 'gym-tracker-free-workout';
+const STORAGE_KEY = 'gym-logic-free-workout';
 
 function generateId(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {

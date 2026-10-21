@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWakeLock](../README.md) / useWakeLock
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWakeLock](../README.md) / useWakeLock
 
 # Function: useWakeLock()
 
 > **useWakeLock**(): `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWakeLock.ts:7](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWakeLock.ts#L7)
+Defined in: [app/workout/\[id\]/hooks/useWakeLock.ts:7](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWakeLock.ts#L7)
 
 Hook para mantener la pantalla activa durante el entrenamiento
 Usa la Wake Lock API cuando está disponible

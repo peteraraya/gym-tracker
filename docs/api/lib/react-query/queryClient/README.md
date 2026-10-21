@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/react-query/queryClient
+[gym-logic](../../../README.md) / lib/react-query/queryClient
 
 # lib/react-query/queryClient
 

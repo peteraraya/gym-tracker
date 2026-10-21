@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/supabase/shared-service](../README.md) / CreateSessionBody
+[gym-logic](../../../../README.md) / [lib/supabase/shared-service](../README.md) / CreateSessionBody
 
 # Interface: CreateSessionBody
 
-Defined in: [lib/supabase/shared-service.ts:70](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L70)
+Defined in: [lib/supabase/shared-service.ts:70](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L70)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/supabase/shared-service.ts:70](https://github.com/peteraraya/gy
 
 > **exercises**: [`SessionExercise`](SessionExercise.md)[]
 
-Defined in: [lib/supabase/shared-service.ts:72](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L72)
+Defined in: [lib/supabase/shared-service.ts:72](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L72)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/supabase/shared-service.ts:72](https://github.com/peteraraya/gy
 
 > `optional` **notes?**: `string`
 
-Defined in: [lib/supabase/shared-service.ts:73](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L73)
+Defined in: [lib/supabase/shared-service.ts:73](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L73)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/supabase/shared-service.ts:73](https://github.com/peteraraya/gy
 
 > **routineId**: `string`
 
-Defined in: [lib/supabase/shared-service.ts:71](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L71)
+Defined in: [lib/supabase/shared-service.ts:71](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L71)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [lib/supabase/shared-service.ts:71](https://github.com/peteraraya/gy
 
 > `optional` **totalDuration?**: `number`
 
-Defined in: [lib/supabase/shared-service.ts:74](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L74)
+Defined in: [lib/supabase/shared-service.ts:74](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L74)
 
 ***
 
@@ -46,4 +46,4 @@ Defined in: [lib/supabase/shared-service.ts:74](https://github.com/peteraraya/gy
 
 > `optional` **totalPausedTime?**: `number`
 
-Defined in: [lib/supabase/shared-service.ts:75](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L75)
+Defined in: [lib/supabase/shared-service.ts:75](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L75)

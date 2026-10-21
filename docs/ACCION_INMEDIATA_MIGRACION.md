@@ -10,7 +10,7 @@ El error **"Rutina no encontrada"** ocurre porque las columnas `rest_between_set
 
 1. **Ir a Supabase Dashboard**
    - URL: https://supabase.com/dashboard
-   - Proyecto: [tu-proyecto-gym-tracker]
+   - Proyecto: [tu-proyecto-gym-logic]
 
 2. **Abrir SQL Editor**
    - Menú lateral → SQL Editor → New query

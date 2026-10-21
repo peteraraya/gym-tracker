@@ -51,7 +51,7 @@ CREATE TABLE exercises (
 
 ```bash
 # Asegúrate de estar en el directorio del proyecto
-cd gym-tracker
+cd gym-logic
 
 # Aplicar la migración
 supabase db push

@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/audio/soundSystem](../README.md) / useSoundSettings
+[gym-logic](../../../../README.md) / [lib/audio/soundSystem](../README.md) / useSoundSettings
 
 # Function: useSoundSettings()
 
 > **useSoundSettings**(): `object`
 
-Defined in: [lib/audio/soundSystem.ts:269](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/audio/soundSystem.ts#L269)
+Defined in: [lib/audio/soundSystem.ts:269](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/audio/soundSystem.ts#L269)
 
 ## Returns
 

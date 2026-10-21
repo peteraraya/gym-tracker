@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / [lib/domain/workout/workoutTypes](../README.md) / WorkoutMetrics
+[gym-logic](../../../../../README.md) / [lib/domain/workout/workoutTypes](../README.md) / WorkoutMetrics
 
 # Interface: WorkoutMetrics
 
-Defined in: [lib/domain/workout/workoutTypes.ts:56](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L56)
+Defined in: [lib/domain/workout/workoutTypes.ts:56](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L56)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:56](https://github.com/peteraray
 
 > **averageRestSeconds**: `number`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:62](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L62)
+Defined in: [lib/domain/workout/workoutTypes.ts:62](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L62)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:62](https://github.com/peteraray
 
 > **durationSeconds**: `number`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:60](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L60)
+Defined in: [lib/domain/workout/workoutTypes.ts:60](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L60)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:60](https://github.com/peteraray
 
 > **exercisesCount**: `number`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:61](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L61)
+Defined in: [lib/domain/workout/workoutTypes.ts:61](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L61)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:61](https://github.com/peteraray
 
 > **totalReps**: `number`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:59](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L59)
+Defined in: [lib/domain/workout/workoutTypes.ts:59](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L59)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:59](https://github.com/peteraray
 
 > **totalSets**: `number`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:58](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L58)
+Defined in: [lib/domain/workout/workoutTypes.ts:58](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L58)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [lib/domain/workout/workoutTypes.ts:58](https://github.com/peteraray
 
 > **totalVolume**: `number`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:57](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L57)
+Defined in: [lib/domain/workout/workoutTypes.ts:57](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L57)

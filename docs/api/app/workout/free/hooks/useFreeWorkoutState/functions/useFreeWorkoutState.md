@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/free/hooks/useFreeWorkoutState](../README.md) / useFreeWorkoutState
+[gym-logic](../../../../../../README.md) / [app/workout/free/hooks/useFreeWorkoutState](../README.md) / useFreeWorkoutState
 
 # Function: useFreeWorkoutState()
 
 > **useFreeWorkoutState**(): `object`
 
-Defined in: [app/workout/free/hooks/useFreeWorkoutState.ts:71](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/free/hooks/useFreeWorkoutState.ts#L71)
+Defined in: [app/workout/free/hooks/useFreeWorkoutState.ts:71](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/free/hooks/useFreeWorkoutState.ts#L71)
 
 ## Returns
 

@@ -122,7 +122,7 @@ finishWorkoutContext(); // Limpia activeWorkout del contexto
 ### 2. Limpieza de localStorage
 Para entrenamientos libres:
 ```typescript
-clearStorage(); // Elimina 'gym-tracker-free-workout' de localStorage
+clearStorage(); // Elimina 'gym-logic-free-workout' de localStorage
 ```
 
 ### 3. Delay antes de Navegación

@@ -28,7 +28,7 @@ at Module.updateRoutine (localStorage.ts:157:15)
 
 ### localStorage vacío:
 ```javascript
-JSON.parse(localStorage.getItem('gym-tracker-routines'))
+JSON.parse(localStorage.getItem('gym-logic-routines'))
 null
 ```
 

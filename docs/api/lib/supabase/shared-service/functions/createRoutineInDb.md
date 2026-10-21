@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/supabase/shared-service](../README.md) / createRoutineInDb
+[gym-logic](../../../../README.md) / [lib/supabase/shared-service](../README.md) / createRoutineInDb
 
 # Function: createRoutineInDb()
 
 > **createRoutineInDb**(`supabase`, `data`): `Promise`\<\{ `id`: `any`; `success`: `boolean`; \}\>
 
-Defined in: [lib/supabase/shared-service.ts:116](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L116)
+Defined in: [lib/supabase/shared-service.ts:116](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/shared-service.ts#L116)
 
 ## Parameters
 

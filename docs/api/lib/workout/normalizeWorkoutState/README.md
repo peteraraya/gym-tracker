@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/workout/normalizeWorkoutState
+[gym-logic](../../../README.md) / lib/workout/normalizeWorkoutState
 
 # lib/workout/normalizeWorkoutState
 

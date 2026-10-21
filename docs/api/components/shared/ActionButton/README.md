@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / components/shared/ActionButton
+[gym-logic](../../../README.md) / components/shared/ActionButton
 
 # components/shared/ActionButton
 

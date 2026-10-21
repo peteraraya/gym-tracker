@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/ui/Breadcrumb](../README.md) / Breadcrumb
+[gym-logic](../../../../README.md) / [components/ui/Breadcrumb](../README.md) / Breadcrumb
 
 # Function: Breadcrumb()
 
 > **Breadcrumb**(`__namedParameters`): `Element`
 
-Defined in: [components/ui/Breadcrumb.tsx:27](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/Breadcrumb.tsx#L27)
+Defined in: [components/ui/Breadcrumb.tsx:27](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/Breadcrumb.tsx#L27)
 
 Componente de breadcrumb para navegación en rutas anidadas.
 Mejora la orientación del usuario y el acceso rápido a niveles superiores.

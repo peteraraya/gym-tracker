@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/supabase/service
+[gym-logic](../../../README.md) / lib/supabase/service
 
 # lib/supabase/service
 

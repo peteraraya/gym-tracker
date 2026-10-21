@@ -1,8 +1,8 @@
-**gym-tracker**
+**gym-logic**
 
 ***
 
-# gym-tracker
+# gym-logic
 
 ## Modules
 

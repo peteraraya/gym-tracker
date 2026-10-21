@@ -7,7 +7,7 @@ Una aplicación web moderna y completa para el seguimiento de entrenamientos en 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-green)
-[![CI Pipeline](https://github.com/peteraraya/gym-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/peteraraya/gym-tracker/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/peteraraya/gym-logic/actions/workflows/ci.yml/badge.svg)](https://github.com/peteraraya/gym-logic/actions/workflows/ci.yml)
 
 ## 📋 Descripción del Proyecto
 
@@ -59,8 +59,8 @@ Antes de comenzar, asegúrate de tener instalado:
 
 1. **Clonar el repositorio**
    ```bash
-   git clone https://github.com/peteraraya/gym-tracker.git
-   cd gym-tracker
+   git clone https://github.com/peteraraya/gym-logic.git
+   cd gym-logic
    ```
 
 2. **Instalar dependencias**
@@ -236,7 +236,7 @@ export function StatsCard({
 ¡Gracias por considerar contribuir a GymLogiX! Para asegurar una colaboración efectiva, por favor sigue estas guías:
 
 ### Reportando Issues
-- Usa el [issue tracker](https://github.com/peteraraya/gym-tracker/issues)
+- Usa el [issue tracker](https://github.com/peteraraya/gym-logic/issues)
 - Incluye pasos claros para reproducir el problema
 - Añade capturas de pantalla cuando sea relevante
 - Especifica tu entorno (navegador, OS, versión de la app)
@@ -323,7 +323,7 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](.
 ## 📮 Soporte
 
 Si encuentras problemas o tienes sugerencias:
-- Abre un [issue](https://github.com/peteraraya/gym-tracker/issues) con detalles específicos
+- Abre un [issue](https://github.com/peteraraya/gym-logic/issues) con detalles específicos
 - Para consultas generales, revisa la [documentación](./docs/) primero
 - Seguimos activamente los issues y apreciamos tu contribución al proyecto
 

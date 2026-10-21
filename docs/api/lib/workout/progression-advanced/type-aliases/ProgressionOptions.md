@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/workout/progression-advanced](../README.md) / ProgressionOptions
+[gym-logic](../../../../README.md) / [lib/workout/progression-advanced](../README.md) / ProgressionOptions
 
 # Type Alias: ProgressionOptions
 
 > **ProgressionOptions** = `object`
 
-Defined in: [lib/workout/progression-advanced.ts:22](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L22)
+Defined in: [lib/workout/progression-advanced.ts:22](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L22)
 
 ## Properties
 
@@ -16,7 +16,7 @@ Defined in: [lib/workout/progression-advanced.ts:22](https://github.com/peterara
 
 > `optional` **absoluteIncrementKg?**: `number`
 
-Defined in: [lib/workout/progression-advanced.ts:25](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L25)
+Defined in: [lib/workout/progression-advanced.ts:25](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L25)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [lib/workout/progression-advanced.ts:25](https://github.com/peterara
 
 > `optional` **compound?**: `boolean`
 
-Defined in: [lib/workout/progression-advanced.ts:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L24)
+Defined in: [lib/workout/progression-advanced.ts:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L24)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [lib/workout/progression-advanced.ts:24](https://github.com/peterara
 
 > `optional` **considerFatigue?**: `boolean`
 
-Defined in: [lib/workout/progression-advanced.ts:27](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L27)
+Defined in: [lib/workout/progression-advanced.ts:27](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L27)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [lib/workout/progression-advanced.ts:27](https://github.com/peterara
 
 > `optional` **considerVolume?**: `boolean`
 
-Defined in: [lib/workout/progression-advanced.ts:28](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L28)
+Defined in: [lib/workout/progression-advanced.ts:28](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L28)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [lib/workout/progression-advanced.ts:28](https://github.com/peterara
 
 > `optional` **minSessionsForProgression?**: `number`
 
-Defined in: [lib/workout/progression-advanced.ts:29](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L29)
+Defined in: [lib/workout/progression-advanced.ts:29](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L29)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [lib/workout/progression-advanced.ts:29](https://github.com/peterara
 
 > `optional` **repTarget?**: `number`
 
-Defined in: [lib/workout/progression-advanced.ts:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L23)
+Defined in: [lib/workout/progression-advanced.ts:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L23)
 
 ***
 
@@ -64,4 +64,4 @@ Defined in: [lib/workout/progression-advanced.ts:23](https://github.com/peterara
 
 > `optional` **strategy?**: [`ProgressionStrategy`](ProgressionStrategy.md)
 
-Defined in: [lib/workout/progression-advanced.ts:26](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L26)
+Defined in: [lib/workout/progression-advanced.ts:26](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression-advanced.ts#L26)

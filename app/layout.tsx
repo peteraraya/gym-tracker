@@ -86,7 +86,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  const theme = localStorage.getItem('gym-tracker-theme') || 'dark';
+                  const theme = localStorage.getItem('gym-logic-theme') || 'dark';
                   const getTimeBasedTheme = () => {
                     const hour = new Date().getHours();
                     return (hour >= 20 || hour < 7) ? 'dark' : 'light';

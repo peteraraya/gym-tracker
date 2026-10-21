@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / app/workout/\[id\]/hooks/useAutoAdvance
+[gym-logic](../../../../../README.md) / app/workout/\[id\]/hooks/useAutoAdvance
 
 # app/workout/\[id\]/hooks/useAutoAdvance
 

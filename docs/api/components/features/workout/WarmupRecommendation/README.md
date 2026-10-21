@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/workout/WarmupRecommendation
+[gym-logic](../../../../README.md) / components/features/workout/WarmupRecommendation
 
 # components/features/workout/WarmupRecommendation
 

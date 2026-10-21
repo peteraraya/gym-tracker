@@ -118,7 +118,7 @@ class LocalStorageStrategy implements StorageStrategy {
     const svc = await this.svc();
     const sessions = await svc.getSessions();
     const filtered = sessions.filter((s: WorkoutSession) => s.id !== id);
-    if (typeof window !== 'undefined') localStorage.setItem('gym_tracker_sessions', JSON.stringify(filtered));
+    if (typeof window !== 'undefined') localStorage.setItem('gym_logic_sessions', JSON.stringify(filtered));
   }
   async getProfile() { return (await this.svc()).getProfile(); }
   async updateProfile(d: Partial<UserProfile>) { return (await this.svc()).updateProfile(d); }
@@ -548,7 +548,7 @@ export async function devClearAllSessions(): Promise<{ deleted: number; error?: 
     } else {
       const svc = await import('@/lib/infrastructure/storage/localStorage');
       const sessions = await svc.getSessions();
-      localStorage.removeItem('gym-tracker-sessions');
+      localStorage.removeItem('gym-logic-sessions');
       logger.info('[DEV] Cleared all sessions from localStorage', { count: sessions.length });
       return { deleted: sessions.length };
     }
@@ -567,7 +567,7 @@ export async function devClearAllRoutines(): Promise<{ deleted: number; error?: 
     } else {
       const svc = await import('@/lib/infrastructure/storage/localStorage');
       const routines = await svc.getRoutines();
-      localStorage.removeItem('gym-tracker-routines');
+      localStorage.removeItem('gym-logic-routines');
       logger.info('[DEV] Cleared all routines from localStorage', { count: routines.length });
       return { deleted: routines.length };
     }
@@ -583,7 +583,7 @@ export async function devClearProfile(): Promise<{ success: boolean; error?: str
       logger.info('[DEV] Cleared profile from Supabase');
       return { success: true };
     } else {
-      localStorage.removeItem('gym-tracker-profile');
+      localStorage.removeItem('gym-logic-profile');
       logger.info('[DEV] Cleared profile from localStorage');
       return { success: true };
     }
@@ -603,8 +603,8 @@ export async function devClearPlans(): Promise<{ success: boolean; error?: strin
       logger.info('[DEV] Cleared plans from Supabase');
       return { success: true };
     } else {
-      localStorage.removeItem('gym-tracker-weekly-plan');
-      localStorage.removeItem('gym-tracker-monthly-plan');
+      localStorage.removeItem('gym-logic-weekly-plan');
+      localStorage.removeItem('gym-logic-monthly-plan');
       logger.info('[DEV] Cleared plans from localStorage');
       return { success: true };
     }
@@ -622,7 +622,7 @@ export async function devClearRecommendations(): Promise<{ success: boolean; err
       logger.info('[DEV] Cleared recommendations from Supabase');
       return { success: true };
     } else {
-      localStorage.removeItem('gym-tracker-recommendations');
+      localStorage.removeItem('gym-logic-recommendations');
       logger.info('[DEV] Cleared recommendations from localStorage');
       return { success: true };
     }

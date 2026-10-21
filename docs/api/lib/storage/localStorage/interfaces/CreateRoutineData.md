@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/storage/localStorage](../README.md) / CreateRoutineData
+[gym-logic](../../../../README.md) / [lib/storage/localStorage](../README.md) / CreateRoutineData
 
 # Interface: CreateRoutineData
 
-Defined in: [lib/storage/localStorage.ts:98](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L98)
+Defined in: [lib/storage/localStorage.ts:98](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L98)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/storage/localStorage.ts:98](https://github.com/peteraraya/gym-t
 
 > `optional` **description?**: `string`
 
-Defined in: [lib/storage/localStorage.ts:100](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L100)
+Defined in: [lib/storage/localStorage.ts:100](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L100)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/storage/localStorage.ts:100](https://github.com/peteraraya/gym-
 
 > **exercises**: [`RoutineExercise`](RoutineExercise.md)[]
 
-Defined in: [lib/storage/localStorage.ts:102](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L102)
+Defined in: [lib/storage/localStorage.ts:102](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L102)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/storage/localStorage.ts:102](https://github.com/peteraraya/gym-
 
 > `optional` **image?**: `string`
 
-Defined in: [lib/storage/localStorage.ts:101](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L101)
+Defined in: [lib/storage/localStorage.ts:101](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L101)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [lib/storage/localStorage.ts:101](https://github.com/peteraraya/gym-
 
 > **name**: `string`
 
-Defined in: [lib/storage/localStorage.ts:99](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L99)
+Defined in: [lib/storage/localStorage.ts:99](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L99)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [lib/storage/localStorage.ts:99](https://github.com/peteraraya/gym-t
 
 > `optional` **restBetweenExercises?**: `number`
 
-Defined in: [lib/storage/localStorage.ts:104](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L104)
+Defined in: [lib/storage/localStorage.ts:104](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L104)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [lib/storage/localStorage.ts:104](https://github.com/peteraraya/gym-
 
 > `optional` **restBetweenSets?**: `number`
 
-Defined in: [lib/storage/localStorage.ts:103](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L103)
+Defined in: [lib/storage/localStorage.ts:103](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/localStorage.ts#L103)

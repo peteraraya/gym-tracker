@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/ui/NumericInput](../README.md) / NumericInput
+[gym-logic](../../../../README.md) / [components/ui/NumericInput](../README.md) / NumericInput
 
 # Variable: NumericInput
 
 > `const` **NumericInput**: `ForwardRefExoticComponent`\<`NumericInputProps` & `RefAttributes`\<`HTMLInputElement`\>\>
 
-Defined in: [components/ui/NumericInput.tsx:36](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/NumericInput.tsx#L36)
+Defined in: [components/ui/NumericInput.tsx:36](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/NumericInput.tsx#L36)
 
 Input numérico controlado que resuelve el bug "se queda el 0 al borrar".
 

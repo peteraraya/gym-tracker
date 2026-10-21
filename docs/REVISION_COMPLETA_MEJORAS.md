@@ -267,7 +267,7 @@ try {
     __html: `
       (function() {
         try {
-          const theme = localStorage.getItem('gym-tracker-theme') || 'dark';
+          const theme = localStorage.getItem('gym-logic-theme') || 'dark';
           // ...
         } catch (e) {}
       })();
@@ -286,7 +286,7 @@ try {
 // Crear archivo public/theme-init.js
 (function() {
   try {
-    const theme = localStorage.getItem('gym-tracker-theme') || 'dark';
+    const theme = localStorage.getItem('gym-logic-theme') || 'dark';
     const getTimeBasedTheme = () => {
       const hour = new Date().getHours();
       return (hour >= 20 || hour < 7) ? 'dark' : 'light';
@@ -373,7 +373,7 @@ const [completedSets, setCompletedSets] = useState(...); // ¿Por qué no "actua
 
 // Inconsistencia 2: localStorage keys
 localStorage.setItem('gym-sessions', ...);
-localStorage.setItem('gym_tracker_last_saved_session_local', ...);
+localStorage.setItem('gym_logic_last_saved_session_local', ...);
 localStorage.setItem('weight-history-${exerciseId}', ...);
 
 // Inconsistencia 3: Funciones

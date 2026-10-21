@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/schemas/auth
+[gym-logic](../../../README.md) / lib/schemas/auth
 
 # lib/schemas/auth
 

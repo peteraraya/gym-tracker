@@ -135,7 +135,7 @@ export interface UseRoutineFormReturn {
 }
 
 /** Clave para el borrador en localStorage */
-const STORAGE_KEY = "gym-tracker-routine-draft";
+const STORAGE_KEY = "gym-logic-routine-draft";
 
 // ---------------------------------------------------------------------------
 // Hook principal

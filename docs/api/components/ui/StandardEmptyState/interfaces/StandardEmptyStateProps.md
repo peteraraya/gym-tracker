@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/ui/StandardEmptyState](../README.md) / StandardEmptyStateProps
+[gym-logic](../../../../README.md) / [components/ui/StandardEmptyState](../README.md) / StandardEmptyStateProps
 
 # Interface: StandardEmptyStateProps
 
-Defined in: [components/ui/StandardEmptyState.tsx:21](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L21)
+Defined in: [components/ui/StandardEmptyState.tsx:21](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L21)
 
 Componente unificado de estado vacío para GymLogiX.
 Combina la simplicidad de EmptyState con las acciones de EmptyStateCard.
@@ -28,7 +28,7 @@ Ejemplo:
 
 > `optional` **actionLabel?**: `string`
 
-Defined in: [components/ui/StandardEmptyState.tsx:25](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L25)
+Defined in: [components/ui/StandardEmptyState.tsx:25](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L25)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [components/ui/StandardEmptyState.tsx:25](https://github.com/peterar
 
 > `optional` **className?**: `string`
 
-Defined in: [components/ui/StandardEmptyState.tsx:29](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L29)
+Defined in: [components/ui/StandardEmptyState.tsx:29](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L29)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [components/ui/StandardEmptyState.tsx:29](https://github.com/peterar
 
 > `optional` **description?**: `string`
 
-Defined in: [components/ui/StandardEmptyState.tsx:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L24)
+Defined in: [components/ui/StandardEmptyState.tsx:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L24)
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: [components/ui/StandardEmptyState.tsx:24](https://github.com/peterar
 
 > `optional` **icon?**: `ReactNode`
 
-Defined in: [components/ui/StandardEmptyState.tsx:22](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L22)
+Defined in: [components/ui/StandardEmptyState.tsx:22](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L22)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [components/ui/StandardEmptyState.tsx:22](https://github.com/peterar
 
 > `optional` **onAction?**: () => `void`
 
-Defined in: [components/ui/StandardEmptyState.tsx:26](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L26)
+Defined in: [components/ui/StandardEmptyState.tsx:26](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L26)
 
 #### Returns
 
@@ -72,7 +72,7 @@ Defined in: [components/ui/StandardEmptyState.tsx:26](https://github.com/peterar
 
 > `optional` **onSecondaryAction?**: () => `void`
 
-Defined in: [components/ui/StandardEmptyState.tsx:28](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L28)
+Defined in: [components/ui/StandardEmptyState.tsx:28](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L28)
 
 #### Returns
 
@@ -84,7 +84,7 @@ Defined in: [components/ui/StandardEmptyState.tsx:28](https://github.com/peterar
 
 > `optional` **secondaryActionLabel?**: `string`
 
-Defined in: [components/ui/StandardEmptyState.tsx:27](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L27)
+Defined in: [components/ui/StandardEmptyState.tsx:27](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L27)
 
 ***
 
@@ -92,4 +92,4 @@ Defined in: [components/ui/StandardEmptyState.tsx:27](https://github.com/peterar
 
 > **title**: `string`
 
-Defined in: [components/ui/StandardEmptyState.tsx:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L23)
+Defined in: [components/ui/StandardEmptyState.tsx:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/StandardEmptyState.tsx#L23)

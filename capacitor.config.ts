@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.gymtracker.app',
+  appId: 'com.gymlogic.app',
   appName: 'GymLogiX',
   webDir: 'out',
   // `bundledWebRuntime` is not part of the current `CapacitorConfig` type

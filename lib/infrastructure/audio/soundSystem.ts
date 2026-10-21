@@ -100,7 +100,7 @@ class SoundManager {
     if (typeof window === 'undefined') return;
 
     try {
-      const settings = localStorage.getItem('gym_tracker_sound_settings');
+      const settings = localStorage.getItem('gym_logic_sound_settings');
       if (settings) {
         const parsed = JSON.parse(settings);
         this.currentSound = parsed.soundType || 'bell';
@@ -121,7 +121,7 @@ class SoundManager {
         volume: this.masterVolume,
         enabled: this.isEnabled
       };
-      localStorage.setItem('gym_tracker_sound_settings', JSON.stringify(settings));
+      localStorage.setItem('gym_logic_sound_settings', JSON.stringify(settings));
     } catch (error) {
       console.warn('Error guardando configuración de sonido:', error);
     }

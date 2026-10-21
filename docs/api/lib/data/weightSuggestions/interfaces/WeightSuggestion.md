@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/data/weightSuggestions](../README.md) / WeightSuggestion
+[gym-logic](../../../../README.md) / [lib/data/weightSuggestions](../README.md) / WeightSuggestion
 
 # Interface: WeightSuggestion
 
-Defined in: [lib/data/weightSuggestions.ts:3](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L3)
+Defined in: [lib/data/weightSuggestions.ts:3](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L3)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/data/weightSuggestions.ts:3](https://github.com/peteraraya/gym-
 
 > **confidence**: `"low"` \| `"medium"` \| `"high"`
 
-Defined in: [lib/data/weightSuggestions.ts:7](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L7)
+Defined in: [lib/data/weightSuggestions.ts:7](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L7)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/data/weightSuggestions.ts:7](https://github.com/peteraraya/gym-
 
 > **increase**: `number`
 
-Defined in: [lib/data/weightSuggestions.ts:6](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L6)
+Defined in: [lib/data/weightSuggestions.ts:6](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L6)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/data/weightSuggestions.ts:6](https://github.com/peteraraya/gym-
 
 > **lastUsed**: `number`
 
-Defined in: [lib/data/weightSuggestions.ts:5](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L5)
+Defined in: [lib/data/weightSuggestions.ts:5](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L5)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [lib/data/weightSuggestions.ts:5](https://github.com/peteraraya/gym-
 
 > **reason**: `string`
 
-Defined in: [lib/data/weightSuggestions.ts:8](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L8)
+Defined in: [lib/data/weightSuggestions.ts:8](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L8)
 
 ***
 
@@ -46,4 +46,4 @@ Defined in: [lib/data/weightSuggestions.ts:8](https://github.com/peteraraya/gym-
 
 > **suggested**: `number`
 
-Defined in: [lib/data/weightSuggestions.ts:4](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L4)
+Defined in: [lib/data/weightSuggestions.ts:4](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L4)

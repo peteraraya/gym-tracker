@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/workout/MinimizedTimer
+[gym-logic](../../../../README.md) / components/features/workout/MinimizedTimer
 
 # components/features/workout/MinimizedTimer
 

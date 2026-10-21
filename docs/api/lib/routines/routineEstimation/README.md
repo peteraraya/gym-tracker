@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/routines/routineEstimation
+[gym-logic](../../../README.md) / lib/routines/routineEstimation
 
 # lib/routines/routineEstimation
 

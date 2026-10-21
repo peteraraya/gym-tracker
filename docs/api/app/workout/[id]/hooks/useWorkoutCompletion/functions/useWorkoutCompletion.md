@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWorkoutCompletion](../README.md) / useWorkoutCompletion
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWorkoutCompletion](../README.md) / useWorkoutCompletion
 
 # Function: useWorkoutCompletion()
 
 > **useWorkoutCompletion**(`__namedParameters`): `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutCompletion.ts:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutCompletion.ts#L23)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutCompletion.ts:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutCompletion.ts#L23)
 
 ## Parameters
 

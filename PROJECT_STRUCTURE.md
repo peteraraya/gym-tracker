@@ -5,7 +5,7 @@ A continuación se detalla la jerarquía de directorios organizada y su función
 ## 📂 Estructura General
 
 ```
-gym-tracker/
+gym-logic/
 ├── .github/                     # Configuración de GitHub (workflows, ISSUE_TEMPLATES)
 ├── .kilo/                       # Configuración local de Kilo (comandos, agentes, skills)
 ├── docs/                        # Documentación técnica y guías

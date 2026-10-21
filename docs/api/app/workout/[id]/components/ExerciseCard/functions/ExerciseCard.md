@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/components/ExerciseCard](../README.md) / ExerciseCard
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/components/ExerciseCard](../README.md) / ExerciseCard
 
 # Function: ExerciseCard()
 
 > **ExerciseCard**(`__namedParameters`): `Element`
 
-Defined in: [app/workout/\[id\]/components/ExerciseCard.tsx:54](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/components/ExerciseCard.tsx#L54)
+Defined in: [app/workout/\[id\]/components/ExerciseCard.tsx:54](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/components/ExerciseCard.tsx#L54)
 
 Componente que muestra un ejercicio individual
 

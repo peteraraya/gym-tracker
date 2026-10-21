@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/services/workoutInitService](../README.md) / InitWorkoutParams
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/services/workoutInitService](../README.md) / InitWorkoutParams
 
 # Interface: InitWorkoutParams
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:21](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L21)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:21](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L21)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:21](https://githu
 
 > **activeWorkout**: `RestorableWorkout`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L23)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L23)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:23](https://githu
 
 > **getRoutineById**: (`id`) => `Routine`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L24)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L24)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:24](https://githu
 
 > **id**: `string`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:22](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L22)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:22](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L22)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:22](https://githu
 
 > **routerPush**: (`path`) => `void`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:41](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L41)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:41](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L41)
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:41](https://githu
 
 > **setIsInitialized**: (`val`) => `void`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:40](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L40)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:40](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L40)
 
 #### Parameters
 
@@ -84,7 +84,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:40](https://githu
 
 > **setOriginalRoutine**: (`routine`) => `void`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:39](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L39)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:39](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L39)
 
 #### Parameters
 
@@ -102,7 +102,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:39](https://githu
 
 > **setRoutine**: (`routine`) => `void`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:38](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L38)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:38](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L38)
 
 #### Parameters
 
@@ -120,7 +120,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:38](https://githu
 
 > **setShowStartSplash**: (`show`) => `void`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:37](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L37)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:37](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L37)
 
 #### Parameters
 
@@ -138,7 +138,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:37](https://githu
 
 > **setWorkoutStartTime**: (`time`) => `void`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:36](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L36)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:36](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L36)
 
 #### Parameters
 
@@ -156,7 +156,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:36](https://githu
 
 > **shouldContinue**: () => `boolean`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:42](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L42)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:42](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L42)
 
 #### Returns
 
@@ -168,7 +168,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:42](https://githu
 
 > **startWorkout**: (`routine`) => `void`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:25](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L25)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:25](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L25)
 
 #### Parameters
 
@@ -186,7 +186,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:25](https://githu
 
 > **timerHandlers**: `object`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:33](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L33)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:33](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L33)
 
 #### startTimer
 
@@ -216,7 +216,7 @@ Defined in: [app/workout/\[id\]/services/workoutInitService.ts:33](https://githu
 
 > **workoutState**: `object`
 
-Defined in: [app/workout/\[id\]/services/workoutInitService.ts:26](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L26)
+Defined in: [app/workout/\[id\]/services/workoutInitService.ts:26](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/services/workoutInitService.ts#L26)
 
 #### restoreData
 

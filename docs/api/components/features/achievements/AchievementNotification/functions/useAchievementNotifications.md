@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / [components/features/achievements/AchievementNotification](../README.md) / useAchievementNotifications
+[gym-logic](../../../../../README.md) / [components/features/achievements/AchievementNotification](../README.md) / useAchievementNotifications
 
 # Function: useAchievementNotifications()
 
 > **useAchievementNotifications**(): `object`
 
-Defined in: [components/features/achievements/AchievementNotification.tsx:198](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/features/achievements/AchievementNotification.tsx#L198)
+Defined in: [components/features/achievements/AchievementNotification.tsx:198](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/features/achievements/AchievementNotification.tsx#L198)
 
 ## Returns
 

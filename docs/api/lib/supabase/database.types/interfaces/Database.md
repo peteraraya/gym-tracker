@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/supabase/database.types](../README.md) / Database
+[gym-logic](../../../../README.md) / [lib/supabase/database.types](../README.md) / Database
 
 # Interface: Database
 
-Defined in: [lib/supabase/database.types.ts:9](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/database.types.ts#L9)
+Defined in: [lib/supabase/database.types.ts:9](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/database.types.ts#L9)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/supabase/database.types.ts:9](https://github.com/peteraraya/gym
 
 > **public**: `object`
 
-Defined in: [lib/supabase/database.types.ts:10](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/database.types.ts#L10)
+Defined in: [lib/supabase/database.types.ts:10](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/database.types.ts#L10)
 
 #### Enums
 

@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/utils/workoutBackup](../README.md) / WorkoutBackup
+[gym-logic](../../../../README.md) / [lib/utils/workoutBackup](../README.md) / WorkoutBackup
 
 # Interface: WorkoutBackup
 
-Defined in: [lib/utils/workoutBackup.ts:14](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L14)
+Defined in: [lib/utils/workoutBackup.ts:14](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L14)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/utils/workoutBackup.ts:14](https://github.com/peteraraya/gym-tr
 
 > **data**: `any`
 
-Defined in: [lib/utils/workoutBackup.ts:16](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L16)
+Defined in: [lib/utils/workoutBackup.ts:16](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L16)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/utils/workoutBackup.ts:16](https://github.com/peteraraya/gym-tr
 
 > **reason**: `string`
 
-Defined in: [lib/utils/workoutBackup.ts:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L17)
+Defined in: [lib/utils/workoutBackup.ts:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L17)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [lib/utils/workoutBackup.ts:17](https://github.com/peteraraya/gym-tr
 
 > **timestamp**: `number`
 
-Defined in: [lib/utils/workoutBackup.ts:15](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L15)
+Defined in: [lib/utils/workoutBackup.ts:15](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/utils/workoutBackup.ts#L15)

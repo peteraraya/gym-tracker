@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/storage/storage](../README.md) / StorageStrategy
+[gym-logic](../../../../README.md) / [lib/storage/storage](../README.md) / StorageStrategy
 
 # Interface: StorageStrategy
 
-Defined in: [lib/storage/storage.ts:21](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L21)
+Defined in: [lib/storage/storage.ts:21](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L21)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/storage/storage.ts:21](https://github.com/peteraraya/gym-tracke
 
 > **name**: `string`
 
-Defined in: [lib/storage/storage.ts:22](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L22)
+Defined in: [lib/storage/storage.ts:22](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L22)
 
 ## Methods
 
@@ -22,7 +22,7 @@ Defined in: [lib/storage/storage.ts:22](https://github.com/peteraraya/gym-tracke
 
 > **clearActiveWorkout**(): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:44](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L44)
+Defined in: [lib/storage/storage.ts:44](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L44)
 
 #### Returns
 
@@ -34,7 +34,7 @@ Defined in: [lib/storage/storage.ts:44](https://github.com/peteraraya/gym-tracke
 
 > **createRoutine**(`data`): `Promise`\<`Routine`\>
 
-Defined in: [lib/storage/storage.ts:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L24)
+Defined in: [lib/storage/storage.ts:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L24)
 
 #### Parameters
 
@@ -52,7 +52,7 @@ Defined in: [lib/storage/storage.ts:24](https://github.com/peteraraya/gym-tracke
 
 > **deleteRoutine**(`id`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:26](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L26)
+Defined in: [lib/storage/storage.ts:26](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L26)
 
 #### Parameters
 
@@ -70,7 +70,7 @@ Defined in: [lib/storage/storage.ts:26](https://github.com/peteraraya/gym-tracke
 
 > **deleteSession**(`id`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:31](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L31)
+Defined in: [lib/storage/storage.ts:31](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L31)
 
 #### Parameters
 
@@ -88,7 +88,7 @@ Defined in: [lib/storage/storage.ts:31](https://github.com/peteraraya/gym-tracke
 
 > `optional` **deleteSessionsByRoutine**(`id`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:27](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L27)
+Defined in: [lib/storage/storage.ts:27](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L27)
 
 #### Parameters
 
@@ -106,7 +106,7 @@ Defined in: [lib/storage/storage.ts:27](https://github.com/peteraraya/gym-tracke
 
 > **getActiveWorkout**(): `Promise`\<[`ActiveWorkout`](../../localStorage/type-aliases/ActiveWorkout.md)\>
 
-Defined in: [lib/storage/storage.ts:42](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L42)
+Defined in: [lib/storage/storage.ts:42](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L42)
 
 #### Returns
 
@@ -118,7 +118,7 @@ Defined in: [lib/storage/storage.ts:42](https://github.com/peteraraya/gym-tracke
 
 > **getLastWeights**(): `Promise`\<`Record`\<`string`, `number`[]\>\>
 
-Defined in: [lib/storage/storage.ts:40](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L40)
+Defined in: [lib/storage/storage.ts:40](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L40)
 
 #### Returns
 
@@ -130,7 +130,7 @@ Defined in: [lib/storage/storage.ts:40](https://github.com/peteraraya/gym-tracke
 
 > **getMonthlyPlan**(): `Promise`\<[`MonthlyPlan`](../../localStorage/type-aliases/MonthlyPlan.md)\>
 
-Defined in: [lib/storage/storage.ts:36](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L36)
+Defined in: [lib/storage/storage.ts:36](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L36)
 
 #### Returns
 
@@ -142,7 +142,7 @@ Defined in: [lib/storage/storage.ts:36](https://github.com/peteraraya/gym-tracke
 
 > **getProfile**(): `Promise`\<[`UserProfile`](../../localStorage/interfaces/UserProfile.md)\>
 
-Defined in: [lib/storage/storage.ts:32](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L32)
+Defined in: [lib/storage/storage.ts:32](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L32)
 
 #### Returns
 
@@ -154,7 +154,7 @@ Defined in: [lib/storage/storage.ts:32](https://github.com/peteraraya/gym-tracke
 
 > **getRecommendations**(): `Promise`\<[`ProgressRecommendation`](../../localStorage/interfaces/ProgressRecommendation.md)[]\>
 
-Defined in: [lib/storage/storage.ts:38](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L38)
+Defined in: [lib/storage/storage.ts:38](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L38)
 
 #### Returns
 
@@ -166,7 +166,7 @@ Defined in: [lib/storage/storage.ts:38](https://github.com/peteraraya/gym-tracke
 
 > **getRoutines**(): `Promise`\<`Routine`[]\>
 
-Defined in: [lib/storage/storage.ts:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L23)
+Defined in: [lib/storage/storage.ts:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L23)
 
 #### Returns
 
@@ -178,7 +178,7 @@ Defined in: [lib/storage/storage.ts:23](https://github.com/peteraraya/gym-tracke
 
 > **getSessions**(): `Promise`\<`WorkoutSession`[]\>
 
-Defined in: [lib/storage/storage.ts:28](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L28)
+Defined in: [lib/storage/storage.ts:28](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L28)
 
 #### Returns
 
@@ -190,7 +190,7 @@ Defined in: [lib/storage/storage.ts:28](https://github.com/peteraraya/gym-tracke
 
 > **getWeeklyPlan**(): `Promise`\<[`WeeklyPlan`](../../localStorage/type-aliases/WeeklyPlan.md)\>
 
-Defined in: [lib/storage/storage.ts:34](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L34)
+Defined in: [lib/storage/storage.ts:34](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L34)
 
 #### Returns
 
@@ -202,7 +202,7 @@ Defined in: [lib/storage/storage.ts:34](https://github.com/peteraraya/gym-tracke
 
 > **migrateLegacySessions**(): `Promise`\<\{ `migrated`: `number`; `total`: `number`; \}\>
 
-Defined in: [lib/storage/storage.ts:46](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L46)
+Defined in: [lib/storage/storage.ts:46](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L46)
 
 #### Returns
 
@@ -214,7 +214,7 @@ Defined in: [lib/storage/storage.ts:46](https://github.com/peteraraya/gym-tracke
 
 > **rebuildRoutinesFromSessions**(): `Promise`\<`Routine`[]\>
 
-Defined in: [lib/storage/storage.ts:45](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L45)
+Defined in: [lib/storage/storage.ts:45](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L45)
 
 #### Returns
 
@@ -226,7 +226,7 @@ Defined in: [lib/storage/storage.ts:45](https://github.com/peteraraya/gym-tracke
 
 > **saveActiveWorkout**(`payload`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:43](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L43)
+Defined in: [lib/storage/storage.ts:43](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L43)
 
 #### Parameters
 
@@ -244,7 +244,7 @@ Defined in: [lib/storage/storage.ts:43](https://github.com/peteraraya/gym-tracke
 
 > **saveLastWeights**(`w`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:41](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L41)
+Defined in: [lib/storage/storage.ts:41](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L41)
 
 #### Parameters
 
@@ -262,7 +262,7 @@ Defined in: [lib/storage/storage.ts:41](https://github.com/peteraraya/gym-tracke
 
 > **saveMonthlyPlan**(`plan`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:37](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L37)
+Defined in: [lib/storage/storage.ts:37](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L37)
 
 #### Parameters
 
@@ -280,7 +280,7 @@ Defined in: [lib/storage/storage.ts:37](https://github.com/peteraraya/gym-tracke
 
 > **saveRecommendations**(`recs`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:39](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L39)
+Defined in: [lib/storage/storage.ts:39](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L39)
 
 #### Parameters
 
@@ -298,7 +298,7 @@ Defined in: [lib/storage/storage.ts:39](https://github.com/peteraraya/gym-tracke
 
 > **saveSession**(`session`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:29](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L29)
+Defined in: [lib/storage/storage.ts:29](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L29)
 
 #### Parameters
 
@@ -316,7 +316,7 @@ Defined in: [lib/storage/storage.ts:29](https://github.com/peteraraya/gym-tracke
 
 > **saveWeeklyPlan**(`plan`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:35](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L35)
+Defined in: [lib/storage/storage.ts:35](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L35)
 
 #### Parameters
 
@@ -334,7 +334,7 @@ Defined in: [lib/storage/storage.ts:35](https://github.com/peteraraya/gym-tracke
 
 > **updateProfile**(`data`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:33](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L33)
+Defined in: [lib/storage/storage.ts:33](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L33)
 
 #### Parameters
 
@@ -352,7 +352,7 @@ Defined in: [lib/storage/storage.ts:33](https://github.com/peteraraya/gym-tracke
 
 > **updateRoutine**(`id`, `data`): `Promise`\<`Routine`\>
 
-Defined in: [lib/storage/storage.ts:25](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L25)
+Defined in: [lib/storage/storage.ts:25](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L25)
 
 #### Parameters
 
@@ -374,7 +374,7 @@ Defined in: [lib/storage/storage.ts:25](https://github.com/peteraraya/gym-tracke
 
 > **updateSession**(`session`): `Promise`\<`void`\>
 
-Defined in: [lib/storage/storage.ts:30](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L30)
+Defined in: [lib/storage/storage.ts:30](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/storage/storage.ts#L30)
 
 #### Parameters
 

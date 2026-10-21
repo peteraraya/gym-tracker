@@ -12,7 +12,7 @@ let vapidConfigured = false;
 if (vapidKeys.publicKey && vapidKeys.privateKey) {
   try {
     webpush.setVapidDetails(
-      'mailto:support@gymtracker.app',
+      'mailto:support@gymlogic.app',
       vapidKeys.publicKey,
       vapidKeys.privateKey
     );

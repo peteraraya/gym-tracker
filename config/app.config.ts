@@ -60,7 +60,7 @@ export const APP_CONFIG = {
       weeklyPlan: "gym-weekly-plan",
       planning: "gym-planning-data",
       equipment: "gym-equipment",
-      lastSavedSession: "gym_tracker_last_saved_session_local",
+      lastSavedSession: "gym_logic_last_saved_session_local",
     },
   },
 

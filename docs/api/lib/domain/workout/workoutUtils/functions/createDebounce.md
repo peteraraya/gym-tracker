@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / [lib/domain/workout/workoutUtils](../README.md) / createDebounce
+[gym-logic](../../../../../README.md) / [lib/domain/workout/workoutUtils](../README.md) / createDebounce
 
 # Function: createDebounce()
 
 > **createDebounce**\<`T`\>(`func`, `wait`): \{(...`args`): `void`; `cancel`: () => `void`; `flush`: () => `void`; \}
 
-Defined in: [lib/domain/workout/workoutUtils.ts:14](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutUtils.ts#L14)
+Defined in: [lib/domain/workout/workoutUtils.ts:14](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutUtils.ts#L14)
 
 Crea una función debounce con cancel y flush.
 Útil para operaciones que no deben ejecutarse en cada cambio,

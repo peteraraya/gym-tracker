@@ -302,7 +302,7 @@ const filteredExercises = selectedMuscle
 
 ### Clave de localStorage
 ```
-gym_tracker_custom_exercises
+gym_logic_custom_exercises
 ```
 
 ### Formato de Datos

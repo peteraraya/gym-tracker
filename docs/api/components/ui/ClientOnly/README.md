@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / components/ui/ClientOnly
+[gym-logic](../../../README.md) / components/ui/ClientOnly
 
 # components/ui/ClientOnly
 

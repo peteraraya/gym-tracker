@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/utils/weightPrediction](../README.md) / WeightPredictionParams
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/utils/weightPrediction](../README.md) / WeightPredictionParams
 
 # Interface: WeightPredictionParams
 
-Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:13](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L13)
+Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:13](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L13)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:13](https://github.com
 
 > **actualWeights**: `Record`\<`string`, `number`[]\>
 
-Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:18](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L18)
+Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:18](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L18)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:18](https://github.com
 
 > **currentExercise**: `Exercise`
 
-Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L17)
+Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L17)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:17](https://github.com
 
 > **currentSet**: `number`
 
-Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:15](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L15)
+Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:15](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L15)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:15](https://github.com
 
 > **exerciseId**: `string`
 
-Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:19](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L19)
+Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:19](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L19)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:19](https://github.com
 
 > **exerciseName**: `string`
 
-Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:14](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L14)
+Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:14](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L14)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:14](https://github.com
 
 > **sessions**: `WorkoutSession`[]
 
-Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:16](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L16)
+Defined in: [app/workout/\[id\]/utils/weightPrediction.ts:16](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/utils/weightPrediction.ts#L16)

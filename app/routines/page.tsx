@@ -88,7 +88,7 @@ export default function RoutinesPage() {
     // Comprobar si existe un borrador guardado
     if (typeof window !== "undefined") {
       try {
-        const draftStr = localStorage.getItem("gym-tracker-routine-draft");
+        const draftStr = localStorage.getItem("gym-logic-routine-draft");
         if (draftStr) {
           const draft = JSON.parse(draftStr || "null");
           const hasData = draft && (draft.name || (Array.isArray(draft.exercises) && draft.exercises.length > 0));
@@ -109,7 +109,7 @@ export default function RoutinesPage() {
 
             // Usuario eligió descartar → eliminar borrador
             try {
-              localStorage.removeItem("gym-tracker-routine-draft");
+              localStorage.removeItem("gym-logic-routine-draft");
             } catch (e) {
               // ignorar errores de localStorage
             }

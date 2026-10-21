@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/progress/progressAggregator](../README.md) / default
+[gym-logic](../../../../README.md) / [lib/progress/progressAggregator](../README.md) / default
 
 # Variable: default
 
 > **default**: `object`
 
-Defined in: [lib/progress/progressAggregator.ts:281](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L281)
+Defined in: [lib/progress/progressAggregator.ts:281](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L281)
 
 ## Type Declaration
 

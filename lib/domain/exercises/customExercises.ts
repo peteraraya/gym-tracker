@@ -5,7 +5,7 @@
 
 import type { ExerciseTemplate, MuscleGroup, DifficultyLevel, ExerciseCategory } from '@/data/exercises/types';
 
-const CUSTOM_EXERCISES_KEY = 'gym_tracker_custom_exercises';
+const CUSTOM_EXERCISES_KEY = 'gym_logic_custom_exercises';
 
 /**
  * Obtiene todos los ejercicios personalizados del localStorage

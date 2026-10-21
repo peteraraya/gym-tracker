@@ -1,11 +1,11 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/validation/schemas](../README.md) / Recommendation
+[gym-logic](../../../../README.md) / [lib/validation/schemas](../README.md) / Recommendation
 
 # Type Alias: Recommendation
 
 > **Recommendation** = `z.infer`\<*typeof* [`RecommendationSchema`](../variables/RecommendationSchema.md)\>
 
-Defined in: [lib/validation/schemas.ts:175](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/validation/schemas.ts#L175)
+Defined in: [lib/validation/schemas.ts:175](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/validation/schemas.ts#L175)

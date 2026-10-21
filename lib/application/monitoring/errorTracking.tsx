@@ -141,7 +141,7 @@ class ErrorTracker {
     try {
       // Aquí integrarías con Sentry, LogRocket, etc.
       // Por ahora, guardamos en localStorage para debug
-      const stored = localStorage.getItem('gym_tracker_errors') || '[]';
+      const stored = localStorage.getItem('gym_logic_errors') || '[]';
       const errors = JSON.parse(stored);
       errors.push({
         message: errorEntry.error.message,
@@ -155,7 +155,7 @@ class ErrorTracker {
         errors.splice(0, errors.length - 50);
       }
       
-      localStorage.setItem('gym_tracker_errors', JSON.stringify(errors));
+      localStorage.setItem('gym_logic_errors', JSON.stringify(errors));
     } catch (e) {
       console.error('Failed to store error:', e);
     }

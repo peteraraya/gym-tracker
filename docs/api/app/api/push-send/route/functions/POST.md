@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / [app/api/push-send/route](../README.md) / POST
+[gym-logic](../../../../../README.md) / [app/api/push-send/route](../README.md) / POST
 
 # Function: POST()
 
 > **POST**(`request`): `Promise`\<`NextResponse`\<\{ `error`: `string`; \}\> \| `NextResponse`\<\{ `message`: `string`; `success`: `boolean`; \}\>\>
 
-Defined in: [app/api/push-send/route.ts:33](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/api/push-send/route.ts#L33)
+Defined in: [app/api/push-send/route.ts:33](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/api/push-send/route.ts#L33)
 
 ## Parameters
 

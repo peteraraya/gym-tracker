@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/performance/metrics](../README.md) / PerformanceReport
+[gym-logic](../../../../README.md) / [lib/performance/metrics](../README.md) / PerformanceReport
 
 # Interface: PerformanceReport
 
-Defined in: [lib/performance/metrics.ts:7](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L7)
+Defined in: [lib/performance/metrics.ts:7](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L7)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/performance/metrics.ts:7](https://github.com/peteraraya/gym-tra
 
 > **api**: `object`
 
-Defined in: [lib/performance/metrics.ts:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L23)
+Defined in: [lib/performance/metrics.ts:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L23)
 
 #### requestCount
 
@@ -26,7 +26,7 @@ Defined in: [lib/performance/metrics.ts:23](https://github.com/peteraraya/gym-tr
 
 > **bundle**: `object`
 
-Defined in: [lib/performance/metrics.ts:15](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L15)
+Defined in: [lib/performance/metrics.ts:15](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L15)
 
 #### size
 
@@ -42,7 +42,7 @@ Defined in: [lib/performance/metrics.ts:15](https://github.com/peteraraya/gym-tr
 
 > **cache**: `object`
 
-Defined in: [lib/performance/metrics.ts:19](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L19)
+Defined in: [lib/performance/metrics.ts:19](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L19)
 
 #### hitRate
 
@@ -58,7 +58,7 @@ Defined in: [lib/performance/metrics.ts:19](https://github.com/peteraraya/gym-tr
 
 > **pageLoad**: `object`
 
-Defined in: [lib/performance/metrics.ts:9](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L9)
+Defined in: [lib/performance/metrics.ts:9](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L9)
 
 #### fcp
 
@@ -82,4 +82,4 @@ Defined in: [lib/performance/metrics.ts:9](https://github.com/peteraraya/gym-tra
 
 > **timestamp**: `string`
 
-Defined in: [lib/performance/metrics.ts:8](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L8)
+Defined in: [lib/performance/metrics.ts:8](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/performance/metrics.ts#L8)

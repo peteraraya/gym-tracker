@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/progress/progressAggregator](../README.md) / calculateProgressMetrics
+[gym-logic](../../../../README.md) / [lib/progress/progressAggregator](../README.md) / calculateProgressMetrics
 
 # Function: calculateProgressMetrics()
 
 > **calculateProgressMetrics**(`sessions`, `userWeightKg?`, `userGender?`): [`ProgressMetrics`](../interfaces/ProgressMetrics.md)
 
-Defined in: [lib/progress/progressAggregator.ts:98](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L98)
+Defined in: [lib/progress/progressAggregator.ts:98](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L98)
 
 Main function to calculate progress metrics from sessions
 

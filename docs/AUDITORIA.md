@@ -73,7 +73,7 @@ Oportunidades de mayor impacto:
 - **API routes muertas o frágiles**: rutas `routines`/`sessions` retornan 503 si `ENABLE_DATABASE!=true`; endpoints push sin chequeo de sesión.
 - **Seguridad**: `VAPID_PRIVATE_KEY` y `VERCEL_OIDC_TOKEN` en archivos de entorno en disco (no trackeados, pero frágiles); la fuga es de práctica operativa más que de código.
 - **Esquema duplicado**: docs y `schema.sql` crean `user_profiles`, pero el código y migraciones usan `profiles` → ambigüedad mantenible (`lib/supabase/service.ts:534`).
-- **Inconsistencia de storage**: claves localStorage mezclan `gym_tracker_*` y `gym-tracker-*`.
+- **Inconsistencia de storage**: claves localStorage mezclan `gym_logic_*` y `gym-logic-*`.
 
 ---
 

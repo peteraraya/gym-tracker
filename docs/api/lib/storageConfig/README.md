@@ -1,8 +1,8 @@
-[**gym-tracker**](../../README.md)
+[**gym-logic**](../../README.md)
 
 ***
 
-[gym-tracker](../../README.md) / lib/storageConfig
+[gym-logic](../../README.md) / lib/storageConfig
 
 # lib/storageConfig
 

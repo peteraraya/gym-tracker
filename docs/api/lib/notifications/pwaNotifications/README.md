@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/notifications/pwaNotifications
+[gym-logic](../../../README.md) / lib/notifications/pwaNotifications
 
 # lib/notifications/pwaNotifications
 

@@ -89,7 +89,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   }
 ];
 
-const STORAGE_KEY = 'gym_tracker_onboarding_completed';
+const STORAGE_KEY = 'gym_logic_onboarding_completed';
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const [isActive, setIsActive] = useState(false);

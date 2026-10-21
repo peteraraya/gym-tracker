@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/exercises/exerciseRecommendations](../README.md) / generatePreConfiguredSets
+[gym-logic](../../../../README.md) / [lib/exercises/exerciseRecommendations](../README.md) / generatePreConfiguredSets
 
 # Function: generatePreConfiguredSets()
 
 > **generatePreConfiguredSets**(`exercise`, `profile`): `object`[]
 
-Defined in: [lib/exercises/exerciseRecommendations.ts:226](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/exerciseRecommendations.ts#L226)
+Defined in: [lib/exercises/exerciseRecommendations.ts:226](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/exerciseRecommendations.ts#L226)
 
 Genera un array de sets pre-configurados para un ejercicio
 

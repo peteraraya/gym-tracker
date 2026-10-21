@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/achievements/achievementManager
+[gym-logic](../../../README.md) / lib/achievements/achievementManager
 
 # lib/achievements/achievementManager
 
