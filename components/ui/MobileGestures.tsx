@@ -3,6 +3,8 @@
 import React, { useEffect, useCallback } from 'react';
 
 interface MobileGesturesProps {
+  /** Contenido hijo del componente */
+  children: React.ReactNode;
   /** Prevenir selección de texto en elementos interactivos */
   preventTextSelection?: boolean;
   /** Prevenir pull-to-refresh en iOS Safari */
