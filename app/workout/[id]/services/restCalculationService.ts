@@ -1,4 +1,4 @@
-﻿import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/workout/restCalculator';
+﻿import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/application/workout/restCalculator';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 
 interface RestCalculationParams {
@@ -27,7 +27,7 @@ export function calculateNextRestTime({
   const setIndex = (typeof currentSet === 'number' && currentSet > 0) ? currentSet - 1 : 0;
 
   // 1. Per-set override (manual edit during workout)
-  if (perSetOverrides?.[exerciseId]?.[setIndex]) {
+  if (typeof perSetOverrides?.[exerciseId]?.[setIndex] === 'number') {
     return perSetOverrides[exerciseId][setIndex];
   }
 
@@ -58,33 +58,31 @@ export function calculateNextRestTime({
 
 /**
  * Calculate rest time between different exercises.
- * Priority: nextExerciseOverride > routineConfig > smart > default
+ * Priority: routineConfig > smart > default
+ *
+ * Note: `restOverrides` holds per-exercise "rest between sets" overrides
+ * (set via onEditRestTime, keyed by exercise id). It is NOT a rest-between-
+ * exercises override, so it must not be read here — doing so previously
+ * reused the next exercise's "rest between its own sets" value as the
+ * transition rest from the current exercise into it.
  */
 export function calculateExerciseRestTime({
   currentExercise,
   nextExercise,
   routine,
-  restOverrides,
   useSmartRest
 }: RestCalculationParams): number {
   if (!nextExercise) return 120;
 
-  const nextExerciseId = nextExercise.id;
-
-  // 1. Override on next exercise
-  if (typeof restOverrides?.[nextExerciseId] === 'number') {
-    return restOverrides[nextExerciseId];
-  }
-
-  // 2. Routine's global config
+  // 1. Routine's global config
   if (routine.restBetweenExercises) {
     return routine.restBetweenExercises;
   }
 
-  // 3. Smart rest
+  // 2. Smart rest
   if (useSmartRest) {
-    const currentTemplate = EXERCISE_DATABASE.find(e => e.name === currentExercise.name);
-    const nextTemplate = EXERCISE_DATABASE.find(e => e.name === nextExercise.name);
+    const currentTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === currentExercise.name.toLowerCase());
+    const nextTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === nextExercise.name.toLowerCase());
 
     if (currentTemplate && nextTemplate) {
       const restRecommendation = calculateRestBetweenExercises(
@@ -96,7 +94,7 @@ export function calculateExerciseRestTime({
     }
   }
 
-  // 4. Default
+  // 3. Default
   return 120;
 }
 
@@ -104,7 +102,7 @@ export function calculateExerciseRestTime({
  * Calculate smart rest time based on exercise characteristics
  */
 export function calculateSmartRestTime(exercise: { name: string; sets: Array<{ reps: number; weight?: number }> }): number | undefined {
-  const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name === exercise.name);
+  const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === exercise.name.toLowerCase());
 
   if (!exerciseTemplate) return undefined;
 

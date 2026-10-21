@@ -176,9 +176,9 @@ La migración es exitosa cuando:
 - [Supabase Migrations](https://supabase.com/docs/guides/cli/local-development#database-migrations)
 
 ### Proyecto
-- [Repositorio](https://github.com/tu-usuario/gym-tracker)
-- [Issues](https://github.com/tu-usuario/gym-tracker/issues)
-- [Pull Requests](https://github.com/tu-usuario/gym-tracker/pulls)
+- [Repositorio](https://github.com/tu-usuario/gym-logic)
+- [Issues](https://github.com/tu-usuario/gym-logic/issues)
+- [Pull Requests](https://github.com/tu-usuario/gym-logic/pulls)
 
 ## 💬 Soporte
 

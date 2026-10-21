@@ -1,5 +1,5 @@
 {
-  "name": "gym-tracker",
+  "name": "gym-logic",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,8 +17,8 @@
     "test:integration": "jest --testPathPattern=__tests__/integration",
     "test:e2e": "jest --testPathPattern=__tests__/e2e",
     "test:coverage": "jest --coverage --watchAll=false",
-    "build:mobile": "cp next.config.mobile.ts next.config.ts && next build && git checkout next.config.ts",
-    "cap:init": "cap init gym-tracker com.gymtracker.app",
+    "build:mobile": "NEXT_MOBILE_BUILD=true next build",
+    "cap:init": "cap init gym-logic com.gymlogic.app",
     "cap:add:android": "cap add android",
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",
@@ -26,7 +26,9 @@
     "mobile:open": "cap open android",
     "vercel:deploy": "npx vercel --prod",
     "analyze": "cross-env ANALYZE=true next build",
-    "clean:next": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\""
+    "clean:next": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
+    "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
+    "docs:api": "typedoc"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
@@ -54,6 +56,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.5",
+    "@capacitor/haptics": "^8.0.2",
     "@fast-check/jest": "^2.2.0",
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.44.0",
@@ -75,6 +78,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.14.1",
     "typescript": "^5",
     "undici": "^7.25.0"
   }

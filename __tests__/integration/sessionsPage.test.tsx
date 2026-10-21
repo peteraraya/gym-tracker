@@ -55,10 +55,10 @@ describe('Sessions Page - Integration Tests', () => {
     await waitFor(() => {
       expect(screen.getByText(/Historial de Sesiones/i)).toBeInTheDocument()
     })
-    expect(screen.getByText('Filtros')).toBeInTheDocument()
+    expect(screen.getAllByText('Filtros').length).toBeGreaterThan(0)
 
     await waitFor(() => {
-      expect(screen.getByText('Push Day')).toBeInTheDocument()
+      expect(screen.getAllByText('Push Day').length).toBeGreaterThan(0)
     })
   })
 
@@ -100,7 +100,7 @@ describe('Sessions Page - Integration Tests', () => {
     render(<SessionsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Push Day')).toBeInTheDocument()
+      expect(screen.getAllByText('Push Day').length).toBeGreaterThan(0)
     })
 
     const routineSelect = screen.getAllByRole('combobox')[0]
@@ -132,8 +132,8 @@ describe('Sessions Page - Integration Tests', () => {
     const searchInput = screen.getByPlaceholderText(/buscar por rutina/i)
     await user.type(searchInput, 'Excellent')
 
-    const clearButton = screen.getByRole('button', { name: /limpiar/i })
-    await user.click(clearButton)
+    const clearButtons = screen.getAllByRole('button', { name: /limpiar/i })
+    await user.click(clearButtons[0])
 
     await waitFor(() => {
       const resultTexts = screen.queryAllByText(/sesiones encontradas/i)

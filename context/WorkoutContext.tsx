@@ -25,9 +25,10 @@ import React, {
 } from "react";
 import type { Routine } from "@/types";
 import { useWorkoutLifecycle } from "@/hooks/useWorkoutLifecycle";
-import type { WorkoutState } from "@/lib/workout/normalizeWorkoutState";
-import * as storageService from "@/lib/storage/storage";
-import logger from "@/lib/logger";
+import type { WorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import logger from "@/lib/shared/logger";
+import { saveQueue } from "@/lib/shared/utils/saveQueue";
 
 export type { WorkoutState };
 
@@ -62,6 +63,7 @@ interface WorkoutContextType {
   clearRestState: () => void;
   finishWorkout: () => Promise<void>;
   cancelWorkout: () => Promise<void>;
+  markCancelled: () => void;
   skipExercise: (exerciseId: string) => void;
   unskipExercise: (exerciseId: string) => void;
 }
@@ -121,32 +123,58 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         skippedExercises?: string[];
       },
     ) => {
-      logger.log("[WorkoutContext] updateWorkoutProgress", { exerciseIndex, set });
-      setActiveWorkout((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          currentExerciseIndex: exerciseIndex,
-          currentSet: set,
-          completedSets,
-          actualReps,
-          actualWeights,
-          isResting: restState?.isResting ?? false,
-          restTimerRemaining: restState?.restTimerDuration,
-          restTimerStartedAt: restState?.isResting
-            ? (restState?.restTimerStartedAt ?? Date.now())
-            : undefined,
-          restTimerTitle: restState?.restTimerTitle,
-          restTimerNextExercise: restState?.restTimerNextExercise,
-          totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
-          setTypes:            additionalData?.setTypes            ?? prev.setTypes,
-          restOverrides:       additionalData?.restOverrides       ?? prev.restOverrides,
-          perSetRestOverrides: additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides,
-          skippedExercises:    additionalData?.skippedExercises    ?? prev.skippedExercises,
-        };
-      });
+      logger.debug("[WorkoutContext] updateWorkoutProgress", { exerciseIndex, set, restState, additionalData });
+        setActiveWorkout((prev) => {
+          if (!prev) return null;
+          const newActive: WorkoutState = {
+            ...prev,
+            currentExerciseIndex: exerciseIndex,
+            currentSet: set,
+            completedSets,
+            actualReps,
+            actualWeights,
+            isResting: restState?.isResting ?? false,
+            restTimerRemaining: restState?.restTimerDuration,
+            restTimerStartedAt: restState?.isResting
+              ? (restState?.restTimerStartedAt ?? Date.now())
+              : undefined,
+            restTimerTitle: restState?.restTimerTitle,
+            restTimerNextExercise: restState?.restTimerNextExercise,
+            totalPausedTime: totalPausedTime ?? prev.totalPausedTime ?? 0,
+            setTypes:            additionalData?.setTypes            ?? prev.setTypes,
+            restOverrides:       additionalData?.restOverrides       ?? prev.restOverrides,
+            perSetRestOverrides: additionalData?.perSetRestOverrides ?? prev.perSetRestOverrides,
+            skippedExercises:    additionalData?.skippedExercises    ?? prev.skippedExercises,
+          };
+
+          // Mantener la ref sincronizada de inmediato (no esperar al efecto
+          // que la sincroniza tras el próximo render): onPause la lee
+          // directamente y, si quedara un tick atrás, persistiría datos
+          // desactualizados al backgroundear la app a mitad de una serie.
+          activeWorkoutRef.current = newActive;
+
+          // Guardar inmediatamente usando la cola para reducir la ventana de pérdida
+        try {
+          queueMicrotask(() => {
+            saveQueue
+              .save(newActive as unknown as import('@/lib/infrastructure/storage/storage').ActiveWorkout)
+              .catch((err) => {
+                logger.error('[WorkoutContext] immediate save failed', err instanceof Error ? err : undefined);
+                try {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('gym:activeWorkout:save-failed', { detail: { context: 'updateWorkoutProgress', error: (err && (err as any).message) ? (err as any).message : String(err) } }));
+                  }
+                } catch (e) {}
+              });
+          });
+        } catch (e) {
+          logger.error('[WorkoutContext] Failed scheduling immediate save', e instanceof Error ? e : undefined);
+        }
+
+          return newActive;
+        });
     },
-    [setActiveWorkout],
+    [setActiveWorkout, activeWorkoutRef],
   );
 
   const clearRestState = useCallback(() => {
@@ -163,7 +191,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     // Guardar la rutina modificada en Supabase inmediatamente para que
     // sobreviva a recargas (F5). Importación dinámica para evitar ciclos.
     try {
-      const { updateRoutine } = await import("@/lib/storage/storage");
+      const { updateRoutine } = await import("@/lib/infrastructure/storage/storage");
       await updateRoutine(routine.id, {
         name: routine.name,
         description: routine.description,
@@ -198,25 +226,29 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
   const finishWorkout = useCallback(async () => {
     logger.log("[WorkoutContext] finishWorkout");
-    markFinished();
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
     try {
+      markFinished();
+      await saveQueue.flush();
       await storageService.clearActiveWorkout();
     } catch (e) {
       logger.error("[WorkoutContext] Error clearing on finish:", e);
+      throw e;
     }
   }, [markFinished, setActiveWorkout, activeWorkoutRef]);
 
   const cancelWorkout = useCallback(async () => {
     logger.log("[WorkoutContext] cancelWorkout");
-    markCancelled();
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
     try {
+      markCancelled();
+      await saveQueue.flush();
       await storageService.clearActiveWorkout();
     } catch (e) {
       logger.error("[WorkoutContext] Error clearing on cancel:", e);
+      throw e;
     }
   }, [markCancelled, setActiveWorkout, activeWorkoutRef]);
 
@@ -248,6 +280,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       clearRestState,
       finishWorkout,
       cancelWorkout,
+      markCancelled,
       skipExercise,
       unskipExercise,
     }),
@@ -259,6 +292,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       clearRestState,
       finishWorkout,
       cancelWorkout,
+      markCancelled,
       skipExercise,
       unskipExercise,
     ],
@@ -278,5 +312,4 @@ export function useWorkout() {
   }
   return context;
 }
-
 

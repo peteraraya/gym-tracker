@@ -7,7 +7,7 @@ import {
   calculateTotalVolume,
   filterSessionsByMonth,
   calculateStreak,
-} from '@/lib/utils/dateUtils'
+} from '@/lib/shared/utils/dateUtils'
 import { createMockSession } from '@/__tests__/helpers/mockData'
 
 describe('dateUtils', () => {

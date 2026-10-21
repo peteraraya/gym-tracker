@@ -7,7 +7,7 @@ import {
   authSchema,
   getRegisterSchema,
   type AuthFormData,
-} from "@/lib/schemas/auth";
+} from "@/lib/shared/validation/auth";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/NotificationContext";
 import { useRouter } from "next/navigation";
@@ -33,16 +33,16 @@ function makeT(t: (key: string) => string, ns: string) {
 }
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [ isLogin, setIsLogin ] = useState(true);
   const { signIn, signUp, isConfigured, user } = useAuth();
   const router = useRouter();
   const { t: tRaw } = useLocale();
-  const t = useMemo(() => makeT(tRaw, "auth"), [tRaw]);
+  const t = useMemo(() => makeT(tRaw, "auth"), [ tRaw ]);
   const { success, error: toastError } = useToast();
 
   const schema = useMemo(
     () => (isLogin ? authSchema : getRegisterSchema()),
-    [isLogin],
+    [ isLogin ],
   );
 
   const {
@@ -65,17 +65,17 @@ export default function AuthPage() {
     if (!isConfigured) {
       router.push("/setup");
     }
-  }, [isConfigured, router]);
+  }, [ isConfigured, router ]);
 
   useEffect(() => {
     if (user) {
       router.push("/");
     }
-  }, [user, router]);
+  }, [ user, router ]);
 
   useEffect(() => {
     reset({ email: "", password: "", confirmPassword: "" });
-  }, [isLogin, reset]);
+  }, [ isLogin, reset ]);
 
   const onSubmit = useCallback(
     async (values: AuthFormData) => {
@@ -96,7 +96,7 @@ export default function AuthPage() {
             const raw = getMessage(error);
             const isDuplicate =
               /already exists|duplicate|already registered/i.test(raw);
-            const msg = isDuplicate ? t("accountCreated") : t("signInError");
+            const msg = isDuplicate ? t("accountAlreadyExists") : t("signInError");
             setError("root", { message: msg });
             toastError(msg);
           } else {
@@ -109,7 +109,7 @@ export default function AuthPage() {
         toastError(msg);
       }
     },
-    [isLogin, signIn, signUp, t, toastError, success, setError],
+    [ isLogin, signIn, signUp, t, toastError, success, setError ],
   );
 
   if (!isConfigured) return null;
@@ -144,6 +144,7 @@ export default function AuthPage() {
               {...register("password")}
               label={t("password")}
               placeholder="••••••••"
+              autoComplete={isLogin ? "current-password" : "new-password"}
               error={errors.password?.message as string}
             />
 
@@ -153,6 +154,7 @@ export default function AuthPage() {
                   {...register("confirmPassword")}
                   label={t("confirmPassword")}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   error={errors.confirmPassword?.message as string}
                 />
                 <PasswordRequirements password={password} />

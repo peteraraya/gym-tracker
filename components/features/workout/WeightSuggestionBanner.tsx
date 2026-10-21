@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { WeightSuggestion } from '@/lib/data/weightSuggestions';
-import { TrendingUp, Check, X } from 'lucide-react';
+import { WeightSuggestion } from '@/lib/shared/utils/weightSuggestions';
+import { TrendingUp, Check, X } from '@/components/icons/lucide';
 
 interface WeightSuggestionBannerProps {
   suggestion: WeightSuggestion;

@@ -12,6 +12,7 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^vitest$': '<rootDir>/__tests__/helpers/vitestShim.js',
   },
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
@@ -36,7 +37,8 @@ const customJestConfig = {
       statements: 70,
     },
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
+  // Ignore common build and temporary folders (including kilo worktrees).
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/.kilo/', '/__tests__/e2e/'],
   transformIgnorePatterns: [
     '/node_modules/',
     '^.+\\.module\\.(css|sass|scss)$',

@@ -133,7 +133,7 @@ className={`
 ```
 
 **Características:**
-- Gradiente azul-índigo llamativo
+- Gradiente verde/turquesa llamativo
 - Sombra grande para destacar
 - Texto descriptivo
 - Icono + texto para claridad
@@ -172,7 +172,7 @@ className={`
 **Información Visible:**
 - Nombre de rutina (bold)
 - Descripción (truncada)
-- Número de ejercicios (badge azul)
+- Número de ejercicios (badge turquesa)
 - Estado de agregado (badge verde)
 
 #### Snap Scrolling en Días

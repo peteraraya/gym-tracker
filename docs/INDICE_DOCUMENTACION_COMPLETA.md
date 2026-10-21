@@ -1,6 +1,6 @@
 # 📚 ÍNDICE COMPLETO DE DOCUMENTACIÓN
 
-**Proyecto**: Refactoring Gym Tracker - Página de Workout  
+**Proyecto**: Refactoring GymLogiX - Página de Workout
 **Período**: Febrero 27 - Marzo 14, 2026  
 **Documentos**: 30+
 

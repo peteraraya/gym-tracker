@@ -13,8 +13,8 @@ Implementación completa de Progressive Web App (PWA) con capacidades offline, i
 - **description**: Descripción de la app
 - **start_url**: URL de inicio
 - **display**: `standalone` (app nativa)
-- **theme_color**: Color del tema (#3b82f6)
-- **background_color**: Color de fondo (#ffffff)
+- **theme_color**: Negro grafito de GymLogiX (#08090b)
+- **background_color**: Negro grafito de GymLogiX (#08090b)
 
 #### Iconos:
 - Múltiples tamaños: 72x72 hasta 512x512
@@ -144,9 +144,9 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Gym Tracker",
+    title: "GymLogiX",
   },
-  themeColor: "#3b82f6",
+  themeColor: "#08090b",
   viewport: {
     width: "device-width",
     initialScale: 1,
@@ -247,7 +247,7 @@ import webpush from 'web-push';
 
 async function sendPushNotification(subscription, data) {
   const payload = JSON.stringify({
-    title: 'Gym Tracker',
+    title: 'GymLogiX',
     body: '¡Es hora de entrenar! 💪',
     icon: '/icons/icon-192x192.png',
     data: {
@@ -274,7 +274,7 @@ async function sendPushNotification(subscription, data) {
 4. Verificar que funcione correctamente
 
 ### Probar Instalación:
-1. Chrome → Menú → Instalar Gym Tracker
+1. Chrome → Menú → Instalar GymLogiX
 2. O usar el banner de instalación
 3. Verificar que aparezca en pantalla de inicio
 4. Abrir y verificar que funcione como app nativa

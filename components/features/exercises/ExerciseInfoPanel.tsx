@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronLeft, BookOpen, AlertCircle, Lightbulb, Zap } from 'lucide-react';
+import { ChevronLeft, BookOpen, AlertCircle, Lightbulb, Zap } from '@/components/icons/lucide';
 import type { ExerciseTemplate } from '@/data/exercises/types';
+import YouTubeEmbed from '@/components/shared/YouTubeEmbed';
 
 interface ExerciseInfoPanelProps {
   exercise: ExerciseTemplate;
@@ -27,15 +28,45 @@ export const ExerciseInfoPanel: React.FC<ExerciseInfoPanelProps> = ({ exercise, 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4">
           {/* Header con imagen */}
           <div className="relative">
-            {/* Imagen del ejercicio */}
-            <div className="w-full h-64 sm:h-80 overflow-hidden rounded-t-2xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={exercise.image || '/images/not-available.svg'}
-                alt={exercise.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
+            {/* Imagen del ejercicio o Video de YouTube */}
+            <div className="w-full h-64 sm:h-80 overflow-hidden rounded-t-2xl relative">
+              {exercise.youtubeVideoId ? (
+                <YouTubeEmbed 
+                  videoId={exercise.youtubeVideoId} 
+                  title={exercise.name}
+                  className="w-full h-full rounded-none"
+                />
+              ) : (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={exercise.image || '/images/not-available.svg'}
+                    alt={exercise.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = '1';
+                        target.src = '/images/not-available.svg';
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent flex items-center justify-center">
+                    {/* Botón de YouTube grande centrado cuando no hay imagen ni video */}
+                    {(!exercise.image && !exercise.youtubeVideoId) && (
+                      <a 
+                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent('ejercicio técnica ' + exercise.name)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-red-600/90 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:scale-105 transition-transform backdrop-blur-sm z-10"
+                      >
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        Buscar Técnica
+                      </a>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Botón cerrar */}

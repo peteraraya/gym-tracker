@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
@@ -24,11 +24,12 @@ import {
   type DayKey,
 } from "@/types/planning";
 import { APP_CONFIG } from "@/config/app.config";
-import { useToast } from "@/context/NotificationContext";
+import { useConfirm, useToast } from "@/context/NotificationContext";
 import type { Routine } from "@/types";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
+import Link from 'next/link';
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
@@ -381,6 +382,15 @@ function CreateMesocycleModal({
   const [preset, setPreset] = useState<"none" | PlanningGoal>("none");
   const [presetManuallyChanged, setPresetManuallyChanged] = useState(false);
 
+  // Cerrar con Escape (accesibilidad) sin perder el borrador del formulario
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   // Patrón "setState durante render": sincronizar preset con goal sin useEffect
   const [lastGoal, setLastGoal] = useState(goal);
   if (lastGoal !== goal && !presetManuallyChanged) {
@@ -389,7 +399,15 @@ function CreateMesocycleModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Nuevo mesociclo"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
           Nuevo mesociclo
@@ -743,9 +761,9 @@ function WeeklyScheduleEditor({
       {routines.length === 0 && (
         <p className="text-xs text-gray-400 text-center py-2">
           Aún no tienes rutinas.{" "}
-          <a href="/routines" className="text-blue-500 underline">
+          <Link href="/routines" className="text-blue-500 underline">
             Crea una rutina
-          </a>{" "}
+          </Link>{" "}
           primero.
         </p>
       )}
@@ -920,6 +938,7 @@ export default function PlanningPage() {
   const planning = usePlanning();
   const { sessions, routines } = useGym();
   const { success, warning } = useToast();
+  const { confirm } = useConfirm();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedMesoId, setSelectedMesoId] = useState<string | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
@@ -944,9 +963,23 @@ export default function PlanningPage() {
       >,
   );
 
-  // Calcular series reales de esta semana
+  // Semana actual del mesociclo activo (debe calcularse antes de actualSets)
+  const currentWeekPlan = planning.getCurrentWeekPlan();
+
+  // Inicio de semana alineado con el mesociclo activo (Bug 4).
+  // Si no hay mesociclo activo se usa undefined → getActualSetsThisWeek usará el lunes de calendario.
+  const currentMesoWeekStart = (() => {
+    if (!planning.activeMesocycle || !currentWeekPlan) return undefined;
+    const mesoStart = new Date(planning.activeMesocycle.startDate);
+    const ws = new Date(mesoStart);
+    ws.setDate(mesoStart.getDate() + (currentWeekPlan.weekNumber - 1) * 7);
+    ws.setHours(0, 0, 0, 0);
+    return ws;
+  })();
+
+  // Calcular series reales de la semana actual del mesociclo
   const tMuscles = useTranslations("muscles");
-  const actualSets = getActualSetsThisWeek(sessions, EXERCISE_DATABASE);
+  const actualSets = getActualSetsThisWeek(sessions, EXERCISE_DATABASE, currentMesoWeekStart);
 
   // Mesociclo seleccionado para ver detalle
   const viewMeso = selectedMesoId
@@ -956,13 +989,43 @@ export default function PlanningPage() {
   const weekPlan =
     viewMeso?.weeklyPlans.find((w) => w.weekNumber === selectedWeek) ?? null;
 
-  // Semana actual del mesociclo activo
-  const currentWeekPlan = planning.getCurrentWeekPlan();
+  // Auto-archivo: cuando la semana del mesociclo activo avanza, persiste las series
+  // reales de la semana anterior en weeklyPlan.actualSets (Bug 2 + 3).
+  const prevWeekNumberRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!planning.activeMesocycle || !currentWeekPlan) return;
+    const prevWeek = prevWeekNumberRef.current;
+    if (prevWeek !== null && prevWeek !== currentWeekPlan.weekNumber) {
+      // La semana avanzó: calcular y archivar series reales de la semana anterior
+      const prevPlan = planning.activeMesocycle.weeklyPlans.find(
+        (w) => w.weekNumber === prevWeek,
+      );
+      if (prevPlan && !prevPlan.actualSets) {
+        const mesoStart = new Date(planning.activeMesocycle.startDate);
+        const prevWeekStart = new Date(mesoStart);
+        prevWeekStart.setDate(mesoStart.getDate() + (prevWeek - 1) * 7);
+        prevWeekStart.setHours(0, 0, 0, 0);
+        const prevSets = getActualSetsThisWeek(
+          sessions,
+          EXERCISE_DATABASE,
+          prevWeekStart,
+        );
+        planning.archiveWeekActualSets(
+          planning.activeMesocycle.id,
+          prevWeek,
+          prevSets,
+        );
+      }
+    }
+    prevWeekNumberRef.current = currentWeekPlan.weekNumber;
+  // Solo disparar cuando el número de semana cambie
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWeekPlan?.weekNumber, planning.activeMesocycle?.id]);
 
   // Al hidratar y si existe un mesociclo activo, seleccionar automáticamente
   // el mesociclo activo y posicionar en la semana actual.
   // Inicialización post-hidratación: sin riesgo de loop (selectedMesoId se asigna solo si es null)
-  /* eslint-disable react-hooks/set-state-in-effect */
+   
   useEffect(() => {
     if (!planning.hydrated) return;
     if (planning.activeMesocycle && !selectedMesoId) {
@@ -971,7 +1034,7 @@ export default function PlanningPage() {
       setSelectedWeek(cw?.weekNumber ?? 1);
     }
   }, [planning.hydrated, planning.activeMesocycle?.id, planning.getCurrentWeekPlan]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+   
 
   return (
     <ProtectedRoute>
@@ -1476,9 +1539,16 @@ export default function PlanningPage() {
                               </button>
                             )}
                             <button
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                if (confirm(`¿Eliminar "${meso.name}"?`))
+                                const confirmed = await confirm({
+                                  title: "Eliminar mesociclo",
+                                  message: `¿Eliminar "${meso.name}"? Esta acción no se puede deshacer.`,
+                                  confirmText: "Eliminar",
+                                  cancelText: "Cancelar",
+                                  variant: "danger",
+                                });
+                                if (confirmed)
                                   planning.deleteMesocycle(meso.id);
                               }}
                               className="text-xs px-2 py-1 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 font-medium"
@@ -1613,8 +1683,8 @@ export default function PlanningPage() {
                           (planning.activeMesocycle?.id === viewMeso.id
                             ? planning.getCurrentWeekPlan()?.weekNumber
                             : -1)
-                            ? actualSets
-                            : {}
+                            ? actualSets          // semana en curso: datos reactivos
+                            : (weekPlan?.actualSets ?? {}) // semanas pasadas: datos archivados
                         }
                         routines={routines}
                         onUpdateTarget={(mg, field, value) =>

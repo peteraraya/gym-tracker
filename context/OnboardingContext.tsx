@@ -28,7 +28,7 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(undef
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: '¡Bienvenido a tu Gym Tracker! 💪',
+    title: '¡Bienvenido a GymLogiX! 💪',
     description: 'Te guiaremos paso a paso para que aproveches al máximo la aplicación. Este tour solo tomará 2 minutos.',
     position: 'bottom'
   },
@@ -89,7 +89,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   }
 ];
 
-const STORAGE_KEY = 'gym_tracker_onboarding_completed';
+const STORAGE_KEY = 'gym_logic_onboarding_completed';
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const [isActive, setIsActive] = useState(false);

@@ -1,0 +1,15 @@
+{
+  "entryPoints": ["app", "lib", "components"],
+  "entryPointStrategy": "expand",
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "tsconfig": "tsconfig.typedoc.json",
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "exclude": ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx", "**/*.d.ts", "lib/haptics.ts"],
+  "readme": "none",
+  "cleanOutputDir": true,
+  "pretty": true
+}

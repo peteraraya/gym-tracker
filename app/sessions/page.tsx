@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useGym } from "@/context/GymContext";
 import { useToast } from "@/context/NotificationContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
@@ -10,30 +11,28 @@ import { EditSessionModal } from "@/components/features/sessions/EditSessionModa
 import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/hooks/ui/usePagination";
 import type { WorkoutSession, Routine } from "@/types";
-import * as storageService from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
 import { useConfirm } from "@/context/NotificationContext";
 import { useLocale } from "@/context/LocaleContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { Calendar, Filter } from "@/components/icons/lucide";
+import { getWeekStart } from '@/lib/shared/utils/dateUtils';
+import { formatVolume } from '@/lib/shared/utils/volumeCalculations';
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import {
-  EmptyStateCard,
-  LoadingSpinner,
   SessionCard as SharedSessionCard,
 } from "@/components/shared";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageSkeleton } from "@/components/ui/PageSkeleton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { ListItemSkeleton } from "@/components/ui/Skeleton";
 import type { WorkoutSession as WS } from "@/types";
 
 const SESSIONS_PER_PAGE = 10;
 
 // ── Timeline helpers ─────────────────────────────────────────────────────────
 function getMondayOf(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  return getWeekStart(date, 'monday');
 }
 
 function weekLabel(monday: Date): string {
@@ -143,7 +142,7 @@ function SessionDetailContent({ session, routines }: { session: WS; routines: Ro
       <div className="flex flex-wrap gap-2 text-sm text-zinc-500 dark:text-zinc-400">
         <span>{new Date(session.date).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
         {dur && <span>· {dur}</span>}
-        {vol > 0 && <span>· {vol >= 1000 ? `${(vol / 1000).toFixed(1)}t` : `${vol}kg`}</span>}
+        {vol > 0 && <span>· {formatVolume(vol)}</span>}
         {!routine && <span className="text-red-500">· Rutina eliminada</span>}
       </div>
 
@@ -196,6 +195,7 @@ export default function SessionsPage() {
   const { success, error: showError } = useToast();
   const { confirm } = useConfirm();
   const { t } = useLocale();
+  const router = useRouter();
   const tS = useCallback((key: string) => t(`sessions.${key}`), [t]);
 
   const { updateModifiedRoutine } = useWorkout();
@@ -394,7 +394,7 @@ export default function SessionsPage() {
             gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
-            <LoadingSpinner size="lg" message="Cargando sesiones..." />
+            <PageSkeleton variant="list" className="max-w-3xl mx-auto mt-4" />
           </PageContent>
         </PageLayout>
       </ProtectedRoute>
@@ -461,10 +461,14 @@ export default function SessionsPage() {
 
         <PageContent>
           {sessions.length === 0 ? (
-            <EmptyStateCard
+            <EmptyState
               icon="📊"
               title="No hay sesiones registradas"
               description="Completa tu primera rutina para ver tu historial aquí"
+              actionLabel="Crear primera rutina"
+              actionIcon={<Calendar className="w-5 h-5" />}
+              onAction={() => router.push("/routines")}
+              variant="info"
             />
           ) : (
             <>
@@ -514,10 +518,11 @@ export default function SessionsPage() {
                 {/* Session list */}
                 <div className="lg:col-span-3">
                   {filteredSessions.length === 0 ? (
-                    <EmptyStateCard
+                    <EmptyState
                       icon="🔍"
                       title="No se encontraron sesiones"
                       description="Intenta cambiar los filtros de búsqueda"
+                      variant="default"
                     />
                   ) : (
                     <>

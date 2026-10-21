@@ -7,6 +7,7 @@
 export * from './ActiveWorkoutBanner';
 export * from './MinimizedTimer';
 export * from './PreparationCountdown';
+export * from './PRCelebration';
 export * from './RestNotification';
 export * from './RestSettings';
 export * from './RestTimeSelector';

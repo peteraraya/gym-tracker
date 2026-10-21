@@ -36,7 +36,7 @@ export default function TempoCalculator() {
 
   return (
     <Card className="shadow-xl">
-      <CardHeader className="bg-linear-to-r from-violet-500 to-purple-600 text-white rounded-t-lg p-6">
+      <CardHeader className="bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-t-lg p-6">
         <CardTitle className="flex items-center gap-3">
           <Clock className="w-6 h-6" />
           Calculadora de Tempo de Repetición
@@ -170,7 +170,7 @@ export default function TempoCalculator() {
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-linear-to-br from-fuchsia-50 to-pink-50 dark:from-fuchsia-900/20 dark:to-pink-900/20 rounded-lg border border-fuchsia-200 dark:border-fuchsia-800">
+            <div className="p-4 bg-linear-to-br from-fuchsia-50 to-blue-50 dark:from-fuchsia-900/20 dark:to-blue-900/20 rounded-lg border border-fuchsia-200 dark:border-fuchsia-800">
               <div className="text-center">
                 <div className="text-3xl font-bold text-fuchsia-600 dark:text-fuchsia-400">
                   {Math.floor(totalTime / 60)}:{(totalTime % 60).toString().padStart(2, '0')}
@@ -220,7 +220,7 @@ export default function TempoCalculator() {
               <div className="text-2xl text-gray-400">→</div>
               <div className="text-center flex-1">
                 <div className="text-4xl mb-2">⏸️</div>
-                <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {pause2}s
                 </div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">

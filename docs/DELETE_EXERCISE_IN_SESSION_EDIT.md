@@ -114,7 +114,7 @@ const moveExercise = (fromIndex: number, toIndex: number) => {
 1. **Indicador Visual**: Icono de 6 puntos para indicar que se puede arrastrar
 2. **Feedback Visual**: 
    - Elemento arrastrado: Opacidad 50%
-   - Zona de drop: Borde azul, escala 105%, sombra
+   - Zona de drop: Borde turquesa, escala 105%, sombra
 3. **Cursor**: Cambia a `grab` al pasar sobre el ejercicio, `grabbing` al arrastrar
 4. **Solo si hay múltiples**: Drag and drop solo activo con 2+ ejercicios
 5. **Hint**: Texto "💡 Arrastra para reordenar" cuando hay múltiples ejercicios
@@ -159,7 +159,7 @@ const moveExercise = (fromIndex: number, toIndex: number) => {
 | Normal | Borde gris, fondo gris claro |
 | Hover (draggable) | Cursor grab |
 | Arrastrando | Opacidad 50%, cursor grabbing |
-| Drop zone | Borde azul, escala 105%, sombra, fondo azul claro |
+| Drop zone | Borde turquesa, escala 105%, sombra, fondo verde suave |
 | Un solo ejercicio | Sin drag handle, sin cursor grab |
 
 ## Mejoras Futuras

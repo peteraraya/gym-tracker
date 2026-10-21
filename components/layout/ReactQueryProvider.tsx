@@ -2,8 +2,8 @@
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { queryClient } from '@/lib/react-query/queryClient';
-import { setupQueryErrorHandling } from '@/lib/react-query/errorHandling';
+import { queryClient } from '@/lib/infrastructure/react-query/queryClient';
+import { setupQueryErrorHandling } from '@/lib/infrastructure/react-query/errorHandling';
 import { useEffect, useState } from 'react';
 
 // Setup error handling once

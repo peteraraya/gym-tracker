@@ -14,12 +14,20 @@ import { useToast } from "@/context/NotificationContext";
 import { useConfirm } from "@/context/NotificationContext";
 import { useTranslations } from "@/context/LocaleContext";
 import { getExerciseByName } from "@/data/exercises";
-import { getRoutineStats } from "@/lib/routines/routineEstimation";
-import { getExerciseRecommendations } from "@/lib/exercises/exerciseRecommendations";
-import logger from "@/lib/logger";
-import { getRecommendedWeight } from '@/lib/routines/routineGenerator';
+import { getRoutineStats } from "@/lib/application/routines/routineEstimation";
+import { getExerciseRecommendations } from "@/lib/domain/exercises/exerciseRecommendations";
+import logger from "@/lib/shared/logger";
+import { getRecommendedWeight } from '@/lib/application/routines/routineGenerator';
 import { useEquipment } from '@/context/EquipmentContext';
-import * as storageService from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import {
+  isBodyweightExercise,
+  validateRoutineExercises,
+  templateToExercise,
+  warmupToExercise,
+  reorderExercises,
+  canProceedToReview as canProceedToReviewDomain,
+} from "@/lib/domain/routines";
 
 // storageService is available for future use (e.g. offline-draft persistence via the
 // storage abstraction layer). Dynamic imports for storageConfig / localProfile are used
@@ -127,27 +135,7 @@ export interface UseRoutineFormReturn {
 }
 
 /** Clave para el borrador en localStorage */
-const STORAGE_KEY = "gym-tracker-routine-draft";
-
-// ---------------------------------------------------------------------------
-// Helpers internos
-// ---------------------------------------------------------------------------
-
-function isBodyweightExercise(exercise: Omit<Exercise, "id">): boolean {
-  const equipment = exercise.equipment?.toLowerCase() ?? "";
-  const name = exercise.name?.toLowerCase() ?? "";
-  return (
-    equipment.includes("peso corporal") ||
-    equipment.includes("bodyweight") ||
-    equipment.includes("calistenia") ||
-    name.includes("plancha") ||
-    name.includes("flexion") ||
-    name.includes("dominada") ||
-    name.includes("abdominal") ||
-    name.includes("pull up") ||
-    name.includes("push up")
-  );
-}
+const STORAGE_KEY = "gym-logic-routine-draft";
 
 // ---------------------------------------------------------------------------
 // Hook principal
@@ -213,11 +201,11 @@ export function useRoutineForm(
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const { isLocalStorageMode } = await import("@/lib/storageConfig");
+        const { isLocalStorageMode } = await import("@/lib/infrastructure/storage/storageConfig");
 
         if (isLocalStorageMode()) {
           if (typeof window !== "undefined") {
-            const { getProfileLocally } = await import("@/lib/user/localProfile");
+            const { getProfileLocally } = await import("@/lib/domain/user/localProfile");
             const localProfile = getProfileLocally();
             if (localProfile) {
               logger.log(
@@ -378,59 +366,17 @@ export function useRoutineForm(
     [exercises, restBetweenSets, restBetweenExercises],
   );
 
-  const canProceedToExercises = name.trim().length > 0;
+  const canProceedToExercises =
+    name.trim().length > 0 && description.trim().length > 0;
 
   const validateExercises = useCallback((): {
     errors: ValidationError[];
     exercisesWithErrors: Set<number>;
   } => {
-    const errors: ValidationError[] = [];
-    const exercisesWithErrors = new Set<number>();
-
-    exercises.forEach((exercise, ei) => {
-      if (!exercise.name || exercise.name.trim().length === 0) {
-        errors.push({
-          exerciseIndex: ei,
-          setIndex: -1,
-          message: "Nombre del ejercicio requerido",
-        });
-        exercisesWithErrors.add(ei);
-      }
-
-      exercise.sets.forEach((s: ExerciseSet, si: number) => {
-        const reps =
-          typeof s.reps === "number" ? s.reps : parseInt(String(s.reps));
-        if (!reps || reps <= 0) {
-          errors.push({
-            exerciseIndex: ei,
-            setIndex: si,
-            message: "Reps requeridas (> 0)",
-          });
-          exercisesWithErrors.add(ei);
-        }
-
-        const weight =
-          typeof s.weight === "number"
-            ? s.weight
-            : parseFloat(String(s.weight ?? 0));
-        if (!isBodyweightExercise(exercise) && (!weight || weight <= 0)) {
-          errors.push({
-            exerciseIndex: ei,
-            setIndex: si,
-            message: "Peso requerido (> 0)",
-          });
-          exercisesWithErrors.add(ei);
-        }
-      });
-    });
-
-    return { errors, exercisesWithErrors };
+    return validateRoutineExercises(exercises);
   }, [exercises]);
 
-  const canProceedToReview =
-    exercises.length > 0 &&
-    exercises.every((ex) => ex.name.trim().length > 0) &&
-    validateExercises().errors.length === 0;
+  const canProceedToReview = canProceedToReviewDomain(exercises);
 
   const routineMuscleGroups: MuscleGroup[] = exercises
     .map((ex) => {
@@ -515,30 +461,7 @@ export function useRoutineForm(
             recommendations,
           );
 
-          const sets = Array<null>(recommendations.sets)
-            .fill(null)
-            .map(() => ({
-              reps: recommendations.reps,
-              weight: recommendations.weight,
-              type: "normal" as SetType,
-            }));
-
-          let defaultRestSecs: number | undefined;
-          const restTimeMatch = recommendations.restTime.match(/(\d+)/);
-          if (restTimeMatch) {
-            defaultRestSecs = parseInt(restTimeMatch[1]);
-            if (recommendations.restTime.toLowerCase().includes("min")) {
-              defaultRestSecs = defaultRestSecs * 60;
-            }
-          }
-
-          return {
-            name: template.name,
-            sets,
-            equipment: template.equipment,
-            notes: "",
-            restBetweenSets: defaultRestSecs,
-          };
+          return templateToExercise(template, recommendations);
         },
       );
 
@@ -566,18 +489,12 @@ export function useRoutineForm(
 
   // ── handleAddWarmups ───────────────────────────────────────────────────
   const handleAddWarmups = useCallback((warmups: WarmupExercise[]) => {
-    const warmupExercises: Omit<Exercise, "id">[] = warmups.map((w) => ({
-      name: `🔥 ${w.name}`,
-      sets: Array<null>(w.defaultSets ?? 2)
-        .fill(null)
-        .map(() => ({
-          reps: w.defaultReps ?? 10,
-          weight: 0,
-          type: "warmup" as SetType,
-        })),
-      equipment: w.equipment,
-      notes: w.duration ? `Duración: ${w.duration}` : "",
-    }));
+    const warmupExercises: Omit<Exercise, "id">[] = warmups.map((w) =>
+      warmupToExercise({
+        ...w,
+        name: `🔥 ${w.name}`,
+      }),
+    );
 
     setExercises((prev) => [...warmupExercises, ...prev]);
   }, []);
@@ -609,12 +526,7 @@ export function useRoutineForm(
     (fromIndex: number, toIndex: number) => {
       if (fromIndex === toIndex) return;
 
-      setExercises((prev) => {
-        const next = [...prev];
-        const [moved] = next.splice(fromIndex, 1);
-        next.splice(toIndex, 0, moved);
-        return next;
-      });
+      setExercises((prev) => reorderExercises(prev, fromIndex, toIndex));
 
       setExpandedExercises((prev) => {
         const next = new Set<number>();

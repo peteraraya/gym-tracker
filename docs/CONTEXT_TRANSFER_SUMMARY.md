@@ -78,7 +78,7 @@
     - Inputs grandes para reps y peso (text-2xl)
     - Botones "Completar Serie" y "Saltar Ejercicio"
     - Validación: botón completar deshabilitado sin datos
-    - Diseño: fondo oscuro, modal centrado, timer con gradiente azul/púrpura
+    - Diseño: fondo oscuro, modal centrado, timer con gradiente verde/turquesa
   - **Modificado `app/workout/[id]/page.tsx`**:
     - Agregado import de `SetExecutionModal`
     - Agregado estados `showSetExecution` e `isExecutingSet`

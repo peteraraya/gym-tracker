@@ -10,12 +10,12 @@ import React, {
 } from "react";
 import { Routine, WorkoutSession } from "@/types";
 import { useAuth } from "./AuthContext";
-import * as storageService from "@/lib/storage/storage";
-import { recommendForSession } from "@/lib/workout/progression";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import { recommendForSession } from "@/lib/application/workout/progression";
 import { useRoutines as useRoutinesQuery } from "@/hooks/queries/useRoutines";
 import { useSessions as useSessionsQuery } from "@/hooks/queries/useSessions";
-import { achievementManager } from "@/lib/achievements/achievementManager"; // ✨ Importar el gestor de logros
-import logger from "@/lib/logger";
+import { achievementManager } from "@/lib/domain/achievements/achievementManager"; // ✨ Importar el gestor de logros
+import logger from "@/lib/shared/logger";
 
 interface RoutinesContextType {
   routines: Routine[];
@@ -38,7 +38,13 @@ interface SessionsContextType {
   refreshSessions: () => Promise<void>;
 }
 
-interface GymContextType extends RoutinesContextType, SessionsContextType {}
+interface GymContextType extends RoutinesContextType, SessionsContextType {
+  routinesLoading: boolean;
+  sessionsLoading: boolean;
+  routinesError: boolean;
+  sessionsError: boolean;
+  refreshAll: () => Promise<void>;
+}
 
 const RoutinesContext = createContext<RoutinesContextType | undefined>(
   undefined,
@@ -116,9 +122,9 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === "true") {
       if (authLoading) return;
-      if (!user) {
-        refetchRoutines();
-        refetchSessions();
+      if (user) {
+        void refetchRoutines();
+        void refetchSessions();
       }
     }
   }, [user, authLoading, refetchRoutines, refetchSessions]);
@@ -130,10 +136,15 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const storageStatus = storageService.getStorageStatus();
           if (storageStatus.mode === "localStorage" && storageStatus.hasError) {
-            const syncResult =
+            const sessionSyncResult =
               await storageService.syncLocalSessionsToDatabase();
-            if (syncResult.synced > 0 && mounted) {
+            if (sessionSyncResult.synced > 0 && mounted) {
               await refetchSessions();
+            }
+            const routineSyncResult =
+              await storageService.syncLocalRoutinesToDatabase();
+            if (routineSyncResult.synced > 0 && mounted) {
+              await refetchRoutines();
             }
           }
         } catch (e) {
@@ -144,7 +155,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       mounted = false;
     };
-  }, [refetchSessions]);
+  }, [refetchRoutines, refetchSessions]);
 
   const addRoutine = useCallback(
     async (routine: Omit<Routine, "id" | "createdAt" | "updatedAt">) => {
@@ -172,7 +183,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
 
       try {
         const { getWeeklyPlan, saveWeeklyPlan } =
-          await import("@/lib/storage/storage");
+          await import("@/lib/infrastructure/storage/storage");
         const weeklyPlan = await getWeeklyPlan();
 
         if (weeklyPlan) {
@@ -302,8 +313,25 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
     () => ({
       ...routinesValue,
       ...sessionsValue,
+      loading: routinesValue.loading || sessionsValue.loading,
+      routinesLoading: routinesIsLoading,
+      sessionsLoading: sessionsIsLoading,
+      routinesError: reactQueryRoutines.isError,
+      sessionsError: reactQuerySessions.isError,
+      refreshAll: async () => {
+        await Promise.all([refetchRoutines(), refetchSessions()]);
+      },
     }),
-    [routinesValue, sessionsValue],
+    [
+      routinesValue,
+      sessionsValue,
+      routinesIsLoading,
+      sessionsIsLoading,
+      reactQueryRoutines.isError,
+      reactQuerySessions.isError,
+      refetchRoutines,
+      refetchSessions,
+    ],
   );
 
   React.useEffect(() => {

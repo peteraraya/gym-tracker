@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the performance optimizations implemented in the Gym Tracker application, including React Query integration, virtualization, code splitting, and memoization strategies.
+This document describes the performance optimizations implemented in the GymLogiX application, including React Query integration, virtualization, code splitting, and memoization strategies.
 
 ## React Query Setup
 

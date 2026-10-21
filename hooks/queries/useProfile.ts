@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as storageService from '@/lib/storage/storage';
-import type { UserProfile } from '@/lib/storage/storage';
-import { queryKeys } from '@/lib/react-query/queryKeys';
+import * as storageService from '@/lib/infrastructure/storage/storage';
+import type { UserProfile } from '@/lib/infrastructure/storage/storage';
+import { queryKeys } from '@/lib/infrastructure/react-query/queryKeys';
 
 /**
  * Hook React Query para gestionar el perfil del usuario.

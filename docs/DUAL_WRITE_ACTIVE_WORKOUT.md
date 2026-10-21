@@ -262,7 +262,7 @@ export async function clearActiveWorkout(): Promise<void> {
 ```bash
 # 1. Iniciar workout
 # 2. Abrir DevTools → Application → Local Storage
-# 3. Verificar que existe 'gym-tracker-active-workout'
+# 3. Verificar que existe 'gym-logic-active-workout'
 # 4. Abrir Supabase Dashboard → active_workouts table
 # 5. Verificar que existe el registro
 ```

@@ -1,4 +1,4 @@
-# Mejoras Recientes - Gym Tracker
+# Mejoras Recientes - GymLogiX
 
 **Fecha**: Noviembre 2025  
 **Versión**: 2.0

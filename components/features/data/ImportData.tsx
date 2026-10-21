@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Upload, FileJson, FileSpreadsheet, AlertCircle, CheckCircle, Info } from '@/components/icons/lucide';
-import { importFromJSON, importCSVAuto, detectCSVFormat } from '@/lib/data/dataExport';
+import { importFromJSON, importCSVAuto, detectCSVFormat } from '@/lib/shared/utils/dataExport';
 import type { WorkoutSession } from '@/types';
 
 interface ImportDataProps {
@@ -158,7 +158,7 @@ export default function ImportData({ onImportSessions }: ImportDataProps) {
                   </h4>
                 </div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Restaura un backup completo exportado desde Gym Tracker
+                  Restaura un backup completo exportado desde GymLogiX
                 </p>
               </div>
               <div>

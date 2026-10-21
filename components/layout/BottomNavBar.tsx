@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from '@/context/LocaleContext';
+import { useAuth } from '@/context/AuthContext';
 import { useWorkout } from '@/context/WorkoutContext';
 import {
   Home,
@@ -24,6 +25,7 @@ import {
   Target,
   Grid3x3,
   X,
+  LogOut,
 } from '@/components/icons/lucide';
 
 const NavTab: React.FC<{
@@ -34,22 +36,23 @@ const NavTab: React.FC<{
 }> = ({ href, icon: Icon, label, isActive }) => (
   <Link
     href={href}
-    className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 min-w-0"
+    aria-current={isActive ? 'page' : undefined}
+    className="flex min-h-11 min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
   >
     <motion.div
       whileTap={{ scale: 0.82 }}
       className={`p-1.5 rounded-xl transition-colors ${
         isActive
-          ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
       <Icon className="w-5 h-5" />
     </motion.div>
     <span
-      className={`text-[10px] font-medium leading-none truncate ${
+      className={`max-w-full truncate text-[11px] font-medium leading-none ${
         isActive
-          ? 'text-indigo-600 dark:text-indigo-400'
+          ? 'text-emerald-800 dark:text-emerald-200'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
@@ -60,9 +63,55 @@ const NavTab: React.FC<{
 
 export const BottomNavBar: React.FC = () => {
   const pathname = usePathname() || '/';
+  const router = useRouter();
   const t = useTranslations('nav');
+  const { user, signOut } = useAuth();
   const { activeWorkout } = useWorkout();
   const [moreOpen, setMoreOpen] = useState(false);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMoreOpen(false);
+    router.push('/auth');
+  };
+
+  // Accesibilidad: enfocar el panel al abrir, cerrar con Escape, devolver el foco al cerrar
+  useEffect(() => {
+    if (!moreOpen) return;
+
+    const previousFocus =
+      (document.activeElement as HTMLElement | null) ?? moreBtnRef.current;
+    closeBtnRef.current?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusableElements?.length) return;
+
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previousFocus?.focus();
+    };
+  }, [moreOpen]);
 
   // Ocultar en auth y en workout (pantalla de entrenamiento activo)
   if (pathname.includes('/auth')) return null;
@@ -77,27 +126,53 @@ export const BottomNavBar: React.FC = () => {
     ? `/workout/${activeWorkout.routineId}`
     : '/routines';
 
-  // Tabs principales (4 + botón central)
+  // Rutinas y entrenamiento son los accesos primarios; el resto vive en "Más".
   const mainTabs = [
-    { href: '/', icon: Home, label: t('home') },
     { href: '/routines', icon: ClipboardList, label: t('routines') },
-    { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard') },
   ];
 
-  // Items del panel "Más"
-  const moreItems = [
-    { href: '/sessions',     icon: Calendar,    label: t('sessions'),    color: 'text-blue-500' },
-    { href: '/progress',     icon: TrendingUp,  label: t('progress'),    color: 'text-orange-500' },
-    { href: '/achievements', icon: Trophy,      label: t('achievements'), color: 'text-amber-500' },
-    { href: '/ai-assistant', icon: Sparkles,    label: t('aiAssistant'), color: 'text-violet-500' },
-    { href: '/planning',     icon: BarChart3,   label: t('planning'),    color: 'text-indigo-500' },
-    { href: '/exercises',    icon: Lightbulb,   label: t('exercises'),   color: 'text-cyan-500' },
-    { href: '/recommended',  icon: Target,      label: t('recommended'), color: 'text-emerald-500' },
-    { href: '/calculators',  icon: Calculator,  label: t('calculators'), color: 'text-teal-500' },
-    { href: '/glossary',     icon: BookOpen,    label: t('glossary'),    color: 'text-sky-500' },
-    { href: '/settings',     icon: Settings,    label: t('settings'),    color: 'text-zinc-500' },
-    { href: '/profile',      icon: User,        label: t('profile'),     color: 'text-pink-500' },
+  const moreGroups = [
+    {
+      title: t('moreGroups.overview'),
+      items: [
+        { href: '/', icon: Home, label: t('home'), color: 'text-blue-500' },
+        { href: '/dashboard', icon: LayoutDashboard, label: t('dashboard'), color: 'text-indigo-500' },
+      ],
+    },
+    {
+      title: t('moreGroups.progress'),
+      items: [
+        { href: '/sessions',     icon: Calendar,   label: t('sessions'),     color: 'text-blue-500' },
+        { href: '/progress',     icon: TrendingUp, label: t('progress'),     color: 'text-orange-500' },
+        { href: '/achievements', icon: Trophy,     label: t('achievements'), color: 'text-amber-500' },
+        { href: '/planning',     icon: BarChart3,  label: t('planning'),     color: 'text-indigo-500' },
+      ],
+    },
+    {
+      title: t('moreGroups.discover'),
+      items: [
+        { href: '/exercises',    icon: Lightbulb, label: t('exercises'),   color: 'text-cyan-500' },
+        { href: '/recommended',  icon: Target,    label: t('recommended'), color: 'text-emerald-500' },
+        { href: '/ai-assistant', icon: Sparkles,  label: t('aiAssistant'), color: 'text-emerald-600 dark:text-emerald-300' },
+      ],
+    },
+    {
+      title: t('moreGroups.tools'),
+      items: [
+        { href: '/equipment',   icon: Dumbbell,   label: t('equipment'),   color: 'text-blue-500' },
+        { href: '/calculators', icon: Calculator, label: t('calculators'), color: 'text-teal-500' },
+        { href: '/glossary',    icon: BookOpen,    label: t('glossary'),    color: 'text-sky-500' },
+      ],
+    },
+    {
+      title: t('moreGroups.account'),
+      items: [
+        { href: '/settings', icon: Settings, label: t('settings'), color: 'text-zinc-500' },
+        { href: '/profile',  icon: User,     label: t('profile'),  color: 'text-rose-500' },
+      ],
+    },
   ];
+  const moreItems = moreGroups.flatMap((group) => group.items);
 
   // Si algún "más" está activo, marcar el tab de "Más" como activo
   const isMoreActive = moreItems.some((item) => isActive(item.href));
@@ -116,7 +191,12 @@ export const BottomNavBar: React.FC = () => {
               onClick={() => setMoreOpen(false)}
             />
             <motion.div
+              ref={dialogRef}
               className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-49 mx-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mobile-more-title"
+              tabIndex={-1}
               initial={{ y: 24, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 24, opacity: 0, scale: 0.97 }}
@@ -124,47 +204,73 @@ export const BottomNavBar: React.FC = () => {
             >
               {/* Cabecera */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Más secciones</span>
+                <h2 id="mobile-more-title" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{t('moreSections')}</h2>
                 <button
+                  ref={closeBtnRef}
+                  type="button"
                   onClick={() => setMoreOpen(false)}
+                  aria-label={t('close')}
                   className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Grid de ítems */}
-              <div className="grid grid-cols-4 gap-1 p-3">
-                {moreItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMoreOpen(false)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-colors ${
-                      isActive(item.href)
-                        ? 'bg-indigo-50 dark:bg-indigo-900/30'
-                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    <item.icon
-                      className={`w-6 h-6 ${
-                        isActive(item.href)
-                          ? 'text-indigo-600 dark:text-indigo-400'
-                          : item.color
-                      }`}
-                    />
-                    <span
-                      className={`text-[10px] font-medium text-center leading-tight ${
-                        isActive(item.href)
-                          ? 'text-indigo-600 dark:text-indigo-400'
-                          : 'text-zinc-500 dark:text-zinc-400'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </Link>
+              {/* Secciones agrupadas por intención */}
+              <div className="max-h-[70vh] overflow-y-auto p-3 space-y-4">
+                {moreGroups.map((group) => (
+                  <div key={group.title}>
+                    <h3 className="px-1 mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      {group.title}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-1 min-[380px]:grid-cols-4">
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMoreOpen(false)}
+                          className={`flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl p-3 transition-colors touch-manipulation ${
+                            isActive(item.href)
+                              ? 'bg-indigo-50 dark:bg-indigo-900/30'
+                              : 'hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                          }`}
+                        >
+                          <item.icon
+                            className={`w-6 h-6 ${
+                              isActive(item.href)
+                                ? 'text-indigo-600 dark:text-indigo-400'
+                                : item.color
+                            }`}
+                          />
+                          <span
+                            className={`text-[11px] font-medium text-center leading-tight ${
+                              isActive(item.href)
+                                ? 'text-indigo-600 dark:text-indigo-400'
+                                : 'text-zinc-500 dark:text-zinc-400'
+                            }`}
+                          >
+                            {item.label}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
+
+              {/* Cerrar sesión */}
+              {user && (
+                <div className="border-t border-zinc-100 dark:border-zinc-800 p-3">
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t('logout')}
+                  </button>
+                </div>
+              )}
             </motion.div>
           </>
         )}
@@ -186,21 +292,24 @@ export const BottomNavBar: React.FC = () => {
             ))}
 
             {/* Botón central elevado */}
-            <Link href={centerHref} className="relative -mt-6 shrink-0 mx-2">
+            <Link
+              href={centerHref}
+              aria-label={activeWorkout ? t('activeWorkout') : t('train')}
+              className="relative -mt-6 mx-1 flex shrink-0 touch-manipulation flex-col items-center gap-1"
+            >
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.05 }}
-                className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg ${
-                  activeWorkout
-                    ? 'bg-linear-to-br from-emerald-500 to-green-600 shadow-emerald-500/40'
-                    : 'bg-linear-to-br from-indigo-600 to-violet-600 shadow-indigo-500/40'
-                }`}
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700 shadow-lg shadow-emerald-900/20 dark:bg-emerald-300 dark:shadow-emerald-950/30"
               >
-                <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.2} />
+                <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.4} />
               </motion.div>
               {activeWorkout && (
-                <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white dark:border-zinc-900 animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 dark:border-zinc-900 dark:bg-emerald-300" />
               )}
+              <span className="text-[11px] font-semibold leading-none text-zinc-700 dark:text-zinc-300">
+                {activeWorkout ? t('activeWorkout') : t('train')}
+              </span>
             </Link>
 
             {/* Tab Dashboard */}
@@ -216,27 +325,32 @@ export const BottomNavBar: React.FC = () => {
 
             {/* Tab "Más" */}
             <button
+              ref={moreBtnRef}
+              type="button"
               onClick={() => setMoreOpen((v) => !v)}
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 min-w-0"
+              aria-expanded={moreOpen}
+              aria-haspopup="dialog"
+              aria-label={t('more')}
+              className="flex min-h-11 min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
             >
               <motion.div
                 whileTap={{ scale: 0.82 }}
                 className={`p-1.5 rounded-xl transition-colors ${
                   isMoreActive || moreOpen
-                    ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >
                 {moreOpen ? <X className="w-5 h-5" /> : <Grid3x3 className="w-5 h-5" />}
               </motion.div>
               <span
-                className={`text-[10px] font-medium leading-none ${
+                className={`text-[11px] font-medium leading-none ${
                   isMoreActive || moreOpen
-                    ? 'text-indigo-600 dark:text-indigo-400'
+                    ? 'text-emerald-800 dark:text-emerald-200'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >
-                Más
+                {t('more')}
               </span>
             </button>
           </div>

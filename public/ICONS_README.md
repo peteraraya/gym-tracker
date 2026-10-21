@@ -2,34 +2,18 @@
 
 ## Diseños Disponibles
 
-### 1. icon-gt.svg (ACTUAL)
-- Letras "GT" grandes y visibles
-- Fondo con gradiente azul-púrpura
-- Ideal para reconocimiento rápido
-- **Actualmente en uso**
-
-### 2. icon-dumbbell.svg
-- Mancuerna simplificada
-- Más visual y temático
-- Fondo con gradiente azul-púrpura
-
-### 3. icon-simple.svg (original)
-- Mancuerna detallada con efectos 3D
-- Más compleja pero elegante
+### gymlogix-mark.svg (actual)
+- Símbolo G con mancuerna integrado
+- Blanco y turquesa sobre negro grafito
+- Fuente única de los iconos web y PWA
 
 ## Cambiar el Diseño del Icono
 
 Para cambiar entre diseños, ejecuta:
 
 ```bash
-# Usar letras GT (actual)
-npm run generate:icons public/icon-gt.svg
-
-# Usar mancuerna simplificada
-npm run generate:icons public/icon-dumbbell.svg
-
-# Usar mancuerna detallada
-npm run generate:icons public/icon-simple.svg
+# Generar los iconos institucionales
+npm run generate:icons -- public/gymlogix-mark.svg
 ```
 
 ## Iconos Generados
@@ -65,8 +49,8 @@ Todos los iconos se generan automáticamente en:
 
 Para crear tu propio diseño:
 
-1. Edita cualquiera de los archivos SVG en `public/`
-2. Ejecuta `npm run generate:icons public/tu-icono.svg`
+1. Edita `public/gymlogix-mark.svg`
+2. Ejecuta `npm run generate:icons -- public/gymlogix-mark.svg`
 3. Los iconos se regenerarán automáticamente
 
 ## Estructura de Archivos
@@ -77,9 +61,7 @@ public/
 │   ├── icon-*.png (todos los tamaños)
 │   ├── badge-72x72.png
 │   └── shortcut-*.png
-├── icon-gt.svg (letras GT - ACTUAL)
-├── icon-dumbbell.svg (mancuerna simple)
-├── icon-simple.svg (mancuerna detallada)
+├── gymlogix-mark.svg (símbolo institucional)
 ├── favicon-16x16.png
 ├── favicon-32x32.png
 └── apple-touch-icon.png

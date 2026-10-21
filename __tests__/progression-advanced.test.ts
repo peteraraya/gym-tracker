@@ -3,7 +3,7 @@ import {
   recommendWeightIncrease,
   estimate1RM,
   type ProgressionStrategy
-} from '@/lib/workout/progression-advanced';
+} from '@/lib/application/workout/progression-advanced';
 import type { WorkoutSession } from '@/types';
 
 // Helper para crear sesiones de prueba

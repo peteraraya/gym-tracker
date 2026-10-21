@@ -26,7 +26,7 @@ export function PageLayout({
   className = ''
 }: PageLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className={`min-h-screen bg-zinc-50 dark:bg-zinc-950 ${className}`}>
       {children}
     </div>
   );
@@ -38,7 +38,7 @@ export function PageContent({
   className = ''
 }: PageLayoutProps) {
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8">
+    <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-6">
       <div className={`${maxWidthClasses[maxWidth]} mx-auto ${className}`}>
         {children}
       </div>

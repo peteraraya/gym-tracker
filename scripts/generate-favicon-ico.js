@@ -1,30 +1,40 @@
 const sharp = require('sharp');
 const fs = require('fs');
 
-console.log('🎨 Generando favicon.ico...\n');
-
-// Generar múltiples tamaños para el ICO (16, 32, 48)
 const sizes = [16, 32, 48];
-const tempFiles = [];
 
-Promise.all(
-  sizes.map(size => {
-    const tempFile = `public/favicon-temp-${size}.png`;
-    tempFiles.push(tempFile);
-    return sharp('public/icon-gt.svg')
-      .resize(size, size)
-      .png()
-      .toFile(tempFile)
-      .then(() => console.log(`✓ Generado temporal ${size}x${size}`));
-  })
-).then(() => {
-  console.log('\n✅ Archivos temporales generados!');
-  console.log('\n⚠️  Para crear favicon.ico necesitas:');
-  console.log('1. Usar una herramienta online: https://www.icoconverter.com/');
-  console.log('2. O instalar imagemagick y ejecutar:');
-  console.log('   convert public/favicon-temp-16.png public/favicon-temp-32.png public/favicon-temp-48.png public/favicon.ico');
-  console.log('\n📁 Archivos PNG temporales creados en public/');
-  console.log('   Puedes subirlos a icoconverter.com para crear el .ico');
-}).catch(err => {
-  console.error('❌ Error:', err);
+async function generateFavicon() {
+  const images = await Promise.all(
+    sizes.map(async (size) => ({
+      size,
+      data: await sharp('public/gymlogix-mark.svg').resize(size, size).png().toBuffer(),
+    }))
+  );
+
+  const header = Buffer.alloc(6 + images.length * 16);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(images.length, 4);
+
+  let offset = header.length;
+  images.forEach(({ size, data }, index) => {
+    const entryOffset = 6 + index * 16;
+    header.writeUInt8(size === 256 ? 0 : size, entryOffset);
+    header.writeUInt8(size === 256 ? 0 : size, entryOffset + 1);
+    header.writeUInt8(0, entryOffset + 2);
+    header.writeUInt8(0, entryOffset + 3);
+    header.writeUInt16LE(1, entryOffset + 4);
+    header.writeUInt16LE(32, entryOffset + 6);
+    header.writeUInt32LE(data.length, entryOffset + 8);
+    header.writeUInt32LE(offset, entryOffset + 12);
+    offset += data.length;
+  });
+
+  await fs.promises.writeFile('app/favicon.ico', Buffer.concat([header, ...images.map(({ data }) => data)]));
+  console.log('Generated app/favicon.ico (16, 32, 48 px)');
+}
+
+generateFavicon().catch((error) => {
+  console.error('Failed to generate favicon:', error);
+  process.exitCode = 1;
 });

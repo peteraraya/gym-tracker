@@ -16,3 +16,4 @@ export * from './ProgressionSettings';
 export * from './StrengthProgression';
 export * from './TrainingFrequency';
 export * from './VolumeChart';
+export * from './IntegratedProgressPanel';

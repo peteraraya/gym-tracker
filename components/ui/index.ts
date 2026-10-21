@@ -16,6 +16,7 @@ export { NumericInput } from './NumericInput';
 export { PasswordInput } from './PasswordInput';
 export { SearchInput } from './SearchInput';
 export { default as InfoTooltip } from './InfoTooltip';
+export { Skeleton, CardSkeleton, ListItemSkeleton, ChartSkeleton } from './Skeleton';
 
 // ─── Display / Feedback ──────────────────────────────────────────────────────
 export { EmptyState } from './EmptyState';
@@ -33,3 +34,24 @@ export { PageSection, PageSectionCard } from './PageSection';
 // ─── Utilidades ──────────────────────────────────────────────────────────────
 export { ClientOnly } from './ClientOnly';
 export { VirtualList } from './VirtualList';
+export { ExerciseImage } from './ExerciseImage';
+export { Typography } from './Typography';
+export type { TypographyVariant } from './Typography';
+export {
+  ExerciseListSkeleton,
+  GridSkeleton,
+  DashboardSkeleton,
+  DetailSkeleton,
+  ContentSkeleton,
+} from './PageLoading';
+export { Breadcrumb } from './Breadcrumb';
+export type { BreadcrumbItem } from './Breadcrumb';
+export { StandardEmptyState } from './StandardEmptyState';
+export type { StandardEmptyStateProps } from './StandardEmptyState';
+export { A11yAlert } from './A11yAlert';
+export type { A11yAlertProps } from './A11yAlert';
+export { IconButton } from './IconButton';
+export type { IconButtonProps } from './IconButton';
+export { PageSkeleton } from './PageSkeleton';
+export { MobileGestures } from './MobileGestures';
+export type { MobileGesturesProps } from './MobileGestures';

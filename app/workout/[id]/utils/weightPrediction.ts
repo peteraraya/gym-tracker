@@ -1,11 +1,11 @@
 ﻿/**
- * Utilidades para predicciÃ³n inteligente de pesos
+ * Utilidades para predicción inteligente de pesos
  * 
- * Este mÃ³dulo implementa la lÃ³gica de predicciÃ³n de pesos basada en:
+ * Este módulo implementa la lógica de predicción de pesos basada en:
  * - Serie anterior en el workout actual
- * - Ãšltima sesiÃ³n del mismo ejercicio
- * - DetecciÃ³n de progresiÃ³n (regla 2-for-2)
- * - Fallback a configuraciÃ³n de rutina
+ * - Última sesión del mismo ejercicio
+ * - Detección de progresión (regla 2-for-2)
+ * - Fallback a configuración de rutina
  */
 
 import type { Exercise, WorkoutSession } from '@/types';
@@ -50,7 +50,7 @@ function isCompoundExercise(exerciseName: string): boolean {
 }
 
 /**
- * Predice el peso para la serie actual basÃ¡ndose en historial y contexto
+ * Predice el peso para la serie actual basándose en historial y contexto
  */
 export function predictWeight(params: WeightPredictionParams): WeightPredictionResult {
   const { exerciseName, currentSet, sessions, currentExercise, actualWeights, exerciseId } = params;
@@ -70,9 +70,9 @@ export function predictWeight(params: WeightPredictionParams): WeightPredictionR
     }
   }
   
-  // Prioridad 2: Ãšltima sesiÃ³n (si es serie 1)
+  // Prioridad 2: Última sesión (si es serie 1)
   if (currentSet === 1) {
-    // Buscar Ãºltima sesiÃ³n con este ejercicio
+    // Buscar última sesión con este ejercicio
     const lastSession = sessions
       .filter(s => s.exercises.some(e => e.exerciseName === exerciseName))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
@@ -83,7 +83,7 @@ export function predictWeight(params: WeightPredictionParams): WeightPredictionR
       if (lastExerciseData && lastExerciseData.actualWeight && lastExerciseData.actualWeight[0]) {
         const lastWeight = lastExerciseData.actualWeight[0];
         
-        // Verificar si se debe sugerir progresiÃ³n
+        // Verificar si se debe sugerir progresión
         // BUG FIX: Compare completedSets (count) against the number of actualReps
         // entries that have values > 0, not array.length (which could differ if
         // there are empty/placeholder entries). This ensures correct progression
@@ -94,7 +94,7 @@ export function predictWeight(params: WeightPredictionParams): WeightPredictionR
         const avgReps = lastExerciseData.actualReps.reduce((sum, r) => sum + r, 0) / lastExerciseData.actualReps.length;
         const targetReps = currentExercise.sets[0]?.reps || 10;
         
-        // Regla 2-for-2: Si completÃ³ todas las series con el objetivo de reps, sugerir progresiÃ³n
+        // Regla 2-for-2: Si completó todas las series con el objetivo de reps, sugerir progresión
         if (allCompleted && avgReps >= targetReps) {
           const isCompound = isCompoundExercise(exerciseName);
           const increment = isCompound ? 5 : 2.5;
@@ -103,16 +103,16 @@ export function predictWeight(params: WeightPredictionParams): WeightPredictionR
             predictedWeight: lastWeight + increment,
             confidence: 'high',
             source: 'progression',
-            reasoning: `Â¡ProgresiÃ³n! +${increment}kg basado en Ãºltima sesiÃ³n`
+            reasoning: `¡Progresión! +${increment}kg basado en última sesión`
           };
         }
         
-        // Sin progresiÃ³n, usar mismo peso
+        // Sin progresión, usar mismo peso
         return {
           predictedWeight: lastWeight,
           confidence: 'high',
           source: 'last_session',
-          reasoning: 'Peso de la Ãºltima sesiÃ³n'
+          reasoning: 'Peso de la última sesión'
         };
       }
     }
@@ -131,13 +131,13 @@ export function predictWeight(params: WeightPredictionParams): WeightPredictionR
 }
 
 /**
- * Valida que un peso estÃ© dentro de rangos aceptables
+ * Valida que un peso esté dentro de rangos aceptables
  */
 export function validateWeight(weight: number): number {
   // No negativo
   if (weight < 0) return 0;
   
-  // MÃ¡ximo 500kg (lÃ­mite de seguridad)
+  // Máximo 500kg (límite de seguridad)
   if (weight > 500) return 500;
   
   // Redondear a 2 decimales

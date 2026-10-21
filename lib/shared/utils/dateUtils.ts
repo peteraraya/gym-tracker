@@ -1,0 +1,229 @@
+/**
+ * Utilidades de fecha y cálculos
+ *
+ * Funciones helper para:
+ * - Manejo de fechas sin bugs de DST (horario de verano)
+ * - Cálculos de volumen de entrenamiento
+ * - Otras utilidades compartidas
+ */
+
+import type { WorkoutSession } from "@/types";
+import type { DayKey } from "@/types/planning";
+
+/**
+ * Devuelve el índice de día de la semana con convención ISO (0 = lunes, ..., 6 = domingo)
+ */
+export function getISOWeekdayIndex(date: Date): number {
+  return (date.getDay() + 6) % 7;
+}
+
+/** Devuelve el inicio de la semana (medianoche) según weekStartsOn ('monday'|'sunday') */
+export function getWeekStart(
+  date: Date,
+  weekStartsOn: "monday" | "sunday" = "monday",
+): Date {
+  const d = new Date(date);
+  const jsWeekStart = weekStartsOn === "monday" ? 1 : 0;
+  const day = d.getDay();
+  const diff = (day - jsWeekStart + 7) % 7;
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/** Formatea una fecha como YYYY-MM-DD usando sus componentes LOCALES (no UTC) */
+function formatLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function getWeekKey(
+  date: Date,
+  weekStartsOn: "monday" | "sunday" = "monday",
+): string {
+  // getWeekStart normaliza a medianoche LOCAL; usar toISOString() la convierte
+  // a UTC y en husos horarios positivos (UTC+N) devuelve el día anterior.
+  return formatLocalDateKey(getWeekStart(date, weekStartsOn));
+}
+
+const JS_DAY_TO_KEY: Record<number, DayKey> = {
+  0: "sunday",
+  1: "monday",
+  2: "tuesday",
+  3: "wednesday",
+  4: "thursday",
+  5: "friday",
+  6: "saturday",
+};
+
+export function getDayKey(date: Date): DayKey {
+  return JS_DAY_TO_KEY[date.getDay()];
+}
+
+export function getDayName(date: Date, locale = "es-ES"): string {
+  const name = date.toLocaleDateString(locale, { weekday: "long" });
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+/**
+ * Normaliza una fecha a medianoche en la zona horaria local
+ */
+export function normalizeToMidnight(date: Date): Date {
+  const normalized = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+}
+
+/**
+ * Verifica si dos fechas son el mismo día
+ */
+export function isSameDay(date1: Date, date2: Date): boolean {
+  const d1 = normalizeToMidnight(date1);
+  const d2 = normalizeToMidnight(date2);
+  return d1.getTime() === d2.getTime();
+}
+
+/**
+ * Verifica si date1 es el día anterior a date2
+ * Usa manipulación de fecha en lugar de milisegundos para evitar bugs de DST
+ */
+export function isPreviousDay(date1: Date, date2: Date): boolean {
+  const d1 = normalizeToMidnight(date1);
+  const d2 = normalizeToMidnight(date2);
+  // Crear fecha del día anterior usando setDate en lugar de restar milisegundos
+  const expectedPrevious = new Date(d2);
+  expectedPrevious.setDate(expectedPrevious.getDate() - 1);
+  return d1.getTime() === expectedPrevious.getTime();
+}
+
+/**
+ * Obtiene la fecha de ayer
+ */
+export function getYesterday(): Date {
+  const yesterday = normalizeToMidnight(new Date());
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday;
+}
+
+/**
+ * Interface para ejercicios con datos de reps/weights
+ */
+interface ExerciseWithSets {
+  actualReps?: number[];
+  actualWeight?: number[];
+  actualWeights?: number[]; // soporte para formato alternativo
+}
+
+/**
+ * Calcula el volumen de una sesión (suma de reps * weight para cada set)
+ */
+export function calculateSessionVolume(
+  exercises: ExerciseWithSets[] | undefined,
+): number {
+  if (!exercises || !Array.isArray(exercises)) return 0;
+
+  return exercises.reduce((total, ex) => {
+    if (!ex.actualReps || !Array.isArray(ex.actualReps)) return total;
+    // Soportar tanto 'actualWeight' como 'actualWeights' (formatos distintos en la DB)
+    const weights = ex.actualWeight ?? ex.actualWeights ?? [];
+    return (
+      total +
+      ex.actualReps.reduce((repTotal, reps, idx) => {
+        return repTotal + reps * (weights[idx] || 0);
+      }, 0)
+    );
+  }, 0);
+}
+
+/**
+ * Cuenta el total de series completadas
+ */
+export function calculateTotalSets(
+  exercises: ExerciseWithSets[] | undefined,
+): number {
+  if (!exercises || !Array.isArray(exercises)) return 0;
+
+  return exercises.reduce((total, ex) => {
+    return total + (ex.actualReps?.length || 0);
+  }, 0);
+}
+
+/**
+ * Calcula el volumen de un array de sesiones
+ */
+export function calculateTotalVolume(sessions: WorkoutSession[]): number {
+  return sessions.reduce(
+    (total, session) => total + calculateSessionVolume(session.exercises),
+    0,
+  );
+}
+
+/**
+ * Filtra sesiones por mes y año
+ */
+export function filterSessionsByMonth(
+  sessions: WorkoutSession[],
+  month: number,
+  year: number,
+): WorkoutSession[] {
+  return sessions.filter((s) => {
+    const date = new Date(s.date);
+    return date.getMonth() === month && date.getFullYear() === year;
+  });
+}
+
+/**
+ * Calcula la racha actual de entrenamientos
+ * Retorna el número de días consecutivos con al menos un entrenamiento
+ */
+export function calculateStreak(sessions: WorkoutSession[]): number {
+  if (sessions.length === 0) return 0;
+
+  // Normalizar y ordenar fechas
+  const sortedDates = sessions
+    .map((s) => normalizeToMidnight(new Date(s.date)))
+    .sort((a, b) => b.getTime() - a.getTime());
+
+  // Obtener fechas únicas
+  const uniqueDates = Array.from(
+    new Set(sortedDates.map((d) => d.getTime())),
+  ).map((t) => new Date(t));
+
+  const today = normalizeToMidnight(new Date());
+
+  // Verificar si la última sesión fue hoy o ayer
+  if (uniqueDates.length === 0) return 0;
+  if (
+    !isSameDay(uniqueDates[0], today) &&
+    !isPreviousDay(uniqueDates[0], today)
+  ) {
+    return 0;
+  }
+
+  let streak = 0;
+  let expectedDate = today;
+
+  for (let i = 0; i < uniqueDates.length; i++) {
+    const date = uniqueDates[i];
+
+    // Solo la primera comparación puede tolerar que "hoy" no tenga sesión
+    // todavía (la racha sigue viva mientras no termine el día). A partir de
+    // ahí, cada fecha debe ser exactamente un día antes de la anterior:
+    // permitir isPreviousDay en cada iteración perdonaría un hueco por paso.
+    const matches =
+      i === 0
+        ? isSameDay(date, expectedDate) || isPreviousDay(date, expectedDate)
+        : isSameDay(date, expectedDate);
+
+    if (!matches) break;
+
+    streak++;
+    // Mover la fecha esperada al día anterior de forma segura
+    expectedDate = new Date(date);
+    expectedDate.setDate(expectedDate.getDate() - 1);
+  }
+
+  return streak;
+}

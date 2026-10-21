@@ -1,7 +1,7 @@
 ---
 name: nueva-vista
 description: >
-  Crea una nueva página/vista completa en Gym Tracker siguiendo todas las convenciones
+  Crea una nueva página/vista completa en GymLogiX siguiendo todas las convenciones
   del proyecto. Usar cuando: agregar una ruta nueva; crear una vista desde cero;
   necesitar el scaffold completo de una página con datos, i18n, loading y empty states.
 ---

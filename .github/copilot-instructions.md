@@ -1,4 +1,4 @@
-# Gym Tracker — Agent Instructions
+# GymLogiX — Agent Instructions
 
 Aplicación web/móvil PWA de seguimiento de entrenamientos.
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS 4 · Supabase · next-intl 4 · Framer Motion 12 · Capacitor 6.

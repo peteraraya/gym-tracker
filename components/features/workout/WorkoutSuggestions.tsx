@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { WorkoutSuggestion } from '@/lib/workout/workoutSuggestions';
+import type { WorkoutSuggestion } from '@/lib/application/workout/workoutSuggestions';
 import { X, ChevronDown, ChevronUp } from '@/components/icons/lucide';
 
 interface WorkoutSuggestionsProps {

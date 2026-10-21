@@ -32,11 +32,77 @@
     "completeSet": "Completar Serie",
     "helper": "💡 El cronómetro mide el tiempo de cada serie. Puedes pausar si necesitas un descanso."
   },
+  "notifications": {
+    "soundsTitle": "Sonidos de descanso",
+    "enableSounds": "Activar sonidos",
+    "soundDescription": "Reproducir un sonido cuando termine el descanso",
+    "enabled": "Activado",
+    "disabled": "Desactivado",
+    "soundType": "Tipo de sonido",
+    "volume": "Volumen: {value}%",
+    "playing": "Reproduciendo...",
+    "testSound": "Probar sonido",
+    "pwaTitle": "Avisos de descanso",
+    "permissionStatus": "Estado de permisos",
+    "permissionGranted": "Notificaciones activadas ✅",
+    "permissionDenied": "Notificaciones bloqueadas ❌",
+    "permissionPrompt": "Permiso no solicitado",
+    "blocked": "Bloqueado",
+    "enable": "Activar",
+    "restNoticeTitle": "Avisos de descanso",
+    "restNotice": "Recibe un aviso al terminar el descanso",
+    "permissionRequired": "Requiere permiso del navegador",
+    "backgroundAvailability": "La disponibilidad en segundo plano depende del dispositivo",
+    "blockedTitle": "Notificaciones bloqueadas",
+    "blockedDescription": "Para activarlas, permite las notificaciones de este sitio en la configuración del navegador.",
+    "volumeControl": "Control de volumen",
+    "soundNames": {
+      "beep": "Pitido clásico",
+      "chime": "Campanilla",
+      "bell": "Campana",
+      "horn": "Bocina",
+      "whistle": "Silbato",
+      "custom": "Personalizado"
+    },
+    "soundDescriptions": {
+      "beep": "Sonido simple y claro",
+      "chime": "Sonido suave y melodioso",
+      "bell": "Sonido fuerte y claro",
+      "horn": "Sonido potente para entrenamientos intensos",
+      "whistle": "Sonido agudo y penetrante",
+      "custom": "Configuración personalizada"
+    }
+  },
+  "settingsPage": {
+    "title": "Configuración",
+    "subtitle": "Personaliza tu experiencia",
+    "soundNotifications": "Sonidos y notificaciones",
+    "appearance": "Apariencia",
+    "pwa": "Aplicación web progresiva (PWA)",
+    "installable": "Instalable",
+    "installableDescription": "Instala la aplicación en tu dispositivo para acceder rápidamente.",
+    "offline": "Acceso sin conexión",
+    "offlineDescription": "Las pantallas y los datos disponibles sin conexión dependen de lo guardado o cargado previamente en este dispositivo."
+  },
+  "pwa": {
+    "updateTitle": "Nueva versión disponible",
+    "updatePrompt": "Hay una nueva versión de la aplicación. ¿Deseas actualizar ahora?",
+    "cancel": "Cancelar",
+    "update": "Actualizar",
+    "installTitle": "Instalar GymLogiX",
+    "installDescription": "Instala la app en tu dispositivo para acceder rápidamente.",
+    "homeBenefit": "Acceso directo desde la pantalla de inicio",
+    "offlineBenefit": "La app puede abrirse sin conexión; algunos datos requieren conexión.",
+    "install": "Instalar ahora",
+    "later": "Más tarde",
+    "installError": "No se pudo abrir el instalador. Inténtalo de nuevo desde el menú de tu navegador.",
+    "close": "Cerrar"
+  },
   "nav": {
     "home": "Inicio",
     "routines": "Rutinas",
     "sessions": "Historial",
-    "appName": "Gym Tracker",
+    "appName": "GymLogiX",
     "dashboard": "Panel de Control",
     "recommended": "Recomendadas",
     "progress": "Progreso",
@@ -50,7 +116,29 @@
     "glossary": "Glosario",
     "aiAssistant": "Asistente IA",
     "settings": "Ajustes",
-    "planning": "Planificación"
+    "planning": "Planificación",
+    "more": "Más",
+    "train": "Entrenar",
+    "activeWorkout": "En curso",
+    "moreSections": "Más secciones",
+    "close": "Cerrar",
+    "moreGroups": {
+      "overview": "General",
+      "progress": "Progreso",
+      "discover": "Descubrir",
+      "tools": "Herramientas",
+      "account": "Cuenta"
+    }
+  },
+  "connection": {
+    "localTitle": "Modo local",
+    "localDescription": "Los datos se guardan en este dispositivo y no se sincronizan con la nube.",
+    "offlineTitle": "Sin conexión",
+    "offlineDescription": "Algunas funciones que necesitan sincronización pueden no estar disponibles.",
+    "cloudUnavailableTitle": "Sincronización en la nube pausada",
+    "cloudUnavailableDescription": "No se pudo completar una operación en la nube. Comprueba la conexión y la configuración antes de continuar.",
+    "connectedTitle": "Conectado",
+    "connectedDescription": "Los datos se sincronizan con la base de datos."
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -61,6 +149,7 @@
     "required": "Requerido",
     "passwordsNoMatch": "Las contraseñas no coinciden",
     "accountCreated": "¡Cuenta creada! Revisa tu email para confirmar tu cuenta.",
+    "accountAlreadyExists": "Este correo ya está registrado. Inicia sesión.",
     "email": "Correo electrónico",
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña",
@@ -77,7 +166,75 @@
     "submitting": "Enviando..."
   },
   "home": {
-    "welcome": "Bienvenido a Gym Tracker",
+    "greeting": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
+    },
+    "today": "Hoy",
+    "streakDays": {
+      "one": "día",
+      "other": "días"
+    },
+    "days": {
+      "sunday": "Domingo",
+      "monday": "Lunes",
+      "tuesday": "Martes",
+      "wednesday": "Miércoles",
+      "thursday": "Jueves",
+      "friday": "Viernes",
+      "saturday": "Sábado"
+    },
+    "restDay": {
+      "title": "Día de descanso",
+      "description": "Aprovecha para recuperarte",
+      "mobility": "Sugerencia: sesión de movilidad",
+      "configureSchedule": "Configurar agenda semanal",
+      "trainToday": "Elegir una rutina para hoy"
+    },
+    "noPlan": {
+      "eyebrow": "Planificación",
+      "title": "Aún no tienes una agenda semanal",
+      "description": "Organiza tus rutinas por día para ver aquí tu próximo entrenamiento.",
+      "cta": "Configurar agenda",
+      "routineUnavailable": "La rutina planificada ya no está disponible."
+    },
+    "activeWorkout": "Entrenamiento activo",
+    "continueWorkout": "Continuar entrenamiento",
+    "workoutFallback": "Entrenamiento",
+    "plannedWorkout": "Tu entrenamiento de hoy",
+    "exercisesCount": {
+      "one": "ejercicio",
+      "other": "ejercicios"
+    },
+    "setsCount": {
+      "one": "serie",
+      "other": "series"
+    },
+    "startWorkout": "Iniciar entrenamiento",
+    "startPending": "Preparando entrenamiento…",
+    "moreRoutines": {
+      "one": "rutina más",
+      "other": "rutinas más"
+    },
+    "volumeThisWeek": "Volumen semanal",
+    "currentMonth": "Mes actual",
+    "currentStreak": "Racha actual",
+    "sessions": "Sesiones",
+    "routines": "Rutinas",
+    "routinesCount": "{count} creadas",
+    "dashboard": "Panel de control",
+    "sessionsCount": "{count} sesiones",
+    "quickStart": "Inicio rápido",
+    "plan": "Planificar",
+    "planLoadError": "No se pudo cargar tu planificación semanal.",
+    "dataLoadError": "No se pudieron cargar tus datos de entrenamiento.",
+    "retry": "Reintentar",
+    "recent": "Recientes",
+    "exerciseAbbreviation": "ejercicios",
+    "viewAll": "Ver todo",
+    "startError": "No se pudo iniciar el entrenamiento. Inténtalo de nuevo.",
+    "welcome": "Bienvenido a GymLogiX",
     "subtitle": "Registra y sigue tus rutinas de gimnasio de manera sencilla",
     "routinesCard": "Rutinas",
     "routinesCreated": "Rutinas creadas",
@@ -186,6 +343,7 @@
     "cardio": "Cardio"
   },
   "workout": {
+    "preparingWorkout": "Preparando tu entrenamiento...",
     "exercise": "Ejercicio",
     "set": "Serie",
     "progress": "Progreso",
@@ -193,6 +351,39 @@
     "repsPerformed": "Repeticiones realizadas",
     "weightUsed": "Peso utilizado (kg)",
     "completeSet": "Completar serie",
+    "exerciseCompleted": "COMPLETADO",
+    "exercisePending": "PENDIENTE",
+    "setCompleted": "completada",
+    "setPending": "pendiente",
+    "setReady": "lista para completar",
+    "quickEditMode": "Edición rápida",
+    "workoutProgress": "Progreso del entrenamiento",
+    "of": "de",
+    "sets": "series",
+    "skipRestEnabled": "Omitir descansos activado",
+    "skipRestDisabled": "Omitir descansos desactivado",
+    "skipRestDescription": "Evita iniciar temporizadores de descanso entre series",
+    "autoAdvanceEnabled": "Avance automático activado",
+    "autoAdvanceDisabled": "Avance automático desactivado",
+    "autoAdvanceDescription": "Enfoca la siguiente serie al completar la actual",
+    "enabled": "Sí",
+    "disabled": "No",
+    "addSet": "Agregar serie",
+    "setInProgress": "Serie en curso",
+    "timeUnderTension": "Tensión",
+    "setCompletedFeedback": "¡Serie completada!",
+    "showSets": "Mostrar series",
+    "hideSets": "Ocultar series",
+    "exerciseSkipped": "Omitido",
+    "exerciseInfo": "Información del ejercicio",
+    "infoShort": "Info",
+    "editRestTime": "Editar descanso de",
+    "skipExercise": "Omitir ejercicio",
+    "restoreExercise": "Restaurar ejercicio",
+    "repsShort": "Reps",
+    "weightShort": "Peso",
+    "setType": "Tipo",
+    "setTypeShort": "T",
     "nextExercise": "Siguiente ejercicio",
     "finishWorkout": "Finalizar entrenamiento",
     "nextExercises": "Próximos ejercicios",
@@ -256,7 +447,23 @@
     "distribution": "Distribución del Entrenamiento",
     "sets": "series",
     "viewProgress": "Ver progreso",
-    "progressDesc": "Analiza tu volumen de entrenamiento por grupo muscular"
+    "progressDesc": "Analiza tu volumen de entrenamiento por grupo muscular",
+    "panel": {
+      "title": "Panel de Progreso",
+      "week": "Sem",
+      "month": "Mes",
+      "year": "Año",
+      "monthlyVolume": "Volumen",
+      "wilksScore": "Fuerza (1RM)",
+      "workoutDensity": "Densidad",
+      "consistency": "Entrenamientos",
+      "sessions": "sesiones",
+      "noData": "Sin datos aún",
+      "viewDetail": "Ver detalle",
+      "trendUp": "Tu volumen subió respecto al período anterior",
+      "trendDown": "Tu volumen bajó respecto al período anterior",
+      "trendStable": "Tu volumen se mantiene estable respecto al período anterior"
+    }
   },
   "profile": {
     "title": "Mi Perfil",
@@ -323,7 +530,7 @@
   "dashboard": {
     "loadingStats": "Cargando estadísticas...",
     "pageTitle": "Panel de Control",
-    "pageDescription": "Resumen de tu progreso y estadísticas",
+    "pageDescription": "Gráficos y análisis detallado de tu progreso a largo plazo",
     "fitnessGoals": {
       "muscle_gain": "Ganancia Muscular",
       "strength": "Fuerza",
@@ -479,7 +686,10 @@
     "kgPerDay": "kg/día",
     "volume": "Volumen",
     "tooltipVolume": "Volumen",
-    "tooltipSessions": "Sesiones"
+    "tooltipSessions": "Sesiones",
+    "units": {
+      "kg": "kg"
+    }
   },
   "activityHeatmap": {
     "title": "Actividad de Entrenamiento",
@@ -562,8 +772,17 @@
   "routines": {
     "title": "Mis Rutinas",
     "subtitle": "Gestiona tus rutinas de entrenamiento",
+    "plannerSummary": "Planificación semanal",
+    "plannerDescription": "Consulta o ajusta tu calendario de entrenamiento",
     "loading": "Cargando rutinas...",
     "newRoutine": "Nueva Rutina",
+    "noRoutines": "Aún no tienes rutinas",
+    "noRoutinesDesc": "Crea tu primera rutina para comenzar a entrenar",
+    "createRoutine": "Crear Rutina",
+    "exercises": "Ejercicios",
+    "startRoutine": "Iniciar",
+    "editRoutine": "Editar",
+    "deleteRoutine": "Eliminar",
     "empty": {
       "title": "No tienes rutinas todavía",
       "description": "Crea tu primera rutina para comenzar a entrenar",
@@ -574,6 +793,12 @@
     "more": "más",
     "continueWorkout": "Continuar Entrenamiento",
     "startWorkout": "Iniciar Entrenamiento",
+    "startError": "No se pudo iniciar el entrenamiento. Revisa tu conexión e inténtalo de nuevo.",
+    "generationError": "No se pudieron crear las rutinas. Inténtalo de nuevo.",
+    "generationPartialError": "Se crearon {count} de {total} rutinas. Revisa tus rutinas antes de volver a generar.",
+    "generationSuccess": "Se crearon {count} rutinas. Ya puedes editarlas o iniciar un entrenamiento.",
+    "viewRoutines": "Ver rutinas",
+    "routineNotFound": "No se encontró la rutina.",
     "edit": "Editar",
     "delete": "Eliminar",
     "modal": {
@@ -594,7 +819,10 @@
     },
     "toast": {
       "deleteSuccess": "Rutina eliminada exitosamente",
-      "deleteError": "Error al eliminar la rutina"
+      "deleteError": "Error al eliminar la rutina",
+      "duplicateError": "No se pudo duplicar la rutina. Inténtalo de nuevo.",
+      "duplicateSuccess": "Rutina duplicada correctamente.",
+      "duplicateInProgress": "Duplicando rutina..."
     }
   },
   "warmup": {

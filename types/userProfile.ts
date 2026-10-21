@@ -20,6 +20,12 @@ export type FitnessLevel =
     | 'intermediate'     // Intermedio (6-24 meses)
     | 'advanced';        // Avanzado (2+ años)
 
+/** Entrada individual de peso corporal (almacenada siempre en kg) */
+export interface WeightEntry {
+    date: string;   // ISO YYYY-MM-DD
+    weight: number; // en kg (peso actual)
+}
+
 export interface UserProfile {
     // Campos opcionales del sistema
     id?: string;
@@ -39,6 +45,7 @@ export interface UserProfile {
     weight?: number;        // en kg (peso actual)
     currentWeight?: number; // alias para compatibilidad con algunas partes del código
     targetWeight?: number;
+    weightHistory?: WeightEntry[]; // historial de peso corporal (ordenado por fecha asc)
 
     // Objetivos (opcionales)
     fitnessGoal?: FitnessGoal;

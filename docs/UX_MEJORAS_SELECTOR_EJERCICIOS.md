@@ -137,7 +137,7 @@ Cada resultado muestra un badge con el grupo muscular:
 
 ### Diferenciación Visual
 
-- **Ejercicios de entrenamiento**: Borde azul cuando seleccionado
+- **Ejercicios de entrenamiento**: Borde turquesa cuando seleccionado
 - **Ejercicios de calentamiento**: Borde ámbar cuando seleccionado, emoji 🔥
 
 ### Responsive Design

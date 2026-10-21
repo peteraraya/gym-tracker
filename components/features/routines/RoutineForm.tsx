@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   Copy,
   Timer,
-} from "lucide-react";
+} from "@/components/icons/lucide";
 import { useRoutineForm } from "@/hooks/useRoutineForm";
 import { Input, TextArea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -229,6 +229,17 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
               label={t("description")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onBlur={() =>
+                setTouchedFields((prev) =>
+                  new Set(prev).add("routine-description")
+                )
+              }
+              error={
+                (showBasicErrors || touchedFields.has("routine-description")) &&
+                !description.trim()
+                  ? "La descripción es obligatoria"
+                  : undefined
+              }
               placeholder={t("descriptionPlaceholder")}
               rows={4}
             />
@@ -331,7 +342,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
         {/* Step 2: Exercises */}
         {currentStep === "exercises" && (
           <div className="flex-1 space-y-8 animate-fadeIn">
-            <div className="bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 sm:p-6 rounded-xl border border-purple-200 dark:border-purple-800">
+            <div className="bg-linear-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 p-4 sm:p-6 rounded-xl border border-purple-200 dark:border-purple-800">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 💪 Ejercicios de la Rutina
               </h3>
@@ -894,7 +905,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                         );
 
                                         // Importar la función de cálculo
-                                        import("@/lib/workout/restCalculator").then(
+                                        import("@/lib/application/workout/restCalculator").then(
                                           ({ calculateRestBetweenSets }) => {
                                             const restRecommendation =
                                               calculateRestBetweenSets(
@@ -916,13 +927,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                               const updatedExercises = [
                                                 ...currentExercises,
                                               ];
-                                              updatedExercises[
-                                                exerciseIndex
-                                              ].restBetweenSets =
-                                                recommendedTime;
-                                              updatedExercises[
-                                                exerciseIndex
-                                              ].useSmartRest = true;
+                                              updatedExercises[exerciseIndex] = {
+                                                ...updatedExercises[exerciseIndex],
+                                                restBetweenSets: recommendedTime,
+                                                useSmartRest: true,
+                                              };
                                               return updatedExercises;
                                             });
 
@@ -949,12 +958,11 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                         const updatedExercises = [
                                           ...currentExercises,
                                         ];
-                                        updatedExercises[
-                                          exerciseIndex
-                                        ].restBetweenSets = undefined;
-                                        updatedExercises[
-                                          exerciseIndex
-                                        ].useSmartRest = false;
+                                        updatedExercises[exerciseIndex] = {
+                                          ...updatedExercises[exerciseIndex],
+                                          restBetweenSets: undefined,
+                                          useSmartRest: false,
+                                        };
                                         return updatedExercises;
                                       });
                                     }
@@ -973,11 +981,14 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                                 <RestTimeSelectorCompact
                                   value={exercise.restBetweenSets}
                                   onChange={(v) => {
-                                    const newExercises = [...exercises];
-                                    newExercises[
-                                      exerciseIndex
-                                    ].restBetweenSets = v;
-                                    setExercises(newExercises);
+                                    setExercises((currentExercises) => {
+                                      const newExercises = [...currentExercises];
+                                      newExercises[exerciseIndex] = {
+                                        ...newExercises[exerciseIndex],
+                                        restBetweenSets: v,
+                                      };
+                                      return newExercises;
+                                    });
                                   }}
                                   placeholder={`${Math.floor(restBetweenSets / 60)}:${(restBetweenSets % 60).toString().padStart(2, "0")} (global)`}
                                   className="flex-1"
@@ -1136,7 +1147,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
                       Ejercicios
                     </div>
                   </div>
-                  <div className="bg-linear-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-3 sm:p-4 rounded-xl text-center border border-purple-200 dark:border-purple-800">
+                  <div className="bg-linear-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 p-3 sm:p-4 rounded-xl text-center border border-purple-200 dark:border-purple-800">
                     <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">
                       {exercises.reduce((sum, ex) => sum + ex.sets.length, 0)}
                     </div>

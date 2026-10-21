@@ -18,7 +18,7 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
 - ✅ Navegación entre meses (anterior/siguiente/hoy)
 - ✅ Vista de cuadrícula 7x6 (días de la semana)
 - ✅ Indicadores visuales:
-  - Día actual con borde azul
+  - Día actual con borde turquesa
   - Días con rutinas en verde
   - Días bloqueados en rojo
   - Días pasados con opacidad reducida
@@ -94,7 +94,7 @@ Agregar vista mensual al planificador para poder agendar rutinas por fecha espec
    - Título con mes y año actual
 
 3. **Indicadores Visuales**
-   - Día actual destacado con borde azul
+   - Día actual destacado con borde turquesa
    - Días con rutinas en verde con contador
    - Días bloqueados en rojo con texto "Descanso"
    - Días pasados con opacidad reducida

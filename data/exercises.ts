@@ -22,13 +22,17 @@ export interface ExerciseTemplate {
   defaultSets?: number;
   defaultReps?: number;
   image?: string; // URL de la imagen/GIF del ejercicio (opcional)
+  youtubeVideoId?: string;
   technique?: string[]; // Recomendaciones de técnica
+  instructions?: string[]; // Pasos paso a paso
   recommendedSets?: string; // Ej: "3-4 series"
   recommendedReps?: string; // Ej: "8-12 repeticiones"
   restTime?: string; // Ej: "60-90 segundos"
 }
 const URL_STORAGE = 'https://hplrrjqgzefkdevbporx.supabase.co/storage/v1/object/public/routine-images/'
 import { BURNFIT_MISSING } from './exercises_burnfit_missing';
+import { EXPANDED_EXERCISES } from './exercises_expanded';
+
 export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   // PECHO
   {
@@ -40,6 +44,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     defaultSets: 4,
     defaultReps: 10,
     image: URL_STORAGE + 'male-barbell-bench-press-front.gif',
+    youtubeVideoId: 'rT7DgCr-3pg', // Ejemplo de video tutorial de Press de Banca
     technique: [
       'Mantén los pies firmes en el suelo',
       'Baja la barra hasta el pecho con control',
@@ -142,6 +147,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'dumbbell-pullover',
     name: 'Pullover con Mancuerna',
+    instructions: [
+      'Túmbate boca arriba en un banco con la cabeza en un extremo y los pies en el suelo.',
+      'Sujeta una mancuerna con ambas manos y extiende los brazos rectos por encima del pecho.',
+      'Manteniendo una ligera flexión en los codos, baja lentamente la mancuerna detrás de la cabeza hasta sentir un estiramiento en el pecho y los hombros.',
+      'Haz una pausa por un momento, luego levanta la mancuerna de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Túmbate boca arriba en un banco con la cabeza en un extremo y los pies en el suelo. Sujeta una mancuerna con ambas manos y extiende los brazos rectos por encima del pecho. Manteniendo una ligera flexión en los codos, baja lentamente la mancuerna detrás de la cabeza hasta sentir un estiramiento en el pecho y los hombros. Haz una pausa por un momento, luego levanta la mancuerna de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'pecho',
     equipment: 'Mancuernas',
     defaultSets: 3,
@@ -550,6 +563,16 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'inverted-row',
     name: 'Remo Invertido',
+    instructions: [
+      'Coloca una barra a la altura de la cintura o usa un entrenador de suspensión.',
+      'Ponte de pie frente a la barra o al entrenador de suspensión, con los pies separados a la altura de los hombros.',
+      'Agarra la barra o las asas con agarre prono, ligeramente más ancho que la altura de los hombros.',
+      'Inclínate hacia atrás, manteniendo el cuerpo recto y los talones en el suelo.',
+      'Tira del pecho hacia la barra o las asas, apretando los omóplatos entre sí.',
+      'Haz una pausa breve en la parte más alta, luego baja lentamente de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Coloca una barra a la altura de la cintura o usa un entrenador de suspensión. Ponte de pie frente a la barra o al entrenador de suspensión, con los pies separados a la altura de los hombros. Agarra la barra o las asas con agarre prono, ligeramente más ancho que la altura de los hombros. Inclínate hacia atrás, manteniendo el cuerpo recto y los talones en el suelo. Tira del pecho hacia la barra o las asas, apretando los omóplatos entre sí. Haz una pausa breve en la parte más alta, luego baja lentamente de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'espalda',
     equipment: 'TRX/Barra baja',
     defaultSets: 3,
@@ -783,6 +806,7 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     defaultSets: 4,
     defaultReps: 10,
     image: URL_STORAGE + 'male-barbell-squat-front.gif',
+    youtubeVideoId: 'bEv6CCg2BC8', // Ejemplo de video tutorial de Sentadilla
     technique: [
       'Pies al ancho de hombros',
       'Baja como si te sentaras en una silla',
@@ -1013,6 +1037,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'barbell-good-morning',
     name: 'Buenos Días con Barra',
+    instructions: [
+      'Empieza de pie con los pies separados a la altura de los hombros y la barra apoyada sobre la parte superior de la espalda.',
+      'Manteniendo la espalda recta y el core activado, flexiona las caderas hacia delante, empujando los glúteos hacia atrás como si intentaras tocar la pared detrás de ti con ellos.',
+      'Baja el torso hasta que quede paralelo al suelo, sintiendo un estiramiento en los isquiotibiales.',
+      'Haz una pausa breve y luego vuelve a la posición inicial apretando los glúteos y empujando las caderas hacia delante.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Empieza de pie con los pies separados a la altura de los hombros y la barra apoyada sobre la parte superior de la espalda. Manteniendo la espalda recta y el core activado, flexiona las caderas hacia delante, empujando los glúteos hacia atrás como si intentaras tocar la pared detrás de ti con ellos. Baja el torso hasta que quede paralelo al suelo, sintiendo un estiramiento en los isquiotibiales. Haz una pausa breve y luego vuelve a la posición inicial apretando los glúteos y empujando las caderas hacia delante. Repite el número de repeticiones deseado.',
     muscleGroup: 'piernas',
     equipment: 'Barra',
     defaultSets: 3,
@@ -1031,6 +1063,15 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'sissy-squat',
     name: 'Sissy Squat',
+    instructions: [
+      'Ponte de pie con los pies separados a la altura de los hombros y los dedos de los pies ligeramente hacia afuera.',
+      'Sujétate de un objeto estable para mantener el equilibrio si es necesario.',
+      'Baja lentamente el cuerpo doblando las rodillas e inclinándote hacia atrás, manteniendo el torso erguido.',
+      'Continúa bajando hasta que los muslos queden paralelos al suelo o tan lejos como puedas llegar cómodamente.',
+      'Haz una pausa breve y luego empuja con los talones para volver a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ponte de pie con los pies separados a la altura de los hombros y los dedos de los pies ligeramente hacia afuera. Sujétate de un objeto estable para mantener el equilibrio si es necesario. Baja lentamente el cuerpo doblando las rodillas e inclinándote hacia atrás, manteniendo el torso erguido. Continúa bajando hasta que los muslos queden paralelos al suelo o tan lejos como puedas llegar cómodamente. Haz una pausa breve y luego empuja con los talones para volver a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'piernas',
     equipment: 'Peso corporal',
     defaultSets: 3,
@@ -1049,6 +1090,16 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'dumbbell-single-leg-deadlift',
     name: 'Peso Muerto a Una Pierna',
+    instructions: [
+      'Ponte de pie con los pies separados a la altura de las caderas, sujetando una mancuerna con la mano derecha.',
+      'Traslada tu peso a la pierna izquierda y levanta el pie derecho ligeramente del suelo.',
+      'Manteniendo la espalda recta, inclínate hacia adelante desde las caderas y baja la mancuerna hacia el suelo.',
+      'Al mismo tiempo, extiende la pierna derecha recta hacia atrás, manteniendo una ligera flexión en la rodilla izquierda.',
+      'Baja la mancuerna hasta que tu torso y tu pierna derecha queden paralelos al suelo.',
+      'Haz una pausa por un momento, luego activa los glúteos y los isquiotibiales para volver a la posición inicial.',
+      'Repite el número de repeticiones deseado, luego cambia de lado.'
+    ],
+    description: 'Ponte de pie con los pies separados a la altura de las caderas, sujetando una mancuerna con la mano derecha. Traslada tu peso a la pierna izquierda y levanta el pie derecho ligeramente del suelo. Manteniendo la espalda recta, inclínate hacia adelante desde las caderas y baja la mancuerna hacia el suelo. Al mismo tiempo, extiende la pierna derecha recta hacia atrás, manteniendo una ligera flexión en la rodilla izquierda. Baja la mancuerna hasta que tu torso y tu pierna derecha queden paralelos al suelo. Haz una pausa por un momento, luego activa los glúteos y los isquiotibiales para volver a la posición inicial. Repite el número de repeticiones deseado, luego cambia de lado.',
     muscleGroup: 'piernas',
     equipment: 'Mancuernas',
     defaultSets: 3,
@@ -1200,6 +1251,16 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'cable-kickback',
     name: 'Patada de Glúteo en Polea',
+    instructions: [
+      'Ponte de pie frente a una máquina de cable con los pies separados a la altura de los hombros.',
+      'Sujeta la agarradera del cable con la mano derecha y retrocede un paso para crear tensión en el cable.',
+      'Flexiona ligeramente las rodillas e inclínate hacia adelante desde las caderas, manteniendo la espalda recta.',
+      'Mantén la parte superior del brazo cerca del cuerpo y el codo flexionado en un ángulo de 90 grados.',
+      'Extiende el antebrazo hacia atrás, enderezando el brazo por completo.',
+      'Haz una pausa por un momento, luego regresa lentamente a la posición inicial.',
+      'Repite el número de repeticiones deseado, luego cambia de lado.'
+    ],
+    description: 'Ponte de pie frente a una máquina de cable con los pies separados a la altura de los hombros. Sujeta la agarradera del cable con la mano derecha y retrocede un paso para crear tensión en el cable. Flexiona ligeramente las rodillas e inclínate hacia adelante desde las caderas, manteniendo la espalda recta. Mantén la parte superior del brazo cerca del cuerpo y el codo flexionado en un ángulo de 90 grados. Extiende el antebrazo hacia atrás, enderezando el brazo por completo. Haz una pausa por un momento, luego regresa lentamente a la posición inicial. Repite el número de repeticiones deseado, luego cambia de lado.',
     muscleGroup: 'gluteos',
     equipment: 'Poleas',
     defaultSets: 3,
@@ -1473,6 +1534,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'cable-lateral-raise',
     name: 'Elevaciones Laterales en Polea',
+    instructions: [
+      'Ponte de pie con los pies separados a la altura de los hombros y sujeta las agarraderas del cable con un agarre prono.',
+      'Mantén los brazos rectos y el core activado.',
+      'Levanta los brazos hacia los lados hasta que queden paralelos al suelo.',
+      'Haz una pausa por un momento en la parte superior, luego baja lentamente los brazos de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ponte de pie con los pies separados a la altura de los hombros y sujeta las agarraderas del cable con un agarre prono. Mantén los brazos rectos y el core activado. Levanta los brazos hacia los lados hasta que queden paralelos al suelo. Haz una pausa por un momento en la parte superior, luego baja lentamente los brazos de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'hombros',
     equipment: 'Poleas',
     defaultSets: 3,
@@ -1547,6 +1616,15 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'barbell-curl',
     name: 'Curl con Barra',
+    instructions: [
+      'Ponte de pie con los pies separados a la altura de los hombros y sujeta una barra con un agarre supino, con las palmas mirando hacia delante.',
+      'Mantén los codos cerca del torso y exhala mientras levantas el peso contrayendo los bíceps.',
+      'Continúa levantando la barra hasta que los bíceps estén completamente contraídos y la barra esté a la altura de los hombros.',
+      'Mantén la posición contraída durante una breve pausa mientras aprietas los bíceps.',
+      'Inhala mientras comienzas a bajar lentamente la barra de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ponte de pie con los pies separados a la altura de los hombros y sujeta una barra con un agarre supino, con las palmas mirando hacia delante. Mantén los codos cerca del torso y exhala mientras levantas el peso contrayendo los bíceps. Continúa levantando la barra hasta que los bíceps estén completamente contraídos y la barra esté a la altura de los hombros. Mantén la posición contraída durante una breve pausa mientras aprietas los bíceps. Inhala mientras comienzas a bajar lentamente la barra de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'biceps',
     equipment: 'Barra',
     defaultSets: 3,
@@ -1691,6 +1769,16 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'cable-curl',
     name: 'Curl en Polea',
+    instructions: [
+      'Ponte de pie frente a la máquina de cable con los pies separados a la altura de los hombros.',
+      'Sujeta el accesorio del cable con agarre supino, palmas hacia arriba.',
+      'Mantén los codos cerca de los costados y los brazos superiores quietos.',
+      'Exhala y flexiona el accesorio del cable hacia los hombros, contrayendo los bíceps.',
+      'Haz una pausa breve en la parte más alta del movimiento, contrayendo los bíceps.',
+      'Inhala y baja lentamente el accesorio del cable de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ponte de pie frente a la máquina de cable con los pies separados a la altura de los hombros. Sujeta el accesorio del cable con agarre supino, palmas hacia arriba. Mantén los codos cerca de los costados y los brazos superiores quietos. Exhala y flexiona el accesorio del cable hacia los hombros, contrayendo los bíceps. Haz una pausa breve en la parte más alta del movimiento, contrayendo los bíceps. Inhala y baja lentamente el accesorio del cable de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'biceps',
     equipment: 'Poleas',
     defaultSets: 3,
@@ -1783,6 +1871,16 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'russian-twist',
     name: 'Giros Rusos',
+    instructions: [
+      'Siéntate en el suelo con las rodillas flexionadas y los pies apoyados en el suelo.',
+      'Inclínate ligeramente hacia atrás manteniendo la espalda recta y el core activado.',
+      'Junta las manos frente al pecho o sujeta una pesa si lo deseas.',
+      'Levanta los pies del suelo, equilibrándote sobre los isquiones.',
+      'Gira el torso hacia la derecha, llevando las manos o la pesa hacia el lado derecho del cuerpo.',
+      'Haz una pausa por un momento, luego gira el torso hacia la izquierda, llevando las manos o la pesa hacia el lado izquierdo del cuerpo.',
+      'Continúa alternando lados durante el número de repeticiones deseado.'
+    ],
+    description: 'Siéntate en el suelo con las rodillas flexionadas y los pies apoyados en el suelo. Inclínate ligeramente hacia atrás manteniendo la espalda recta y el core activado. Junta las manos frente al pecho o sujeta una pesa si lo deseas. Levanta los pies del suelo, equilibrándote sobre los isquiones. Gira el torso hacia la derecha, llevando las manos o la pesa hacia el lado derecho del cuerpo. Haz una pausa por un momento, luego gira el torso hacia la izquierda, llevando las manos o la pesa hacia el lado izquierdo del cuerpo. Continúa alternando lados durante el número de repeticiones deseado.',
     muscleGroup: 'core',
     equipment: 'Peso corporal',
     defaultSets: 3,
@@ -1855,6 +1953,16 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'dead-bug',
     name: 'Dead Bug',
+    instructions: [
+      'Túmbate boca arriba con los brazos extendidos hacia el techo.',
+      'Flexiona las rodillas y levanta las piernas del suelo, formando un ángulo de 90 grados en las caderas y las rodillas.',
+      'Activa el core y la zona lumbar para presionar la zona lumbar contra el suelo.',
+      'Baja lentamente el brazo derecho y la pierna izquierda hacia el suelo, manteniéndolos rectos y justo por encima del suelo.',
+      'Haz una pausa breve y luego vuelve a la posición inicial.',
+      'Repite el movimiento con el brazo izquierdo y la pierna derecha.',
+      'Continúa alternando lados durante el número de repeticiones deseado.'
+    ],
+    description: 'Túmbate boca arriba con los brazos extendidos hacia el techo. Flexiona las rodillas y levanta las piernas del suelo, formando un ángulo de 90 grados en las caderas y las rodillas. Activa el core y la zona lumbar para presionar la zona lumbar contra el suelo. Baja lentamente el brazo derecho y la pierna izquierda hacia el suelo, manteniéndolos rectos y justo por encima del suelo. Haz una pausa breve y luego vuelve a la posición inicial. Repite el movimiento con el brazo izquierdo y la pierna derecha. Continúa alternando lados durante el número de repeticiones deseado.',
     muscleGroup: 'core',
     equipment: 'Peso corporal',
     defaultSets: 3,
@@ -2167,6 +2275,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'dumbbell-bench-press',
     name: 'Press de Banca con Mancuernas',
+    instructions: [
+      'Túmbate sobre un banco con los pies apoyados en el suelo y la espalda presionada contra el banco.',
+      'Sujeta una mancuerna en cada mano, con las palmas hacia adelante y los brazos extendidos por encima del pecho.',
+      'Baja lentamente las mancuernas hacia los lados del pecho, manteniendo los codos en un ángulo de 90 grados.',
+      'Haz una pausa breve, luego empuja las mancuernas de vuelta hacia arriba hasta la posición inicial, extendiendo completamente los brazos.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Túmbate sobre un banco con los pies apoyados en el suelo y la espalda presionada contra el banco. Sujeta una mancuerna en cada mano, con las palmas hacia adelante y los brazos extendidos por encima del pecho. Baja lentamente las mancuernas hacia los lados del pecho, manteniendo los codos en un ángulo de 90 grados. Haz una pausa breve, luego empuja las mancuernas de vuelta hacia arriba hasta la posición inicial, extendiendo completamente los brazos. Repite el número de repeticiones deseado.',
     muscleGroup: 'pecho',
     equipment: 'Mancuernas',
     defaultSets: 4,
@@ -2185,6 +2301,16 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'smith-bench-press',
     name: 'Press de Banca en Smith',
+    instructions: [
+      'Ajusta la altura de la barra de la máquina Smith a la altura del pecho.',
+      'Túmbate en el banco con los pies firmemente apoyados en el suelo.',
+      'Sujeta la barra con agarre prono, un poco más separado que el ancho de los hombros.',
+      'Suelta la barra del soporte y bájala hacia el pecho, manteniendo los codos pegados al cuerpo.',
+      'Haz una pausa por un momento cuando la barra toque el pecho.',
+      'Empuja la barra de vuelta a la posición inicial, extendiendo los brazos por completo.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ajusta la altura de la barra de la máquina Smith a la altura del pecho. Túmbate en el banco con los pies firmemente apoyados en el suelo. Sujeta la barra con agarre prono, un poco más separado que el ancho de los hombros. Suelta la barra del soporte y bájala hacia el pecho, manteniendo los codos pegados al cuerpo. Haz una pausa por un momento cuando la barra toque el pecho. Empuja la barra de vuelta a la posición inicial, extendiendo los brazos por completo. Repite el número de repeticiones deseado.',
     muscleGroup: 'pecho',
     equipment: 'Máquina Smith',
     defaultSets: 4,
@@ -2257,6 +2383,13 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'chest-dip',
     name: 'Fondos para Pecho',
+    instructions: [
+      'Colócate en las barras paralelas con los brazos completamente extendidos y el cuerpo recto.',
+      'Baja el cuerpo flexionando los codos hasta que los hombros queden por debajo de los codos.',
+      'Empújate de vuelta hacia arriba a la posición inicial extendiendo los brazos.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Colócate en las barras paralelas con los brazos completamente extendidos y el cuerpo recto. Baja el cuerpo flexionando los codos hasta que los hombros queden por debajo de los codos. Empújate de vuelta hacia arriba a la posición inicial extendiendo los brazos. Repite el número de repeticiones deseado.',
     muscleGroup: 'pecho',
     equipment: 'Peso corporal',
     defaultSets: 3,
@@ -2423,6 +2556,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'hyperextension',
     name: 'Hiperextensiones',
+    instructions: [
+      'Ajusta el banco de hiperextensiones para que la parte superior de los muslos quede apoyada en la almohadilla y los pies queden asegurados.',
+      'Cruza los brazos sobre el pecho o coloca las manos detrás de la cabeza.',
+      'Baja la parte superior del cuerpo hacia el suelo manteniendo la espalda recta.',
+      'Haz una pausa breve en la parte baja, luego eleva la parte superior del cuerpo hasta que quede alineada con las piernas.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ajusta el banco de hiperextensiones para que la parte superior de los muslos quede apoyada en la almohadilla y los pies queden asegurados. Cruza los brazos sobre el pecho o coloca las manos detrás de la cabeza. Baja la parte superior del cuerpo hacia el suelo manteniendo la espalda recta. Haz una pausa breve en la parte baja, luego eleva la parte superior del cuerpo hasta que quede alineada con las piernas. Repite el número de repeticiones deseado.',
     muscleGroup: 'espalda',
     equipment: 'Banco romano',
     defaultSets: 3,
@@ -2481,6 +2622,18 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'smith-squat',
     name: 'Sentadilla en Smith',
+    instructions: [
+      'Configura la máquina Smith con la barra a una altura adecuada para tu sentadilla.',
+      'Ponte de pie con los pies separados a la altura de los hombros, con los dedos de los pies ligeramente hacia afuera.',
+      'Colócate debajo de la barra, apoyándola en la parte alta de los trapecios y los hombros.',
+      'Agarra la barra con un agarre amplio, un poco más ancho que la separación de los hombros.',
+      'Activa el core y suelta la barra del soporte, dando un paso atrás para alejarte del soporte.',
+      'Manteniendo el pecho elevado y la espalda recta, inicia la sentadilla doblando las caderas y las rodillas.',
+      'Baja el cuerpo hasta que los muslos queden paralelos al suelo o un poco por debajo.',
+      'Haz una pausa por un momento en la posición baja, luego empuja con los talones para volver a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Configura la máquina Smith con la barra a una altura adecuada para tu sentadilla. Ponte de pie con los pies separados a la altura de los hombros, con los dedos de los pies ligeramente hacia afuera. Colócate debajo de la barra, apoyándola en la parte alta de los trapecios y los hombros. Agarra la barra con un agarre amplio, un poco más ancho que la separación de los hombros. Activa el core y suelta la barra del soporte, dando un paso atrás para alejarte del soporte. Manteniendo el pecho elevado y la espalda recta, inicia la sentadilla doblando las caderas y las rodillas. Baja el cuerpo hasta que los muslos queden paralelos al suelo o un poco por debajo. Haz una pausa por un momento en la posición baja, luego empuja con los talones para volver a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'piernas',
     equipment: 'Máquina Smith',
     defaultSets: 4,
@@ -2495,24 +2648,6 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
     recommendedSets: '3-4 series',
     recommendedReps: '8-12 repeticiones',
     restTime: '90-120 segundos'
-  },
-  {
-    id: 'walking-lunges',
-    name: 'Zancadas Caminando',
-    muscleGroup: 'piernas',
-    equipment: 'Mancuernas',
-    defaultSets: 3,
-    defaultReps: 12,
-    image: URL_STORAGE + 'male-dumbbell-walking-lunge-front.gif',
-    technique: [
-      'Da pasos amplios hacia adelante sin detenerte',
-      'Cada paso es una zancada completa',
-      'Rodilla trasera casi toca el suelo',
-      'Excelente para resistencia y coordinación'
-    ],
-    recommendedSets: '3-4 series',
-    recommendedReps: '10-15 por pierna',
-    restTime: '90 segundos'
   },
   {
     id: 'pendulum-squat',
@@ -2611,6 +2746,15 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'barbell-glute-bridge',
     name: 'Puente de Glúteos con Barra',
+    instructions: [
+      'Empieza tumbado boca arriba en el suelo con las rodillas flexionadas y los pies planos sobre el suelo.',
+      'Coloca una barra sobre las caderas, sujetándola con firmeza con ambas manos.',
+      'Activa los glúteos y el core, luego levanta las caderas del suelo hasta que el cuerpo forme una línea recta desde las rodillas hasta los hombros.',
+      'Haz una pausa breve en la parte alta, apretando los glúteos.',
+      'Baja lentamente las caderas de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Empieza tumbado boca arriba en el suelo con las rodillas flexionadas y los pies planos sobre el suelo. Coloca una barra sobre las caderas, sujetándola con firmeza con ambas manos. Activa los glúteos y el core, luego levanta las caderas del suelo hasta que el cuerpo forme una línea recta desde las rodillas hasta los hombros. Haz una pausa breve en la parte alta, apretando los glúteos. Baja lentamente las caderas de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'gluteos',
     equipment: 'Barra',
     defaultSets: 4,
@@ -2863,6 +3007,15 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'kettlebell-swing',
     name: 'Balanceo con Kettlebell',
+    instructions: [
+      'Ponte de pie con los pies separados a la altura de los hombros, con los dedos de los pies ligeramente hacia afuera.',
+      'Sujeta la pesa rusa con ambas manos frente al cuerpo, con los brazos extendidos.',
+      'Flexiona ligeramente las rodillas e inclínate desde las caderas, empujando los glúteos hacia atrás.',
+      'Lleva la pesa rusa hacia atrás entre las piernas, manteniendo los brazos rectos y la espalda plana.',
+      'Lleva las caderas hacia adelante y haz que la pesa rusa suba hasta la altura del hombro, usando el impulso generado por las caderas.',
+      'Deja que la pesa rusa se balancee de vuelta hacia abajo entre las piernas y repite el movimiento el número de repeticiones deseado.'
+    ],
+    description: 'Ponte de pie con los pies separados a la altura de los hombros, con los dedos de los pies ligeramente hacia afuera. Sujeta la pesa rusa con ambas manos frente al cuerpo, con los brazos extendidos. Flexiona ligeramente las rodillas e inclínate desde las caderas, empujando los glúteos hacia atrás. Lleva la pesa rusa hacia atrás entre las piernas, manteniendo los brazos rectos y la espalda plana. Lleva las caderas hacia adelante y haz que la pesa rusa suba hasta la altura del hombro, usando el impulso generado por las caderas. Deja que la pesa rusa se balancee de vuelta hacia abajo entre las piernas y repite el movimiento el número de repeticiones deseado.',
     muscleGroup: 'gluteos',
     equipment: 'Kettlebell',
     defaultSets: 3,
@@ -2921,6 +3074,15 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'cable-front-raise',
     name: 'Elevación Frontal en Polea',
+    instructions: [
+      'Ponte de pie con los pies separados a la altura de los hombros y sujeta la agarradera del cable con agarre prono.',
+      'Mantén la espalda recta y el core activado.',
+      'Levanta la agarradera del cable frente a ti, manteniendo los brazos rectos y las palmas hacia abajo.',
+      'Continúa levantando hasta que los brazos queden paralelos al suelo.',
+      'Haz una pausa breve en la parte más alta, luego baja lentamente la agarradera del cable de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ponte de pie con los pies separados a la altura de los hombros y sujeta la agarradera del cable con agarre prono. Mantén la espalda recta y el core activado. Levanta la agarradera del cable frente a ti, manteniendo los brazos rectos y las palmas hacia abajo. Continúa levantando hasta que los brazos queden paralelos al suelo. Haz una pausa breve en la parte más alta, luego baja lentamente la agarradera del cable de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'hombros',
     equipment: 'Poleas',
     defaultSets: 3,
@@ -3620,6 +3782,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'barbell-wrist-curl',
     name: 'Curl de Muñeca con Barra',
+    instructions: [
+      'Siéntate en un banco con los pies planos en el suelo y los antebrazos apoyados sobre los muslos, sujetando una barra con agarre supino.',
+      'Deja que la barra ruede hacia las puntas de los dedos, manteniendo las muñecas rectas.',
+      'Enrolla lentamente la barra hacia los antebrazos flexionando las muñecas.',
+      'Haz una pausa breve en la parte alta y luego baja lentamente la barra de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Siéntate en un banco con los pies planos en el suelo y los antebrazos apoyados sobre los muslos, sujetando una barra con agarre supino. Deja que la barra ruede hacia las puntas de los dedos, manteniendo las muñecas rectas. Enrolla lentamente la barra hacia los antebrazos flexionando las muñecas. Haz una pausa breve en la parte alta y luego baja lentamente la barra de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'antebrazos',
     equipment: 'Barra',
     defaultSets: 3,
@@ -3638,6 +3808,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'barbell-reverse-wrist-curl',
     name: 'Curl de Muñeca Inverso con Barra',
+    instructions: [
+      'Siéntate en un banco con los pies planos sobre el suelo y sujeta una barra con un agarre pronado, con las palmas hacia abajo.',
+      'Apoya los antebrazos sobre los muslos, dejando que las muñecas cuelguen del borde.',
+      'Flexiona lentamente las muñecas hacia arriba, llevando la barra hacia el cuerpo.',
+      'Haz una pausa breve en la parte alta y luego baja lentamente la barra de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Siéntate en un banco con los pies planos sobre el suelo y sujeta una barra con un agarre pronado, con las palmas hacia abajo. Apoya los antebrazos sobre los muslos, dejando que las muñecas cuelguen del borde. Flexiona lentamente las muñecas hacia arriba, llevando la barra hacia el cuerpo. Haz una pausa breve en la parte alta y luego baja lentamente la barra de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'antebrazos',
     equipment: 'Barra',
     defaultSets: 3,
@@ -3656,6 +3834,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'farmers-walk',
     name: 'Caminata de Granjero',
+    instructions: [
+      'Ponte de pie con una mancuerna en cada mano, palmas hacia los costados.',
+      'Mantén la espalda recta y los hombros hacia atrás.',
+      'Da pasos pequeños y controlados hacia adelante, manteniendo una postura erguida.',
+      'Continúa caminando durante la distancia o el tiempo deseado.',
+      'Para terminar, deja de caminar y baja con cuidado las mancuernas a los costados.'
+    ],
+    description: 'Ponte de pie con una mancuerna en cada mano, palmas hacia los costados. Mantén la espalda recta y los hombros hacia atrás. Da pasos pequeños y controlados hacia adelante, manteniendo una postura erguida. Continúa caminando durante la distancia o el tiempo deseado. Para terminar, deja de caminar y baja con cuidado las mancuernas a los costados.',
     muscleGroup: 'antebrazos',
     equipment: 'Mancuernas',
     defaultSets: 4,
@@ -3800,6 +3986,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'finger-curls',
     name: 'Curl de Dedos',
+    instructions: [
+      'Siéntate en un banco con los pies planos sobre el suelo y sujeta una barra con un agarre supino, con las palmas hacia arriba.',
+      'Apoya los antebrazos sobre los muslos, dejando que las muñecas cuelguen del borde.',
+      'Curva lentamente los dedos hacia las palmas, apretando la barra con fuerza.',
+      'Mantén la contracción por un momento, luego suelta lentamente los dedos hasta la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Siéntate en un banco con los pies planos sobre el suelo y sujeta una barra con un agarre supino, con las palmas hacia arriba. Apoya los antebrazos sobre los muslos, dejando que las muñecas cuelguen del borde. Curva lentamente los dedos hacia las palmas, apretando la barra con fuerza. Mantén la contracción por un momento, luego suelta lentamente los dedos hasta la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'antebrazos',
     equipment: 'Barra',
     defaultSets: 3,
@@ -4059,6 +4253,15 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'cable-upright-row',
     name: 'Remo al Cuello en Polea',
+    instructions: [
+      'Ponte de pie con los pies separados a la altura de los hombros, las rodillas ligeramente flexionadas, y sujeta el accesorio del cable con un agarre prono.',
+      'Mantén la espalda recta y el core activado durante todo el ejercicio.',
+      'Tira del accesorio del cable directamente hacia arriba, hacia tu barbilla, guiando con los codos.',
+      'Haz una pausa breve en la parte alta, apretando los omóplatos entre sí.',
+      'Baja lentamente el accesorio del cable de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Ponte de pie con los pies separados a la altura de los hombros, las rodillas ligeramente flexionadas, y sujeta el accesorio del cable con un agarre prono. Mantén la espalda recta y el core activado durante todo el ejercicio. Tira del accesorio del cable directamente hacia arriba, hacia tu barbilla, guiando con los codos. Haz una pausa breve en la parte alta, apretando los omóplatos entre sí. Baja lentamente el accesorio del cable de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'trapecio',
     equipment: 'Poleas',
     defaultSets: 3,
@@ -4311,6 +4514,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'hanging-leg-raise',
     name: 'Elevación de Piernas Colgado',
+    instructions: [
+      'Cuélgate de una barra de dominadas con los brazos completamente extendidos y las palmas mirando hacia afuera.',
+      'Activa el core y levanta las piernas frente a ti, manteniéndolas rectas.',
+      'Continúa levantando hasta que las piernas estén paralelas al suelo o tan alto como puedas llegar cómodamente.',
+      'Haz una pausa por un momento en la parte superior, luego baja lentamente las piernas de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Cuélgate de una barra de dominadas con los brazos completamente extendidos y las palmas mirando hacia afuera. Activa el core y levanta las piernas frente a ti, manteniéndolas rectas. Continúa levantando hasta que las piernas estén paralelas al suelo o tan alto como puedas llegar cómodamente. Haz una pausa por un momento en la parte superior, luego baja lentamente las piernas de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'core',
     equipment: 'Barra',
     defaultSets: 3,
@@ -4329,6 +4540,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'decline-crunch',
     name: 'Crunch Declinado',
+    instructions: [
+      'Túmbate en un banco declinado con los pies sujetos y las rodillas flexionadas en un ángulo de 90 grados.',
+      'Coloca las manos detrás de la cabeza o cruzadas sobre el pecho.',
+      'Activa el abdomen y levanta la parte superior del cuerpo hacia las rodillas, flexionando el torso.',
+      'Haz una pausa por un momento en la parte superior, luego baja lentamente la parte superior del cuerpo de vuelta a la posición inicial.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Túmbate en un banco declinado con los pies sujetos y las rodillas flexionadas en un ángulo de 90 grados. Coloca las manos detrás de la cabeza o cruzadas sobre el pecho. Activa el abdomen y levanta la parte superior del cuerpo hacia las rodillas, flexionando el torso. Haz una pausa por un momento en la parte superior, luego baja lentamente la parte superior del cuerpo de vuelta a la posición inicial. Repite el número de repeticiones deseado.',
     muscleGroup: 'core',
     equipment: 'Banco declinado',
     defaultSets: 3,
@@ -4495,6 +4714,14 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'barbell-seated-calf-raise',
     name: 'Gemelos Sentado con Barra',
+    instructions: [
+      'Siéntate en un banco con los pies planos sobre el suelo y una barra apoyada sobre los muslos.',
+      'Coloca la parte delantera de los pies sobre una plataforma elevada, como un bloque o un escalón.',
+      'Baja los talones tanto como sea posible, sintiendo un estiramiento en las pantorrillas.',
+      'Levanta los talones lo más alto posible, contrayendo las pantorrillas.',
+      'Repite el número de repeticiones deseado.'
+    ],
+    description: 'Siéntate en un banco con los pies planos sobre el suelo y una barra apoyada sobre los muslos. Coloca la parte delantera de los pies sobre una plataforma elevada, como un bloque o un escalón. Baja los talones tanto como sea posible, sintiendo un estiramiento en las pantorrillas. Levanta los talones lo más alto posible, contrayendo las pantorrillas. Repite el número de repeticiones deseado.',
     muscleGroup: 'gemelos',
     equipment: 'Barra',
     defaultSets: 3,
@@ -4961,6 +5188,13 @@ export const EXERCISE_DATABASE: ExerciseTemplate[] = [
   {
     id: 'jump-rope',
     name: 'Saltar la Cuerda',
+    instructions: [
+      'Sujeta las asas de la cuerda de saltar con las manos, palmas hacia adentro.',
+      'Ponte de pie con los pies separados a la altura de los hombros y las rodillas ligeramente flexionadas.',
+      'Balancea la cuerda por encima de la cabeza y salta sobre ella cuando se acerque a los pies.',
+      'Aterriza suavemente sobre la punta de los pies y repite el salto cuando la cuerda vuelva a pasar.',
+      'Continúa saltando durante el tiempo o el número de repeticiones deseado.'
+    ],
     muscleGroup: 'cardio',
     equipment: 'Cuerda de saltar',
     defaultSets: 5,
@@ -5341,10 +5575,13 @@ export const getExerciseByName = (name: string): ExerciseTemplate | undefined =>
   );
 };
 
+// Añadir ejercicios expandidos
+EXERCISE_DATABASE.push(...EXPANDED_EXERCISES);
+
 // Fallback: asegurar que todos los ejercicios tengan una imagen válida.
 // Si falta `image`, se genera por convención: `male-<id>-front.gif`.
 EXERCISE_DATABASE.forEach(ex => {
-  if (!ex.image) {
+  if (!ex.image && !ex.youtubeVideoId) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ex as any).image = URL_STORAGE + `male-${ex.id}.gif`;
   }

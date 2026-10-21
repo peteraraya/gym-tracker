@@ -76,7 +76,7 @@ Datos temporales o que se pueden regenerar:
 - **Ubicación**: localStorage únicamente
 - **Razón**: Se calculan en tiempo real desde sesiones
 - **Regeneración**: Se pueden recalcular desde `workout_sessions`
-- **Clave**: `gym_tracker_recommendations`
+- **Clave**: `gym_logic_recommendations`
 
 #### 8. Plan Mensual (MonthlyPlan)
 - **Ubicación**: localStorage únicamente
@@ -86,7 +86,7 @@ Datos temporales o que se pueden regenerar:
 #### 9. Borradores de Rutinas (RoutineDraft)
 - **Ubicación**: localStorage únicamente
 - **Razón**: Temporal, solo para UX
-- **Clave**: `gym-tracker-routine-draft`
+- **Clave**: `gym-logic-routine-draft`
 
 #### 10. Estado de UI/Preferencias
 - **Ubicación**: localStorage únicamente

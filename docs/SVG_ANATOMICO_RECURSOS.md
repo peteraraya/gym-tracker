@@ -198,9 +198,9 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
           >
             <defs>
               <linearGradient id="muscleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
-                <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#2563eb" stopOpacity="1" />
+                <stop offset="0%" stopColor="#31d4a5" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#00d6a4" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#007a5e" stopOpacity="1" />
               </linearGradient>
               
               <filter id="glow">
@@ -225,7 +225,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
               <path 
                 d="..." 
                 fill={isActive('pecho') ? 'url(#muscleGrad)' : '#f3f4f6'}
-                stroke={isActive('pecho') ? '#1e40af' : '#d1d5db'}
+                stroke={isActive('pecho') ? '#007a5e' : '#d1d5db'}
                 strokeWidth={isActive('pecho') ? '2.5' : '1.5'}
                 className="transition-all duration-200"
               />

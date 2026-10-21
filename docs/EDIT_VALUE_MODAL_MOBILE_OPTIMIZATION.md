@@ -63,7 +63,7 @@ Se redujo el espaciado general del modal para hacer el contenido más compacto:
 ### 4. Mejoras Visuales
 
 #### Botón Guardar
-- Color cambiado de azul-púrpura a verde (emerald-green)
+- Color cambiado de verde y turquesa a verde (verde turquesa institucional)
 - Indica claramente la acción positiva
 - Más visible y reconocible
 

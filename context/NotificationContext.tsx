@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from '@/components/icons/lucide';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -51,6 +51,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   // Toast state
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const activeToast = toasts[0] ?? null;
 
   // Confirm state
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -65,15 +66,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
+  useEffect(() => {
+    if (!activeToast || !activeToast.duration || activeToast.duration < 0) return;
+    const timeout = window.setTimeout(() => removeToast(activeToast.id), activeToast.duration);
+    return () => window.clearTimeout(timeout);
+  }, [activeToast, removeToast]);
+
   const showToast = useCallback(
     (message: string, type: ToastType = 'info', duration: number = 5000, action?: ToastAction) => {
       const id = `${Date.now()}-${Math.random()}`;
-      setToasts((prev) => [...prev, { id, message, type, duration, action }]);
-      if (duration > 0) {
-        setTimeout(() => removeToast(id), duration);
-      }
+      setToasts((prev) => {
+        if (prev.some((toast) => toast.message === message && toast.type === type)) return prev;
+        return [...prev, { id, message, type, duration, action }];
+      });
     },
-    [removeToast],
+    [],
   );
 
   const success = useCallback((message: string, duration?: number, action?: ToastAction) => showToast(message, 'success', duration, action), [showToast]);
@@ -106,7 +113,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // ==================== Toast Styles ====================
 
   const getToastStyles = (type: ToastType) => {
-    const base = 'flex items-start gap-3 p-4 rounded-lg shadow-lg backdrop-blur-sm border animate-slide-in-right';
+    const base = 'flex items-start gap-3 rounded-2xl border p-3.5 shadow-xl backdrop-blur-xl animate-slide-in-right';
     switch (type) {
       case 'success': return `${base} bg-green-50/95 dark:bg-green-900/95 border-green-200 dark:border-green-700 text-green-900 dark:text-green-100`;
       case 'error': return `${base} bg-red-50/95 dark:bg-red-900/95 border-red-200 dark:border-red-700 text-red-900 dark:text-red-100`;
@@ -142,29 +149,35 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       {children}
 
       {/* Toast Container */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none">
-        {toasts.map((toast) => (
-          <div key={toast.id} className={`${getToastStyles(toast.type)} pointer-events-auto`}>
-            {getToastIcon(toast.type)}
-            <p className="flex-1 text-sm font-medium leading-relaxed">{toast.message}</p>
-            {toast.action && (
+      <div
+        className="pointer-events-none fixed inset-x-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[60] mx-auto w-auto max-w-md sm:inset-x-auto sm:right-4 sm:w-full"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {activeToast && (
+          <div
+            key={activeToast.id}
+            role={activeToast.type === 'error' ? 'alert' : 'status'}
+            className={`${getToastStyles(activeToast.type)} pointer-events-auto`}
+          >
+            {getToastIcon(activeToast.type)}
+            <p className="flex-1 text-sm font-medium leading-relaxed">{activeToast.message}</p>
+            {activeToast.action && (
               <button
                 onClick={() => {
-                  try {
-                    toast.action?.onClick();
-                  } catch {}
-                  removeToast(toast.id);
+                  activeToast.action?.onClick();
+                  removeToast(activeToast.id);
                 }}
                 className="ml-3 shrink-0 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold"
               >
-                {toast.action.label}
+                {activeToast.action.label}
               </button>
             )}
-            <button onClick={() => removeToast(toast.id)} className="shrink-0 hover:opacity-70 transition-opacity" aria-label="Cerrar notificación">
+            <button onClick={() => removeToast(activeToast.id)} className="shrink-0 hover:opacity-70 transition-opacity" aria-label="Cerrar notificación">
               <X className="w-4 h-4" />
             </button>
           </div>
-        ))}
+        )}
       </div>
 
       {/* Confirm Modal */}

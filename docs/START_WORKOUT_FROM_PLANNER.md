@@ -17,7 +17,7 @@ Ahora pueden iniciar el entrenamiento directamente desde el planificador en un s
 
 ### 1. Botón "Iniciar Entrenamiento"
 - Ubicado en cada tarjeta de rutina del día actual
-- Diseño destacado con fondo blanco y texto azul
+- Diseño destacado con fondo blanco y texto turquesa
 - Icono de Play (▶️)
 - Ancho completo dentro de la tarjeta
 - Efecto hover y active para feedback táctil
@@ -47,9 +47,9 @@ Ahora pueden iniciar el entrenamiento directamente desde el planificador en un s
 ```
 
 ### Estilos
-- **Fondo**: Blanco (contrasta con el fondo azul/púrpura de la tarjeta)
-- **Texto**: Azul (text-blue-600)
-- **Hover**: Azul claro (bg-blue-50)
+- **Fondo**: Blanco (contrasta con el fondo verde/turquesa de la tarjeta)
+- **Texto**: Turquesa (text-blue-600)
+- **Hover**: Verde suave (bg-blue-50)
 - **Active**: Scale 95% para feedback táctil
 - **Shadow**: lg para elevación
 - **Padding**: py-2.5 para altura cómoda

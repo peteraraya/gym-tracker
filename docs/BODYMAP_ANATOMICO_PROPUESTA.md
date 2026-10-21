@@ -40,74 +40,74 @@ Rediseñar las formas actuales para que sean más anatómicas:
 <!-- PECHO - Más definido y musculoso -->
 <g id="pecho">
   <!-- Pectoral mayor izquierdo con fibras -->
-  <path d="M 84 92 
-           Q 88 86 96 82 
-           Q 106 80 110 82 
+  <path d="M 84 92
+           Q 88 86 96 82
+           Q 106 80 110 82
            C 110 85 109 88 108 91
-           L 110 110 
-           Q 108 120 102 126 
-           Q 96 130 88 128 
-           Q 82 120 82 110 
-           L 84 92 Z" 
-        fill="url(#muscleGrad)" 
-        stroke="#1e40af" 
+           L 110 110
+           Q 108 120 102 126
+           Q 96 130 88 128
+           Q 82 120 82 110
+           L 84 92 Z"
+        fill="url(#muscleGrad)"
+        stroke="#007a5e"
         strokeWidth="1.5"/>
-  
+
   <!-- Líneas de fibras musculares -->
-  <path d="M 90 95 Q 95 100 100 105" 
-        stroke="#2563eb" 
-        strokeWidth="0.5" 
+  <path d="M 90 95 Q 95 100 100 105"
+        stroke="#007a5e"
+        strokeWidth="0.5"
         opacity="0.3"/>
-  <path d="M 88 100 Q 93 105 98 110" 
-        stroke="#2563eb" 
-        strokeWidth="0.5" 
+  <path d="M 88 100 Q 93 105 98 110"
+        stroke="#007a5e"
+        strokeWidth="0.5"
         opacity="0.3"/>
-  <path d="M 86 105 Q 91 110 96 115" 
-        stroke="#2563eb" 
-        strokeWidth="0.5" 
+  <path d="M 86 105 Q 91 110 96 115"
+        stroke="#007a5e"
+        strokeWidth="0.5"
         opacity="0.3"/>
 </g>
 
 <!-- BÍCEPS - Más voluminoso y definido -->
 <g id="biceps">
   <!-- Bíceps con forma de "pico" -->
-  <path d="M 60 112 
-           Q 52 114 48 122 
+  <path d="M 60 112
+           Q 52 114 48 122
            C 46 128 45 135 45 142
            Q 45 148 47 154
-           Q 49 158 52 162 
-           L 60 160 
-           Q 62 150 62 138 
+           Q 49 158 52 162
+           L 60 160
+           Q 62 150 62 138
            C 62 130 61 122 60 115
-           Z" 
+           Z"
         fill="url(#muscleGrad)"/>
-  
+
   <!-- Línea de separación del bíceps -->
-  <path d="M 56 120 Q 56 135 56 150" 
-        stroke="#2563eb" 
-        strokeWidth="0.8" 
+  <path d="M 56 120 Q 56 135 56 150"
+        stroke="#007a5e"
+        strokeWidth="0.8"
         opacity="0.4"/>
 </g>
 
 <!-- ABDOMINALES - Six pack definido -->
 <g id="core">
   <!-- Rectus abdominis con 6 packs -->
-  <rect x="95" y="135" width="30" height="15" rx="2" 
+  <rect x="95" y="135" width="30" height="15" rx="2"
         fill="url(#muscleGrad)" opacity="0.9"/>
-  <rect x="95" y="152" width="30" height="15" rx="2" 
+  <rect x="95" y="152" width="30" height="15" rx="2"
         fill="url(#muscleGrad)" opacity="0.9"/>
-  <rect x="95" y="169" width="30" height="15" rx="2" 
+  <rect x="95" y="169" width="30" height="15" rx="2"
         fill="url(#muscleGrad)" opacity="0.9"/>
-  
+
   <!-- Línea alba (separación central) -->
-  <line x1="110" y1="135" x2="110" y2="184" 
-        stroke="#2563eb" strokeWidth="1" opacity="0.5"/>
-  
+  <line x1="110" y1="135" x2="110" y2="184"
+        stroke="#007a5e" strokeWidth="1" opacity="0.5"/>
+
   <!-- Oblicuos -->
-  <path d="M 88 140 Q 85 155 83 170" 
-        stroke="#3b82f6" strokeWidth="3" opacity="0.6"/>
-  <path d="M 132 140 Q 135 155 137 170" 
-        stroke="#3b82f6" strokeWidth="3" opacity="0.6"/>
+  <path d="M 88 140 Q 85 155 83 170"
+        stroke="#00d6a4" strokeWidth="3" opacity="0.6"/>
+  <path d="M 132 140 Q 135 155 137 170"
+        stroke="#00d6a4" strokeWidth="3" opacity="0.6"/>
 </g>
 
 <!-- CUÁDRICEPS - Más voluminoso con 4 cabezas -->
@@ -115,20 +115,20 @@ Rediseñar las formas actuales para que sean más anatómicas:
   <!-- Vasto lateral -->
   <path d="M 72 210 Q 70 230 70 250 Q 70 270 72 290 L 78 288 Q 80 268 80 248 Q 80 228 78 210 Z"
         fill="url(#muscleGrad)"/>
-  
+
   <!-- Vasto medial -->
   <path d="M 98 210 Q 100 230 100 250 Q 100 270 98 290 L 92 288 Q 90 268 90 248 Q 90 228 92 210 Z"
         fill="url(#muscleGrad)"/>
-  
+
   <!-- Recto femoral (centro) -->
   <path d="M 82 205 Q 84 225 84 245 Q 84 265 82 285 L 88 285 Q 90 265 90 245 Q 90 225 88 205 Z"
         fill="url(#muscleGrad)" opacity="0.95"/>
-  
+
   <!-- Líneas de separación -->
-  <line x1="80" y1="210" x2="80" y2="290" 
-        stroke="#2563eb" strokeWidth="0.5" opacity="0.3"/>
-  <line x1="90" y1="210" x2="90" y2="290" 
-        stroke="#2563eb" strokeWidth="0.5" opacity="0.3"/>
+  <line x1="80" y1="210" x2="80" y2="290"
+        stroke="#007a5e" strokeWidth="0.5" opacity="0.3"/>
+  <line x1="90" y1="210" x2="90" y2="290"
+        stroke="#007a5e" strokeWidth="0.5" opacity="0.3"/>
 </g>
 ```
 
@@ -138,33 +138,33 @@ Rediseñar las formas actuales para que sean más anatómicas:
 <!-- DORSALES - Forma de V más pronunciada -->
 <g id="espalda">
   <!-- Dorsal ancho izquierdo -->
-  <path d="M 86 96 
-           Q 82 104 78 120 
-           Q 75 140 75 160 
-           Q 76 175 80 188 
-           L 88 186 
-           Q 92 170 94 150 
-           Q 95 130 94 110 
+  <path d="M 86 96
+           Q 82 104 78 120
+           Q 75 140 75 160
+           Q 76 175 80 188
+           L 88 186
+           Q 92 170 94 150
+           Q 95 130 94 110
            Z"
         fill="url(#muscleGradBack)"/>
-  
+
   <!-- Líneas de fibras -->
-  <path d="M 82 110 Q 85 130 87 150" 
-        stroke="#2563eb" strokeWidth="0.5" opacity="0.3"/>
-  <path d="M 78 120 Q 81 140 83 160" 
-        stroke="#2563eb" strokeWidth="0.5" opacity="0.3"/>
+  <path d="M 82 110 Q 85 130 87 150"
+        stroke="#007a5e" strokeWidth="0.5" opacity="0.3"/>
+  <path d="M 78 120 Q 81 140 83 160"
+        stroke="#007a5e" strokeWidth="0.5" opacity="0.3"/>
 </g>
 
 <!-- GLÚTEOS - Más redondeados y definidos -->
 <g id="gluteos">
   <!-- Glúteo mayor con forma redondeada -->
-  <ellipse cx="90" cy="240" rx="18" ry="35" 
-           fill="url(#muscleGradBack)" 
+  <ellipse cx="90" cy="240" rx="18" ry="35"
+           fill="url(#muscleGradBack)"
            transform="rotate(-5 90 240)"/>
-  
+
   <!-- Línea de separación -->
-  <path d="M 90 220 Q 92 240 90 260" 
-        stroke="#2563eb" strokeWidth="0.8" opacity="0.4"/>
+  <path d="M 90 220 Q 92 240 90 260"
+        stroke="#007a5e" strokeWidth="0.8" opacity="0.4"/>
 </g>
 
 <!-- ISQUIOTIBIALES - Más voluminosos -->
@@ -172,14 +172,14 @@ Rediseñar las formas actuales para que sean más anatómicas:
   <!-- Bíceps femoral -->
   <path d="M 74 290 Q 72 310 72 330 Q 72 350 74 370 L 80 368 Q 82 348 82 328 Q 82 308 80 290 Z"
         fill="url(#muscleGradBack)"/>
-  
+
   <!-- Semitendinoso -->
   <path d="M 86 290 Q 88 310 88 330 Q 88 350 86 370 L 92 368 Q 94 348 94 328 Q 94 308 92 290 Z"
         fill="url(#muscleGradBack)"/>
-  
+
   <!-- Línea de separación -->
-  <line x1="85" y1="290" x2="85" y2="370" 
-        stroke="#2563eb" strokeWidth="0.5" opacity="0.3"/>
+  <line x1="85" y1="290" x2="85" y2="370"
+        stroke="#007a5e" strokeWidth="0.5" opacity="0.3"/>
 </g>
 ```
 
@@ -193,7 +193,7 @@ import React, { useState } from 'react';
 
 export const AnatomicalBodyMap = () => {
   const [hovered, setHovered] = useState<string | null>(null);
-  
+
   return (
     <div className="relative">
       {/* Tooltip */}
@@ -204,20 +204,20 @@ export const AnatomicalBodyMap = () => {
           </div>
         </div>
       )}
-      
+
       <div className="flex gap-8">
         {/* Vista Frontal */}
         <div className="relative">
-          <img 
-            src="/images/body-map-front.svg" 
+          <img
+            src="/images/body-map-front.svg"
             alt="Vista frontal"
             className="w-64 h-auto"
             useMap="#body-front-map"
           />
           <map name="body-front-map">
-            <area 
-              shape="poly" 
-              coords="100,80,120,80,130,100,110,120,90,100" 
+            <area
+              shape="poly"
+              coords="100,80,120,80,130,100,110,120,90,100"
               alt="Pecho"
               onMouseEnter={() => setHovered('Pecho')}
               onMouseLeave={() => setHovered(null)}
@@ -225,11 +225,11 @@ export const AnatomicalBodyMap = () => {
             {/* Más áreas... */}
           </map>
         </div>
-        
+
         {/* Vista Trasera */}
         <div className="relative">
-          <img 
-            src="/images/body-map-back.svg" 
+          <img
+            src="/images/body-map-back.svg"
             alt="Vista trasera"
             className="w-64 h-auto"
             useMap="#body-back-map"
@@ -279,8 +279,8 @@ export const AnatomicalBodyMap = () => {
 <!-- Gradiente para dar volumen 3D -->
 <radialGradient id="muscleVolume" cx="50%" cy="30%">
   <stop offset="0%" stopColor="#93c5fd" stopOpacity="1" />
-  <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.9" />
-  <stop offset="100%" stopColor="#1e40af" stopOpacity="0.8" />
+  <stop offset="50%" stopColor="#00d6a4" stopOpacity="0.9" />
+  <stop offset="100%" stopColor="#007a5e" stopOpacity="0.8" />
 </radialGradient>
 
 <!-- Sombras para profundidad -->
@@ -298,8 +298,8 @@ export const AnatomicalBodyMap = () => {
 
 <!-- Textura de fibras musculares -->
 <pattern id="muscleTexture" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-  <line x1="0" y1="0" x2="10" y2="10" stroke="#2563eb" strokeWidth="0.3" opacity="0.2"/>
-  <line x1="0" y1="5" x2="10" y2="15" stroke="#2563eb" strokeWidth="0.3" opacity="0.2"/>
+  <line x1="0" y1="0" x2="10" y2="10" stroke="#007a5e" strokeWidth="0.3" opacity="0.2"/>
+  <line x1="0" y1="5" x2="10" y2="15" stroke="#007a5e" strokeWidth="0.3" opacity="0.2"/>
 </pattern>
 ```
 
@@ -365,12 +365,12 @@ export const AnatomicalBodyMap = () => {
 ## Ejemplo de Código Final
 
 ```tsx
-export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({ 
-  selectedMuscles, 
-  onMuscleClick 
+export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
+  selectedMuscles,
+  onMuscleClick
 }) => {
   const [hovered, setHovered] = useState<MuscleGroup | null>(null);
-  
+
   return (
     <>
       {/* Tooltip */}
@@ -381,7 +381,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
           </div>
         </div>
       )}
-      
+
       <div className="flex gap-8">
         {/* SVG Anatómico Frontal */}
         <svg viewBox="0 0 300 600" className="w-64 h-auto">
@@ -389,12 +389,12 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
           <defs>
             <radialGradient id="muscleVolume">
               <stop offset="0%" stopColor="#93c5fd" />
-              <stop offset="100%" stopColor="#1e40af" />
+              <stop offset="100%" stopColor="#007a5e" />
             </radialGradient>
           </defs>
-          
+
           {/* Músculos anatómicos detallados */}
-          <g 
+          <g
             id="pecho"
             onClick={() => onMuscleClick('pecho')}
             onMouseEnter={() => setHovered('pecho')}
@@ -404,12 +404,12 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
             {/* Pectoral con detalles anatómicos */}
             <path d="..." fill="url(#muscleVolume)" />
             {/* Fibras musculares */}
-            <path d="..." stroke="#2563eb" opacity="0.3" />
+            <path d="..." stroke="#007a5e" opacity="0.3" />
           </g>
-          
+
           {/* Más grupos musculares... */}
         </svg>
-        
+
         {/* SVG Anatómico Trasero */}
         <svg viewBox="0 0 300 600" className="w-64 h-auto">
           {/* Similar estructura */}

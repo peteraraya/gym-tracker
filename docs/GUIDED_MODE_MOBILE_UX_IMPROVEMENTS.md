@@ -410,7 +410,7 @@ Probar en dispositivo móvil:
 - Tamaño aumentado de `min-h-[56px]` a `min-h-[64px]` (+14%)
 - Texto aumentado de `text-xl` a `text-3xl` (+50%)
 - Agregado hint "Toca para editar" debajo del valor
-- Colores diferenciados: azul para reps, púrpura para peso
+- Colores diferenciados: turquesa para reps, turquesa para peso
 - Feedback táctil con `active:scale-95`
 - Bordes más definidos con `border-2`
 - Esquinas más redondeadas `rounded-xl` vs `rounded-lg`
@@ -488,7 +488,7 @@ Probar en dispositivo móvil:
 ```
 
 #### 4. Header del Ejercicio Mejorado ✅
-- Número de ejercicio grande (12x12) con fondo azul
+- Número de ejercicio grande (12x12) con fondo turquesa
 - Progreso circular visual (14x14)
 - Badge "EN PROGRESO" cuando la serie está activa
 - Layout reorganizado para mejor jerarquía

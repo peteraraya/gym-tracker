@@ -1,4 +1,4 @@
-# 🧪 Suite de Pruebas - Gym Tracker
+# 🧪 Suite de Pruebas - GymLogiX
 
 ## ✅ Implementación Completada
 

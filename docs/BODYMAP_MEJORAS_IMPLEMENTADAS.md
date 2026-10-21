@@ -18,7 +18,7 @@ Se agregó un tooltip prominente que aparece en la parte superior de la pantalla
 
 **Características:**
 - Posición fija centrada en la parte superior
-- Fondo azul (#3b82f6) con texto blanco
+- Fondo turquesa (#00d6a4) con texto blanco
 - Sombra pronunciada para destacar
 - Animación fade-in suave (0.2s)
 - No interfiere con clics (pointer-events-none)
@@ -42,14 +42,14 @@ className="body-map-svg border-2 border-gray-300 dark:border-gray-600 rounded-xl
 **Gradiente de Músculos Activos:**
 ```tsx
 <linearGradient id="muscleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-  <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
-  <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.95" />
-  <stop offset="100%" stopColor="#2563eb" stopOpacity="1" />
+  <stop offset="0%" stopColor="#31d4a5" stopOpacity="0.9" />
+  <stop offset="50%" stopColor="#00d6a4" stopOpacity="0.95" />
+  <stop offset="100%" stopColor="#007a5e" stopOpacity="1" />
 </linearGradient>
 ```
 
 Gradiente diagonal de 3 colores:
-- Azul claro (#60a5fa) → Azul medio (#3b82f6) → Azul oscuro (#2563eb)
+- Turquesa claro (#31d4a5) → Turquesa (#00d6a4) → Verde profundo (#007a5e)
 - Opacidades graduales para efecto de profundidad
 
 ### 3. Efecto de Brillo (Glow)
@@ -78,8 +78,8 @@ style={{ filter: isActive('hombros') ? 'url(#glow)' : 'none' }}
 - Sin efectos especiales
 
 **Estado Activo (Hover o Seleccionado):**
-- Fill: `url(#muscleGrad)` (gradiente azul)
-- Stroke: `#1e40af` (azul oscuro)
+- Fill: `url(#muscleGrad)` (gradiente turquesa)
+- Stroke: `#007a5e` (turquesa oscuro)
 - Stroke-width: `2.5` (más grueso)
 - Filter: `url(#glow)` (efecto de brillo)
 
@@ -126,10 +126,10 @@ Agregada al `globals.css`:
 ### 7. Cabeza Mejorada
 
 ```tsx
-<path d="..." 
-  fill="#e5e7eb" 
-  stroke="#9ca3af" 
-  strokeWidth="1.5" 
+<path d="..."
+  fill="#e5e7eb"
+  stroke="#9ca3af"
+  strokeWidth="1.5"
   className="dark:fill-gray-700 dark:stroke-gray-600" />
 ```
 
@@ -150,7 +150,7 @@ Colores sólidos para la cabeza (no interactiva) con soporte para modo oscuro.
 
 ### Después:
 ```
-✅ Gradientes azules profesionales de 3 colores
+✅ Gradientes turquesaes profesionales de 3 colores
 ✅ Tooltip flotante grande y visible
 ✅ Efecto de brillo al hover/selección
 ✅ Bordes más gruesos y definidos
@@ -196,11 +196,11 @@ Para completar la implementación, se necesita actualizar cada grupo muscular co
   aria-label="Nombre del Músculo"
   style={{ filter: isActive('musculo') ? 'url(#glow)' : 'none' }}
 >
-  <path 
-    className="muscle transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600" 
-    d="..." 
-    fill={isActive('musculo') ? 'url(#muscleGrad)' : '#f3f4f6'} 
-    stroke={isActive('musculo') ? '#1e40af' : '#d1d5db'} 
+  <path
+    className="muscle transition-all duration-200 dark:fill-gray-700 dark:stroke-gray-600"
+    d="..."
+    fill={isActive('musculo') ? 'url(#muscleGrad)' : '#f3f4f6'}
+    stroke={isActive('musculo') ? '#007a5e' : '#d1d5db'}
     strokeWidth={isActive('musculo') ? '2.5' : '1.5'}>
     <title>Nombre del Músculo</title>
   </path>

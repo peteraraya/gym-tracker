@@ -7,7 +7,7 @@ Reducir el desorden visual y mejorar la experiencia de usuario en la tarjeta de 
 
 ### 1. Timer de Serie en Progreso
 - **Antes**: Múltiples líneas con información redundante
-- **Ahora**: Una sola línea compacta con gradiente azul-púrpura
+- **Ahora**: Una sola línea compacta con gradiente verde y turquesa
 - Muestra emoji ⏱️, texto "En progreso" y tiempo transcurrido en formato grande
 - Diseño más limpio y profesional
 

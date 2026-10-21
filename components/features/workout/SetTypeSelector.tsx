@@ -58,7 +58,7 @@ const SET_TYPES = [
     value: 'cluster' as SetType,
     label: 'Cluster',
     icon: '🔗',
-    color: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-700',
+    color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700',
     description: 'Mini-series con descansos breves'
   }
 ];

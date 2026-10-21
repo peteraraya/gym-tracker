@@ -55,7 +55,7 @@ export const AnatomicalBodyMap: React.FC<BodyMapProps> = ({
   // Estilos para áreas activas
   const getAreaStyle = (muscle: MuscleGroup) => ({
     fill: isActive(muscle) ? 'rgba(59, 130, 246, 0.4)' : 'transparent',
-    stroke: isActive(muscle) ? '#3b82f6' : 'transparent',
+    stroke: isActive(muscle) ? '#4da6ff' : 'transparent',
     strokeWidth: isActive(muscle) ? '3' : '0',
     filter: isActive(muscle) ? 'url(#glow)' : 'none',
   });

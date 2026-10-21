@@ -79,7 +79,7 @@ Luego en Android Studio:
 4. Sal de la app (botón Home)
 5. Abre otra app
 6. Espera 30 segundos
-7. Vuelve a la app de Gym Tracker
+7. Vuelve a la app de GymLogiX
 8. ✅ El entrenamiento debe continuar donde lo dejaste
 
 ## Cómo Funciona Técnicamente

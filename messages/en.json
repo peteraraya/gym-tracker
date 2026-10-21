@@ -32,11 +32,77 @@
     "completeSet": "Complete Set",
     "helper": "💡 The stopwatch measures the time of each set. You can pause if you need a rest."
   },
+  "notifications": {
+    "soundsTitle": "Rest sounds",
+    "enableSounds": "Enable sounds",
+    "soundDescription": "Play a sound when the rest period ends",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "soundType": "Sound type",
+    "volume": "Volume: {value}%",
+    "playing": "Playing...",
+    "testSound": "Test sound",
+    "pwaTitle": "Rest alerts",
+    "permissionStatus": "Permission status",
+    "permissionGranted": "Notifications enabled ✅",
+    "permissionDenied": "Notifications blocked ❌",
+    "permissionPrompt": "Permission not requested",
+    "blocked": "Blocked",
+    "enable": "Enable",
+    "restNoticeTitle": "Rest alerts",
+    "restNotice": "Get an alert when your rest period ends",
+    "permissionRequired": "Requires browser permission",
+    "backgroundAvailability": "Background availability depends on your device",
+    "blockedTitle": "Notifications are blocked",
+    "blockedDescription": "To enable them, allow notifications for this site in your browser settings.",
+    "volumeControl": "Volume control",
+    "soundNames": {
+      "beep": "Classic beep",
+      "chime": "Chime",
+      "bell": "Bell",
+      "horn": "Horn",
+      "whistle": "Whistle",
+      "custom": "Custom"
+    },
+    "soundDescriptions": {
+      "beep": "A simple, clear sound",
+      "chime": "A soft, melodic sound",
+      "bell": "A strong, clear sound",
+      "horn": "A powerful sound for intense workouts",
+      "whistle": "A high-pitched, sharp sound",
+      "custom": "Custom settings"
+    }
+  },
+  "settingsPage": {
+    "title": "Settings",
+    "subtitle": "Personalize your experience",
+    "soundNotifications": "Sounds and notifications",
+    "appearance": "Appearance",
+    "pwa": "Progressive web app (PWA)",
+    "installable": "Installable",
+    "installableDescription": "Install the app on your device for quick access.",
+    "offline": "Offline access",
+    "offlineDescription": "Screens and data available offline depend on what was previously saved or loaded on this device."
+  },
+  "pwa": {
+    "updateTitle": "New version available",
+    "updatePrompt": "A new version of the app is available. Would you like to update now?",
+    "cancel": "Cancel",
+    "update": "Update",
+    "installTitle": "Install GymLogiX",
+    "installDescription": "Install the app on your device for quick access.",
+    "homeBenefit": "Quick access from your home screen",
+    "offlineBenefit": "The app can open offline; some data requires a connection.",
+    "install": "Install now",
+    "later": "Later",
+    "installError": "The installer could not be opened. Try again from your browser menu.",
+    "close": "Close"
+  },
   "nav": {
     "home": "Home",
     "routines": "Routines",
     "sessions": "History",
-    "appName": "Gym Tracker",
+    "appName": "GymLogiX",
     "dashboard": "Dashboard",
     "recommended": "Recommended",
     "progress": "Progress",
@@ -50,7 +116,29 @@
     "glossary": "Glossary",
     "aiAssistant": "AI Assistant",
     "settings": "Settings",
-    "planning": "Planning"
+    "planning": "Planning",
+    "more": "More",
+    "train": "Train",
+    "activeWorkout": "In progress",
+    "moreSections": "More sections",
+    "close": "Close",
+    "moreGroups": {
+      "overview": "Overview",
+      "progress": "Progress",
+      "discover": "Discover",
+      "tools": "Tools",
+      "account": "Account"
+    }
+  },
+  "connection": {
+    "localTitle": "Local mode",
+    "localDescription": "Data is saved on this device and is not synced to the cloud.",
+    "offlineTitle": "Offline",
+    "offlineDescription": "Some features that require sync may be unavailable.",
+    "cloudUnavailableTitle": "Cloud sync paused",
+    "cloudUnavailableDescription": "A cloud operation could not be completed. Check the connection and configuration before continuing.",
+    "connectedTitle": "Connected",
+    "connectedDescription": "Data is synced with the database."
   },
   "auth": {
     "signIn": "Sign In",
@@ -61,6 +149,7 @@
     "required": "Required",
     "passwordsNoMatch": "Passwords do not match",
     "accountCreated": "Account created! Check your email to confirm your account.",
+    "accountAlreadyExists": "This email is already registered. Sign in instead.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "email": "Email",
@@ -77,7 +166,75 @@
     "submitting": "..."
   },
   "home": {
-    "welcome": "Welcome to Gym Tracker",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "today": "Today",
+    "streakDays": {
+      "one": "day",
+      "other": "days"
+    },
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "restDay": {
+      "title": "Rest day",
+      "description": "Take time to recover",
+      "mobility": "Suggestion: mobility session",
+      "configureSchedule": "Set up your weekly schedule",
+      "trainToday": "Choose a routine for today"
+    },
+    "noPlan": {
+      "eyebrow": "Planning",
+      "title": "You don't have a weekly schedule yet",
+      "description": "Schedule your routines by day to see your next workout here.",
+      "cta": "Set up schedule",
+      "routineUnavailable": "The scheduled routine is no longer available."
+    },
+    "activeWorkout": "Workout in progress",
+    "continueWorkout": "Continue workout",
+    "workoutFallback": "Workout",
+    "plannedWorkout": "Today's workout",
+    "exercisesCount": {
+      "one": "exercise",
+      "other": "exercises"
+    },
+    "setsCount": {
+      "one": "set",
+      "other": "sets"
+    },
+    "startWorkout": "Start workout",
+    "startPending": "Preparing workout…",
+    "moreRoutines": {
+      "one": "more routine",
+      "other": "more routines"
+    },
+    "volumeThisWeek": "Weekly volume",
+    "currentMonth": "This month",
+    "currentStreak": "Current streak",
+    "sessions": "Sessions",
+    "routines": "Routines",
+    "routinesCount": "{count} created",
+    "dashboard": "Dashboard",
+    "sessionsCount": "{count} sessions",
+    "quickStart": "Quick start",
+    "plan": "Plan",
+    "planLoadError": "Your weekly plan could not be loaded.",
+    "dataLoadError": "Your training data could not be loaded.",
+    "retry": "Retry",
+    "recent": "Recent",
+    "exerciseAbbreviation": "exercises",
+    "viewAll": "View all",
+    "startError": "The workout could not be started. Please try again.",
+    "welcome": "Welcome to GymLogiX",
     "subtitle": "Track and follow your gym routines easily",
     "routinesCard": "Routines",
     "routinesCreated": "Routines created",
@@ -118,6 +275,8 @@
   "routines": {
     "title": "My Routines",
     "subtitle": "Manage your workout routines",
+    "plannerSummary": "Weekly planning",
+    "plannerDescription": "Review or adjust your training calendar",
     "loading": "Loading...",
     "newRoutine": "New Routine",
     "noRoutines": "No routines yet",
@@ -138,6 +297,12 @@
     "more": "more",
     "continueWorkout": "Continue Workout",
     "startWorkout": "Start Workout",
+    "startError": "The workout could not be started. Check your connection and try again.",
+    "generationError": "The routines could not be created. Please try again.",
+    "generationPartialError": "{count} of {total} routines were created. Review your routines before generating again.",
+    "generationSuccess": "{count} routines created. You can now edit them or start a workout.",
+    "viewRoutines": "View routines",
+    "routineNotFound": "The routine could not be found.",
     "edit": "Edit",
     "delete": "Delete",
     "modal": {
@@ -152,7 +317,10 @@
     },
     "toast": {
       "deleteSuccess": "Routine deleted successfully",
-      "deleteError": "Error deleting routine"
+      "deleteError": "Error deleting routine",
+      "duplicateError": "The routine could not be duplicated. Please try again.",
+      "duplicateSuccess": "Routine duplicated successfully.",
+      "duplicateInProgress": "Duplicating routine..."
     },
     "empty": {
       "title": "No routines yet",
@@ -231,6 +399,7 @@
     "cardio": "Cardio"
   },
   "workout": {
+    "preparingWorkout": "Preparing your workout...",
     "exercise": "Exercise",
     "set": "Set",
     "progress": "Progress",
@@ -238,6 +407,39 @@
     "repsPerformed": "Reps performed",
     "weightUsed": "Weight used (kg)",
     "completeSet": "Complete set",
+    "exerciseCompleted": "COMPLETED",
+    "exercisePending": "PENDING",
+    "setCompleted": "completed",
+    "setPending": "pending",
+    "setReady": "ready to complete",
+    "quickEditMode": "Quick edit",
+    "workoutProgress": "Workout progress",
+    "of": "of",
+    "sets": "sets",
+    "skipRestEnabled": "Rest timers off",
+    "skipRestDisabled": "Rest timers on",
+    "skipRestDescription": "Prevents rest timers from starting between sets",
+    "autoAdvanceEnabled": "Auto-advance on",
+    "autoAdvanceDisabled": "Auto-advance off",
+    "autoAdvanceDescription": "Focuses the next set after completing the current one",
+    "enabled": "On",
+    "disabled": "Off",
+    "addSet": "Add set",
+    "setInProgress": "Set in progress",
+    "timeUnderTension": "TUT",
+    "setCompletedFeedback": "Set completed!",
+    "showSets": "Show sets",
+    "hideSets": "Hide sets",
+    "exerciseSkipped": "Skipped",
+    "exerciseInfo": "Exercise information",
+    "infoShort": "Info",
+    "editRestTime": "Edit rest for",
+    "skipExercise": "Skip exercise",
+    "restoreExercise": "Restore exercise",
+    "repsShort": "Reps",
+    "weightShort": "Weight",
+    "setType": "Type",
+    "setTypeShort": "T",
     "nextExercise": "Next exercise",
     "finishWorkout": "Finish workout",
     "nextExercises": "Next exercises",
@@ -301,7 +503,23 @@
     "distribution": "Training Distribution",
     "sets": "sets",
     "viewProgress": "View progress",
-    "progressDesc": "Analyze your training volume by muscle group"
+    "progressDesc": "Analyze your training volume by muscle group",
+    "panel": {
+      "title": "Progress Dashboard",
+      "week": "Wk",
+      "month": "Mo",
+      "year": "Yr",
+      "monthlyVolume": "Volume",
+      "wilksScore": "Strength (1RM)",
+      "workoutDensity": "Density",
+      "consistency": "Workouts",
+      "sessions": "sessions",
+      "noData": "No data yet",
+      "viewDetail": "View detail",
+      "trendUp": "Your volume increased vs previous period",
+      "trendDown": "Your volume dropped vs previous period",
+      "trendStable": "Your volume is stable vs previous period"
+    }
   },
   "profile": {
     "title": "My Profile",
@@ -368,7 +586,7 @@
   "dashboard": {
     "loadingStats": "Loading stats...",
     "pageTitle": "Dashboard",
-    "pageDescription": "Summary of your progress and statistics",
+    "pageDescription": "Charts and in-depth analysis of your long-term progress",
     "fitnessGoals": {
       "muscle_gain": "Muscle Gain",
       "strength": "Strength",

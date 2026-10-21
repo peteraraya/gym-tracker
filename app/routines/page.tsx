@@ -10,11 +10,12 @@ import { useWorkout } from "@/context/WorkoutContext";
 import { useToast, useConfirm } from "@/context/NotificationContext";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { CardSkeleton } from "@/components/ui/Skeleton";
 import { RoutineForm } from "@/components/features/routines/RoutineForm";
 import RoutineWizard from "@/components/features/routines/RoutineWizard";
 import WeeklyPlanner from "@/components/features/planning/WeeklyPlanner";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import { generateRoutine } from "@/lib/routines/routineGenerator";
+import { generateRoutine } from "@/lib/application/routines/routineGenerator";
 import {
   Plus,
   ClipboardList,
@@ -26,6 +27,7 @@ import {
   Flame,
   Dumbbell,
   Search,
+  ChevronDown,
 } from "@/components/icons/lucide";
 import { useTranslations } from "@/context/LocaleContext";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
@@ -37,6 +39,7 @@ import {
   CardGrid,
 } from "@/components/shared";
 import { usePlanning } from "@/hooks/usePlanning";
+import { getDayKey } from '@/lib/shared/utils/dateUtils';
 import { GOAL_LABELS, DAYS, DAY_LABELS_SHORT } from "@/types/planning";
 import Link from "next/link";
 
@@ -85,7 +88,7 @@ export default function RoutinesPage() {
     // Comprobar si existe un borrador guardado
     if (typeof window !== "undefined") {
       try {
-        const draftStr = localStorage.getItem("gym-tracker-routine-draft");
+        const draftStr = localStorage.getItem("gym-logic-routine-draft");
         if (draftStr) {
           const draft = JSON.parse(draftStr || "null");
           const hasData = draft && (draft.name || (Array.isArray(draft.exercises) && draft.exercises.length > 0));
@@ -106,7 +109,7 @@ export default function RoutinesPage() {
 
             // Usuario eligió descartar → eliminar borrador
             try {
-              localStorage.removeItem("gym-tracker-routine-draft");
+              localStorage.removeItem("gym-logic-routine-draft");
             } catch (e) {
               // ignorar errores de localStorage
             }
@@ -122,24 +125,37 @@ export default function RoutinesPage() {
   }, [confirm, editingRoutine]);
 
   const handleWizardComplete = async (data: any) => {
+    let createdCount = 0;
+    let generatedCount = 0;
     try {
       // Generar rutinas usando el generador inteligente (ahora retorna array)
       const generatedRoutines = await generateRoutine(data);
+      generatedCount = generatedRoutines.length;
 
       // Agregar todas las rutinas al contexto
       for (const generatedRoutine of generatedRoutines) {
         // Remover campos que addRoutine no espera (id, createdAt, updatedAt)
         const { id, createdAt, updatedAt, ...routineData } = generatedRoutine;
         await addRoutine(routineData);
+        createdCount += 1;
       }
 
       setIsWizardOpen(false);
-      success(
-        `¡${generatedRoutines.length} rutina(s) creada(s) exitosamente! Puedes editarlas si lo deseas.`,
-      );
+      success(t("generationSuccess").replace("{count}", String(generatedRoutines.length)));
     } catch (err) {
       console.error("Error generating routine:", err);
-      error("Error al generar la rutina. Intenta de nuevo.");
+      if (createdCount > 0) {
+        setIsWizardOpen(false);
+        const message = t("generationPartialError")
+          .replace("{count}", String(createdCount))
+          .replace("{total}", String(generatedCount));
+        error(message, 8000, {
+          label: t("viewRoutines"),
+          onClick: () => router.push("/routines"),
+        });
+      } else {
+        error(t("generationError"));
+      }
     }
   };
 
@@ -196,7 +212,7 @@ export default function RoutinesPage() {
       try {
         const routineToDuplicate = routines.find((r) => r.id === id);
         if (!routineToDuplicate) {
-          error("Rutina no encontrada");
+          error(t("routineNotFound"));
           return;
         }
 
@@ -209,12 +225,6 @@ export default function RoutinesPage() {
 
         if (confirmed) {
           setDuplicatingId(id);
-
-          // Toast de progreso
-          success("⏳ Duplicando rutina...");
-
-          // Pequeño delay para que el usuario vea el feedback
-          await new Promise((resolve) => setTimeout(resolve, 300));
 
           const duplicatedRoutine = {
             ...routineToDuplicate,
@@ -229,7 +239,7 @@ export default function RoutinesPage() {
           await addRoutine(duplicatedRoutine);
 
           // Toast de éxito
-          success("✅ Rutina duplicada exitosamente");
+          success(t("toast.duplicateSuccess"));
 
           try {
             if (typeof window !== "undefined" && (window as any).gtag) {
@@ -243,7 +253,7 @@ export default function RoutinesPage() {
         }
       } catch (e) {
         console.error("Error duplicating routine:", e);
-        error("❌ Error al duplicar la rutina");
+        error(t("toast.duplicateError"));
       } finally {
         setDuplicatingId(null);
       }
@@ -279,10 +289,13 @@ export default function RoutinesPage() {
             startWorkout(routine);
           }
           router.push(`/workout/${routineId}`);
+        } else {
+          error(t("routineNotFound"));
         }
       } catch (e) {
         console.error("Error starting workout:", e);
         setStartingWorkoutId(null);
+        error(t("startError"));
       }
     },
     [
@@ -343,17 +356,7 @@ export default function RoutinesPage() {
           {planning.activeMesocycle &&
             (() => {
               const currentWeek = planning.getCurrentWeekPlan();
-              const todayKey = (
-                [
-                  "sunday",
-                  "monday",
-                  "tuesday",
-                  "wednesday",
-                  "thursday",
-                  "friday",
-                  "saturday",
-                ] as const
-              )[new Date().getDay()];
+              const todayKey = getDayKey(new Date());
               const todaySchedule = currentWeek?.dailySchedule?.[todayKey];
               const todayRoutines = (todaySchedule?.routineIds ?? [])
                 .map((id) => routines.find((r) => r.id === id))
@@ -407,12 +410,25 @@ export default function RoutinesPage() {
             })()}
 
           {/* Weekly Planner */}
-          <div className="mb-6">
-            <WeeklyPlanner searchQuery={debouncedSearchFilter} />
-          </div>
+          <details className="group mb-4 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 marker:text-blue-600">
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  {t("plannerSummary")}
+                </span>
+                <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">
+                  {t("plannerDescription")}
+                </span>
+              </span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-zinc-500 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-zinc-100 p-3 dark:border-zinc-800 sm:p-4">
+              <WeeklyPlanner searchQuery={debouncedSearchFilter} />
+            </div>
+          </details>
 
           {/* Search */}
-          <div className="mb-6">
+          <div className="mb-4">
             <SearchInput
               value={searchFilter}
               onChange={setSearchFilter}
@@ -421,11 +437,14 @@ export default function RoutinesPage() {
           </div>
           {/* Content */}
           {loading ? (
-            <LoadingSpinner
-              size="lg"
-              message={t("loading")}
-              className="py-20"
-            />
+            <CardGrid cols={3}>
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </CardGrid>
           ) : routines.length === 0 ? (
             <EmptyStateCard
               icon={<ClipboardList className="w-12 h-12" />}
@@ -462,18 +481,21 @@ export default function RoutinesPage() {
             </CardGrid>
           )}
 
-          {/* Floating Free Workout button */}
-          <div className="fixed bottom-20 right-4 sm:bottom-8 sm:right-6 z-40">
-            <button
-              onClick={() => router.push("/workout/free")}
-              aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"
-              title="Entrenamiento Libre"
-              className="group flex items-center justify-center gap-2 px-5 py-4 sm:w-14 sm:h-14 sm:p-0 rounded-full bg-linear-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-            >
-              <Zap className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-              <span className="text-sm font-semibold sm:hidden">Libre</span>
-            </button>
-          </div>
+          {/* Floating Free Workout button — oculto temporalmente (feature en pausa) */}
+          {/* Posicionado cuidadosamente para no chocar con el AI Assistant ni el menú inferior */}
+          {false && (
+            <div className="fixed bottom-[104px] right-4 sm:bottom-8 sm:right-6 z-40 flex flex-col gap-3">
+              <button
+                onClick={() => router.push("/workout/free")}
+                aria-label="Entrenamiento Libre - Entrena sin rutina predefinida"
+                title="Entrenamiento Libre"
+                className="group flex items-center justify-center gap-2 px-5 py-4 sm:w-14 sm:h-14 sm:p-0 rounded-full bg-linear-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <Zap className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                <span className="text-sm font-semibold sm:hidden">Libre</span>
+              </button>
+            </div>
+          )}
 
           {/* Modals */}
           <Modal

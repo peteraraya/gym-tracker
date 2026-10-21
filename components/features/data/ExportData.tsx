@@ -9,7 +9,7 @@ import {
   exportRoutinesToCSV, 
   exportToJSON, 
   downloadFile 
-} from '@/lib/data/dataExport';
+} from '@/lib/shared/utils/dataExport';
 import type { WorkoutSession, Routine, UserProfile } from '@/types';
 
 interface ExportDataProps {
@@ -23,7 +23,7 @@ export default function ExportData({ sessions, routines, profile }: ExportDataPr
 
   const handleExportSessionsCSV = () => {
     const csv = exportSessionsToCSV(sessions);
-    const filename = `gym-tracker-sessions-${new Date().toISOString().split('T')[0]}.csv`;
+    const filename = `gym-logic-sessions-${new Date().toISOString().split('T')[0]}.csv`;
     downloadFile(csv, filename, 'text/csv');
     setExportedType('sessions-csv');
     setTimeout(() => setExportedType(null), 3000);
@@ -31,7 +31,7 @@ export default function ExportData({ sessions, routines, profile }: ExportDataPr
 
   const handleExportRoutinesCSV = () => {
     const csv = exportRoutinesToCSV(routines);
-    const filename = `gym-tracker-routines-${new Date().toISOString().split('T')[0]}.csv`;
+    const filename = `gym-logic-routines-${new Date().toISOString().split('T')[0]}.csv`;
     downloadFile(csv, filename, 'text/csv');
     setExportedType('routines-csv');
     setTimeout(() => setExportedType(null), 3000);
@@ -39,7 +39,7 @@ export default function ExportData({ sessions, routines, profile }: ExportDataPr
 
   const handleExportFullBackup = () => {
     const json = exportToJSON({ sessions, routines, profile });
-    const filename = `gym-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+    const filename = `gym-logic-backup-${new Date().toISOString().split('T')[0]}.json`;
     downloadFile(json, filename, 'application/json');
     setExportedType('full-backup');
     setTimeout(() => setExportedType(null), 3000);

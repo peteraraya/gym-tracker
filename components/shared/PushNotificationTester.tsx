@@ -55,7 +55,7 @@ export function PushNotificationTester() {
         actions?: { action: string; title: string; icon?: string }[];
         requireInteraction?: boolean;
       } = {
-        body: 'Esta es una notificación de prueba desde Gym Tracker',
+        body: 'Esta es una notificación de prueba desde GymLogiX',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/badge-72x72.png',
         vibrate: [200, 100, 200],

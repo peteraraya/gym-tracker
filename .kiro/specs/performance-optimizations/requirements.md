@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document defines the requirements for implementing comprehensive performance and optimization improvements in the Gym Tracker application. The feature focuses on four key areas: replacing manual data fetching with React Query for automatic caching and state management, implementing virtualization for long lists, adding code splitting for heavy pages, and applying memoization to prevent unnecessary re-renders. These optimizations will significantly improve initial load time, reduce re-renders, optimize list rendering, and establish a better caching strategy while maintaining all existing functionality.
+This document defines the requirements for implementing comprehensive performance and optimization improvements in the GymLogiX application. The feature focuses on four key areas: replacing manual data fetching with React Query for automatic caching and state management, implementing virtualization for long lists, adding code splitting for heavy pages, and applying memoization to prevent unnecessary re-renders. These optimizations will significantly improve initial load time, reduce re-renders, optimize list rendering, and establish a better caching strategy while maintaining all existing functionality.
 
 ## Glossary
 
@@ -93,7 +93,7 @@ This document defines the requirements for implementing comprehensive performanc
 
 ### Requirement 5: Query Configuration and Optimization
 
-**User Story:** As a developer, I want to configure React Query with optimal settings for the Gym Tracker use case, so that caching and refetching behavior matches user expectations.
+**User Story:** As a developer, I want to configure React Query with optimal settings for the GymLogiX use case, so that caching and refetching behavior matches user expectations.
 
 #### Acceptance Criteria
 

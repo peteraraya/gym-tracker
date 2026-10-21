@@ -20,7 +20,6 @@ import {
   User,
   LogOut,
   Menu,
-  X,
   ChevronDown,
   Dumbbell,
   BookOpen,
@@ -28,13 +27,18 @@ import {
   Settings,
   BarChart3,
 } from "@/components/icons/lucide";
+import { useWorkout } from "@/context/WorkoutContext";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("nav");
   const { user, signOut } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { activeWorkout } = useWorkout();
+  const workoutHref = activeWorkout?.routineId
+    ? `/workout/${activeWorkout.routineId}`
+    : "/routines";
+  const workoutLabel = activeWorkout ? t("activeWorkout") : t("train");
 
   const isActive = (path: string) => {
     if (!pathname) return false;
@@ -43,25 +47,6 @@ export const Navbar: React.FC = () => {
     // Match exact path or any nested subpath (e.g. /routines -> /routines/create)
     return pathname === path || pathname.startsWith(`${path}/`);
   };
-
-  // Mobile items: mirror desktop order (main links first, then dashboard group)
-  const mobileItems = [
-    { href: "/", icon: Home, label: t("home") },
-    { href: "/routines", icon: ClipboardList, label: t("routines") },
-    { href: "/exercises", icon: Lightbulb, label: t("exercises") },
-    { href: "/equipment", icon: Dumbbell, label: t("equipment") },
-    { href: "/planning", icon: BarChart3, label: t("planning") },
-    { href: "/recommended", icon: Target, label: t("recommended") },
-    { href: "/glossary", icon: BookOpen, label: t("glossary") },
-    { href: "/calculators", icon: Calculator, label: t("calculators") },
-    { href: "/settings", icon: Settings, label: t("settings") },
-    // Dashboard group items (same order as dropdown)
-    { href: "/dashboard", icon: LayoutDashboard, label: t("dashboard") },
-    { href: "/progress", icon: TrendingUp, label: t("progress") },
-    { href: "/achievements", icon: Trophy, label: t("achievements") },
-    { href: "/sessions", icon: Calendar, label: t("sessions") },
-    { href: "/ai-assistant", icon: Sparkles, label: t("aiAssistant") },
-  ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -76,95 +61,55 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <ActiveWorkoutBanner />
-      <nav className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <nav className="sticky top-0 z-40 hidden border-b border-zinc-200 bg-white/90 shadow-sm backdrop-blur-lg dark:border-zinc-800 dark:bg-zinc-900/90 lg:block">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1 flex-1 min-w-0">
-              <div className="flex items-center space-x-1 flex-nowrap bg-zinc-100 dark:bg-zinc-800/50 rounded-xl p-1.5 min-w-0 overflow-x-auto">
-                <NavLink
-                  href="/"
-                  icon={Home}
-                  label={t("home")}
-                  isActive={isActive("/")}
-                  color="blue"
-                />
+            <div className="hidden min-w-0 flex-1 items-center gap-2 lg:flex">
+              <div className="flex min-w-0 items-center gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/50">
                 <NavLink
                   href="/routines"
                   icon={ClipboardList}
                   label={t("routines")}
                   isActive={isActive("/routines")}
-                  color="blue"
                   data-tour="routines"
                 />
-                <NavLink
-                  href="/exercises"
-                  icon={Lightbulb}
-                  label={t("exercises")}
-                  isActive={isActive("/exercises")}
-                  color="blue"
-                  data-tour="exercises"
+                <Link
+                  href={workoutHref}
+                  aria-label={workoutLabel}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-gray-950 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300 dark:focus-visible:ring-offset-zinc-900"
+                >
+                  <Dumbbell className="h-4 w-4" />
+                  <span>{workoutLabel}</span>
+                </Link>
+                <DropdownNav
+                  label={t("more")}
+                  icon={Menu}
+                  parentActive={
+                    isActive("/") ||
+                    isActive("/exercises") ||
+                    isActive("/planning") ||
+                    isActive("/equipment") ||
+                    isActive("/recommended") ||
+                    isActive("/glossary") ||
+                    isActive("/calculators") ||
+                    isActive("/settings") ||
+                    isActive("/profile")
+                  }
+                  items={[
+                    { href: "/", label: t("home"), icon: Home },
+                    { href: "/exercises", label: t("exercises"), icon: Lightbulb, dataTour: "exercises" },
+                    { href: "/planning", label: t("planning"), icon: BarChart3 },
+                    { href: "/equipment", label: t("equipment"), icon: Dumbbell },
+                    { href: "/recommended", label: t("recommended"), icon: Target, dataTour: "recommended" },
+                    { href: "/glossary", label: t("glossary"), icon: BookOpen, dataTour: "glossary" },
+                    { href: "/calculators", label: t("calculators"), icon: Calculator, dataTour: "calculators" },
+                    { href: "/settings", label: t("settings"), icon: Settings },
+                    ...(user ? [{ href: "/profile", label: t("profile"), icon: User, dataTour: "profile" }] : []),
+                  ]}
                 />
-                <NavLink
-                  href="/equipment"
-                  icon={Dumbbell}
-                  label={t("equipment") || "Equipamiento"}
-                  isActive={isActive("/equipment")}
-                  color="blue"
-                />
-                <NavLink
-                  href="/planning"
-                  icon={BarChart3}
-                  label={t("planning")}
-                  isActive={isActive("/planning")}
-                  color="indigo"
-                />
-                <NavLink
-                  href="/recommended"
-                  icon={Target}
-                  label={t("recommended")}
-                  isActive={isActive("/recommended")}
-                  color="emerald"
-                  data-tour="recommended"
-                />
-                {/* <NavLink href="/sessions" icon={Calendar} label={t('sessions')} isActive={isActive('/sessions')} color="indigo" /> */}
-                <NavLink
-                  href="/glossary"
-                  icon={BookOpen}
-                  label={t("glossary")}
-                  isActive={isActive("/glossary")}
-                  color="indigo"
-                  data-tour="glossary"
-                />
-                <NavLink
-                  href="/calculators"
-                  icon={Calculator}
-                  label={t("calculators")}
-                  isActive={isActive("/calculators")}
-                  color="teal"
-                  data-tour="calculators"
-                />
-                <NavLink
-                  href="/settings"
-                  icon={Settings}
-                  label={t("settings")}
-                  isActive={isActive("/settings")}
-                  color="zinc"
-                />
-                {/* <NavLink href="/data" icon={Database} label={t('data')} isActive={isActive('/data')} color="indigo" /> */}
-                {user && (
-                  <NavLink
-                    href="/profile"
-                    icon={User}
-                    label={t("profile")}
-                    isActive={isActive("/profile")}
-                    color="blue"
-                    data-tour="profile"
-                  />
-                )}
               </div>
-              {/* Dropdown fuera del contenedor scrollable para evitar recortes */}
-              <div className="ml-2">
+              <div>
                 <DropdownNav
                   label={t("dashboard")}
                   icon={LayoutDashboard}
@@ -214,6 +159,7 @@ export const Navbar: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleSignOut}
+                  aria-label={t("logout")}
                   className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 ml-2"
                 >
                   <LogOut className="w-4 h-4" />
@@ -221,53 +167,7 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Mobile menu button — oculto: navegación reemplazada por BottomNavBar */}
-            <div className="flex items-center space-x-2 lg:hidden" style={{ display: 'none' }} />
           </div>
-
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden pb-4 border-t border-zinc-200 dark:border-zinc-800 mt-2 pt-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {mobileItems.map((it) => (
-                  <MobileNavLink
-                    key={it.href}
-                    href={it.href}
-                    icon={it.icon}
-                    label={it.label}
-                    isActive={isActive(it.href)}
-                    onClick={() => setMobileMenuOpen(false)}
-                  />
-                ))}
-
-                {/* Profile link shown only when user is authenticated */}
-                {user && (
-                  <MobileNavLink
-                    href="/profile"
-                    icon={User}
-                    label={t("profile")}
-                    isActive={isActive("/profile")}
-                    onClick={() => setMobileMenuOpen(false)}
-                  />
-                )}
-              </div>
-
-              {user && (
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => {
-                    handleSignOut();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full mt-4"
-                >
-                  <LogOut className="w-4 h-4" />
-                  {t("logout") || "Cerrar sesión"}
-                </Button>
-              )}
-            </div>
-          )}
         </div>
       </nav>
     </>
@@ -280,7 +180,6 @@ interface NavLinkProps {
   icon: React.ElementType;
   label: string;
   isActive: boolean;
-  color: string;
   "data-tour"?: string;
 }
 
@@ -289,32 +188,21 @@ const NavLink: React.FC<NavLinkProps> = ({
   icon: Icon,
   label,
   isActive,
-  color,
   "data-tour": dataTour,
 }) => {
-  const colorClasses = {
-    blue: "from-blue-600 to-blue-500 shadow-blue-500/30",
-    cyan: "from-cyan-600 to-cyan-500 shadow-cyan-500/30",
-    purple: "from-purple-600 to-purple-500 shadow-purple-500/30",
-    emerald: "from-emerald-600 to-emerald-500 shadow-emerald-500/30",
-    indigo: "from-indigo-600 to-indigo-500 shadow-indigo-500/30",
-    amber: "from-amber-600 to-amber-500 shadow-amber-500/30",
-    teal: "from-teal-600 to-teal-500 shadow-teal-500/30",
-  };
-
   return (
     <Link
       href={href}
       data-tour={dataTour}
       className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
         isActive
-          ? `bg-linear-to-r ${colorClasses[color as keyof typeof colorClasses]} text-white shadow-lg`
+          ? "bg-emerald-700 text-white shadow-sm dark:bg-emerald-300 dark:text-gray-950"
           : "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
       }`}
     >
       <span className="flex items-center gap-2">
         <Icon className="w-4 h-4" />
-        <span className="hidden xl:inline">{label}</span>
+        <span>{label}</span>
       </span>
     </Link>
   );
@@ -360,19 +248,19 @@ const DropdownNav: React.FC<DropdownNavProps> = ({
         onClick={() => setOpen((v) => !v)}
         className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
           {
-            true: "bg-linear-to-r from-cyan-600 to-cyan-500 text-white shadow-lg",
+            true: "bg-emerald-700 text-white shadow-sm dark:bg-emerald-300 dark:text-gray-950",
           }[String(parentActive)] ||
           "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
         }`}
         aria-expanded={open}
       >
         <Icon className="w-4 h-4" />
-        <span className="hidden xl:inline">{selectedLabel}</span>
+        <span>{selectedLabel}</span>
         <ChevronDown className="w-3 h-3 ml-1" />
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-2 w-44 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-50 py-1 overflow-hidden">
+        <div className="absolute left-0 mt-2 max-h-[70vh] w-52 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg z-50 dark:border-zinc-800 dark:bg-zinc-900">
           {items.map((it) => (
             <Link
               key={it.href}
@@ -391,36 +279,5 @@ const DropdownNav: React.FC<DropdownNavProps> = ({
         </div>
       )}
     </div>
-  );
-};
-// Componente de enlace para mobile
-interface MobileNavLinkProps {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  isActive: boolean;
-  onClick: () => void;
-}
-
-const MobileNavLink: React.FC<MobileNavLinkProps> = ({
-  href,
-  icon: Icon,
-  label,
-  isActive,
-  onClick,
-}) => {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
-        isActive
-          ? "bg-linear-to-br from-blue-600 to-purple-600 text-white shadow-lg"
-          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-      }`}
-    >
-      <Icon className="w-6 h-6 mb-1" />
-      <span className="text-xs font-medium">{label}</span>
-    </Link>
   );
 };

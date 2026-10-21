@@ -7,8 +7,8 @@ import AchievementsGrid from "@/components/features/achievements/AchievementsGri
 import { Button } from "@/components/ui/Button";
 import { useGym } from "@/context/GymContext"; // ✨ Usar el contexto existente
 import type { WorkoutSession } from "@/types";
-import { calculateAchievements, calculateStreak } from "@/lib/achievements/achievements";
-import { calculateTotalVolume } from "@/lib/utils/dateUtils";
+import { calculateAchievements, calculateStreak } from "@/lib/domain/achievements/achievements";
+import { calculateTotalVolume, formatVolume } from "@/lib/shared/utils/volumeCalculations";
 import {
   Trophy,
   Flame,
@@ -17,10 +17,10 @@ import {
   TrendingUp,
   Zap,
 } from "@/components/icons/lucide";
-import logger from "@/lib/logger";
+import logger from "@/lib/shared/logger";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
+import { CardSkeleton } from "@/components/ui/Skeleton";
 import {
-  LoadingSpinner,
   EmptyStateCard,
   StatBadge,
   StatsGrid,
@@ -61,7 +61,20 @@ export default function AchievementsPage() {
             gradient="from-indigo-600 to-violet-600"
           />
           <PageContent>
-            <LoadingSpinner size="lg" message="Cargando logros..." />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
           </PageContent>
         </PageLayout>
       </ProtectedRoute>
@@ -117,7 +130,7 @@ export default function AchievementsPage() {
                     Volumen Total
                   </p>
                   <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    {(totalVolume / 1000).toFixed(0)}t
+                    {formatVolume(totalVolume)}
                   </p>
                 </div>
               </div>

@@ -9,12 +9,12 @@ Se mejoró significativamente el componente `WorkoutGlobalTimer` con un diseño 
 ```
 ┌─────────────────────────────────────┐
 │ ⏱️ 0:49                             │
-│ (Fondo azul claro, pequeño)         │
+│ (Fondo verde suave, pequeño)         │
 └─────────────────────────────────────┘
 ```
 
 **Características:**
-- Fondo azul claro (bg-blue-50)
+- Fondo verde suave (bg-blue-50)
 - Ícono pequeño (w-4 h-4)
 - Solo muestra el tiempo
 - Poco contraste
@@ -26,12 +26,12 @@ Se mejoró significativamente el componente `WorkoutGlobalTimer` con un diseño 
 ┌─────────────────────────────────────┐
 │ ⏱️ Duración entrenamiento            │
 │    0:49                             │
-│ (Gradiente azul, más grande)        │
+│ (Gradiente turquesa, más grande)        │
 └─────────────────────────────────────┘
 ```
 
 **Características:**
-- Gradiente azul (from-blue-600 to-blue-700)
+- Gradiente turquesa (from-blue-600 to-blue-700)
 - Ícono más grande (w-5 h-5)
 - Etiqueta clara "Duración entrenamiento"
 - Mejor contraste (texto blanco)
@@ -103,7 +103,7 @@ Se mejoró significativamente el componente `WorkoutGlobalTimer` con un diseño 
 
 ✅ **Más profesional** - Gradiente y sombra dan profundidad
 ✅ **Mejor legibilidad** - Etiqueta clara y tiempo más grande
-✅ **Mejor contraste** - Texto blanco sobre fondo azul
+✅ **Mejor contraste** - Texto blanco sobre fondo turquesa
 ✅ **Más impacto visual** - Destaca más en la página
 ✅ **Mejor jerarquía** - Etiqueta pequeña, tiempo grande
 ✅ **Responsive** - Se adapta bien a móvil y desktop

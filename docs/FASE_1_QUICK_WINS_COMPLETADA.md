@@ -229,7 +229,7 @@ localStorage.setItem('useExecutionModal', 'true');
 
 **Implementación:**
 - Timer visibogreso visual
-- Diseño atractivo con gradiente azul-púrpura
+- Diseño atractivo con gradiente verde y turquesa
 
 **Componentes creados:**
 - `components/MinimizedTimer.tsx`: Nuevo componente
@@ -274,7 +274,7 @@ localStorage.setItem('useExecutionModal', 'true');
 - Indicador visual claro del estado de ejecución
 
 **Características del banner:**
-- Fondo azul con borde destacado
+- Fondo turquesa con borde destacado
 - Icono de reloj ⏱️
 - Timer en tiempo real mostrando tiempo transcurrido
 - Mensaje claro: "Completa cuando termines de ejecutar"

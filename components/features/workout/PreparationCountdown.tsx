@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PreparationCountdownProps {
@@ -19,6 +19,18 @@ export function PreparationCountdown({
   const [count, setCount] = useState(duration);
   const [isActive, setIsActive] = useState(true);
   const onCompleteRef = React.useRef(onComplete);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  // Inicializar AudioContext una sola vez y cerrarlo al desmontar
+  useEffect(() => {
+    audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    return () => {
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
+      }
+    };
+  }, []);
 
   // Mantener la referencia actualizada sin causar re-renders
   useEffect(() => {
@@ -41,20 +53,22 @@ export function PreparationCountdown({
       navigator.vibrate(100);
     }
 
-    // Sonido opcional (beep)
+    // Sonido opcional (beep) — usa el AudioContext ya inicializado arriba
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = count === 1 ? 800 : 600; // Tono más alto en el último segundo
-      gainNode.gain.value = 0.1;
-      
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.1);
+      const ctx = audioCtxRef.current;
+      if (ctx) {
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.frequency.value = count === 1 ? 800 : 600; // Tono más alto en el último segundo
+        gainNode.gain.value = 0.1;
+        
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.1);
+      }
     } catch (e) {
       // Silenciar errores de audio
     }

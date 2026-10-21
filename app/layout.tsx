@@ -11,7 +11,6 @@ import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import GlobalUI from '@/components/layout/GlobalUI';
 import Onboarding from '@/components/features/onboarding/Onboarding';
 import { ReactQueryProvider } from "@/components/layout/ReactQueryProvider";
-import DisableZoom from "@/components/layout/DisableZoom";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,16 +23,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gym Tracker - Registra tus rutinas de gimnasio",
-  description: "Aplicación para registrar y seguir tus rutinas de gimnasio",
+  title: "GymLogiX - Tus rutinas, complementos y progreso",
+  description: "Planifica tus rutinas de entrenamiento, registra series y pesos, y sigue tu progreso físico con estadísticas detalladas.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Gym Tracker",
+    statusBarStyle: "black-translucent",
+    title: "GymLogiX",
   },
   formatDetection: {
     telephone: false,
+  },
+  openGraph: {
+    title: "GymLogiX - Entrenamiento y Progreso",
+    description: "Planifica tus rutinas, registra series y pesos, y sigue tu progreso físico.",
+    type: "website",
+    locale: "es_ES",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GymLogiX - Entrenamiento y Progreso",
+    description: "Planifica tus rutinas, registra series y pesos, y sigue tu progreso físico.",
   },
 };
 
@@ -42,9 +52,10 @@ export function generateViewport() {
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
-    minimumScale: 1,
-    userScalable: false,
-    themeColor: "#3b82f6",
+    userScalable: "no",
+    themeColor: "#0a0a0c",
+    viewportFit: "cover",
+    interactiveWidget: "resizes-content",
   };
 }
 
@@ -59,14 +70,23 @@ export default function RootLayout({
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
         <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-180x180.png" sizes="180x180" type="image/png" />
         <link rel="icon" href="/icons/icon-192x192.png" sizes="192x192" type="image/png" />
         <link rel="icon" href="/icons/icon-512x512.png" sizes="512x512" type="image/png" />
+        {/* Metaetiquetas PWA para iOS */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="GymLogiX" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        {/* Prevenir selección de texto y gestos por defecto del navegador */}
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="theme-color" content="#0a0a0c" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  const theme = localStorage.getItem('gym-tracker-theme') || 'dark';
+                  const theme = localStorage.getItem('gym-logic-theme') || 'dark';
                   const getTimeBasedTheme = () => {
                     const hour = new Date().getHours();
                     return (hour >= 20 || hour < 7) ? 'dark' : 'light';
@@ -89,19 +109,25 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        {/* Skip link para navegación por teclado */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-white focus:text-blue-600 focus:rounded-lg focus:shadow-lg"
+        >
+          Saltar al contenido principal
+        </a>
         <ErrorBoundary>
           <ReactQueryProvider>
             <ThemeProvider>
               <Providers>
                 <OnboardingProvider>
-                  <DisableZoom />
                   <ClientOnly>
                     <ServiceWorkerRegistration />
                     <PWAInstaller />
                     <GlobalUI />
                     <Onboarding />
                   </ClientOnly>
-                  <main className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 pb-16 lg:pb-0">
+                  <main id="main-content" className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-950 dark:to-black pb-16 lg:pb-0">
                     {children}
                   </main>
                 </OnboardingProvider>

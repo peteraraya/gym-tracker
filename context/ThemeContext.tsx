@@ -15,7 +15,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') return 'dark';
-    return (localStorage.getItem('gym-tracker-theme') as ThemeMode) || 'dark';
+    return (localStorage.getItem('gym-logic-theme') as ThemeMode) || 'dark';
   });
 
   const [timeTick, setTimeTick] = useState<number>(() => Date.now());
@@ -86,7 +86,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);
-    localStorage.setItem('gym-tracker-theme', newTheme);
+    localStorage.setItem('gym-logic-theme', newTheme);
   };
 
   return (

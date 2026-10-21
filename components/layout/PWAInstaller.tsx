@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Download, X } from '@/components/icons/lucide';
+import { useTranslations } from '@/context/LocaleContext';
+import { Card } from '@/components/ui/Card';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -10,8 +12,11 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PWAInstaller() {
+  const t = useTranslations('pwa');
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [installationError, setInstallationError] = useState(false);
+  const promptTimeoutRef = useRef<number | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -22,23 +27,25 @@ export function PWAInstaller() {
   });
 
   useEffect(() => {
-    // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
 
-      // Mostrar el prompt después de un delay
-      setTimeout(() => {
-        const dismissed = localStorage.getItem('pwa-install-dismissed');
+      promptTimeoutRef.current = window.setTimeout(() => {
+        let dismissed = false;
+        try {
+          dismissed = localStorage.getItem('pwa-install-dismissed') === 'true';
+        } catch (error) {
+          console.warn('[PWA] Could not read install prompt preference:', error);
+        }
         if (!dismissed) {
           setShowInstallPrompt(true);
         }
-      }, 3000);
+      }, 4000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Detectar cuando se instala
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setShowInstallPrompt(false);
@@ -47,6 +54,9 @@ export function PWAInstaller() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      if (promptTimeoutRef.current !== null) {
+        window.clearTimeout(promptTimeoutRef.current);
+      }
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
@@ -55,20 +65,25 @@ export function PWAInstaller() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      console.log('PWA installed');
+    try {
+      await deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+      setInstallationError(false);
+    } catch (error) {
+      console.error('[PWA] Installation prompt failed:', error);
+      setInstallationError(true);
     }
-
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
   };
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    localStorage.setItem('pwa-install-dismissed', 'true');
+    try {
+      localStorage.setItem('pwa-install-dismissed', 'true');
+    } catch (error) {
+      console.warn('[PWA] Could not save install prompt preference:', error);
+    }
   };
 
   if (isInstalled || !showInstallPrompt) {
@@ -76,61 +91,64 @@ export function PWAInstaller() {
   }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-40 animate-slide-in-right">
-      <div className="bg-linear-to-br from-blue-600 to-purple-600 text-white rounded-2xl shadow-2xl p-6 relative">
+    <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-4 md:w-80 z-50 animate-slide-in-bottom">
+      <Card className="bg-linear-to-br from-neutral-900 via-neutral-800 to-neutral-950 border border-neutral-700 shadow-2xl p-5 relative">
         <button
           onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1 hover:bg-white/20 rounded-lg transition-colors"
-          aria-label="Cerrar"
+          className="absolute top-2 right-2 p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+          aria-label={t('close')}
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 text-neutral-300" />
         </button>
 
-        <div className="flex items-start gap-4 mb-4">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-            <Download className="w-6 h-6" />
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-10 h-10 bg-brand-500/20 border border-brand-400/30 rounded-xl flex items-center justify-center shrink-0 text-brand-300">
+            <Download className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-1">
-              Instalar Gym Tracker
+            <h3 className="font-semibold text-neutral-50 mb-0.5 text-sm">
+              {t('installTitle')}
             </h3>
-            <p className="text-sm text-white/90">
-              Instala la app en tu dispositivo para acceso rápido y funciones offline
+            <p className="text-neutral-400 text-xs leading-relaxed">
+              {t('installDescription')}
             </p>
           </div>
         </div>
 
-        <div className="space-y-2 mb-4 text-sm">
-          <div className="flex items-center gap-2">
-            <span>✓</span>
-            <span>Acceso instantáneo desde tu pantalla de inicio</span>
+        <div className="space-y-2 mb-3 text-[11px]">
+          <div className="flex items-center gap-1.5">
+            <span className="text-brand-400">✓</span>
+            <span className="text-neutral-300">{t('homeBenefit')}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span>✓</span>
-            <span>Funciona sin conexión a internet</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span>✓</span>
-            <span>Notificaciones de recordatorios</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-brand-400">✓</span>
+            <span className="text-neutral-300">{t('offlineBenefit')}</span>
           </div>
         </div>
+
+        {installationError && (
+          <p role="alert" className="mb-2 rounded-lg bg-red-900/30 p-2 text-[11px] text-red-100 border border-red-500/20">
+            {t('installError')}
+          </p>
+        )}
 
         <div className="flex gap-2">
           <Button
             onClick={handleInstallClick}
-            className="flex-1 bg-white text-blue-600 hover:bg-gray-100"
+            className="flex-1 min-h-[44px]"
+            variant="primary"
           >
-            Instalar Ahora
+            {t('install')}
           </Button>
           <Button
             onClick={handleDismiss}
             variant="ghost"
-            className="text-white hover:bg-white/20"
+            className="text-neutral-300 hover:bg-white/10 min-h-[44px]"
           >
-            Más Tarde
+            {t('later')}
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

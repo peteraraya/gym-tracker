@@ -2,7 +2,7 @@
 
 import { Achievement, AchievementCategory } from '@/types';
 import AchievementBadge from './AchievementBadge';
-import { getCategoryProgress } from '@/lib/achievements/achievements';
+import { getCategoryProgress } from '@/lib/domain/achievements/achievements';
 import { Trophy, Flame, Calendar, Target } from '@/components/icons/lucide';
 
 interface AchievementsGridProps {
@@ -14,7 +14,7 @@ const CATEGORY_INFO: Record<AchievementCategory, { name: string; icon: typeof Tr
   consistency: {
     name: 'Consistencia',
     icon: Trophy,
-    color: '#3B82F6' // blue
+    color: '#4da6ff' // blue-400
   },
   volume: {
     name: 'Volumen',

@@ -1,34 +1,20 @@
-# Generación de Iconos para PWA
+# Generación de iconos para GymLogiX
 
 ## ✅ ESTADO ACTUAL
 
-Los iconos ya están generados y configurados con el diseño de letras "GT" grandes y visibles.
+Los iconos se generan desde `public/gymlogix-mark.svg`, con el símbolo G y mancuerna en blanco y turquesa sobre negro grafito.
 
 ### Iconos Disponibles
 
-1. **icon-gt.svg** (ACTUAL) ✓
-   - Letras "GT" grandes y visibles
-   - Fondo con gradiente azul-púrpura
-   - Perfecto para reconocimiento rápido
-
-2. **icon-dumbbell.svg**
-   - Mancuerna simplificada y clara
-   - Más visual y temático
-
-3. **icon-simple.svg** (original)
-   - Mancuerna detallada con efectos 3D
+1. **gymlogix-mark.svg** (fuente oficial) ✓
+   - Símbolo de GymLogiX con mancuerna
+   - Negro grafito, blanco y turquesa institucional
 
 ## Cambiar el Diseño
 
 ```bash
-# Usar letras GT (actual)
-npm run generate:icons public/icon-gt.svg
-
-# Usar mancuerna simplificada
-npm run generate:icons public/icon-dumbbell.svg
-
-# Usar mancuerna detallada original
-npm run generate:icons public/icon-simple.svg
+# Generar los iconos PWA de GymLogiX
+npm run generate:icons -- public/gymlogix-mark.svg
 ```
 
 ## Iconos Generados ✓
@@ -60,7 +46,7 @@ Todos los tamaños necesarios ya están creados en `public/icons/`:
 
 ## Icono Base
 
-El icono de la aplicación es una mancuerna estilizada con gradiente azul-púrpura sobre fondo redondeado.
+El icono de la aplicación es el símbolo GymLogiX en blanco y turquesa sobre fondo negro grafito.
 
 ## Tamaños Necesarios
 
@@ -118,7 +104,7 @@ pwa-asset-generator public/icon-simple.svg public/icons \
   --favicon \
   --type png \
   --padding "10%" \
-  --background "#3B82F6"
+  --background "#00D6A4"
 ```
 
 ### Opción B: sharp-cli

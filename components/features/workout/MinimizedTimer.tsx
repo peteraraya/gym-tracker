@@ -29,7 +29,7 @@ export function MinimizedTimer({
 
   return (
     <div className="fixed bottom-6 left-4 right-4 z-40 md:right-20 md:left-auto px-4">
-      <div className="bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-2xl shadow-md border border-white/10 backdrop-blur-sm max-w-3xl md:w-80 mx-auto md:mx-0">
+      <div className="bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-2xl shadow-md border border-white/10 backdrop-blur-sm max-w-3xl md:w-80 mx-auto md:mx-0">
         <div className="px-3 py-2 flex items-center gap-3">
           <button
             onClick={onExpand}

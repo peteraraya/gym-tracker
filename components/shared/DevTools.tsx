@@ -15,7 +15,7 @@ import {
   devClearRecommendations,
   devClearAllData,
   devGenerateTestData,
-} from "@/lib/storage/storage";
+} from "@/lib/infrastructure/storage/storage";
 
 /**
  * Panel de herramientas de desarrollo

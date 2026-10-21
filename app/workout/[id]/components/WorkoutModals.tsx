@@ -25,6 +25,7 @@ interface WorkoutModalsProps {
     setSessionNotes: (v: string) => void;
     completeSplash?: any;
     onCompleteSplashDone?: () => void;
+    isSaving?: boolean;
   };
   onFinish: (duration: number) => void;
 
@@ -147,7 +148,7 @@ export function WorkoutModals({
         sessionNotes={completion.sessionNotes}
         onNotesChange={completion.setSessionNotes}
         onFinish={onFinish}
-        isSaving={false}
+        isSaving={completion.isSaving || false}
       />
 
       {/* Sound Settings */}

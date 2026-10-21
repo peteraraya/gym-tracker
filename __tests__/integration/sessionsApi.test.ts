@@ -18,7 +18,7 @@ const mockSupabase = {
   from: jest.fn(),
 }
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/lib/infrastructure/supabase/server', () => ({
   createClient: jest.fn(() => mockSupabase),
 }))
 

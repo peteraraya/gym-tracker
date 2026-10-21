@@ -32,6 +32,7 @@ export interface ExerciseTemplate {
   defaultSets?: number;
   defaultReps?: number;
   image?: string;
+  youtubeVideoId?: string; // ID del video de YouTube para mostrar en lugar/además de la imagen
   technique?: string[];
   recommendedSets?: string;
   recommendedReps?: string;

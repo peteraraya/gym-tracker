@@ -7,27 +7,45 @@ import { ExerciseSelector } from '@/components/features/exercises/ExerciseSelect
 import { ExerciseTemplate } from '@/data/exercises';
 
 interface AddExerciseButtonProps {
-  onAddExercises: (exercises: ExerciseTemplate[]) => void;
+  onAddExercises: (exercises: ExerciseTemplate[], insertIndex?: number) => void;
+  insertIndex?: number;
+  customButton?: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'info';
+  className?: string;
+  buttonText?: string;
 }
 
-export const AddExerciseButton: React.FC<AddExerciseButtonProps> = ({ onAddExercises }) => {
+export const AddExerciseButton: React.FC<AddExerciseButtonProps> = ({ 
+  onAddExercises,
+  insertIndex,
+  customButton,
+  variant = 'secondary',
+  className = "w-full flex items-center justify-center gap-2",
+  buttonText = "Agregar ejercicios"
+}) => {
   const [showModal, setShowModal] = useState(false);
 
   const handleSelectExercises = (exercises: ExerciseTemplate[]) => {
-    onAddExercises(exercises);
+    onAddExercises(exercises, insertIndex);
     setShowModal(false);
   };
 
   return (
     <>
-      <Button
-        variant="secondary"
-        onClick={() => setShowModal(true)}
-        className="w-full flex items-center justify-center gap-2"
-      >
-        <span className="text-lg">➕</span>
-        <span>Agregar ejercicios</span>
-      </Button>
+      {customButton ? (
+        <div onClick={(e) => { e.stopPropagation(); setShowModal(true); }}>
+          {customButton}
+        </div>
+      ) : (
+        <Button
+          variant={variant}
+          onClick={() => setShowModal(true)}
+          className={className}
+        >
+          <span className="text-lg">➕</span>
+          <span>{buttonText}</span>
+        </Button>
+      )}
 
       <Modal
         isOpen={showModal}

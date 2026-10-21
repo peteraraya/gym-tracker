@@ -15,7 +15,7 @@ Tu app tiene migraciones SQL pendientes que deben ejecutarse en Supabase Dashboa
 
 ### Cómo ejecutar (RECOMENDADO):
 1. Ve a [Supabase Dashboard](https://supabase.com/dashboard)
-2. Selecciona tu proyecto **Gym Tracker**
+2. Selecciona tu proyecto **GymLogiX**
 3. Ve a **SQL Editor** (menú lateral izquierdo)
 4. Click en **New Query**
 5. Copia y pega el contenido completo de `supabase/complete_migration.sql`
@@ -40,7 +40,7 @@ Tu app tiene migraciones SQL pendientes que deben ejecutarse en Supabase Dashboa
 
 **Cómo ejecutar**:
 1. Ve a [Supabase Dashboard](https://supabase.com/dashboard)
-2. Selecciona tu proyecto **Gym Tracker**
+2. Selecciona tu proyecto **GymLogiX**
 3. Ve a **SQL Editor** (menú lateral izquierdo)
 4. Click en **New Query**
 5. Copia y pega el contenido de `supabase/add_duration_tracking.sql`
@@ -63,7 +63,7 @@ Tu app tiene migraciones SQL pendientes que deben ejecutarse en Supabase Dashboa
 
 **Cómo ejecutar**:
 1. Ve a [Supabase Dashboard](https://supabase.com/dashboard)
-2. Selecciona tu proyecto **Gym Tracker**
+2. Selecciona tu proyecto **GymLogiX**
 3. Ve a **SQL Editor**
 4. Click en **New Query**
 5. Copia y pega el contenido de `supabase/add_session_fields.sql`

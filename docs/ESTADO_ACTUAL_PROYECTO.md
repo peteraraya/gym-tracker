@@ -1,4 +1,4 @@
-# 📊 Estado Actual del Proyecto - Gym Tracker
+# 📊 Estado Actual del Proyecto - GymLogiX
 
 **Fecha:** 2026-02-28  
 **Última actualización:** Continuación de conversación (mensaje 20+)
@@ -148,7 +148,7 @@ Las columnas `rest_between_sets` y `use_smart_rest` NO EXISTEN en la tabla `exer
 
 1. **Ir a Supabase Dashboard**
    - URL: https://supabase.com/dashboard
-   - Proyecto: [tu-proyecto-gym-tracker]
+   - Proyecto: [tu-proyecto-gym-logic]
 
 2. **Abrir SQL Editor**
    - Menú lateral → SQL Editor → New query

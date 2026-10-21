@@ -1,64 +1,114 @@
 {
-  "name": "Gym Tracker - Tu Entrenador Personal",
-  "short_name": "Gym Tracker",
-  "description": "Aplicación completa para registrar y seguir tus rutinas de gimnasio con análisis inteligente",
-  "start_url": "/",
+  "name": "GymLogiX - Tus rutinas, complementos y progreso",
+  "short_name": "GymLogiX",
+  "description": "Planifica tus rutinas de entrenamiento, registra series y pesos, y sigue tu progreso físico con estadísticas detalladas.",
+  "start_url": "/?source=pwa",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c",
   "orientation": "portrait-primary",
   "scope": "/",
-  "categories": ["health", "fitness", "lifestyle"],
+  "categories": ["health", "fitness", "lifestyle", "sport"],
   "lang": "es",
   "dir": "ltr",
+  "iarc_rating_id": "gymlogix-2026",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
@@ -67,22 +117,36 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Dashboard principal"
+      "label": "Dashboard principal con métricas de entrenamiento"
     },
     {
       "src": "/screenshots/workout.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Entrenamiento en progreso"
+      "label": "Entrenamiento en progreso con temporizador"
+    },
+    {
+      "src": "/screenshots/routines.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Gestión de rutinas de ejercicios"
+    },
+    {
+      "src": "/screenshots/progress.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Progreso y estadísticas personales"
     }
   ],
   "shortcuts": [
     {
       "name": "Iniciar Entrenamiento",
       "short_name": "Entrenar",
-      "description": "Comenzar un entrenamiento rápido",
-      "url": "/routines",
+      "description": "Comenzar un entrenamiento rápido desde la pantalla de inicio",
+      "url": "/routines?source=shortcut",
       "icons": [
         {
           "src": "/icons/shortcut-workout.png",
@@ -94,8 +158,8 @@
     {
       "name": "Ver Progreso",
       "short_name": "Progreso",
-      "description": "Ver tu progreso y estadísticas",
-      "url": "/progress",
+      "description": "Ver tu progreso y estadísticas personales",
+      "url": "/progress?source=shortcut",
       "icons": [
         {
           "src": "/icons/shortcut-progress.png",
@@ -107,8 +171,8 @@
     {
       "name": "Asistente IA",
       "short_name": "Asistente",
-      "description": "Consultar al asistente de IA",
-      "url": "/ai-assistant",
+      "description": "Consultar al asistente de IA para rutinas y ejercicios",
+      "url": "/ai-assistant?source=shortcut",
       "icons": [
         {
           "src": "/icons/shortcut-ai.png",
@@ -128,5 +192,7 @@
       "url": "url"
     }
   },
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "protocol_handlers": []
 }

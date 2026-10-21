@@ -1,4 +1,4 @@
-# 📊 PROYECTO COMPLETO: REFACTORING GYM TRACKER - RESUMEN
+# 📊 PROYECTO COMPLETO: REFACTORING GYMLOGIX - RESUMEN
 
 **Período**: Febrero 27 - Marzo 14, 2026  
 **Duración**: 3 semanas (40 horas)  
@@ -8,7 +8,7 @@
 
 ## 🎯 OBJETIVO GENERAL
 
-Refactorizar la aplicación Gym Tracker para mejorar mantenibilidad, performance y escalabilidad, dividiendo la página de workout de 1675 líneas en componentes reutilizables y agregando validación con Zod.
+Refactorizar la aplicación GymLogiX para mejorar mantenibilidad, performance y escalabilidad, dividiendo la página de workout de 1675 líneas en componentes reutilizables y agregando validación con Zod.
 
 ---
 
@@ -352,7 +352,7 @@ app/workout/[id]/
 
 ## 🎓 CONCLUSIÓN
 
-El proyecto de refactoring de Gym Tracker ha sido exitoso en dividir la página de workout en componentes reutilizables, mejorar la mantenibilidad y agregar validación de datos. La Semana 3 se enfocará en optimización, testing y documentación final para completar el proyecto.
+El proyecto de refactoring de GymLogiX ha sido exitoso en dividir la página de workout en componentes reutilizables, mejorar la mantenibilidad y agregar validación de datos. La Semana 3 se enfocará en optimización, testing y documentación final para completar el proyecto.
 
 **Tiempo invertido**: 27.5 horas de 40 horas (69%)  
 **Componentes creados**: 6  

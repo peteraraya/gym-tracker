@@ -17,15 +17,15 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import * as storageService from "@/lib/storage/storage";
-import type { ActiveWorkout } from "@/lib/storage/storage";
+import * as storageService from "@/lib/infrastructure/storage/storage";
+import type { ActiveWorkout } from "@/lib/infrastructure/storage/storage";
 import { useAppLifecycle } from "@/hooks/useAppLifecycle";
-import { WorkoutStateSchema, validateDataWithLogging } from "@/lib/validation";
-import { saveQueue } from "@/lib/utils/saveQueue";
-import { saveBackup, attemptPartialRecovery } from "@/lib/utils/workoutBackup";
-import { normalizeWorkoutState } from "@/lib/workout/normalizeWorkoutState";
-import type { WorkoutState } from "@/lib/workout/normalizeWorkoutState";
-import logger from "@/lib/logger";
+import { WorkoutStateSchema, validateDataWithLogging } from "@/lib/shared/validation";
+import { saveQueue } from "@/lib/shared/utils/saveQueue";
+import { saveBackup, attemptPartialRecovery } from "@/lib/shared/utils/workoutBackup";
+import { normalizeWorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
+import type { WorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
+import logger from "@/lib/shared/logger";
 
 export type { WorkoutState };
 
@@ -42,18 +42,29 @@ const CLEARED_EVENT_TIMEOUT_MS = 1_500;
 
 // ─── Helpers de marcadores de storage ────────────────────────────────────────
 
-function setFinishMarkers() {
+function setOperationMarkers(sessionKey: string, persistentKey: string) {
   if (typeof window === "undefined") return;
   const ts = Date.now().toString();
-  sessionStorage.setItem("workout_finished", ts);
-  localStorage.setItem("workout_finished_persistent", ts);
+
+  try {
+    sessionStorage.setItem(sessionKey, ts);
+  } catch (error) {
+    logger.warn("[useWorkoutLifecycle] Could not set session operation marker", error);
+  }
+
+  try {
+    localStorage.setItem(persistentKey, ts);
+  } catch (error) {
+    logger.warn("[useWorkoutLifecycle] Could not set persistent operation marker", error);
+  }
+}
+
+function setFinishMarkers() {
+  setOperationMarkers("workout_finished", "workout_finished_persistent");
 }
 
 function setCancelMarkers() {
-  if (typeof window === "undefined") return;
-  const ts = Date.now().toString();
-  sessionStorage.setItem("workout_cancelled", ts);
-  localStorage.setItem("workout_cancelled_persistent", ts);
+  setOperationMarkers("workout_cancelled", "workout_cancelled_persistent");
 }
 
 function emitClearedEvent() {

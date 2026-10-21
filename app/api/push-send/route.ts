@@ -12,7 +12,7 @@ let vapidConfigured = false;
 if (vapidKeys.publicKey && vapidKeys.privateKey) {
   try {
     webpush.setVapidDetails(
-      'mailto:support@gymtracker.app',
+      'mailto:support@gymlogic.app',
       vapidKeys.publicKey,
       vapidKeys.privateKey
     );
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Payload de la notificación
     const payload = JSON.stringify({
-      title: notification.title || 'Gym Tracker',
+      title: notification.title || 'GymLogiX',
       body: notification.body || 'Nueva notificación',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/badge-72x72.png',

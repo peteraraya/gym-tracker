@@ -1,4 +1,4 @@
-# Análisis de Problemas y Mejoras - Gym Tracker
+# Análisis de Problemas y Mejoras - GymLogiX
 
 ## 📊 Resumen Ejecutivo
 

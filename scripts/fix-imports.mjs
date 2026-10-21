@@ -116,7 +116,6 @@ const COMPONENT_MAP = {
 
   // layout
   Navbar:                 'layout/Navbar',
-  PageLayout:             'layout/PageLayout',
   ProtectedRoute:         'layout/ProtectedRoute',
   GlobalUI:               'layout/GlobalUI',
   Providers:              'layout/Providers',
@@ -124,7 +123,6 @@ const COMPONENT_MAP = {
   AppLogo:                'layout/AppLogo',
   PWAInstaller:           'layout/PWAInstaller',
   ServiceWorkerRegistration: 'layout/ServiceWorkerRegistration',
-  DisableZoom:            'layout/DisableZoom',
 
   // shared
   FilterBar:              'shared/FilterBar',

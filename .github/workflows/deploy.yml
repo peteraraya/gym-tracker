@@ -55,7 +55,7 @@ jobs:
         run: npm run lint
 
       - name: Run unit tests (CI)
-        run: npm run test:unit --silent
+        run: npm run test:unit -- --silent
         env:
           CI: true
 
@@ -75,7 +75,9 @@ jobs:
           CI: true
 
       - name: Deploy to Vercel
-        if: ${{ always() }}
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npx vercel --prod --token $VERCEL_TOKEN --confirm
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel --prod --token $VERCEL_TOKEN --yes

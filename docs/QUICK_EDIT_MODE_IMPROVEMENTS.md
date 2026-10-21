@@ -114,7 +114,7 @@ Nuevo archivo: `app/workout/[id]/components/FloatingRestTimer.tsx`
 ```
 
 ### Características visuales
-- Gradiente azul-púrpura
+- Gradiente verde y turquesa
 - Animación slide-in-right
 - Sombra 2xl para destacar
 - Barra de progreso animada

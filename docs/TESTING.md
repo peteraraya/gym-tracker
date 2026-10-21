@@ -1,4 +1,4 @@
-# Testing Documentation - Gym Tracker
+# Testing Documentation - GymLogiX
 
 ## 📋 Índice
 

@@ -560,7 +560,7 @@ Perfil cargado desde cloud ✓
 
 ### **Clave de Almacenamiento**
 ```
-gym-tracker-user-profile
+gym-logic-user-profile
 ```
 
 ### **Consideraciones de Seguridad**
@@ -577,21 +577,21 @@ gym-tracker-user-profile
 ### **Ver Perfil en Consola**
 ```javascript
 // En la consola del navegador
-const profile = JSON.parse(localStorage.getItem('gym-tracker-user-profile'));
+const profile = JSON.parse(localStorage.getItem('gym-logic-user-profile'));
 console.log(profile);
 ```
 
 ### **Limpiar Perfil**
 ```javascript
 // En la consola del navegador
-localStorage.removeItem('gym-tracker-user-profile');
+localStorage.removeItem('gym-logic-user-profile');
 console.log('Perfil eliminado');
 ```
 
 ### **Verificar Existencia**
 ```javascript
 // En la consola del navegador
-const exists = localStorage.getItem('gym-tracker-user-profile') !== null;
+const exists = localStorage.getItem('gym-logic-user-profile') !== null;
 console.log('Perfil existe:', exists);
 ```
 

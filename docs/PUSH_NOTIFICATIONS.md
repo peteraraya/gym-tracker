@@ -1,4 +1,4 @@
-# Push Notifications - Gym Tracker
+# Push Notifications - GymLogiX
 
 ## Estado: ✅ ACTIVADO POR DEFECTO
 

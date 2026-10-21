@@ -1,18 +1,23 @@
 ﻿"use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "@/context/LocaleContext";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Timer, ArrowRight, Plus, Check } from "lucide-react";
+import { Timer, ArrowRight, Plus, Check } from "@/components/icons/lucide";
 import { Spinner } from "@/components/ui/Spinner";
 import SetTypeCycleButton from "@/components/features/workout/SetTypeCycleButton";
 import { EditValueModal } from "@/components/shared/EditValueModal";
 import { FloatingRestTimer } from "./FloatingRestTimer";
+import { SwipeButton } from "@/components/ui/SwipeButton";
 import { AddExerciseButton } from "./AddExerciseButton";
 import { useConfirm } from "@/context/NotificationContext";
 import { useToast } from "@/context/NotificationContext";
+import { compareWithRecord } from "@/lib/domain/exercises/personalRecords";
+import { PRCelebration } from "@/components/features/workout";
 import type { ExerciseTemplate } from "@/data/exercises";
-import type { SetType, Routine } from "@/types";
+import type { SetType, Routine, WorkoutSession } from "@/types";
+import type { SessionExercise } from "../types/workout.types";
 
 interface QuickEditModeProps {
   routine: Routine;
@@ -24,6 +29,8 @@ interface QuickEditModeProps {
     restOverrides?: { [key: string]: number };
     perSetRestOverrides?: { [key: string]: number[] };
     skippedExercises?: string[];
+    /** Flags explícitos de completado por serie: se activan al marcar una serie. */
+    completedSetFlags?: { [exerciseId: string]: boolean[] };
   };
   onEditReps: (exerciseId: string, setIndex: number, reps: number) => void;
   onEditWeight: (exerciseId: string, setIndex: number, weight: number) => void;
@@ -48,10 +55,12 @@ interface QuickEditModeProps {
   onAutoAdvanceChange?: (value: boolean) => void;
   autoAdvance?: boolean;
   onShowExerciseInfo?: (exerciseName: string) => void; // ✅ NUEVO: Callback para mostrar info del ejercicio
-  sessions?: any[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
-  onAddExercises?: (exercises: ExerciseTemplate[]) => void; // Callback para agregar ejercicios durante el entrenamiento
+  sessions?: WorkoutSession[]; // ✅ NUEVO: Sesiones anteriores para comparar progreso
+  onAddExercises?: (exercises: ExerciseTemplate[], insertIndex?: number) => void; // Callback para agregar ejercicios durante el entrenamiento
   /** Cuando es true, no renderiza el sticky header interno (el padre lo muestra en su bloque sticky) */
   hideHeader?: boolean;
+  /** Info de la serie actualmente en ejecución (para mostrar TUT en modo Quick) */
+  activeSet?: { exerciseId: string; setIndex: number; startTime: number } | null;
 }
 
 /**
@@ -82,7 +91,9 @@ export function QuickEditMode({
   onAddExercises,
   togglingKeys = {},
   hideHeader = false,
+  activeSet = null,
 }: QuickEditModeProps) {
+  const t = useTranslations("workout");
   const [editingCell, setEditingCell] = useState<{
     exerciseId: string;
     setIndex: number;
@@ -118,6 +129,24 @@ export function QuickEditMode({
   };
   // Auto-advance control (por defecto true)
   const [autoAdvanceLocal, setAutoAdvanceLocal] = useState(true);
+  
+  // Estado para la celebración de PR
+  const [prInfo, setPrInfo] = useState<{ show: boolean; title: string; subtitle: string }>({ show: false, title: '', subtitle: '' });
+
+  // ── TUT (Tiempo Bajo Tensión) para la serie activa en modo Quick ──────────
+  const [tutElapsed, setTutElapsed] = useState(0);
+  useEffect(() => {
+    if (!activeSet?.startTime) { 
+      setTimeout(() => setTutElapsed(0), 0); 
+      return; 
+    }
+    const tick = () => setTutElapsed(Math.floor((Date.now() - activeSet.startTime) / 1000));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [activeSet?.startTime]);
+
+  const formatTUT = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   const autoAdvance =
     autoAdvanceProp !== undefined ? autoAdvanceProp : autoAdvanceLocal;
   const setAutoAdvance = (value: boolean) => {
@@ -224,7 +253,7 @@ export function QuickEditMode({
       icon: '🔗',
       label: 'Cluster',
       description: 'Mini-series con descansos breves',
-      color: 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border border-pink-300 dark:border-pink-700',
+      color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700',
     },
   };
 
@@ -235,6 +264,14 @@ export function QuickEditMode({
     setIndex: number;
     exerciseName?: string;
     currentType: SetType;
+  } | null>(null);
+
+  // Estado para opciones del ejercicio (•••)
+  const [exerciseOptionsTarget, setExerciseOptionsTarget] = useState<{
+    exerciseId: string;
+    exIdx: number;
+    exerciseName: string;
+    isSkipped: boolean;
   } | null>(null);
 
   // Mantener el foco en el input de descanso cuando se abre el modal
@@ -288,6 +325,15 @@ export function QuickEditMode({
     currentValue: number,
     exerciseName: string,
   ) => {
+    // Prevenir edición si el ejercicio está omitido
+    const skippedExercises = workoutData.skippedExercises || [];
+    if (skippedExercises.includes(exerciseId)) {
+      try {
+        showToast?.('Ejercicio omitido. Restaura para editar.', 'info', 2000);
+      } catch {}
+      return;
+    }
+
     setEditingCell({ exerciseId, setIndex, field, currentValue, exerciseName });
     setTempValue(currentValue === 0 ? "" : String(currentValue));
   };
@@ -446,27 +492,11 @@ export function QuickEditMode({
     setTempValue("");
   };
 
-  // Función para cancelar edición (ahora también guarda si hay cambios)
+  // Función para cancelar edición (cierra el modal sin sobreescribir con valores obsoletos)
   const cancelEdit = () => {
     // Limpiar timer de auto-cierre
     if (autoCloseTimerRef.current) {
       clearTimeout(autoCloseTimerRef.current);
-    }
-
-    // Si hay un valor válido, guardarlo antes de cerrar
-    if (editingCell && tempValue) {
-      const value =
-        editingCell.field === "reps"
-          ? parseInt(tempValue)
-          : parseFloat(tempValue);
-
-      if (!isNaN(value) && value >= 0) {
-        if (editingCell.field === "reps") {
-          onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
-        } else {
-          onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
-        }
-      }
     }
 
     setEditingCell(null);
@@ -625,7 +655,7 @@ export function QuickEditMode({
       completedSets: completed,
       progressPercent: cappedPercent,
     };
-  }, [routine.exercises, workoutData.actualReps, workoutData.skippedExercises]);
+  }, [routine.exercises, workoutData.actualReps, workoutData.skippedExercises, workoutData.completedSets]);
 
   // ID del ejercicio «anclado» al tope — el último en el que el usuario marcó una serie
   const [pinnedExerciseId, setPinnedExerciseId] = useState<string | null>(null);
@@ -646,6 +676,37 @@ export function QuickEditMode({
       ...withIndex.filter(({ exercise }) => exercise.id !== pinnedExerciseId),
     ];
   }, [routine.exercises, pinnedExerciseId]);
+
+  // Auto-collapse: mover la lógica de auto-collapse fuera del render a un efecto
+  // para evitar llamar a setState durante la fase de renderizado.
+  useEffect(() => {
+    if (!routine || !routine.exercises) return;
+
+    const timer = setTimeout(() => {
+      setCollapsedExercises((prev) => {
+        const updated = new Set(prev);
+        let changed = false;
+
+        for (const ex of routine.exercises) {
+          const exerciseId = ex.id;
+          const completedCount = workoutData.completedSets?.[exerciseId] || 0;
+          const isFullyCompleted = completedCount === ex.sets.length;
+
+          if (
+            isFullyCompleted &&
+            !updated.has(exerciseId) &&
+            !manuallyExpandedExercises.has(exerciseId)
+          ) {
+            updated.add(exerciseId);
+            changed = true;
+          }
+        }
+
+        return changed ? updated : prev;
+      });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [routine.exercises, workoutData.completedSets, manuallyExpandedExercises]);
 
   // Elapsed timer local para encabezado compacto (desde el montaje)
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -691,27 +752,35 @@ export function QuickEditMode({
 
       {/* Header compacto - sticky (omitido cuando hideHeader=true, el padre lo gestiona) */}
       {!hideHeader && (
-      <div className="bg-linear-to-r from-blue-600 to-violet-600 text-white px-3 py-2.5 rounded-b-xl shadow-lg sticky top-0 z-10">
-        <div className="flex items-center gap-2">
+      <div className="sticky top-16 z-30 rounded-b-2xl border border-gray-200 bg-white/95 px-3 py-3 text-gray-900 shadow-md backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/95 dark:text-gray-100">
+        <div className="flex items-center gap-2.5">
 
           {/* Título + tiempo */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span className="text-sm font-bold tracking-tight">Edición Rápida</span>
-            <span className="text-xs tabular-nums bg-white/15 px-2 py-0.5 rounded-full font-mono">
+            <span className="text-sm font-bold tracking-tight">{t("quickEditMode")}</span>
+            <span className="rounded-full bg-gray-100 px-2 py-1 font-mono text-xs tabular-nums text-gray-600 dark:bg-gray-800 dark:text-gray-300">
               {formatElapsed(elapsedSeconds)}
             </span>
           </div>
 
           {/* Progreso */}
-          <div className="flex items-center gap-1.5 bg-white/15 rounded-full px-2.5 py-1 shrink-0">
-            <span className="text-sm font-bold tabular-nums leading-none">{progressPercent}%</span>
-            <span className="text-[10px] opacity-70 tabular-nums leading-none">{completedSets}/{totalSets}</span>
+          <div
+            className="flex shrink-0 items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1.5 dark:bg-gray-800"
+            role="progressbar"
+            aria-label={t("workoutProgress")}
+            aria-valuemin={0}
+            aria-valuemax={Math.max(totalSets, 1)}
+            aria-valuenow={Math.min(completedSets, totalSets)}
+            aria-valuetext={`${completedSets} ${t("of")} ${totalSets} ${t("sets")}`}
+          >
+            <span className="text-sm font-bold leading-none tabular-nums">{progressPercent}%</span>
+            <span className="text-[10px] leading-none tabular-nums text-gray-500 dark:text-gray-400">{completedSets}/{totalSets}</span>
           </div>
 
-          <div className="w-px h-5 bg-white/25 shrink-0" />
+          <div className="h-6 w-px shrink-0 bg-gray-200 dark:bg-gray-700" />
 
           {/* Controles */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex shrink-0 items-center gap-1.5">
 
             {/* Pill: Omitir descansos */}
             <button
@@ -720,22 +789,23 @@ export function QuickEditMode({
                 setSkipRestTimers(newVal);
                 try {
                   showToast(
-                    newVal ? "Omitir descansos activado" : "Omitir descansos desactivado",
+                    newVal ? t("skipRestEnabled") : t("skipRestDisabled"),
                     "info",
                     2200,
                   );
                 } catch {}
               }}
-              title="Omitir descansos: al activar, los timers no se iniciarán entre series."
-              aria-label={skipRestTimers ? "Omitir descansos: ON" : "Omitir descansos: OFF"}
-              className={`flex items-center gap-1 h-7 px-2 rounded-full text-[11px] font-semibold transition-all ${
+              title={t("skipRestDescription")}
+              aria-label={skipRestTimers ? t("skipRestEnabled") : t("skipRestDisabled")}
+              aria-pressed={skipRestTimers}
+              className={`flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${
                 skipRestTimers
-                  ? "bg-green-400/90 text-white shadow-sm"
-                  : "bg-white/15 text-white/70 hover:bg-white/25"
+                  ? "bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               }`}
             >
               <Timer className="w-3 h-3 shrink-0" />
-              <span className="hidden sm:inline">{skipRestTimers ? "ON" : "OFF"}</span>
+              <span className="hidden sm:inline">{skipRestTimers ? t("enabled") : t("disabled")}</span>
             </button>
 
             {/* Pill: Avance automático */}
@@ -745,22 +815,23 @@ export function QuickEditMode({
                 setAutoAdvance(newVal);
                 try {
                   showToast(
-                    newVal ? "Avanzar automáticamente activado" : "Avanzar automáticamente desactivado",
+                    newVal ? t("autoAdvanceEnabled") : t("autoAdvanceDisabled"),
                     "info",
                     2200,
                   );
                 } catch {}
               }}
-              title="Avanzar automáticamente: al activar, el foco avanzará a la siguiente serie tras completar."
-              aria-label={autoAdvance ? "Avanzar auto: ON" : "Avanzar auto: OFF"}
-              className={`flex items-center gap-1 h-7 px-2 rounded-full text-[11px] font-semibold transition-all ${
+              title={t("autoAdvanceDescription")}
+              aria-label={autoAdvance ? t("autoAdvanceEnabled") : t("autoAdvanceDisabled")}
+              aria-pressed={autoAdvance}
+              className={`flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${
                 autoAdvance
-                  ? "bg-blue-300/90 text-white shadow-sm"
-                  : "bg-white/15 text-white/70 hover:bg-white/25"
+                  ? "bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               }`}
             >
               <ArrowRight className="w-3 h-3 shrink-0" />
-              <span className="hidden sm:inline">{autoAdvance ? "ON" : "OFF"}</span>
+              <span className="hidden sm:inline">{autoAdvance ? t("enabled") : t("disabled")}</span>
             </button>
 
             {/* Agregar serie */}
@@ -770,8 +841,9 @@ export function QuickEditMode({
                   e.stopPropagation();
                   onAddSet(currentExerciseId);
                 }}
-                className="h-7 w-7 flex items-center justify-center bg-white/15 hover:bg-white/25 rounded-full transition-colors"
-                title="Agregar serie"
+                className="hidden h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus-visible:ring-emerald-300 sm:flex"
+                title={t("addSet")}
+                aria-label={t("addSet")}
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
@@ -785,12 +857,13 @@ export function QuickEditMode({
                   onFinishWorkout();
                 }}
                 disabled={completedSets === 0}
-                className={`h-7 w-7 flex items-center justify-center rounded-full transition-all ${
+                className={`flex h-10 w-10 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:focus-visible:ring-emerald-300 ${
                   completedSets > 0
-                    ? "bg-green-400 hover:bg-green-300 shadow-sm"
-                    : "bg-white/10 opacity-40 cursor-not-allowed"
+                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    : "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                 }`}
-                title="Finalizar entrenamiento"
+                title={t("finishWorkout")}
+                aria-label={t("finishWorkout")}
               >
                 <Check className="w-3.5 h-3.5" />
               </button>
@@ -799,12 +872,37 @@ export function QuickEditMode({
         </div>
 
         {/* Barra de progreso */}
-        <div className="w-full bg-white/15 rounded-full h-1.5 mt-2 overflow-hidden">
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
           <div
-            className="bg-white h-1.5 rounded-full transition-all duration-500"
+            className="h-full rounded-full bg-emerald-600 transition-all duration-500 dark:bg-emerald-300"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
+        {/* Serie en curso */}
+        {activeSet && (
+          <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-900 dark:bg-blue-950/50">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-blue-600 dark:bg-blue-300" />
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-widest text-blue-800 dark:text-blue-200">
+                {t("setInProgress")}
+              </span>
+              {(() => {
+                const ex = routine.exercises.find((e) => e.id === activeSet.exerciseId);
+                return ex ? (
+                  <span className="truncate text-[10px] text-blue-700 dark:text-blue-300">
+                    {ex.name} · #{activeSet.setIndex + 1}
+                  </span>
+                ) : null;
+              })()}
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] uppercase tracking-wide text-blue-700 dark:text-blue-300">{t("timeUnderTension")}</span>
+              <span className="text-base font-black leading-none tabular-nums text-blue-950 dark:text-white">
+                {formatTUT(tutElapsed)}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       )}
 
@@ -837,21 +935,7 @@ export function QuickEditMode({
           : exIdx === firstIncompleteIndex;
         const isNext = exIdx === firstIncompleteIndex + 1;
 
-        // BUG FIX: Auto-collapse on completion using a ref guard to prevent
-        // multiple setTimeout calls. The old inline setTimeout during render
-        // caused cascading state updates and unnecessary re-renders.
-        if (
-          isFullyCompleted &&
-          !isCollapsed &&
-          completedCount > 0 &&
-          !isManuallyExpanded
-        ) {
-          setCollapsedExercises((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(exerciseId);
-            return newSet;
-          });
-        }
+        // Auto-collapse handled by useEffect (moved out of render)
 
         return (
           <div
@@ -905,9 +989,9 @@ export function QuickEditMode({
                   : isCurrent
                     ? "ring-2 ring-blue-500 shadow-lg"
                     : isNext
-                      ? "ring-2 ring-orange-400 shadow-md"
+                      ? "ring-2 ring-gray-300 shadow-sm dark:ring-gray-700"
                       : isFullyCompleted
-                        ? "opacity-75"
+                        ? "ring-2 ring-emerald-700 dark:ring-emerald-300"
                         : ""
               }`}
             >
@@ -917,7 +1001,7 @@ export function QuickEditMode({
                   isCurrent
                     ? "bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30"
                     : isNext
-                      ? "bg-linear-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30"
+                      ? "bg-gray-100 dark:bg-gray-800"
                       : isFullyCompleted
                         ? "bg-linear-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20"
                         : "bg-linear-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900"
@@ -934,20 +1018,36 @@ export function QuickEditMode({
                     }
                   }}
                   aria-expanded={!isCollapsed}
-                  className="w-full p-3 hover:brightness-95 transition-all active:scale-[0.99]"
+                  aria-label={`${exercise.name}: ${isCollapsed ? t("showSets") : t("hideSets")}`}
+                  className="w-full cursor-pointer rounded-t-xl p-3 text-left transition-colors hover:bg-black/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 active:bg-black/[0.04] dark:hover:bg-white/[0.03] dark:focus-visible:ring-blue-300"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 sm:gap-3">
+                    {/* Drag Handle (indicador visual de que se puede arrastrar toda la tarjeta) */}
+                    {onMoveExercise && (
+                      <div 
+                        className="shrink-0 text-gray-300 dark:text-gray-600 mt-4 cursor-grab active:cursor-grabbing hover:text-gray-400 dark:hover:text-gray-500 transition-colors"
+                        title="Arrastra para reordenar"
+                      >
+                        <svg width="14" height="20" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="4" cy="4" r="1.5" />
+                          <circle cx="4" cy="8" r="1.5" />
+                          <circle cx="4" cy="12" r="1.5" />
+                          <circle cx="12" cy="4" r="1.5" />
+                          <circle cx="12" cy="8" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                        </svg>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                       {/* Número de ejercicio más grande y colorido */}
                       <div
                         className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-md shrink-0 ${
                           isCurrent
                             ? "bg-blue-500 text-white"
-                            : isNext
-                              ? "bg-orange-500 text-white"
-                              : isFullyCompleted
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-400 dark:bg-gray-600 text-white"
+                            : isFullyCompleted
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-400 dark:bg-gray-600 text-white"
                         }`}
                       >
                         {exIdx + 1}
@@ -962,20 +1062,33 @@ export function QuickEditMode({
                           {/* Badge de omitido */}
                           {isSkipped && (
                             <span className="px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full shadow-sm shrink-0">
-                              OMITIDO
+                              {t("exerciseSkipped").toUpperCase()}
                             </span>
                           )}
                           {/* Badge de estado más prominente */}
                           {!isSkipped && isCurrent && (
                             <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm shrink-0">
-                              ACTUAL
+                              {t("currentExercise").toUpperCase()}
                             </span>
                           )}
                           {!isSkipped && isNext && !isCurrent && (
-                            <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full shadow-sm shrink-0">
-                              SIGUIENTE
+                            <span className="px-2 py-0.5 rounded-full bg-gray-200 text-[10px] font-bold text-gray-700 shrink-0 dark:bg-gray-700 dark:text-gray-200">
+                              {t("nextExercise").toUpperCase()}
                             </span>
                           )}
+                          {!isSkipped && isFullyCompleted && (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-700 text-[10px] font-bold text-white shadow-sm shrink-0 dark:bg-emerald-300 dark:text-gray-950">
+                              ✓ {t("exerciseCompleted")}
+                            </span>
+                          )}
+                          {!isSkipped &&
+                            !isFullyCompleted &&
+                            !isCurrent &&
+                            !isNext && (
+                              <span className="px-2 py-0.5 rounded-full bg-gray-200 text-[10px] font-bold text-gray-800 shrink-0 dark:bg-gray-700 dark:text-gray-200">
+                                {t("exercisePending")}
+                              </span>
+                            )}
                         </div>
 
                         {/* Información del ejercicio */}
@@ -997,7 +1110,7 @@ export function QuickEditMode({
                                 />
                               </svg>
                               <span className="font-medium">
-                                {completedCount}/{exercise.sets.length} series
+                                {completedCount}/{exercise.sets.length} {t("sets")}
                               </span>
                             </div>
 
@@ -1029,8 +1142,9 @@ export function QuickEditMode({
                                   e.stopPropagation();
                                   onShowExerciseInfo(exercise.name);
                                 }}
-                                className="flex items-center gap-1.5 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-md transition-colors"
-                                title="Ver información del ejercicio"
+                                className="flex min-h-10 items-center gap-1.5 rounded-md bg-gray-100 px-2 py-1 text-gray-700 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus-visible:ring-blue-300"
+                                title={t("exerciseInfo")}
+                                aria-label={`${t("exerciseInfo")}: ${exercise.name}`}
                               >
                                 <svg
                                   className="w-3.5 h-3.5"
@@ -1046,10 +1160,12 @@ export function QuickEditMode({
                                   />
                                 </svg>
                                 <span className="text-[10px] font-semibold">
-                                  Info
+                                  {t("infoShort")}
                                 </span>
                               </button>
                             )}
+
+                            {/* Opciones Rápidas minimalistas movidas al menú de opciones (•••) */}
                           </div>
 
                           {/* Notas del ejercicio si existen */}
@@ -1090,7 +1206,7 @@ export function QuickEditMode({
                               />
                             </svg>
                             <span className="font-medium">
-                              {isCollapsed ? "Ver series" : "Ocultar series"}
+                              {isCollapsed ? t("showSets") : t("hideSets")}
                             </span>
                           </div>
                         </div>
@@ -1098,9 +1214,16 @@ export function QuickEditMode({
                     </div>
 
                     {/* Indicador de progreso circular mejorado */}
-                    <div className="flex flex-col items-center gap-1 shrink-0">
+                    <div
+                      className="flex shrink-0 flex-col items-center gap-1"
+                      role="progressbar"
+                      aria-label={`${exercise.name}: ${completedCount} ${t("of")} ${exercise.sets.length} ${t("sets")}`}
+                      aria-valuemin={0}
+                      aria-valuemax={Math.max(exercise.sets.length, 1)}
+                      aria-valuenow={Math.min(completedCount, exercise.sets.length)}
+                    >
                       <div className="relative w-14 h-14">
-                        <svg className="w-14 h-14 transform -rotate-90">
+                        <svg aria-hidden="true" className="w-14 h-14 transform -rotate-90">
                           <circle
                             cx="28"
                             cy="28"
@@ -1118,11 +1241,11 @@ export function QuickEditMode({
                             strokeWidth="5"
                             fill="none"
                             strokeDasharray={`${2 * Math.PI * 24}`}
-                            strokeDashoffset={`${2 * Math.PI * 24 * (1 - completedCount / exercise.sets.length)}`}
+                            strokeDashoffset={`${2 * Math.PI * 24 * (1 - completedCount / Math.max(exercise.sets.length, 1))}`}
                             className={`transition-all duration-500 ${
                               isFullyCompleted
                                 ? "text-green-500"
-                                : completedCount > 0
+                                : isCurrent && completedCount > 0
                                   ? "text-blue-500"
                                   : "text-gray-300 dark:text-gray-600"
                             }`}
@@ -1150,7 +1273,7 @@ export function QuickEditMode({
                                 {completedCount}
                               </div>
                               <div className="text-[9px] text-gray-500 dark:text-gray-400 leading-none mt-0.5">
-                                de {exercise.sets.length}
+                                {t("of")} {exercise.sets.length}
                               </div>
                             </div>
                           )}
@@ -1193,10 +1316,10 @@ export function QuickEditMode({
                             restTime,
                           );
                         }}
-                        className="font-medium text-left hover:underline focus:outline-none"
-                        aria-label={"Editar descanso de " + exercise.name}
+                        className="min-h-10 rounded-md text-left font-medium transition-colors hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:hover:text-white dark:focus-visible:ring-blue-300"
+                        aria-label={`${t("editRestTime")} ${exercise.name}`}
                       >
-                        Descanso:{" "}
+                        {t("rest")}:{" "}
                         {(() => {
                           const override =
                             workoutData.restOverrides?.[exerciseId];
@@ -1217,7 +1340,7 @@ export function QuickEditMode({
                       </button>
                     ) : (
                       <span className="font-medium">
-                        Descanso:{" "}
+                        {t("rest")}:{" "}
                         {(() => {
                           const override =
                             workoutData.restOverrides?.[exerciseId];
@@ -1250,15 +1373,16 @@ export function QuickEditMode({
                             onSkipExercise(exerciseId);
                           }
                         }}
-                        className={`px-2 py-1 rounded text-[10px] font-medium transition-colors flex items-center gap-1 ${
+                        className={`flex min-h-10 items-center gap-1 rounded-md px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
                           isSkipped
                             ? "bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400"
-                            : "bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 text-yellow-600 dark:text-yellow-400"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                         }`}
                         title={
-                          isSkipped
-                            ? "Restaurar ejercicio"
-                            : "Omitir ejercicio en esta sesión"
+                          isSkipped ? t("restoreExercise") : t("skipExercise")
+                        }
+                        aria-label={
+                          isSkipped ? t("restoreExercise") : t("skipExercise")
                         }
                       >
                         {isSkipped ? (
@@ -1276,7 +1400,7 @@ export function QuickEditMode({
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                               />
                             </svg>
-                            Restaurar
+                            {t("restoreExercise")}
                           </>
                         ) : (
                           <>
@@ -1293,7 +1417,7 @@ export function QuickEditMode({
                                 d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"
                               />
                             </svg>
-                            Omitir
+                            {t("skipExercise")}
                           </>
                         )}
                       </button>
@@ -1301,68 +1425,6 @@ export function QuickEditMode({
                   </div>
                 </div>
 
-                {/* Botones de reordenar */}
-                {onMoveExercise && routine.exercises.length > 1 && (
-                  <div className="px-2.5 pb-2 flex items-center gap-2">
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
-                      Reordenar:
-                    </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (exIdx > 0) {
-                            onMoveExercise(exIdx, exIdx - 1);
-                          }
-                        }}
-                        disabled={exIdx === 0}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Mover arriba"
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 15l7-7 7 7"
-                          />
-                        </svg>
-                        Subir
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (exIdx < routine.exercises.length - 1) {
-                            onMoveExercise(exIdx, exIdx + 1);
-                          }
-                        }}
-                        disabled={exIdx === routine.exercises.length - 1}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Mover abajo"
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                        Bajar
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {!isCollapsed && (
@@ -1379,16 +1441,16 @@ export function QuickEditMode({
                         </div>
 
                         <div className="flex items-center">
-                          <div className="mx-auto text-[10px] font-semibold text-gray-600 dark:text-gray-300">Reps</div>
+                          <div className="mx-auto text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">{t("repsShort")}</div>
                         </div>
 
                         <div className="flex items-center">
-                          <div className="mx-auto text-[10px] font-semibold text-gray-600 dark:text-gray-300">Peso</div>
+                          <div className="mx-auto text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">{t("weightShort")}</div>
                         </div>
 
                         <div className="flex items-center justify-center">
-                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 hidden sm:block">Tipo</div>
-                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 sm:hidden">T</div>
+                          <div className="hidden text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 sm:block">{t("setType")}</div>
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 sm:hidden">{t("setTypeShort")}</div>
                         </div>
 
                         <div className="flex items-center justify-center">
@@ -1408,8 +1470,11 @@ export function QuickEditMode({
 
                       const completedCount =
                         workoutData.completedSets?.[exerciseId] || 0;
-                      // Marcar completada solo si el índice es menor que el contador explícito
-                      const isCompleted = typeof completedCount === 'number' && setIdx < completedCount;
+                      // Usar flag explícito de completado si está disponible;
+                      // solo activado al pulsar el botón naranja (no por edición de reps).
+                      const isCompleted = workoutData.completedSetFlags
+                        ? Boolean(workoutData.completedSetFlags[exerciseId]?.[setIdx])
+                        : typeof doneReps === 'number' && doneReps > 0;
                       const togglingKey = `${exerciseId}:${setIdx}`;
                       const isToggling = Boolean(togglingKeys?.[togglingKey]);
 
@@ -1441,6 +1506,7 @@ export function QuickEditMode({
                           ? sessions
                               .filter((s) =>
                                 s.exercises.some(
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                   (e: any) => e.exerciseName === exercise.name,
                                 ),
                               )
@@ -1452,6 +1518,7 @@ export function QuickEditMode({
                           : null;
 
                       const lastExerciseData = lastSession?.exercises.find(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         (e: any) => e.exerciseName === exercise.name,
                       );
                       const lastReps = lastExerciseData?.actualReps?.[setIdx];
@@ -1483,17 +1550,41 @@ export function QuickEditMode({
                       const isReadyToComplete =
                         displayReps > 0 && displayWeight > 0 && !isCompleted;
 
+                      const isActiveSet =
+                        activeSet?.exerciseId === exerciseId &&
+                        activeSet?.setIndex === setIdx;
+                      const hasEditedSetType =
+                        setTypes[setIdx] !== undefined &&
+                        setTypes[setIdx] !== (set.type || "normal");
+                      const hasEditedValues =
+                        (typeof doneReps === "number" && doneReps > 0) ||
+                        (typeof doneWeight === "number" && doneWeight > 0) ||
+                        hasEditedSetType;
+
                       return (
-                        <div
-                          key={`${exerciseId}-${setIdx}`}
-                          className={`flex items-center gap-1 px-2 py-1.5 transition-colors ${
-                            isCompleted
-                              ? "bg-green-50/60 dark:bg-green-900/10"
-                              : isReadyToComplete
-                                ? "bg-blue-50/40 dark:bg-blue-900/5"
-                                : "bg-white dark:bg-transparent"
-                          }`}
-                        >
+                        <div key={`${exerciseId}-${setIdx}`}>
+                          <div
+                            data-completion-state={
+                              isCompleted
+                                ? "completed"
+                                : isActiveSet
+                                  ? "active"
+                                  : hasEditedValues
+                                    ? "edited"
+                                    : "pending"
+                            }
+                            className={`flex items-center gap-1 border-l-4 px-2 py-1.5 transition-colors ${
+                              isSkipped ? 'pointer-events-none opacity-60' : ''
+                            } ${
+                              isCompleted
+                                ? "border-emerald-700 bg-emerald-50 dark:border-emerald-300 dark:bg-emerald-950/40"
+                                : isActiveSet
+                                  ? "border-blue-600 bg-blue-50 dark:border-blue-300 dark:bg-blue-950/40"
+                                  : hasEditedValues
+                                    ? "border-teal-700 bg-teal-50 dark:border-teal-300 dark:bg-teal-950/40"
+                                    : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
+                            }`}
+                          >
                           {/* Datos  */}
                           <div className="grid grid-cols-[32px_80px_80px_32px_12px_24px] md:grid-cols-[32px_2fr_2fr_32px_18px_34px] gap-1 items-center flex-1">
                             {/* Número */}
@@ -1501,8 +1592,8 @@ export function QuickEditMode({
                               <div
                                 className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
                                   isCompleted
-                                    ? "bg-green-500 text-white"
-                                    : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                                    ? "bg-emerald-700 text-white dark:bg-emerald-300 dark:text-gray-950"
+                                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
                                 }`}
                               >
                                 {setIdx + 1}
@@ -1518,6 +1609,7 @@ export function QuickEditMode({
                                   ] = el;
                                 }}
                                 onClick={() =>
+                                  !isSkipped &&
                                   startEditing(
                                     exerciseId,
                                     setIdx,
@@ -1526,15 +1618,19 @@ export function QuickEditMode({
                                     exercise.name,
                                   )
                                 }
-                                aria-invalid={
-                                  validation.reps ? "true" : "false"
-                                }
-                                className={`w-full h-11 rounded-xl font-black text-lg tabular-nums active:scale-95 touch-manipulation border-2 transition-all ${
-                                  displayReps === 0
-                                    ? "text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-200 dark:border-gray-700"
-                                    : isCompleted
+                                disabled={isSkipped}
+                                aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("repsPerformed")}`}
+                                aria-invalid={validation.reps ? "true" : "false"}
+                                className={`w-full h-11 rounded-xl border-2 font-black text-lg tabular-nums shadow-sm transition-all active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
+                                  isCompleted
                                       ? "text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                                      : "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
+                                      : isActiveSet
+                                        ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
+                                        : typeof doneReps === "number" && doneReps > 0
+                                          ? "text-teal-800 dark:text-teal-200 bg-teal-50 dark:bg-teal-900/20 border-teal-300 dark:border-teal-700"
+                                          : displayReps === 0
+                                            ? "text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
+                                          : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                                 }`}
                               >
                                 {displayReps === 0 ? "—" : displayReps}
@@ -1544,11 +1640,7 @@ export function QuickEditMode({
                               </button>
                               {hasRepsProgress && displayReps > 0 && (
                                 <div
-                                  className={`absolute -top-1 -right-1 px-1 py-0.5 rounded-full text-[8px] font-bold shadow ${
-                                    repsDiff! > 0
-                                      ? "bg-green-500 text-white"
-                                      : "bg-orange-500 text-white"
-                                  }`}
+                                  className="absolute -top-1 -right-1 rounded-full bg-gray-200 px-1 py-0.5 text-[8px] font-bold text-gray-800 shadow dark:bg-gray-700 dark:text-gray-100"
                                 >
                                   {repsDiff! > 0 ? "+" : ""}
                                   {repsDiff}
@@ -1565,6 +1657,7 @@ export function QuickEditMode({
                                   ] = el;
                                 }}
                                 onClick={() =>
+                                  !isSkipped &&
                                   startEditing(
                                     exerciseId,
                                     setIdx,
@@ -1573,15 +1666,19 @@ export function QuickEditMode({
                                     exercise.name,
                                   )
                                 }
-                                aria-invalid={
-                                  validation.weight ? "true" : "false"
-                                }
-                                className={`w-full h-11 rounded-xl font-black text-sm tabular-nums active:scale-95 touch-manipulation border-2 transition-all flex flex-col items-center justify-center leading-none ${
-                                  displayWeight === 0
-                                    ? "text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-200 dark:border-gray-700"
-                                    : isCompleted
+                                disabled={isSkipped}
+                                aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("weightUsed")}`}
+                                aria-invalid={validation.weight ? "true" : "false"}
+                                className={`flex h-11 w-full flex-col items-center justify-center rounded-xl border-2 text-sm font-black leading-none tabular-nums shadow-sm transition-all active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
+                                  isCompleted
                                       ? "text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                                      : "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700"
+                                      : isActiveSet
+                                        ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
+                                        : typeof doneWeight === "number" && doneWeight > 0
+                                          ? "text-teal-800 dark:text-teal-200 bg-teal-50 dark:bg-teal-900/20 border-teal-300 dark:border-teal-700"
+                                          : displayWeight === 0
+                                            ? "text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
+                                          : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                                 }`}
                               >
                                 {displayWeight === 0 ? (
@@ -1602,11 +1699,7 @@ export function QuickEditMode({
                               </button>
                               {hasWeightProgress && displayWeight > 0 && (
                                 <div
-                                  className={`absolute -top-1 -right-1 px-1 py-0.5 rounded-full text-[8px] font-bold shadow ${
-                                    weightDiffRounded! > 0
-                                      ? "bg-green-500 text-white"
-                                      : "bg-orange-500 text-white"
-                                  }`}
+                                  className="absolute -top-1 -right-1 rounded-full bg-gray-200 px-1 py-0.5 text-[8px] font-bold text-gray-800 shadow dark:bg-gray-700 dark:text-gray-100"
                                 >
                                   {weightDiffLabel}
                                 </div>
@@ -1618,6 +1711,7 @@ export function QuickEditMode({
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  if (isSkipped) return;
                                   setSetTypeTarget({
                                     exerciseId,
                                     setIndex: setIdx,
@@ -1626,12 +1720,20 @@ export function QuickEditMode({
                                   });
                                   setShowSetTypeSelector(true);
                                 }}
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                  (SET_TYPE_INFO as any)[setType]?.color || 'bg-gray-200'
+                                disabled={isSkipped}
+                                aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${SET_TYPE_INFO[setType as SetType]?.label || setType}`}
+                                className={`flex h-11 w-10 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
+                                  isCompleted
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                                    : isActiveSet
+                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200"
+                                      : hasEditedSetType
+                                        ? "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200"
+                                        : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
                                 }`}
-                                title={`Tipo: ${(SET_TYPE_INFO as any)[setType]?.label || setType}`}
+                                title={`Tipo: ${SET_TYPE_INFO[setType as SetType]?.label || setType}`}
                               >
-                                <span className="text-sm">{(SET_TYPE_INFO as any)[setType]?.icon ?? '•'}</span>
+                                <span className="text-base">{SET_TYPE_INFO[setType as SetType]?.icon ?? '•'}</span>
                               </button>
                             </div>
 
@@ -1643,11 +1745,6 @@ export function QuickEditMode({
                             {/* Completar */}
                             <div className="flex justify-center">
                               <div className="relative">
-                                {/* Anillo pulsante naranja cuando está listo */}
-                                {isReadyToComplete && (
-                                  // Menos intrusivo: usar pulse y bajar opacidad para atención sutil
-                                  <span className="absolute inset-0 rounded-xl animate-pulse bg-orange-400 opacity-25 pointer-events-none" />
-                                )}
                                 <button
                                   onClick={(e) => {
                                     if (isToggling) return;
@@ -1716,6 +1813,21 @@ export function QuickEditMode({
                                         setPinnedExerciseId(null);
                                       }
 
+                                      // Validar si es un nuevo récord personal
+                                      if (displayWeight > 0) {
+                                        const comparison = compareWithRecord(exercise.id, displayWeight, sessions);
+                                        if (comparison.isNewRecord && comparison.previousRecord && comparison.previousRecord > 0) {
+                                          // Retrasamos la celebración un poquito para que la UI termine de actualizarse
+                                          setTimeout(() => {
+                                            setPrInfo({
+                                              show: true,
+                                              title: '¡Nuevo Récord!',
+                                              subtitle: `Superaste los ${comparison.previousRecord}kg en ${exercise.name} 🎉`
+                                            });
+                                          }, 200);
+                                        }
+                                      }
+
                                       // Mostrar snackbar "Deshacer" para revertir la marcación
                                       try {
                                         showToast(
@@ -1771,7 +1883,7 @@ export function QuickEditMode({
                                     }
                                   }}
                                   aria-disabled={
-                                    isToggling ||
+                                    isSkipped || isToggling ||
                                     (!isReadyToComplete && !isCompleted)
                                   }
                                   title={
@@ -1780,19 +1892,25 @@ export function QuickEditMode({
                                       : undefined
                                   }
                                   disabled={
-                                    isToggling ||
+                                    isSkipped || isToggling ||
                                     (!isReadyToComplete && !isCompleted)
                                   }
                                   className={`relative h-12 w-14 md:h-10 md:w-12 rounded-xl flex items-center justify-center transition-all active:scale-90 touch-manipulation ${
                                     isCompleted
-                                      ? // ✅ COMPLETADO — verde sólido, sin borde
-                                        "bg-green-500 hover:bg-green-600 text-white shadow-md shadow-green-300 dark:shadow-green-900"
+                                      ? "bg-emerald-700 text-white shadow-md shadow-emerald-200 hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-gray-950 dark:shadow-emerald-900 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300"
+                                      : isActiveSet
+                                        ? "border-2 border-blue-600 bg-blue-50 text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:border-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:focus-visible:ring-blue-300"
+                                        : "border-2 border-dashed border-gray-400 bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:ring-offset-2 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus-visible:ring-gray-300"
+                                  }`}
+                                  aria-label={`${t("set")} ${setIdx + 1}: ${
+                                    isCompleted
+                                      ? t("setCompleted")
                                       : isReadyToComplete
-                                        ? // 🟠 LISTO — naranja/ámbar llamativo, pide acción
-                                          "bg-orange-400 hover:bg-orange-500 text-white shadow-md shadow-orange-200 dark:shadow-orange-900"
-                                        : // ⬜ VACÍO — gris sutil, borde discontinuo
-                                          "bg-transparent border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-300 dark:text-gray-600"
-                                  } ${!isReadyToComplete && !isCompleted ? "opacity-60 cursor-pointer" : ""}`}
+                                        ? t("setReady")
+                                        : t("setPending")
+                                  }`}
+                                  aria-pressed={isCompleted}
+                                  aria-busy={isToggling}
                                 >
                                   {isToggling ? (
                                     <Spinner size="sm" className="text-white" />
@@ -1896,6 +2014,8 @@ export function QuickEditMode({
                             </div>
                           )}
                         </div>
+                        {/* end set row */}
+                      </div>
                       );
                     })}
                   </div>
@@ -1968,38 +2088,110 @@ export function QuickEditMode({
         </div>
       )}
 
-      {/* Botón flotante compacto para finalizar - esquina inferior derecha */}
+      {/* Celebración de PR */}
+      <PRCelebration 
+        show={prInfo.show} 
+        onComplete={() => setPrInfo(prev => ({ ...prev, show: false }))} 
+        title={prInfo.title}
+        subtitle={prInfo.subtitle}
+      />
+
+      {/* Footer fijo (SwipeButton para completar serie o Finalizar entrenamiento) */}
       {onFinishWorkout && (
-        <button
-          onClick={onFinishWorkout}
-          disabled={completedSets === 0}
-          className={`fixed bottom-6 right-6 z-30 p-4 rounded-full shadow-2xl transition-all duration-200 flex items-center justify-center gap-2 ${
-            completedSets === 0
-              ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-50"
-              : "bg-linear-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white transform hover:scale-110 active:scale-95"
-          }`}
-          title={`Finalizar entrenamiento (${completedSets} series)`}
-        >
-          <svg
-            className="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-          {/* Badge con contador de series */}
-          {completedSets > 0 && (
-            <span className="absolute -top-1 -right-1 bg-white text-green-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg border-2 border-green-500">
-              {completedSets}
-            </span>
-          )}
-        </button>
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 z-30 pb-safe">
+          {(() => {
+            const skippedExercises = workoutData.skippedExercises || [];
+            let nextIncompleteExId: string | null = null;
+            let nextIncompleteSetIdx: number | null = null;
+            let nextIncompleteExName: string = "";
+            let nextIncompleteReps: number = 0;
+            let nextIncompleteWeight: number = 0;
+            
+            for (const ex of routine.exercises) {
+              if (skippedExercises.includes(ex.id)) continue;
+              
+              const completedCount = workoutData.completedSets?.[ex.id] || 0;
+              
+              // Buscar la primera serie que no esté completada usando la misma lógica que la UI
+              const firstIncompleteIdx = ex.sets.findIndex((_, idx) => {
+                const doneReps = workoutData.actualReps[ex.id]?.[idx];
+                const isCompleted = workoutData.completedSetFlags
+                  ? Boolean(workoutData.completedSetFlags[ex.id]?.[idx])
+                  : typeof doneReps === 'number' && doneReps > 0;
+                return !isCompleted;
+              });
+              
+              if (firstIncompleteIdx !== -1) {
+                nextIncompleteExId = ex.id;
+                nextIncompleteSetIdx = firstIncompleteIdx;
+                nextIncompleteExName = ex.name;
+                nextIncompleteReps = workoutData.actualReps[ex.id]?.[firstIncompleteIdx] || ex.sets[firstIncompleteIdx].reps || 0;
+                nextIncompleteWeight = workoutData.actualWeights[ex.id]?.[firstIncompleteIdx] || ex.sets[firstIncompleteIdx].weight || 0;
+                break;
+              } else if (completedCount < ex.sets.length) {
+                // Fallback por si hay discrepancia entre completedSets y los flags individuales
+                nextIncompleteExId = ex.id;
+                nextIncompleteSetIdx = completedCount;
+                nextIncompleteExName = ex.name;
+                nextIncompleteReps = workoutData.actualReps[ex.id]?.[completedCount] || ex.sets[completedCount].reps || 0;
+                nextIncompleteWeight = workoutData.actualWeights[ex.id]?.[completedCount] || ex.sets[completedCount].weight || 0;
+                break;
+              }
+            }
+
+            if (nextIncompleteExId !== null && nextIncompleteSetIdx !== null) {
+              return (
+                <SwipeButton
+                  key={`quick-swipe-${nextIncompleteExId}-${nextIncompleteSetIdx}`}
+                  onComplete={() => onToggleSetComplete(nextIncompleteExId!, nextIncompleteSetIdx!, true)}
+                  disabled={!nextIncompleteReps || !nextIncompleteWeight}
+                  text={
+                    <div className="flex flex-col items-start leading-tight">
+                      <span className="text-[16px] truncate max-w-[250px]">
+                        {nextIncompleteExName}
+                      </span>
+                      <span className="text-[14px]">
+                        {t("completeSet")} {nextIncompleteSetIdx + 1}
+                      </span>
+                    </div>
+                  }
+                  completedText={
+                    <div className="flex flex-col items-start leading-tight">
+                      <span className="text-[17px]">{t("setCompletedFeedback")}</span>
+                    </div>
+                  }
+                />
+              );
+            }
+
+            return (
+              <button
+                onClick={onFinishWorkout}
+                disabled={completedSets === 0}
+                className={`w-full min-h-[56px] rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-3 font-bold text-lg ${
+                  completedSets === 0
+                    ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                    : "bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white transform hover:scale-[1.02] active:scale-95"
+                }`}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                {t("finishWorkout")} ({completedSets} {t("sets")})
+              </button>
+            );
+          })()}
+        </div>
       )}
 
       {/* Modal de edición */}
@@ -2009,6 +2201,11 @@ export function QuickEditMode({
         title={getEditingCellTitle()}
         field={editingCell?.field ?? "reps"}
         currentValue={editingCell?.currentValue ?? ""}
+        equipment={
+          editingCell
+            ? routine.exercises.find((ex) => ex.id === editingCell.exerciseId)?.equipment
+            : undefined
+        }
         onSave={(value) => {
           if (!editingCell) return;
           if (editingCell.field === "reps") {
@@ -2219,3 +2416,5 @@ export function QuickEditMode({
     </div>
   );
 }
+
+export default QuickEditMode;

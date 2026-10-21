@@ -26,6 +26,7 @@ export interface Exercise {
   restTime?: string; // Ej: "60-90 segundos"
   restBetweenSets?: number; // Descanso entre series en segundos (override por ejercicio)
   useSmartRest?: boolean; // Usar descanso inteligente para este ejercicio
+  tempo?: string; // Tempo de ejecución, ej: "3-1-2-0" (excéntrica-pausa arriba-concéntrica-pausa abajo)
 }
 
 export interface Routine {
@@ -70,37 +71,13 @@ export interface WorkoutSession {
 
 export type Session = WorkoutSession;
 
-export type FitnessGoal = 
-  | 'muscle_gain'      // Ganar músculo/hipertrofia
-  | 'strength'         // Ganar fuerza
-  | 'weight_loss'      // Perder peso
-  | 'endurance'        // Resistencia
-  | 'general_fitness'; // Fitness general
-
-export type FitnessLevel = 
-  | 'beginner'         // Principiante (0-6 meses)
-  | 'intermediate'     // Intermedio (6-24 meses)
-  | 'advanced';        // Avanzado (2+ años)
-
-export type Gender = 'male' | 'female' | 'other';
-
-export interface UserProfile {
-  id: string;
-  userId: string;
-  // Datos personales
-  age?: number;
-  gender?: Gender;
-  height?: number;        // en cm
-  weight?: number;        // en kg
-  // Objetivos y nivel
-  fitnessGoal?: FitnessGoal;
-  fitnessLevel?: FitnessLevel;
-  // Datos adicionales
-  weeklyWorkouts?: number; // Días que puede entrenar por semana
-  // Metadatos
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type {
+  FitnessGoal,
+  FitnessLevel,
+  Gender,
+  UserProfile,
+  WeightEntry,
+} from './userProfile';
 
 // Sistema de Logros/Badges
 export type AchievementCategory = 'consistency' | 'volume' | 'streak' | 'milestone';

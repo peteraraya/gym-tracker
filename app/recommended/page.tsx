@@ -6,7 +6,7 @@ import {
   RecommendedRoutine,
 } from "@/data/recommendedRoutines";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { getRecommendedWeight } from '@/lib/routines/routineGenerator';
+import { getRecommendedWeight } from '@/lib/application/routines/routineGenerator';
 import { Button } from "@/components/ui/Button";
 import { LoadingState } from "@/components/shared/LoadingState";
 import { useGym } from "@/context/GymContext";
@@ -17,9 +17,9 @@ import {
   getRecommendedRoutines,
   getRecommendationReason,
   type RoutineRecommendation,
-} from "@/lib/exercises/recommendations";
+} from "@/lib/domain/exercises/recommendations";
 import { useEquipment } from '@/context/EquipmentContext';
-import { formatRestTime } from "@/lib/utils/formatTime";
+import { formatRestTime } from "@/lib/shared/utils/formatTime";
 import Link from "next/link";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { EmptyStateCard } from "@/components/shared";
@@ -48,12 +48,12 @@ export default function RecommendedRoutinesPage() {
   const loadProfile = async () => {
     try {
       // Verificar modo de almacenamiento
-      const { isLocalStorageMode } = await import("@/lib/storageConfig");
+      const { isLocalStorageMode } = await import("@/lib/infrastructure/storage/storageConfig");
 
       if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== "undefined") {
-          const { getProfileLocally } = await import("@/lib/user/localProfile");
+          const { getProfileLocally } = await import("@/lib/domain/user/localProfile");
           const localProfile = getProfileLocally();
 
           if (localProfile) {

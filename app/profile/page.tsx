@@ -10,33 +10,36 @@ import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import { RestSettings } from '@/components/features/workout/RestSettings';
 import { ThemeSettings } from '@/components/features/settings/ThemeSettings';
 import RestartOnboardingButton from '@/components/features/onboarding/RestartOnboardingButton';
-import type { UserProfile, FitnessGoal, FitnessLevel, Gender } from '@/types';
+import type { UserProfile, FitnessGoal, FitnessLevel, Gender, WeightEntry } from '@/types';
+import { WeightHistoryCard } from '@/components/features/profile/WeightHistoryCard';
 import { usePageData } from '@/hooks/usePageData';
 import { PageHeader, PageLayout, PageContent } from '@/layouts';
-import { 
+import {
   LoadingSpinner
 } from '@/components/shared';
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
+  const [ currentPassword, setCurrentPassword ] = useState('');
+  const [ newPassword, setNewPassword ] = useState('');
+  const [ confirmPassword, setConfirmPassword ] = useState('');
+  const [ message, setMessage ] = useState('');
+  const [ error, setError ] = useState('');
+  const [ loading, setLoading ] = useState(false);
+
   // Profile data
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileMessage, setProfileMessage] = useState('');
-  const [profileError, setProfileError] = useState('');
-  const [age, setAge] = useState<number | ''>('');
-  const [gender, setGender] = useState<Gender | ''>('');
-  const [height, setHeight] = useState<number | ''>('');
-  const [weight, setWeight] = useState<number | ''>('');
-  const [fitnessGoal, setFitnessGoal] = useState<FitnessGoal | ''>('');
-  const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel | ''>('');
-  const [weeklyWorkouts, setWeeklyWorkouts] = useState<number | ''>('');
+  const [ profileLoading, setProfileLoading ] = useState(true);
+  const [ profileMessage, setProfileMessage ] = useState('');
+  const [ profileError, setProfileError ] = useState('');
+  const [ age, setAge ] = useState<number | ''>('');
+  const [ gender, setGender ] = useState<Gender | ''>('');
+  const [ height, setHeight ] = useState<number | ''>('');
+  const [ weight, setWeight ] = useState<number | ''>('');
+  const [ fitnessGoal, setFitnessGoal ] = useState<FitnessGoal | ''>('');
+  const [ fitnessLevel, setFitnessLevel ] = useState<FitnessLevel | ''>('');
+  const [ weeklyWorkouts, setWeeklyWorkouts ] = useState<number | ''>('');
+  const [ weightHistory, setWeightHistory ] = useState<WeightEntry[]>([]);
+  const [ weightSaving, setWeightSaving ] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -45,14 +48,14 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       // Verificar modo de almacenamiento
-      const { isLocalStorageMode } = await import('@/lib/storageConfig');
-      
+      const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
+
       if (isLocalStorageMode()) {
         // Modo LOCAL: Cargar desde localStorage
         if (typeof window !== 'undefined') {
-          const { getProfileLocally } = await import('@/lib/user/localProfile');
+          const { getProfileLocally } = await import('@/lib/domain/user/localProfile');
           const localProfile = getProfileLocally();
-          
+
           if (localProfile) {
             // console.log('[Profile] ✅ Loaded from localStorage:', localProfile);
             setAge(localProfile.age || '');
@@ -62,6 +65,7 @@ export default function ProfilePage() {
             setFitnessGoal(localProfile.fitnessGoal || '');
             setFitnessLevel(localProfile.fitnessLevel || '');
             setWeeklyWorkouts(localProfile.weeklyWorkouts || '');
+            setWeightHistory(localProfile.weightHistory || []);
             setProfileLoading(false);
             return;
           }
@@ -81,6 +85,7 @@ export default function ProfilePage() {
             setFitnessGoal(profile.fitnessGoal || '');
             setFitnessLevel(profile.fitnessLevel || '');
             setWeeklyWorkouts(profile.weeklyWorkouts || '');
+            setWeightHistory(profile.weightHistory || []);
           }
         }
       }
@@ -105,16 +110,17 @@ export default function ProfilePage() {
         weight: weight || undefined,
         fitnessGoal: fitnessGoal || undefined,
         fitnessLevel: fitnessLevel || undefined,
-        weeklyWorkouts: weeklyWorkouts || undefined
+        weeklyWorkouts: weeklyWorkouts || undefined,
+        weightHistory
       };
 
       // Verificar modo de almacenamiento
-      const { isLocalStorageMode } = await import('@/lib/storageConfig');
-      
+      const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
+
       if (isLocalStorageMode()) {
         // Modo LOCAL: Guardar en localStorage
         if (typeof window !== 'undefined') {
-          const { saveProfileLocally } = await import('@/lib/user/localProfile');
+          const { saveProfileLocally } = await import('@/lib/domain/user/localProfile');
           saveProfileLocally(profileData);
           // console.log('[Profile] ✅ Saved to localStorage');
           setProfileMessage('✓ Perfil guardado localmente correctamente');
@@ -155,6 +161,72 @@ export default function ProfilePage() {
     return null;
   };
 
+  const persistWeightHistory = async (history: WeightEntry[], latestKg: number | '') => {
+    const payload = {
+      age: age || undefined,
+      gender: gender || undefined,
+      height: height || undefined,
+      weight: latestKg !== '' ? latestKg : undefined,
+      fitnessGoal: fitnessGoal || undefined,
+      fitnessLevel: fitnessLevel || undefined,
+      weeklyWorkouts: weeklyWorkouts || undefined,
+      weightHistory: history
+    };
+
+    const { isLocalStorageMode } = await import('@/lib/infrastructure/storage/storageConfig');
+    if (isLocalStorageMode()) {
+      if (typeof window === 'undefined') return;
+      const { saveProfileLocally } = await import('@/lib/domain/user/localProfile');
+      saveProfileLocally(payload);
+    } else {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error('Error al guardar el historial de peso');
+      }
+    }
+  };
+
+  const handleAddWeight = async (date: string, weightKg: number) => {
+    const next = [ ...weightHistory.filter((e) => e.date !== date), { date, weight: weightKg } ]
+      .sort((a, b) => a.date.localeCompare(b.date));
+    setWeightHistory(next);
+    setWeight(weightKg);
+    setWeightSaving(true);
+    setProfileError('');
+    setProfileMessage('');
+    try {
+      await persistWeightHistory(next, weightKg);
+      setProfileMessage('✓ Peso registrado correctamente');
+    } catch (e) {
+      setProfileError('Error al guardar el historial de peso');
+    } finally {
+      setWeightSaving(false);
+    }
+  };
+
+  const handleDeleteWeight = async (date: string) => {
+    const next = weightHistory.filter((e) => e.date !== date)
+      .sort((a, b) => a.date.localeCompare(b.date));
+    setWeightHistory(next);
+    const latest = next.length ? next[ next.length - 1 ].weight : '';
+    setWeight(latest);
+    setWeightSaving(true);
+    setProfileError('');
+    setProfileMessage('');
+    try {
+      await persistWeightHistory(next, latest);
+      setProfileMessage('✓ Pesaje eliminado');
+    } catch (e) {
+      setProfileError('Error al guardar el historial de peso');
+    } finally {
+      setWeightSaving(false);
+    }
+  };
+
   const isDatabaseEnabled = process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'true';
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -182,7 +254,7 @@ export default function ProfilePage() {
     setLoading(true);
 
     try {
-      const { createClient } = await import('@/lib/supabase/client');
+      const { createClient } = await import('@/lib/infrastructure/supabase/client');
       const supabase = createClient();
 
       // Primero verificamos la contraseña actual intentando hacer signIn
@@ -230,48 +302,6 @@ export default function ProfilePage() {
         <PageContent maxWidth="2xl">
 
           <div className="space-y-4">
-            {/* Indicador de modo de almacenamiento */}
-            {process.env.NEXT_PUBLIC_ENABLE_DATABASE === 'false' ? (
-              <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">💾</span>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                      Modo de Almacenamiento Local
-                    </h3>
-                    <p className="text-sm text-blue-800 dark:text-blue-200">
-                      Tu perfil se guarda localmente en tu navegador. Los datos no se sincronizan con la nube.
-                    </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
-                      💡 <strong>Importante:</strong> Si borras los datos del navegador, perderás tu perfil guardado.
-                    </p>
-                    {/* <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-mono">
-                      NEXT_PUBLIC_ENABLE_DATABASE=false
-                    </p> */}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">☁️</span>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
-                      Modo de Base de Datos (Supabase)
-                    </h3>
-                    <p className="text-sm text-green-800 dark:text-green-200">
-                      Tu perfil se guarda en la nube y se sincroniza entre dispositivos.
-                    </p>
-                    <p className="text-xs text-green-700 dark:text-green-300 mt-2">
-                      ✅ <strong>Ventaja:</strong> Tus datos están seguros y accesibles desde cualquier lugar.
-                    </p>
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-mono">
-                      NEXT_PUBLIC_ENABLE_DATABASE=true
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Datos Personales y Fitness */}
             <Card>
@@ -337,7 +367,7 @@ export default function ProfilePage() {
                     {calculateBMI() && (
                       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <p className="text-sm text-gray-700 dark:text-gray-300">
-                          <strong>IMC:</strong> {calculateBMI()} 
+                          <strong>IMC:</strong> {calculateBMI()}
                           <span className="ml-2 text-gray-600 dark:text-gray-400">
                             {parseFloat(calculateBMI()!) < 18.5 && '(Bajo peso)'}
                             {parseFloat(calculateBMI()!) >= 18.5 && parseFloat(calculateBMI()!) < 25 && '(Peso normal)'}
@@ -416,6 +446,14 @@ export default function ProfilePage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Historial de Peso */}
+            <WeightHistoryCard
+              entries={weightHistory}
+              saving={weightSaving}
+              onAdd={handleAddWeight}
+              onDelete={handleDeleteWeight}
+            />
 
             {/* Información del usuario - solo en modo database */}
             {isDatabaseEnabled && (

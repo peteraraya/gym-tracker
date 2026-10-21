@@ -7,7 +7,7 @@ import ExportData from '@/components/features/data/ExportData';
 import ImportData from '@/components/features/data/ImportData';
 import { useGym } from '@/context/GymContext';
 import type { WorkoutSession, UserProfile } from '@/types';
-import * as storageService from '@/lib/storage/storage';
+import * as storageService from '@/lib/infrastructure/storage/storage';
 
 export default function DataManagementPage() {
   const { routines, sessions: contextSessions } = useGym();
