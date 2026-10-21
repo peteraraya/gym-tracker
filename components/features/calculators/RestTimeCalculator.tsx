@@ -1,172 +1,148 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { Clock } from '@/components/icons/lucide';
+import CalculatorShell from './CalculatorShell';
+
+type ExerciseType = 'compound' | 'isolation';
+type Goal = 'strength' | 'hypertrophy' | 'endurance';
+type Intensity = 'high' | 'moderate' | 'low';
+
+function getRestTime(exerciseType: ExerciseType, goal: Goal, intensity: Intensity) {
+  if (goal === 'strength') {
+    if (intensity === 'high') return { min: 3, max: 5, optimal: 4 };
+    if (intensity === 'moderate') return { min: 2, max: 3, optimal: 2.5 };
+    return { min: 1.5, max: 2, optimal: 1.5 };
+  }
+  if (goal === 'hypertrophy') {
+    if (exerciseType === 'compound') {
+      if (intensity === 'high') return { min: 2, max: 3, optimal: 2.5 };
+      if (intensity === 'moderate') return { min: 1.5, max: 2, optimal: 1.5 };
+      return { min: 1, max: 1.5, optimal: 1 };
+    } else {
+      if (intensity === 'high') return { min: 1.5, max: 2, optimal: 1.5 };
+      if (intensity === 'moderate') return { min: 1, max: 1.5, optimal: 1 };
+      return { min: 0.5, max: 1, optimal: 0.75 };
+    }
+  }
+  // endurance
+  if (intensity === 'high') return { min: 1, max: 1.5, optimal: 1 };
+  if (intensity === 'moderate') return { min: 0.5, max: 1, optimal: 0.75 };
+  return { min: 0.25, max: 0.5, optimal: 0.5 };
+}
+
+const GOAL_OPTIONS: { value: Goal; label: string; emoji: string }[] = [
+  { value: 'strength', label: 'Fuerza', emoji: '💪' },
+  { value: 'hypertrophy', label: 'Hipertrofia', emoji: '🏋️' },
+  { value: 'endurance', label: 'Resistencia', emoji: '🔥' },
+];
+
+const INTENSITY_OPTIONS: { value: Intensity; label: string; desc: string }[] = [
+  { value: 'high', label: 'Alta', desc: '85–100% 1RM' },
+  { value: 'moderate', label: 'Moderada', desc: '70–85% 1RM' },
+  { value: 'low', label: 'Baja', desc: '50–70% 1RM' },
+];
 
 export default function RestTimeCalculator() {
-  const [exerciseType, setExerciseType] = useState<'compound' | 'isolation'>('compound');
-  const [goal, setGoal] = useState<'strength' | 'hypertrophy' | 'endurance'>('hypertrophy');
-  const [intensity, setIntensity] = useState<'high' | 'moderate' | 'low'>('moderate');
+  const [exerciseType, setExerciseType] = useState<ExerciseType>('compound');
+  const [goal, setGoal] = useState<Goal>('hypertrophy');
+  const [intensity, setIntensity] = useState<Intensity>('moderate');
 
-  const getRestTime = () => {
-    if (goal === 'strength') {
-      if (intensity === 'high') return { min: 3, max: 5, optimal: 4 };
-      if (intensity === 'moderate') return { min: 2, max: 3, optimal: 2.5 };
-      return { min: 1.5, max: 2, optimal: 1.5 };
-    }
-    
-    if (goal === 'hypertrophy') {
-      if (exerciseType === 'compound') {
-        if (intensity === 'high') return { min: 2, max: 3, optimal: 2.5 };
-        if (intensity === 'moderate') return { min: 1.5, max: 2, optimal: 1.5 };
-        return { min: 1, max: 1.5, optimal: 1 };
-      } else {
-        if (intensity === 'high') return { min: 1.5, max: 2, optimal: 1.5 };
-        if (intensity === 'moderate') return { min: 1, max: 1.5, optimal: 1 };
-        return { min: 0.5, max: 1, optimal: 0.75 };
-      }
-    }
-    
-    // endurance
-    if (intensity === 'high') return { min: 1, max: 1.5, optimal: 1 };
-    if (intensity === 'moderate') return { min: 0.5, max: 1, optimal: 0.75 };
-    return { min: 0.25, max: 0.5, optimal: 0.5 };
-  };
-
-  const restTime = getRestTime();
+  const restTime = useMemo(() => getRestTime(exerciseType, goal, intensity), [exerciseType, goal, intensity]);
   const optimalMinutes = Math.floor(restTime.optimal);
   const optimalSeconds = Math.round((restTime.optimal % 1) * 60);
 
   return (
-    <Card className="shadow-xl">
-      <CardHeader className="bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-t-lg p-6">
-        <CardTitle className="flex items-center gap-3">
-          <Clock className="w-6 h-6" />
-          Calculadora de Tiempo de Descanso
-        </CardTitle>
-        <p className="text-sm text-cyan-100 mt-2">
-          Encuentra el tiempo de descanso óptimo según tu objetivo
-        </p>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-6">
-          {/* Tipo de Ejercicio */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Tipo de Ejercicio
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setExerciseType('compound')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  exerciseType === 'compound'
-                    ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-cyan-300'
-                }`}
-              >
-                <div className="font-semibold text-gray-900 dark:text-gray-100">Compuesto</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Sentadilla, Press, Peso Muerto
-                </div>
-              </button>
-              <button
-                onClick={() => setExerciseType('isolation')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  exerciseType === 'isolation'
-                    ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-cyan-300'
-                }`}
-              >
-                <div className="font-semibold text-gray-900 dark:text-gray-100">Aislamiento</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Curl, Extensiones, Elevaciones
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Objetivo */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Objetivo de Entrenamiento
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: 'strength', label: 'Fuerza', emoji: '💪' },
-                { value: 'hypertrophy', label: 'Hipertrofia', emoji: '🏋️' },
-                { value: 'endurance', label: 'Resistencia', emoji: '🔥' }
-              ].map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() => setGoal(item.value as any)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    goal === item.value
-                      ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-cyan-300'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">{item.emoji}</div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {item.label}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Intensidad */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Intensidad
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: 'high', label: 'Alta', desc: '85-100% 1RM' },
-                { value: 'moderate', label: 'Moderada', desc: '70-85% 1RM' },
-                { value: 'low', label: 'Baja', desc: '50-70% 1RM' }
-              ].map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() => setIntensity(item.value as any)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    intensity === item.value
-                      ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-cyan-300'
-                  }`}
-                >
-                  <div className="font-semibold text-gray-900 dark:text-gray-100">
-                    {item.label}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {item.desc}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Resultado */}
-          <div className="p-6 bg-linear-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-xl border-2 border-cyan-200 dark:border-cyan-800">
-            <div className="text-center mb-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                Tiempo de Descanso Recomendado
-              </div>
-              <div className="text-5xl font-bold text-cyan-600 dark:text-cyan-400">
-                {optimalMinutes > 0 && `${optimalMinutes}:`}
-                {optimalSeconds.toString().padStart(2, '0')}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {optimalMinutes > 0 ? 'minutos' : 'segundos'}
-              </div>
-            </div>
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 pt-4 border-t border-cyan-200 dark:border-cyan-800">
-              <span>Mínimo: {restTime.min} min</span>
-              <span>Máximo: {restTime.max} min</span>
-            </div>
+    <CalculatorShell
+      title="Tiempo de Descanso"
+      subtitle="Encuentra el descanso óptimo entre series según tu objetivo"
+      icon={<Clock className="w-6 h-6" />}
+      gradientStart="bg-cyan-500"
+      gradientEnd="to-blue-600"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Tipo de Ejercicio */}
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Tipo de Ejercicio</label>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant={exerciseType === 'compound' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setExerciseType('compound')}
+              className="h-10 text-left py-3"
+            >
+              <div className="text-xs font-bold text-white">Compuesto</div>
+              <div className="text-[10px] text-zinc-400">Sentadilla, Press</div>
+            </Button>
+            <Button
+              variant={exerciseType === 'isolation' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setExerciseType('isolation')}
+              className="h-10 text-left py-3"
+            >
+              <div className="text-xs font-bold text-white">Aislamiento</div>
+              <div className="text-[10px] text-zinc-400">Curl, Extensión</div>
+            </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Objetivo */}
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Objetivo</label>
+          <div className="grid grid-cols-3 gap-2">
+            {GOAL_OPTIONS.map((item) => (
+              <Button
+                key={item.value}
+                variant={goal === item.value ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setGoal(item.value)}
+                className="h-10 flex flex-col items-center justify-center gap-1"
+              >
+                <div className="text-xl">{item.emoji}</div>
+                <div className="text-xs font-bold text-white">{item.label}</div>
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Intensidad */}
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">Intensidad</label>
+          <div className="grid grid-cols-3 gap-2">
+            {INTENSITY_OPTIONS.map((item) => (
+              <Button
+                key={item.value}
+                variant={intensity === item.value ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setIntensity(item.value)}
+                className="h-10 flex flex-col items-center justify-center gap-1"
+              >
+                <div className="text-xs font-bold text-white">{item.label}</div>
+                <div className="text-[10px] text-zinc-400">{item.desc}</div>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Resultado */}
+      <div className="bg-zinc-800/50 rounded-2xl p-6 border border-zinc-700 text-center">
+        <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Tiempo de Descanso Recomendado</div>
+        <div className="text-5xl font-bold text-cyan-400 mb-1">
+          {optimalMinutes > 0 && `${optimalMinutes}:`}
+          {optimalSeconds.toString().padStart(2, '0')}
+        </div>
+        <div className="text-xs text-zinc-500">
+          {optimalMinutes > 0 ? 'minutos' : 'segundos'}
+        </div>
+        <div className="mt-4 flex justify-between text-sm text-zinc-500 pt-2 border-t border-zinc-700/50">
+          <span>Mínimo: {restTime.min} min</span>
+          <span>Óptimo: {restTime.optimal} min</span>
+          <span>Máximo: {restTime.max} min</span>
+        </div>
+      </div>
+    </CalculatorShell>
   );
 }

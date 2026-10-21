@@ -13,6 +13,10 @@ import CaloriesBurnedCalculator from '@/components/features/calculators/Calories
 import ProgressionCalculator from '@/components/features/progress/ProgressionCalculator';
 import WilksCalculator from '@/components/features/calculators/WilksCalculator';
 import TempoCalculator from '@/components/features/calculators/TempoCalculator';
+import HeartRateZonesCalculator from '@/components/features/calculators/HeartRateZonesCalculator';
+import MacroSplitCalculator from '@/components/features/calculators/MacroSplitCalculator';
+import WaterIntakeCalculator from '@/components/features/calculators/WaterIntakeCalculator';
+import RepMaxProgressionCalculator from '@/components/features/calculators/RepMaxProgressionCalculator';
 import { Button } from '@/components/ui/Button';
 import {
   Calculator,
@@ -24,10 +28,12 @@ import {
   BarChart3,
   Clock,
   User,
-  Flame,
   TrendingUp,
   Trophy,
-  Activity
+  Activity,
+  Flame,
+
+  Zap
 } from '@/components/icons/lucide';
 
 export const metadata: Metadata = {
@@ -35,7 +41,7 @@ export const metadata: Metadata = {
   description: 'Calculadoras de entrenamiento y composición corporal',
 };
 
-type CalculatorType = '1rm' | 'plates' | 'units' | 'tdee' | 'percentage' | 'volume' | 'rest' | 'bmi' | 'calories' | 'progression' | 'wilks' | 'tempo' | null;
+type CalculatorType = '1rm' | 'plates' | 'units' | 'tdee' | 'percentage' | 'volume' | 'rest' | 'bmi' | 'calories' | 'progression' | 'wilks' | 'tempo' | 'heart_rate' | 'macro_split' | 'water_intake' | 'rep_progression' | null;
 
 export default async function CalculatorsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -169,6 +175,46 @@ export default async function CalculatorsPage(props: {
       color: 'from-violet-500 to-purple-600',
       bgColor: 'from-violet-50 to-purple-100 dark:from-violet-900/20 dark:to-purple-800/20',
       borderColor: 'border-violet-200 dark:border-violet-800'
+    },
+    {
+      id: 'heart_rate' as CalculatorType,
+      name: 'Zonas de FC',
+      description: 'Zonas de frecuencia cardíaca',
+      icon: Activity,
+      category: 'body',
+      color: 'from-rose-500 to-orange-600',
+      bgColor: 'from-rose-50 to-orange-100 dark:from-rose-900/20 dark:to-orange-800/20',
+      borderColor: 'border-rose-200 dark:border-rose-800'
+    },
+    {
+      id: 'macro_split' as CalculatorType,
+      name: 'Distribución de Macros',
+      description: 'Divide tus calorías en macros',
+      icon: Zap,
+      category: 'body',
+      color: 'from-orange-500 to-amber-600',
+      bgColor: 'from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-800/20',
+      borderColor: 'border-orange-200 dark:border-orange-800'
+    },
+    {
+      id: 'water_intake' as CalculatorType,
+      name: 'Agua Diaria',
+      description: 'Ingesta de agua recomendada',
+      icon: Flame,
+      category: 'body',
+      color: 'from-cyan-500 to-blue-600',
+      bgColor: 'from-cyan-50 to-blue-100 dark:from-cyan-900/20 dark:to-blue-800/20',
+      borderColor: 'border-cyan-200 dark:border-cyan-800'
+    },
+    {
+      id: 'rep_progression' as CalculatorType,
+      name: 'Progresión 1RM',
+      description: 'Proyecta tu 1RM futuro',
+      icon: TrendingUp,
+      category: 'planning',
+      color: 'from-emerald-500 to-teal-600',
+      bgColor: 'from-emerald-50 to-teal-100 dark:from-emerald-900/20 dark:to-teal-800/20',
+      borderColor: 'border-emerald-200 dark:border-emerald-800'
     },
   ];
 
@@ -306,6 +352,10 @@ export default async function CalculatorsPage(props: {
             {selectedCalculator === 'progression' && <ProgressionCalculator />}
             {selectedCalculator === 'wilks' && <WilksCalculator />}
             {selectedCalculator === 'tempo' && <TempoCalculator />}
+            {selectedCalculator === 'heart_rate' && <HeartRateZonesCalculator />}
+            {selectedCalculator === 'macro_split' && <MacroSplitCalculator />}
+            {selectedCalculator === 'water_intake' && <WaterIntakeCalculator />}
+            {selectedCalculator === 'rep_progression' && <RepMaxProgressionCalculator />}
           </div>
         </div>
       </div>

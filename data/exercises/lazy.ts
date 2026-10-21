@@ -15,22 +15,21 @@
 import type { MuscleGroup } from './groups';
 import type { ExerciseTemplate } from '../exercises';
 
-// Mapeo de grupo muscular -> ruta relativa del archivo generado.
-// El import dinámico usa esta ruta para que Next.js haga code splitting.
-const GROUP_FILE_MAP: Record<MuscleGroup, string> = {
-  pecho: './by-muscle/exercises-pecho',
-  espalda: './by-muscle/exercises-espalda',
-  piernas: './by-muscle/exercises-piernas',
-  gluteos: './by-muscle/exercises-gluteos',
-  hombros: './by-muscle/exercises-hombros',
-  biceps: './by-muscle/exercises-biceps',
-  triceps: './by-muscle/exercises-triceps',
-  antebrazos: './by-muscle/exercises-antebrazos',
-  trapecio: './by-muscle/exercises-trapecio',
-  cuello: './by-muscle/exercises-cuello',
-  core: './by-muscle/exercises-core',
-  gemelos: './by-muscle/exercises-gemelos',
-  cardio: './by-muscle/exercises-cardio',
+// Imports explícitos para que Next.js incluya cada grupo en el bundle.
+const GROUP_LOADERS: Record<MuscleGroup, () => Promise<ExerciseTemplate[]>> = {
+  pecho: () => import('./by-muscle/exercises-pecho').then((mod) => mod.EXERCISES_Pecho),
+  espalda: () => import('./by-muscle/exercises-espalda').then((mod) => mod.EXERCISES_Espalda),
+  piernas: () => import('./by-muscle/exercises-piernas').then((mod) => mod.EXERCISES_Piernas),
+  gluteos: () => import('./by-muscle/exercises-gluteos').then((mod) => mod.EXERCISES_Gluteos),
+  hombros: () => import('./by-muscle/exercises-hombros').then((mod) => mod.EXERCISES_Hombros),
+  biceps: () => import('./by-muscle/exercises-biceps').then((mod) => mod.EXERCISES_Biceps),
+  triceps: () => import('./by-muscle/exercises-triceps').then((mod) => mod.EXERCISES_Triceps),
+  antebrazos: () => import('./by-muscle/exercises-antebrazos').then((mod) => mod.EXERCISES_Antebrazos),
+  trapecio: () => import('./by-muscle/exercises-trapecio').then((mod) => mod.EXERCISES_Trapecio),
+  cuello: () => import('./by-muscle/exercises-cuello').then((mod) => mod.EXERCISES_Cuello),
+  core: () => import('./by-muscle/exercises-core').then((mod) => mod.EXERCISES_Core),
+  gemelos: () => import('./by-muscle/exercises-gemelos').then((mod) => mod.EXERCISES_Gemelos),
+  cardio: () => import('./by-muscle/exercises-cardio').then((mod) => mod.EXERCISES_Cardio),
 };
 
 /**
@@ -40,16 +39,13 @@ const GROUP_FILE_MAP: Record<MuscleGroup, string> = {
 export async function getExercisesByMuscleGroupLazy(
   muscleGroup: MuscleGroup,
 ): Promise<ExerciseTemplate[]> {
-  const filePath = GROUP_FILE_MAP[muscleGroup];
-  if (!filePath) {
+  const loadExercises = GROUP_LOADERS[muscleGroup];
+  if (!loadExercises) {
     console.warn(`[lazy] No hay archivo para el grupo muscular: ${muscleGroup}`);
     return [];
   }
 
-  const mod = await import(filePath);
-  const constName = `EXERCISES_${muscleGroup.charAt(0).toUpperCase() + muscleGroup.slice(1)}` as const;
-  const exercises = (mod as Record<string, ExerciseTemplate[]>)[constName];
-  return Array.isArray(exercises) ? exercises : [];
+  return loadExercises();
 }
 
 /**
@@ -62,7 +58,7 @@ export async function getAllExerciseGroupsLazy(): Promise<
 > {
   const result: Record<string, ExerciseTemplate[]> = {};
 
-  for (const muscleGroup of Object.keys(GROUP_FILE_MAP) as MuscleGroup[]) {
+  for (const muscleGroup of Object.keys(GROUP_LOADERS) as MuscleGroup[]) {
     result[muscleGroup] = await getExercisesByMuscleGroupLazy(muscleGroup);
   }
 

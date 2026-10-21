@@ -11,20 +11,20 @@
 
 import type { WarmupExercise, WarmupCategory } from '../warmupExercises';
 
-const GROUP_FILE_MAP: Record<string, string> = {
-  pecho: './by-muscle/warmups-pecho',
-  espalda: './by-muscle/warmups-espalda',
-  piernas: './by-muscle/warmups-piernas',
-  gluteos: './by-muscle/warmups-gluteos',
-  hombros: './by-muscle/warmups-hombros',
-  biceps: './by-muscle/warmups-biceps',
-  triceps: './by-muscle/warmups-triceps',
-  antebrazos: './by-muscle/warmups-antebrazos',
-  trapecio: './by-muscle/warmups-trapecio',
-  cuello: './by-muscle/warmups-cuello',
-  core: './by-muscle/warmups-core',
-  gemelos: './by-muscle/warmups-gemelos',
-  cardio: './by-muscle/warmups-cardio',
+const GROUP_LOADERS: Record<string, () => Promise<WarmupExercise[]>> = {
+  pecho: () => import('./by-muscle/warmups-pecho').then((mod) => mod.WARMUPS_Pecho),
+  espalda: () => import('./by-muscle/warmups-espalda').then((mod) => mod.WARMUPS_Espalda),
+  piernas: () => import('./by-muscle/warmups-piernas').then((mod) => mod.WARMUPS_Piernas),
+  gluteos: () => import('./by-muscle/warmups-gluteos').then((mod) => mod.WARMUPS_Gluteos),
+  hombros: () => import('./by-muscle/warmups-hombros').then((mod) => mod.WARMUPS_Hombros),
+  biceps: () => import('./by-muscle/warmups-biceps').then((mod) => mod.WARMUPS_Biceps),
+  triceps: () => import('./by-muscle/warmups-triceps').then((mod) => mod.WARMUPS_Triceps),
+  antebrazos: () => import('./by-muscle/warmups-antebrazos').then((mod) => mod.WARMUPS_Antebrazos),
+  trapecio: () => import('./by-muscle/warmups-trapecio').then((mod) => mod.WARMUPS_Trapecio),
+  cuello: () => import('./by-muscle/warmups-cuello').then((mod) => mod.WARMUPS_Cuello),
+  core: () => import('./by-muscle/warmups-core').then((mod) => mod.WARMUPS_Core),
+  gemelos: () => import('./by-muscle/warmups-gemelos').then((mod) => mod.WARMUPS_Gemelos),
+  cardio: () => import('./by-muscle/warmups-cardio').then((mod) => mod.WARMUPS_Cardio),
 };
 
 /**
@@ -33,16 +33,13 @@ const GROUP_FILE_MAP: Record<string, string> = {
 export async function getWarmupsByMuscleGroupLazy(
   muscleGroup: string,
 ): Promise<WarmupExercise[]> {
-  const filePath = GROUP_FILE_MAP[muscleGroup];
-  if (!filePath) {
+  const loadWarmups = GROUP_LOADERS[muscleGroup];
+  if (!loadWarmups) {
     console.warn(`[warmups-lazy] No hay archivo para el grupo muscular: ${muscleGroup}`);
     return [];
   }
 
-  const mod = await import(filePath);
-  const constName = `WARMUPS_${muscleGroup.charAt(0).toUpperCase() + muscleGroup.slice(1)}` as const;
-  const warmups = (mod as Record<string, WarmupExercise[]>)[constName];
-  return Array.isArray(warmups) ? warmups : [];
+  return loadWarmups();
 }
 
 /**
@@ -53,7 +50,7 @@ export async function getAllWarmupGroupsLazy(): Promise<
 > {
   const result: Record<string, WarmupExercise[]> = {};
 
-  for (const muscleGroup of Object.keys(GROUP_FILE_MAP)) {
+  for (const muscleGroup of Object.keys(GROUP_LOADERS)) {
     result[muscleGroup] = await getWarmupsByMuscleGroupLazy(muscleGroup);
   }
 
