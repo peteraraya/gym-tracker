@@ -422,4 +422,22 @@ self.addEventListener('message', (event) => {
     const { tag } = payload;
     restTimers.delete(tag);
   }
+  if (type === 'CLEANUP') {
+    // Detener todos los temporizadores de descanso pendientes
+    for (const [tag] of restTimers) {
+      restTimers.delete(tag);
+    }
+    // Borrar todas las cachés de runtime y API (mantener app shell)
+    event.waitUntil(
+      (async () => {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => caches.delete(name))
+        );
+      })()
+    );
+    console.log('[SW] Cleanup ejecutado: restTimers y cachés borrados');
+  }
 });

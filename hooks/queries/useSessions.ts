@@ -10,7 +10,8 @@ export function useSessions() {
   const query = useQuery({
     queryKey: queryKeys.sessions.lists(),
     queryFn: () => storageService.getSessions(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 1000, // 1 minute
+    refetchOnWindowFocus: true,
   });
   
   // Mutation for creating session
