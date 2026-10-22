@@ -8,6 +8,7 @@
  */
 
 import { createServerClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { getSupabaseConfig } from '@/lib/infrastructure/supabase/config'
 
@@ -77,7 +78,7 @@ export interface UserProfileData {
   updatedAt?: string;
 }
 
-export async function getRoutinesFromDb(supabase: any) {
+export async function getRoutinesFromDb(supabase: SupabaseClient) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
   const { data: routines, error } = await supabase
@@ -100,7 +101,7 @@ export async function getRoutinesFromDb(supabase: any) {
   })) || []
 }
 
-export async function createRoutineInDb(supabase: any, data: CreateRoutineData) {
+export async function createRoutineInDb(supabase: SupabaseClient, data: CreateRoutineData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'No autenticado' }
   const { data: routine, error: routineError } = await supabase
@@ -122,7 +123,7 @@ export async function createRoutineInDb(supabase: any, data: CreateRoutineData) 
   return { success: true, id: routine.id }
 }
 
-export async function getSessionsFromDb(supabase: any) {
+export async function getSessionsFromDb(supabase: SupabaseClient) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
   const { data: sessions, error } = await supabase
@@ -143,7 +144,7 @@ export async function getSessionsFromDb(supabase: any) {
   })) || []
 }
 
-export async function createSessionInDb(supabase: any, body: CreateSessionBody) {
+export async function createSessionInDb(supabase: SupabaseClient, body: CreateSessionBody) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
   if (!body.routineId) throw new Error('routineId es requerido')
@@ -169,7 +170,7 @@ export async function createSessionInDb(supabase: any, body: CreateSessionBody) 
   return { success: true, id: session.id }
 }
 
-export async function getProfileFromDb(supabase: any): Promise<UserProfileData | null> {
+export async function getProfileFromDb(supabase: SupabaseClient): Promise<UserProfileData | null> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const { data: profile, error } = await supabase
@@ -185,7 +186,7 @@ export async function getProfileFromDb(supabase: any): Promise<UserProfileData |
   }
 }
 
-export async function saveProfileInDb(supabase: any, body: any) {
+export async function saveProfileInDb(supabase: SupabaseClient, body: UserProfileData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'No autenticado' }
   const { age, gender, height, weight, weightHistory, fitnessGoal, fitnessLevel, weeklyWorkouts } = body

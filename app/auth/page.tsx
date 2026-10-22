@@ -54,7 +54,7 @@ export default function AuthPage() {
     reset,
   } = useForm<AuthFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema),
     defaultValues: { email: "", password: "", confirmPassword: "" },
     mode: "onTouched",
   });

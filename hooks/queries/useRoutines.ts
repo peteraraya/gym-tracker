@@ -35,21 +35,31 @@ export function useRoutines() {
       
       const previousRoutines = queryClient.getQueryData(routinesQueryKey);
       
-      queryClient.setQueryData(routinesQueryKey, (old: Routine[] | undefined) => {
-        if (!old) return old;
-        return old.map(routine => {
-          if (routine.id !== id) return routine;
-          return {
-            ...routine,
-            name: (data as any).name ?? routine.name,
-            description: (data as any).description ?? routine.description,
-            image: (data as any).image ?? routine.image,
-            restBetweenSets: (data as any).restBetweenSets ?? routine.restBetweenSets,
-            restBetweenExercises: (data as any).restBetweenExercises ?? routine.restBetweenExercises,
-            exercises: (data as any).exercises ?? routine.exercises,
-          } as Routine;
-        });
-      });
+interface PartialRoutineUpdate {
+  name?: string;
+  description?: string;
+  image?: string;
+  restBetweenSets?: number;
+  restBetweenExercises?: number;
+  exercises?: Routine['exercises'];
+}
+
+queryClient.setQueryData(routinesQueryKey, (old: Routine[] | undefined) => {
+  if (!old) return old;
+  return old.map(routine => {
+    if (routine.id !== id) return routine;
+    const updates = data as PartialRoutineUpdate;
+    return {
+      ...routine,
+      name: updates.name ?? routine.name,
+      description: updates.description ?? routine.description,
+      image: updates.image ?? routine.image,
+      restBetweenSets: updates.restBetweenSets ?? routine.restBetweenSets,
+      restBetweenExercises: updates.restBetweenExercises ?? routine.restBetweenExercises,
+      exercises: updates.exercises ?? routine.exercises,
+    };
+  });
+});
       
       return { previousRoutines };
     },

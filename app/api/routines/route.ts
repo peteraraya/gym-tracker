@@ -4,6 +4,10 @@ import {
   getRoutinesFromDb,
   createRoutineInDb,
 } from '@/lib/infrastructure/supabase/shared-service'
+import {
+  ApiCreateRoutineBodySchema,
+  validateApiBody,
+} from '@/lib/shared/validation/api'
 
 // ⚠️ DEPRECATED: Esta API Route usa lib/supabase/shared-service.ts internamente.
 // Se mantiene para compatibilidad con SSR. Nuevos clientes deben usar service.ts
@@ -19,29 +23,6 @@ function dbDisabledResponse() {
   return null
 }
 
-// Tipos para mejor validación
-interface SetData {
-  reps: number
-  weight?: number
-}
-
-interface RoutineExercise {
-  id?: string
-  name: string
-  sets: SetData[]
-  equipment?: string
-  notes?: string
-}
-
-interface CreateRoutineBody {
-  name: string
-  description?: string
-  image?: string
-  exercises: RoutineExercise[]
-  restBetweenSets?: number
-  restBetweenExercises?: number
-}
-
 export async function GET() {
   const guard = dbDisabledResponse()
   if (guard) return guard
@@ -54,7 +35,6 @@ export async function GET() {
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     )
@@ -66,55 +46,23 @@ export async function POST(request: Request) {
   if (guard) return guard
   try {
     const supabase = await createSupabaseServerClient()
-    const body: CreateRoutineBody = await request.json()
+    const body = await request.json()
 
-    // Validación de datos
-    if (!body.name || !body.name.trim()) {
+    const validation = validateApiBody(ApiCreateRoutineBodySchema, body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Datos inválidos', details: 'El nombre de la rutina es requerido' },
+        { error: 'Datos inválidos', details: validation.error },
         { status: 400 },
       )
     }
 
-    if (!body.exercises || !Array.isArray(body.exercises) || body.exercises.length === 0) {
-      return NextResponse.json(
-        { error: 'Datos inválidos', details: 'Se requiere al menos un ejercicio' },
-        { status: 400 },
-      )
-    }
-
-    // Validar que cada ejercicio tenga los datos necesarios
-    for (let i = 0; i < body.exercises.length; i++) {
-      const ex = body.exercises[i]
-      if (!ex.name || !ex.sets || !Array.isArray(ex.sets) || ex.sets.length === 0) {
-        return NextResponse.json(
-          {
-            error: 'Datos inválidos',
-            details: `Ejercicio ${i + 1}: nombre y series son requeridos`,
-          },
-          { status: 400 },
-        )
-      }
-      // Validar cada serie
-      for (let j = 0; j < ex.sets.length; j++) {
-        const set = ex.sets[j]
-        if (!set.reps || set.reps <= 0) {
-          return NextResponse.json(
-            {
-              error: 'Datos inválidos',
-              details: `Ejercicio ${i + 1}, Serie ${j + 1}: repeticiones son requeridas`,
-            },
-            { status: 400 },
-          )
-        }
-      }
-    }
+    const data = validation.data
 
     const result = await createRoutineInDb(supabase, {
-      name: body.name.trim(),
-      description: body.description?.trim() || undefined,
-      image: body.image || undefined,
-      exercises: body.exercises.map((ex) => ({
+      name: data.name.trim(),
+      description: data.description?.trim() || undefined,
+      image: data.image || undefined,
+      exercises: data.exercises.map((ex) => ({
         name: ex.name.trim(),
         sets: ex.sets.map((s) => ({
           reps: s.reps,
@@ -123,8 +71,8 @@ export async function POST(request: Request) {
         equipment: ex.equipment?.trim() || undefined,
         notes: ex.notes?.trim() || undefined,
       })),
-      restBetweenSets: body.restBetweenSets,
-      restBetweenExercises: body.restBetweenExercises,
+      restBetweenSets: data.restBetweenSets,
+      restBetweenExercises: data.restBetweenExercises,
     })
 
     return NextResponse.json({ success: true, id: result.id }, { status: 201 })
@@ -133,7 +81,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     )

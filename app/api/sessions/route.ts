@@ -4,6 +4,10 @@ import {
   getSessionsFromDb,
   createSessionInDb,
 } from '@/lib/infrastructure/supabase/shared-service'
+import {
+  ApiCreateSessionBodySchema,
+  validateApiBody,
+} from '@/lib/shared/validation/api'
 
 // ⚠️ DEPRECATED: Esta API Route usa lib/supabase/shared-service.ts internamente.
 // Se mantiene para compatibilidad con SSR. Nuevos clientes deben usar service.ts
@@ -19,24 +23,6 @@ function dbDisabledResponse() {
   return null
 }
 
-// Tipos para mejor validación
-interface SessionExercise {
-  exerciseId: string
-  completedSets: number
-  actualReps: number[]
-  actualWeight: number[]
-  setDurations?: number[]
-  pauseDurations?: number[]
-}
-
-interface CreateSessionBody {
-  routineId: string
-  exercises: SessionExercise[]
-  notes?: string
-  totalDuration?: number
-  totalPausedTime?: number
-}
-
 export async function GET() {
   const guard = dbDisabledResponse()
   if (guard) return guard
@@ -49,7 +35,6 @@ export async function GET() {
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     )
@@ -61,26 +46,21 @@ export async function POST(request: Request) {
   if (guard) return guard
   try {
     const supabase = await createSupabaseServerClient()
-    const body: CreateSessionBody = await request.json()
+    const body = await request.json()
 
-    // Validación de datos
-    if (!body.routineId) {
+    const validation = validateApiBody(ApiCreateSessionBodySchema, body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Datos inválidos', details: 'routineId es requerido' },
+        { error: 'Datos inválidos', details: validation.error },
         { status: 400 },
       )
     }
 
-    if (!body.exercises || !Array.isArray(body.exercises) || body.exercises.length === 0) {
-      return NextResponse.json(
-        { error: 'Datos inválidos', details: 'Se requiere al menos un ejercicio' },
-        { status: 400 },
-      )
-    }
+    const data = validation.data
 
     const result = await createSessionInDb(supabase, {
-      routineId: body.routineId,
-      exercises: body.exercises.map((ex) => ({
+      routineId: data.routineId,
+      exercises: data.exercises.map((ex) => ({
         exerciseId: ex.exerciseId,
         completedSets: ex.completedSets,
         actualReps: ex.actualReps,
@@ -88,9 +68,9 @@ export async function POST(request: Request) {
         setDurations: ex.setDurations,
         pauseDurations: ex.pauseDurations,
       })),
-      notes: body.notes,
-      totalDuration: body.totalDuration,
-      totalPausedTime: body.totalPausedTime,
+      notes: data.notes,
+      totalDuration: data.totalDuration,
+      totalPausedTime: data.totalPausedTime,
     })
 
     return NextResponse.json({ success: true, id: result.id }, { status: 201 })
@@ -99,7 +79,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     )
