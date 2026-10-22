@@ -63,7 +63,6 @@ export function useWorkoutPageState(id: string) {
     clearRestState,
     finishWorkout: finishWorkoutContext,
     cancelWorkout,
-    markCancelled,
   } = useWorkout();
 
   const { success, error } = useToast();
@@ -925,22 +924,7 @@ export function useWorkoutPageState(id: string) {
     });
     if (confirmed) {
       try {
-        // Marcar como cancelado para evitar restauraciones automáticas
-        markCancelled?.();
         await cancelWorkout();
-        
-        // Limpiar almacenamiento local relacionado
-        try {
-          sessionStorage.removeItem('workout_splash_ts');
-          sessionStorage.removeItem('workout_cancelled');
-          sessionStorage.removeItem('workout_cancelled_persistent');
-          localStorage.removeItem('workout_cancelled');
-          localStorage.removeItem('workout_cancelled_persistent');
-          localStorage.setItem('workout_cancelled', Date.now().toString());
-          localStorage.setItem('workout_cancelled_persistent', Date.now().toString());
-        } catch (e) {
-          logger.warn("[useWorkoutPageState] Error clearing storage on cancel:", e);
-        }
 
         // Resetear estado local
         setIsInitialized(false);
@@ -956,7 +940,7 @@ export function useWorkoutPageState(id: string) {
       }
     }
   }, [confirm, cancelWorkout,
-    markCancelled, router, error, setIsInitialized, setIsWorkoutActive, setShowStartSplash, setRoutine, setOriginalRoutine]);
+    router, error, setIsInitialized, setIsWorkoutActive, setShowStartSplash, setRoutine, setOriginalRoutine]);
 
   const handlePauseWorkout = useCallback(() => {
     if (isPaused) {
@@ -1678,7 +1662,6 @@ export function useWorkoutPageState(id: string) {
     error,
     confirm,
     cancelWorkout,
-    markCancelled,
     hasRoutineChanges,
     handleFinish,
     handleCancelWorkout,

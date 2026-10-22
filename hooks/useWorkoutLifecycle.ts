@@ -114,8 +114,21 @@ function wasRecentOperation(sessionKey: string, persistentKey: string): boolean 
 }
 
 function clearOperationMarkers(sessionKey: string, persistentKey: string) {
-  sessionStorage.removeItem(sessionKey);
-  localStorage.removeItem(persistentKey);
+  try {
+    sessionStorage.removeItem(sessionKey);
+  } catch (error) {
+    logger.warn("[useWorkoutLifecycle] Could not clear session operation marker", error);
+  }
+  try {
+    localStorage.removeItem(persistentKey);
+  } catch (error) {
+    logger.warn("[useWorkoutLifecycle] Could not clear persistent operation marker", error);
+  }
+}
+
+function clearAllOperationMarkers() {
+  clearOperationMarkers("workout_cancelled", "workout_cancelled_persistent");
+  clearOperationMarkers("workout_finished", "workout_finished_persistent");
 }
 
 /**
@@ -227,6 +240,8 @@ export interface WorkoutLifecycleResult {
   setActiveWorkout: React.Dispatch<React.SetStateAction<WorkoutState | null>>;
   isLoadingActiveWorkout: boolean;
   activeWorkoutRef: React.RefObject<WorkoutState | null>;
+  /** Limpia los marcadores de finalización/cancelación al iniciar otro workout */
+  markStarted: () => void;
   /** Llama a esto antes de limpiar el estado al finalizar el workout */
   markFinished: () => void;
   /** Llama a esto antes de limpiar el estado al cancelar el workout */
@@ -251,6 +266,25 @@ export function useWorkoutLifecycle(): WorkoutLifecycleResult {
         // Limpiar marcadores persistentes huérfanos de sesiones previas
         // que hayan expirado la ventana de protección (30s)
         clearExpiredPersistentMarkers();
+
+        const wasCancelled = wasRecentOperation(
+          "workout_cancelled",
+          "workout_cancelled_persistent",
+        );
+        const wasFinished = wasRecentOperation(
+          "workout_finished",
+          "workout_finished_persistent",
+        );
+        if (wasCancelled || wasFinished) {
+          logger.log(
+            `[useWorkoutLifecycle] Skipping restore: recent ${
+              wasCancelled ? "cancel" : "finish"
+            }`,
+          );
+          await saveQueue.clear();
+          clearAllOperationMarkers();
+          return;
+        }
 
         const restored = await tryRestoreWorkout("initial_load");
         if (mounted && restored) setActiveWorkout(restored);
@@ -326,6 +360,7 @@ export function useWorkoutLifecycle(): WorkoutLifecycleResult {
     setActiveWorkout,
     isLoadingActiveWorkout,
     activeWorkoutRef,
+    markStarted: clearAllOperationMarkers,
     markFinished:  () => { setFinishMarkers();  emitClearedEvent(); notifySWCleanup(); },
     markCancelled: () => { setCancelMarkers(); emitClearedEvent(); notifySWCleanup(); },
   };

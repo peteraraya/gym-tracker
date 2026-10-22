@@ -5,7 +5,6 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { BottomNavBar } from '@/components/layout/BottomNavBar';
-import { ConnectionIndicator } from '@/components/shared/ConnectionIndicator';
 import FloatingCreateRoutine from '@/components/features/routines/FloatingCreateRoutine';
 import dynamic from 'next/dynamic';
 
@@ -21,7 +20,6 @@ export const GlobalUI: React.FC = () => {
 
   return (
     <>
-      <ConnectionIndicator />
       {!hideNavigation && (
         <>
           <Navbar />

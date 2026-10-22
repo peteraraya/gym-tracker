@@ -26,7 +26,6 @@ import React, {
 import type { Routine } from "@/types";
 import { useWorkoutLifecycle } from "@/hooks/useWorkoutLifecycle";
 import type { WorkoutState } from "@/lib/application/workout/normalizeWorkoutState";
-import * as storageService from "@/lib/infrastructure/storage/storage";
 import logger from "@/lib/shared/logger";
 import { saveQueue } from "@/lib/shared/utils/saveQueue";
 
@@ -79,6 +78,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     activeWorkout,
     setActiveWorkout,
     activeWorkoutRef,
+    markStarted,
     markFinished,
     markCancelled,
   } = useWorkoutLifecycle();
@@ -86,6 +86,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   // ─── Acciones ──────────────────────────────────────────────────────────────
 
   const startWorkout = useCallback((routine: Routine) => {
+    markStarted();
     const newWorkout: WorkoutState = {
       routineId: routine.id,
       routineName: routine.name,
@@ -99,7 +100,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     setActiveWorkout(newWorkout);
     // Señal para que la workout page muestre el splash de inicio (válida 8s)
     try { sessionStorage.setItem('workout_splash_ts', Date.now().toString()); } catch {}
-  }, [setActiveWorkout]);
+  }, [markStarted, setActiveWorkout]);
 
   const updateWorkoutProgress = useCallback(
     (
@@ -230,8 +231,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     setActiveWorkout(null);
     try {
       markFinished();
-      await saveQueue.flush();
-      await storageService.clearActiveWorkout();
+      await saveQueue.clear();
     } catch (e) {
       logger.error("[WorkoutContext] Error clearing on finish:", e);
       throw e;
@@ -240,16 +240,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
   const cancelWorkout = useCallback(async () => {
     logger.log("[WorkoutContext] cancelWorkout");
+    markCancelled();
     activeWorkoutRef.current = null;
     setActiveWorkout(null);
-    try {
-      markCancelled();
-      await saveQueue.flush();
-      await storageService.clearActiveWorkout();
-    } catch (e) {
-      logger.error("[WorkoutContext] Error clearing on cancel:", e);
-      throw e;
-    }
+    await saveQueue.clear();
   }, [markCancelled, setActiveWorkout, activeWorkoutRef]);
 
   const skipExercise = useCallback((exerciseId: string) => {
@@ -312,4 +306,3 @@ export function useWorkout() {
   }
   return context;
 }
-

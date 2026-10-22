@@ -67,6 +67,21 @@ class SaveQueue {
     logger.debug('[SaveQueue] Queue flushed');
   }
 
+  async clear(): Promise<void> {
+    logger.debug('[SaveQueue] Queueing active workout clear');
+    const clearOperation = this.queue.then(() =>
+      storageService.clearActiveWorkout(),
+    );
+    this.queue = clearOperation.catch((error) => {
+      logger.error(
+        '[SaveQueue] Failed to clear active workout',
+        {},
+        error instanceof Error ? error : undefined,
+      );
+    });
+    await clearOperation;
+  }
+
   /**
    * Obtiene estadísticas de la cola
    */
