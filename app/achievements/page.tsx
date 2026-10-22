@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
-import AchievementsGrid from "@/components/features/achievements/AchievementsGrid";
+import { AchievementsGrid } from "./components.lazy";
 import { Button } from "@/components/ui/Button";
 import { useGym } from "@/context/GymContext"; // ✨ Usar el contexto existente
 import type { WorkoutSession } from "@/types";
@@ -25,7 +25,7 @@ import {
   StatBadge,
   StatsGrid,
 } from "@/components/shared";
-import { AchievementDebugPanel } from "@/components/features/achievements/AchievementDebugPanel"; // ✨ Panel de debug
+import { AchievementDebugPanel } from "./components.lazy";
 
 export default function AchievementsPage() {
   const router = useRouter();

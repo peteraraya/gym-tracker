@@ -37,6 +37,9 @@ import {
 } from "@/components/icons/lucide";
 import Link from "next/link";
 
+// Lazy loaded components
+import { AnimatedFlame } from "./components.lazy";
+
 // ——— Helpers ———
 type DayKey =
   | "sunday" | "monday" | "tuesday" | "wednesday"
@@ -81,17 +84,6 @@ function getLastWeekVolume(sessions: WorkoutSession[]): number {
     }),
   );
 }
-
-// ——— Flame animada ———
-const AnimatedFlame: React.FC<{ size?: number }> = ({ size = 24 }) => (
-  <motion.span
-    animate={{ scale: [1, 1.2, 0.95, 1.1, 1], rotate: [-5, 5, -3, 3, 0] }}
-    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-    style={{ display: "inline-block", lineHeight: 1 }}
-  >
-    <Flame style={{ width: size, height: size }} className="text-orange-500" />
-  </motion.span>
-);
 
 // ——— Card descanso ———
 const RestDayCard: React.FC<{ dayKey: DayKey; showSetup?: boolean }> = ({ dayKey, showSetup = false }) => {
