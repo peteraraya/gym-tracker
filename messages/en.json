@@ -462,7 +462,19 @@
     "decreaseReps": "Decrease reps",
     "increaseReps": "Increase reps",
     "decreaseWeight": "Decrease weight",
-    "increaseWeight": "Increase weight"
+    "increaseWeight": "Increase weight",
+    "quickEditGuideTitle": "Log a set in seconds",
+    "quickEditGuideStep1": "Tap reps or weight to edit.",
+    "quickEditGuideStep2": "Enter saves and moves to the next value.",
+    "quickEditGuideStep3": "Copy previous values and undo any change.",
+    "quickEditGuideDismiss": "Got it",
+    "copyToFollowingSets": "Copy to following sets",
+    "copyPreviousSet": "Repeat previous set values",
+    "copyValuesTitle": "Copy values",
+    "copyValuesConfirm": "Copy this set's reps and weight to all following pending sets?",
+    "valuesCopied": "Values copied to following sets",
+    "plateCalculator": "Plate calculator",
+    "openPlateCalculator": "View plates per side"
   },
   "sessions": {
     "title": "Session History",

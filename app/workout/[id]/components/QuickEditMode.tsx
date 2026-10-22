@@ -1,13 +1,13 @@
 ﻿"use client";
 
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback, type KeyboardEvent } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import { Card, CardContent } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { PlateCalculator } from "@/components/features/workout/PlateCalculator";
 import { Timer, ArrowRight, Plus, Check } from "@/components/icons/lucide";
 import { Spinner } from "@/components/ui/Spinner";
 import SetTypeCycleButton from "@/components/features/workout/SetTypeCycleButton";
-import { EditValueModal } from "@/components/shared/EditValueModal";
 import { FloatingRestTimer } from "./FloatingRestTimer";
 import { SwipeButton } from "@/components/ui/SwipeButton";
 import { AddExerciseButton } from "./AddExerciseButton";
@@ -98,13 +98,21 @@ export function QuickEditMode({
     exerciseId: string;
     setIndex: number;
     field: "reps" | "weight";
-    currentValue: number;
     exerciseName: string;
   } | null>(null);
   const [editingRestTime, setEditingRestTime] = useState<{
     exerciseId: string;
     exerciseName: string;
     currentRestTime: number;
+  } | null>(null);
+  const [copySetTarget, setCopySetTarget] = useState<{
+    exerciseId: string;
+    setIndex: number;
+    exerciseName: string;
+    reps: number;
+    weight: number;
+    previousReps: number;
+    previousWeight: number;
   } | null>(null);
   const [tempValue, setTempValue] = useState<string>("");
   const [tempRestTime, setTempRestTime] = useState<string>("");
@@ -162,15 +170,103 @@ export function QuickEditMode({
   const [showFloatingTimer, setShowFloatingTimer] = useState(false);
   const [floatingTimerDuration, setFloatingTimerDuration] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isSavingCellRef = useRef(false);
   const restInputRef = useRef<HTMLInputElement>(null);
   const exerciseRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
   const setInputRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Estado para resaltar campos faltantes cuando el usuario intenta completar una serie
   const [fieldValidation, setFieldValidation] = useState<
     Record<string, { reps?: boolean; weight?: boolean }>
   >({});
+  const [showQuickEditGuide, setShowQuickEditGuide] = useState(false);
+  const [showPlateCalculator, setShowPlateCalculator] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        setShowQuickEditGuide(
+          localStorage.getItem("gymlogix_quick_edit_guide_seen") !== "true",
+        );
+      } catch (error) {
+        console.error("No se pudo leer el estado de la guía de edición rápida", error);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const dismissQuickEditGuide = () => {
+    try {
+      localStorage.setItem("gymlogix_quick_edit_guide_seen", "true");
+      setShowQuickEditGuide(false);
+    } catch (error) {
+      console.error("No se pudo guardar el estado de la guía de edición rápida", error);
+      setShowQuickEditGuide(false);
+    }
+  };
+
+  const copyValuesToFollowingSets = async (
+    exerciseId: string,
+    setIndex: number,
+    reps: number,
+    weight: number,
+  ) => {
+    const accepted = await confirm({
+      title: t("copyValuesTitle"),
+      message: t("copyValuesConfirm"),
+      confirmText: t("copyToFollowingSets"),
+    });
+    if (!accepted) return;
+
+    const exercise = routine.exercises.find((item) => item.id === exerciseId);
+    if (!exercise) return;
+
+    const targets = exercise.sets
+      .map((_, index) => index)
+      .filter((index) => {
+        if (index <= setIndex || workoutData.completedSetFlags?.[exerciseId]?.[index]) {
+          return false;
+        }
+        return index >= (workoutData.completedSets?.[exerciseId] ?? 0);
+      });
+    if (!targets.length) return;
+
+    const previousValues = targets.map((index) => ({
+      index,
+      reps: workoutData.actualReps[exerciseId]?.[index] ?? 0,
+      weight: workoutData.actualWeights[exerciseId]?.[index] ?? 0,
+    }));
+    targets.forEach((index) => {
+      onEditReps(exerciseId, index, reps);
+      onEditWeight(exerciseId, index, weight);
+    });
+    showToast(t("valuesCopied"), "success", 6000, {
+      label: t("undo"),
+      onClick: () => {
+        previousValues.forEach(({ index, reps: oldReps, weight: oldWeight }) => {
+          onEditReps(exerciseId, index, oldReps);
+          onEditWeight(exerciseId, index, oldWeight);
+        });
+      },
+    });
+  };
+
+  const copyPreviousSetValues = () => {
+    if (!copySetTarget) return;
+    const { exerciseId, setIndex, previousReps, previousWeight } = copySetTarget;
+    const oldReps = workoutData.actualReps[exerciseId]?.[setIndex] ?? 0;
+    const oldWeight = workoutData.actualWeights[exerciseId]?.[setIndex] ?? 0;
+    onEditReps(exerciseId, setIndex, previousReps);
+    onEditWeight(exerciseId, setIndex, previousWeight);
+    showToast(`${previousReps} ${t("repsShort")} × ${previousWeight} kg`, "success", 6000, {
+      label: t("undo"),
+      onClick: () => {
+        onEditReps(exerciseId, setIndex, oldReps);
+        onEditWeight(exerciseId, setIndex, oldWeight);
+      },
+    });
+    setCopySetTarget(null);
+  };
 
   const triggerFieldValidation = (
     exerciseId: string,
@@ -188,10 +284,9 @@ export function QuickEditMode({
     }, 2500);
   };
 
-  // Mantener el foco en el input cuando se abre el modal
+  // Focus and select the active cell value when entering inline edit mode.
   useEffect(() => {
     if (editingCell && inputRef.current) {
-      // Pequeño delay para asegurar que el modal esté completamente renderizado
       const timer = setTimeout(() => {
         inputRef.current?.focus();
         inputRef.current?.select();
@@ -334,7 +429,8 @@ export function QuickEditMode({
       return;
     }
 
-    setEditingCell({ exerciseId, setIndex, field, currentValue, exerciseName });
+    isSavingCellRef.current = false;
+    setEditingCell({ exerciseId, setIndex, field, exerciseName });
     setTempValue(currentValue === 0 ? "" : String(currentValue));
   };
 
@@ -471,86 +567,100 @@ export function QuickEditMode({
 
   // Función para guardar el valor editado
   const saveEdit = () => {
-    if (!editingCell) return;
+    if (!editingCell || isSavingCellRef.current) return;
 
     const value =
-      tempValue === ""
+      tempValue.trim() === ""
         ? 0
         : editingCell.field === "reps"
-          ? parseInt(tempValue)
-          : parseFloat(tempValue);
+          ? parseInt(tempValue, 10)
+          : parseFloat(tempValue.replace(",", "."));
 
-    if (!isNaN(value) && value >= 0) {
+    if (
+      tempValue.trim() !== "" &&
+      Number.isFinite(value) &&
+      value >= 0 &&
+      (editingCell.field !== "reps" || Number.isInteger(value))
+    ) {
+      const previousValue =
+        editingCell.field === "reps"
+          ? workoutData.actualReps[editingCell.exerciseId]?.[editingCell.setIndex] ?? 0
+          : workoutData.actualWeights[editingCell.exerciseId]?.[editingCell.setIndex] ?? 0;
       if (editingCell.field === "reps") {
         onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
       } else {
         onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
       }
-    }
-
-    setEditingCell(null);
-    setTempValue("");
-  };
-
-  // Función para cancelar edición (cierra el modal sin sobreescribir con valores obsoletos)
-  const cancelEdit = () => {
-    // Limpiar timer de auto-cierre
-    if (autoCloseTimerRef.current) {
-      clearTimeout(autoCloseTimerRef.current);
-    }
-
-    setEditingCell(null);
-    setTempValue("");
-  };
-
-  // Función para actualizar valor con auto-cierre
-  const updateValueWithAutoClose = (
-    newValue: string,
-    immediate: boolean = false,
-  ) => {
-    setTempValue(newValue);
-
-    // Limpiar timer anterior
-    if (autoCloseTimerRef.current) {
-      clearTimeout(autoCloseTimerRef.current);
-    }
-
-    if (!editingCell) return;
-
-    // Si es inmediato (atajo rápido), guardar y cerrar ahora
-    if (immediate) {
-      const value =
-        editingCell.field === "reps"
-          ? parseInt(newValue)
-          : parseFloat(newValue);
-      if (!isNaN(value) && value > 0) {
-        if (editingCell.field === "reps") {
-          onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
-        } else {
-          onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
-        }
-        setEditingCell(null);
-        setTempValue("");
+      if (previousValue !== value) {
+        showToast(t("valueUpdated"), "success", 5000, {
+          label: t("undo"),
+          onClick: () => {
+            if (editingCell.field === "reps") {
+              onEditReps(editingCell.exerciseId, editingCell.setIndex, previousValue);
+            } else {
+              onEditWeight(editingCell.exerciseId, editingCell.setIndex, previousValue);
+            }
+          },
+        });
       }
+    }
+
+    isSavingCellRef.current = true;
+    setEditingCell(null);
+    setTempValue("");
+  };
+
+  // Escape discards the draft; blur and Enter commit it.
+  const cancelEdit = () => {
+    isSavingCellRef.current = true;
+    setEditingCell(null);
+    setTempValue("");
+  };
+
+  const handleCellKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      cancelEdit();
       return;
     }
+    if (event.key !== "Enter" || !editingCell) return;
 
-    // Si no es inmediato (teclado), programar auto-cierre en 2 segundos
-    autoCloseTimerRef.current = setTimeout(() => {
-      const value =
-        editingCell.field === "reps"
-          ? parseInt(newValue)
-          : parseFloat(newValue);
-      if (!isNaN(value) && value > 0) {
-        if (editingCell.field === "reps") {
-          onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
-        } else {
-          onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
-        }
-        setEditingCell(null);
-        setTempValue("");
+    event.preventDefault();
+    const currentCell = editingCell;
+    const value =
+      currentCell.field === "reps"
+        ? parseInt(tempValue, 10)
+        : parseFloat(tempValue.replace(",", "."));
+    if (
+      tempValue.trim() === "" ||
+      !Number.isFinite(value) ||
+      value < 0 ||
+      (currentCell.field === "reps" && !Number.isInteger(value))
+    ) {
+      return;
+    }
+    saveEdit();
+    window.setTimeout(() => {
+      if (currentCell.field === "reps") {
+        const exercise = routine.exercises.find(
+          (item) => item.id === currentCell.exerciseId,
+        );
+        if (!exercise) return;
+        const nextWeight =
+          workoutData.actualWeights[currentCell.exerciseId]?.[currentCell.setIndex] ??
+          exercise.sets[currentCell.setIndex]?.weight ??
+          0;
+        startEditing(
+          currentCell.exerciseId,
+          currentCell.setIndex,
+          "weight",
+          nextWeight,
+          exercise.name,
+        );
+      } else if (autoAdvance) {
+        focusNextIncompleteSet(currentCell.exerciseId, currentCell.setIndex);
       }
-    }, 2000);
+    }, 0);
   };
 
   // Función para toggle collapse de un ejercicio
@@ -606,21 +716,6 @@ export function QuickEditMode({
   const cancelRestEdit = () => {
     setEditingRestTime(null);
     setTempRestTime("");
-  };
-
-  const getEditingCellTitle = () => {
-    if (!editingCell) return "";
-    const fieldLabel =
-      editingCell.field === "reps" ? "Repeticiones de" : "Peso";
-    const exercise = routine.exercises.find(
-      (ex) => ex.id === editingCell.exerciseId,
-    );
-    const setRef = exercise?.sets?.[editingCell.setIndex];
-    const doneReps =
-      workoutData.actualReps[editingCell.exerciseId]?.[editingCell.setIndex];
-    const repsDisplay =
-      doneReps !== undefined && doneReps > 0 ? doneReps : (setRef?.reps ?? "–");
-    return `${fieldLabel}  ${editingCell.exerciseName} Serie: ${editingCell.setIndex + 1} - ${repsDisplay} reps`;
   };
 
   // Calcular progreso total - memoizado para evitar recalcular en cada render
@@ -748,6 +843,33 @@ export function QuickEditMode({
           }}
           onDismiss={() => setShowFloatingTimer(false)}
         />
+      )}
+
+      {showQuickEditGuide && (
+        <section
+          aria-label={t("quickEditGuideTitle")}
+          className="rounded-2xl border border-emerald-300/70 bg-emerald-50/90 p-3 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/30 sm:p-4"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-emerald-950 dark:text-emerald-100">
+                {t("quickEditGuideTitle")}
+              </p>
+              <ol className="mt-2 grid gap-1.5 text-xs leading-relaxed text-emerald-900 dark:text-emerald-200 sm:grid-cols-3 sm:gap-3">
+                <li><span className="font-bold">1.</span> {t("quickEditGuideStep1")}</li>
+                <li><span className="font-bold">2.</span> {t("quickEditGuideStep2")}</li>
+                <li><span className="font-bold">3.</span> {t("quickEditGuideStep3")}</li>
+              </ol>
+            </div>
+            <button
+              type="button"
+              onClick={dismissQuickEditGuide}
+              className="min-h-10 shrink-0 rounded-lg px-3 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+            >
+              {t("quickEditGuideDismiss")}
+            </button>
+          </div>
+        </section>
       )}
 
       {/* Header compacto - sticky (omitido cuando hideHeader=true, el padre lo gestiona) */}
@@ -1433,7 +1555,7 @@ export function QuickEditMode({
                   <div className="divide-y divide-gray-100 dark:divide-gray-800">
                     {/* Cabecera compacta alineada con filas */}
                     <div className="px-2 py-1.5 bg-gray-50 dark:bg-gray-900/50">
-                      <div className="grid grid-cols-[32px_80px_80px_32px_48px_24px] md:grid-cols-[32px_2fr_2fr_48px_56px_24px] gap-1 items-center h-11">
+                      <div className="grid grid-cols-[24px_minmax(56px,1fr)_minmax(62px,1fr)_28px_38px_48px] md:grid-cols-[32px_2fr_2fr_32px_48px_56px] gap-1 items-center h-11">
                         <div className="flex justify-center">
                           <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-gray-600 dark:text-gray-300">
                             N°
@@ -1458,7 +1580,7 @@ export function QuickEditMode({
                         </div>
 
                         <div className="flex items-center justify-center">
-                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300">✕</div>
+                          <div className="text-[10px] font-semibold text-gray-600 dark:text-gray-300">✓</div>
                         </div>
                       </div>
                     </div>
@@ -1586,7 +1708,7 @@ export function QuickEditMode({
                             }`}
                           >
                           {/* Datos  */}
-                          <div className="grid grid-cols-[32px_80px_80px_32px_12px_24px] md:grid-cols-[32px_2fr_2fr_32px_18px_34px] gap-1 items-center flex-1">
+                          <div className="grid grid-cols-[24px_minmax(56px,1fr)_minmax(62px,1fr)_28px_38px_48px] md:grid-cols-[32px_2fr_2fr_32px_48px_56px] gap-1 items-center flex-1">
                             {/* Número */}
                             <div className="flex justify-center">
                               <div
@@ -1602,42 +1724,63 @@ export function QuickEditMode({
 
                             {/* Reps */}
                             <div className="relative w-full">
-                              <button
-                                ref={(el) => {
-                                  setInputRefs.current[
-                                    `${exerciseId}-${setIdx}-reps`
-                                  ] = el;
-                                }}
-                                onClick={() =>
-                                  !isSkipped &&
-                                  startEditing(
-                                    exerciseId,
-                                    setIdx,
-                                    "reps",
-                                    displayReps,
-                                    exercise.name,
-                                  )
-                                }
-                                disabled={isSkipped}
-                                aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("repsPerformed")}`}
-                                aria-invalid={validation.reps ? "true" : "false"}
-                                className={`w-full h-11 rounded-xl border-2 font-black text-lg tabular-nums shadow-sm transition-all active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
-                                  isCompleted
-                                      ? "text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                                      : isActiveSet
-                                        ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
-                                        : typeof doneReps === "number" && doneReps > 0
-                                          ? "text-teal-800 dark:text-teal-200 bg-teal-50 dark:bg-teal-900/20 border-teal-300 dark:border-teal-700"
-                                          : displayReps === 0
-                                            ? "text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
-                                          : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                                }`}
-                              >
-                                {displayReps === 0 ? "—" : displayReps}
-                                {validation.reps && (
-                                  <span className="absolute -inset-px rounded-xl ring-2 ring-red-500 dark:ring-red-700 animate-pulse pointer-events-none" />
-                                )}
-                              </button>
+                              {editingCell?.exerciseId === exerciseId &&
+                              editingCell.setIndex === setIdx &&
+                              editingCell.field === "reps" ? (
+                                <input
+                                  ref={inputRef}
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={tempValue}
+                                  onChange={(event) => {
+                                    if (/^\d*$/.test(event.target.value)) {
+                                      setTempValue(event.target.value);
+                                    }
+                                  }}
+                                  onBlur={saveEdit}
+                                  onKeyDown={handleCellKeyDown}
+                                  aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("repsPerformed")}`}
+                                  aria-invalid={validation.reps ? "true" : "false"}
+                                  className="h-11 w-full rounded-xl border-2 border-blue-500 bg-white text-center text-lg font-black tabular-nums text-gray-900 shadow-sm outline-none ring-2 ring-blue-500/20 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+                                />
+                              ) : (
+                                <button
+                                  ref={(el) => {
+                                    setInputRefs.current[
+                                      `${exerciseId}-${setIdx}-reps`
+                                    ] = el;
+                                  }}
+                                  onClick={() =>
+                                    !isSkipped &&
+                                    startEditing(
+                                      exerciseId,
+                                      setIdx,
+                                      "reps",
+                                      displayReps,
+                                      exercise.name,
+                                    )
+                                  }
+                                  disabled={isSkipped}
+                                  aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("repsPerformed")}`}
+                                  aria-invalid={validation.reps ? "true" : "false"}
+                                  className={`w-full h-11 rounded-xl border-2 font-black text-lg tabular-nums shadow-sm transition-all active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
+                                    isCompleted
+                                        ? "text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                                        : isActiveSet
+                                          ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
+                                          : typeof doneReps === "number" && doneReps > 0
+                                            ? "text-teal-800 dark:text-teal-200 bg-teal-50 dark:bg-teal-900/20 border-teal-300 dark:border-teal-700"
+                                            : displayReps === 0
+                                              ? "text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
+                                            : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                  }`}
+                                >
+                                  {displayReps === 0 ? "—" : displayReps}
+                                  {validation.reps && (
+                                    <span className="absolute -inset-px rounded-xl ring-2 ring-red-500 dark:ring-red-700 animate-pulse pointer-events-none" />
+                                  )}
+                                </button>
+                              )}
                               {hasRepsProgress && displayReps > 0 && (
                                 <div
                                   className="absolute -top-1 -right-1 rounded-full bg-gray-200 px-1 py-0.5 text-[8px] font-bold text-gray-800 shadow dark:bg-gray-700 dark:text-gray-100"
@@ -1650,53 +1793,86 @@ export function QuickEditMode({
 
                             {/* Peso */}
                             <div className="relative">
-                              <button
-                                ref={(el) => {
-                                  setInputRefs.current[
-                                    `${exerciseId}-${setIdx}-weight`
-                                  ] = el;
-                                }}
-                                onClick={() =>
-                                  !isSkipped &&
-                                  startEditing(
-                                    exerciseId,
-                                    setIdx,
-                                    "weight",
-                                    displayWeight,
-                                    exercise.name,
-                                  )
-                                }
-                                disabled={isSkipped}
-                                aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("weightUsed")}`}
-                                aria-invalid={validation.weight ? "true" : "false"}
-                                className={`flex h-11 w-full flex-col items-center justify-center rounded-xl border-2 text-sm font-black leading-none tabular-nums shadow-sm transition-all active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
-                                  isCompleted
-                                      ? "text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-                                      : isActiveSet
-                                        ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
-                                        : typeof doneWeight === "number" && doneWeight > 0
-                                          ? "text-teal-800 dark:text-teal-200 bg-teal-50 dark:bg-teal-900/20 border-teal-300 dark:border-teal-700"
-                                          : displayWeight === 0
-                                            ? "text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
-                                          : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                                }`}
-                              >
-                                {displayWeight === 0 ? (
-                                  <span className="text-lg">—</span>
-                                ) : (
-                                  <>
-                                    <span className="text-base font-black">
-                                      {displayWeight}
-                                    </span>
-                                    <span className="text-[9px] font-normal opacity-60">
-                                      kg
-                                    </span>
-                                  </>
-                                )}
-                                {validation.weight && (
-                                  <span className="absolute -inset-px rounded-xl ring-2 ring-red-500 dark:ring-red-700 animate-pulse pointer-events-none" />
-                                )}
-                              </button>
+                              {editingCell?.exerciseId === exerciseId &&
+                              editingCell.setIndex === setIdx &&
+                              editingCell.field === "weight" ? (
+                                <div className="space-y-1">
+                                  <input
+                                    ref={inputRef}
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={tempValue}
+                                    onChange={(event) => {
+                                      if (/^\d*([.,]\d*)?$/.test(event.target.value)) {
+                                        setTempValue(event.target.value);
+                                      }
+                                    }}
+                                    onBlur={saveEdit}
+                                    onKeyDown={handleCellKeyDown}
+                                    aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("weightUsed")}`}
+                                    aria-invalid={validation.weight ? "true" : "false"}
+                                    className="h-11 w-full rounded-xl border-2 border-blue-500 bg-white text-center text-sm font-black tabular-nums text-gray-900 shadow-sm outline-none ring-2 ring-blue-500/20 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+                                  />
+                                  {/(barra|barbell)/i.test(exercise.equipment ?? "") && (
+                                    <button
+                                      type="button"
+                                      onMouseDown={(event) => event.preventDefault()}
+                                      onClick={() => setShowPlateCalculator(true)}
+                                      className="w-full rounded-lg py-1 text-[10px] font-semibold text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                                    >
+                                      {t("openPlateCalculator")}
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                <button
+                                  ref={(el) => {
+                                    setInputRefs.current[
+                                      `${exerciseId}-${setIdx}-weight`
+                                    ] = el;
+                                  }}
+                                  onClick={() =>
+                                    !isSkipped &&
+                                    startEditing(
+                                      exerciseId,
+                                      setIdx,
+                                      "weight",
+                                      displayWeight,
+                                      exercise.name,
+                                    )
+                                  }
+                                  disabled={isSkipped}
+                                  aria-label={`${exercise.name}, ${t("set")} ${setIdx + 1}, ${t("weightUsed")}`}
+                                  aria-invalid={validation.weight ? "true" : "false"}
+                                  className={`flex h-11 w-full flex-col items-center justify-center rounded-xl border-2 text-sm font-black leading-none tabular-nums shadow-sm transition-all active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-blue-300 ${
+                                    isCompleted
+                                        ? "text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                                        : isActiveSet
+                                          ? "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
+                                          : typeof doneWeight === "number" && doneWeight > 0
+                                            ? "text-teal-800 dark:text-teal-200 bg-teal-50 dark:bg-teal-900/20 border-teal-300 dark:border-teal-700"
+                                            : displayWeight === 0
+                                              ? "text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-dashed border-gray-300 dark:border-gray-700"
+                                            : "text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                  }`}
+                                >
+                                  {displayWeight === 0 ? (
+                                    <span className="text-lg">—</span>
+                                  ) : (
+                                    <>
+                                      <span className="text-base font-black">
+                                        {displayWeight}
+                                      </span>
+                                      <span className="text-[9px] font-normal opacity-60">
+                                        kg
+                                      </span>
+                                    </>
+                                  )}
+                                  {validation.weight && (
+                                    <span className="absolute -inset-px rounded-xl ring-2 ring-red-500 dark:ring-red-700 animate-pulse pointer-events-none" />
+                                  )}
+                                </button>
+                              )}
                               {hasWeightProgress && displayWeight > 0 && (
                                 <div
                                   className="absolute -top-1 -right-1 rounded-full bg-gray-200 px-1 py-0.5 text-[8px] font-bold text-gray-800 shadow dark:bg-gray-700 dark:text-gray-100"
@@ -1737,9 +1913,25 @@ export function QuickEditMode({
                               </button>
                             </div>
 
-                            {/* Placeholder para el espacio del control (se elimina "Copiar anterior") */}
                             <div className="flex justify-center">
-                              <div className="w-8 h-8" />
+                              <button
+                                type="button"
+                                disabled={isSkipped}
+                                onClick={() => setCopySetTarget({
+                                  exerciseId,
+                                  setIndex: setIdx,
+                                  exerciseName: exercise.name,
+                                  reps: displayReps,
+                                  weight: displayWeight,
+                                  previousReps: Number(previousReps ?? 0),
+                                  previousWeight: Number(previousWeight ?? 0),
+                                })}
+                                className="flex h-10 w-10 items-center justify-center rounded-lg text-base font-bold text-gray-500 transition-colors hover:bg-blue-100 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:opacity-40 dark:text-gray-300 dark:hover:bg-blue-900/40 dark:hover:text-blue-200"
+                                aria-label={`${t("copyValuesTitle")}: ${exercise.name}, ${t("set")} ${setIdx + 1}`}
+                                title={t("copyValuesTitle")}
+                              >
+                                ⧉
+                              </button>
                             </div>
 
                             {/* Completar */}
@@ -2194,48 +2386,61 @@ export function QuickEditMode({
         </div>
       )}
 
-      {/* Modal de edición */}
-      <EditValueModal
-        isOpen={editingCell !== null}
-        onClose={() => setEditingCell(null)}
-        title={getEditingCellTitle()}
-        field={editingCell?.field ?? "reps"}
-        currentValue={editingCell?.currentValue ?? ""}
-        equipment={
-          editingCell
-            ? routine.exercises.find((ex) => ex.id === editingCell.exerciseId)?.equipment
-            : undefined
-        }
-        onSave={(value) => {
-          if (!editingCell) return;
-          if (editingCell.field === "reps") {
-            onEditReps(editingCell.exerciseId, editingCell.setIndex, value);
-          } else {
-            onEditWeight(editingCell.exerciseId, editingCell.setIndex, value);
-          }
-          setEditingCell(null);
-        }}
-        historicalWeights={
-          editingCell?.field === "weight"
-            ? (() => {
-                const exerciseId = editingCell.exerciseId;
-                const exercise = routine.exercises.find(
-                  (ex) => ex.id === exerciseId,
+      <BottomSheet
+        isOpen={copySetTarget !== null}
+        onClose={() => setCopySetTarget(null)}
+        title={t("copyValuesTitle")}
+      >
+        {copySetTarget && (
+          <div className="space-y-2 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            {copySetTarget.setIndex > 0 && (
+              <button
+                type="button"
+                disabled={copySetTarget.previousReps <= 0}
+                onClick={copyPreviousSetValues}
+                className="min-h-12 w-full rounded-xl border border-gray-200 px-4 text-left text-sm font-semibold text-gray-800 hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-800"
+              >
+                {t("copyPreviousSet")}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                const target = copySetTarget;
+                setCopySetTarget(null);
+                void copyValuesToFollowingSets(
+                  target.exerciseId,
+                  target.setIndex,
+                  target.reps,
+                  target.weight,
                 );
-                const actualWeights =
-                  workoutData.actualWeights[exerciseId] ?? [];
-                const plannedWeights =
-                  exercise?.sets.map((s) => s.weight ?? 0) ?? [];
-                return [...actualWeights, ...plannedWeights]
-                  .filter(
-                    (w): w is number => typeof w === "number" && w > 0,
-                  )
-                  .filter((w, i, arr) => arr.indexOf(w) === i)
-                  .sort((a, b) => b - a);
-              })()
-            : []
-        }
-      />
+              }}
+              className="min-h-12 w-full rounded-xl bg-emerald-600 px-4 text-left text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              {t("copyToFollowingSets")}
+            </button>
+          </div>
+        )}
+      </BottomSheet>
+
+      <BottomSheet
+        isOpen={showPlateCalculator}
+        onClose={() => setShowPlateCalculator(false)}
+        title={t("plateCalculator")}
+      >
+        {editingCell?.field === "weight" && (
+          <PlateCalculator
+            targetWeight={
+              Number(tempValue.replace(",", ".")) ||
+              workoutData.actualWeights[editingCell.exerciseId]?.[editingCell.setIndex] ||
+              routine.exercises.find((item) => item.id === editingCell.exerciseId)?.sets[
+                editingCell.setIndex
+              ]?.weight ||
+              0
+            }
+          />
+        )}
+      </BottomSheet>
 
       {/* Selector grande para tipo de serie */}
       <BottomSheet

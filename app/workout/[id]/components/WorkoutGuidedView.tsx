@@ -1,4 +1,4 @@
-import { Suspense, memo, useRef } from "react";
+import { Suspense, memo, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SwipeButton } from "@/components/ui/SwipeButton";
 import { ExerciseCard as ExerciseCardBase } from "./ExerciseCard";
@@ -49,6 +49,22 @@ export function WorkoutGuidedView({
 }: ReturnType<typeof useWorkoutPageState>) {
   const t = useTranslations("workout");
   const addExerciseAnchorRef = useRef<HTMLDivElement>(null);
+  const [tutElapsed, setTutElapsed] = useState(0);
+
+  useEffect(() => {
+    const startTime = setExecution.setStartTime;
+    if (!setExecution.isExecutingSet || !startTime) {
+      setTimeout(() => setTutElapsed(0), 0);
+      return;
+    }
+
+    const updateElapsed = () =>
+      setTutElapsed(Math.floor((Date.now() - startTime) / 1000));
+    updateElapsed();
+    const intervalId = setInterval(updateElapsed, 1000);
+    return () => clearInterval(intervalId);
+  }, [setExecution.isExecutingSet, setExecution.setStartTime]);
+
   if (!currentExercise || !routine) return null;
 
   return (
@@ -67,6 +83,28 @@ export function WorkoutGuidedView({
           </div>
         )}
         <div className="mx-auto w-full max-w-3xl">
+        {setExecution.isExecutingSet && setExecution.setStartTime && (
+          <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-900 dark:bg-blue-950/50">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-blue-600 dark:bg-blue-300" />
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-widest text-blue-800 dark:text-blue-200">
+                {t("setInProgress")}
+              </span>
+              <span className="truncate text-[10px] text-blue-700 dark:text-blue-300">
+                {currentExercise.name} · #{workoutState.currentSet}
+              </span>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <span className="text-[10px] uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                {t("timeUnderTension")}
+              </span>
+              <span className="text-base font-black leading-none tabular-nums text-blue-950 dark:text-white">
+                {Math.floor(tutElapsed / 60)}:
+                {String(tutElapsed % 60).padStart(2, "0")}
+              </span>
+            </div>
+          </div>
+        )}
         {!setExecution.isExecutingSet ? (
           <Button
             variant="primary"
