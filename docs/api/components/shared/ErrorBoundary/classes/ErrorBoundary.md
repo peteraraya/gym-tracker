@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/shared/ErrorBoundary](../README.md) / ErrorBoundary
+[gym-logic](../../../../README.md) / [components/shared/ErrorBoundary](../README.md) / ErrorBoundary
 
 # Class: ErrorBoundary
 
-Defined in: [components/shared/ErrorBoundary.tsx:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L17)
+Defined in: [components/shared/ErrorBoundary.tsx:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L17)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [components/shared/ErrorBoundary.tsx:17](https://github.com/peterara
 
 > **new ErrorBoundary**(`props`): `ErrorBoundary`
 
-Defined in: [components/shared/ErrorBoundary.tsx:18](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L18)
+Defined in: [components/shared/ErrorBoundary.tsx:18](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L18)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [components/shared/ErrorBoundary.tsx:18](https://github.com/peterara
 
 > **componentDidCatch**(`error`, `errorInfo`): `void`
 
-Defined in: [components/shared/ErrorBoundary.tsx:27](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L27)
+Defined in: [components/shared/ErrorBoundary.tsx:27](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L27)
 
 Catches exceptions generated in descendant components. Unhandled exceptions will cause
 the entire component tree to unmount.
@@ -69,7 +69,7 @@ the entire component tree to unmount.
 
 > **handleGoHome**(): `void`
 
-Defined in: [components/shared/ErrorBoundary.tsx:58](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L58)
+Defined in: [components/shared/ErrorBoundary.tsx:58](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L58)
 
 #### Returns
 
@@ -81,7 +81,7 @@ Defined in: [components/shared/ErrorBoundary.tsx:58](https://github.com/peterara
 
 > **handleReload**(): `void`
 
-Defined in: [components/shared/ErrorBoundary.tsx:54](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L54)
+Defined in: [components/shared/ErrorBoundary.tsx:54](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L54)
 
 #### Returns
 
@@ -93,7 +93,7 @@ Defined in: [components/shared/ErrorBoundary.tsx:54](https://github.com/peterara
 
 > **render**(): `string` \| `number` \| `bigint` \| `boolean` \| `Iterable`\<`ReactNode`, `any`, `any`\> \| `Promise`\<`AwaitedReactNode`\> \| `Element`
 
-Defined in: [components/shared/ErrorBoundary.tsx:62](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L62)
+Defined in: [components/shared/ErrorBoundary.tsx:62](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L62)
 
 #### Returns
 
@@ -109,7 +109,7 @@ Defined in: [components/shared/ErrorBoundary.tsx:62](https://github.com/peterara
 
 > `static` **getDerivedStateFromError**(`error`): `State`
 
-Defined in: [components/shared/ErrorBoundary.tsx:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L23)
+Defined in: [components/shared/ErrorBoundary.tsx:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/ErrorBoundary.tsx#L23)
 
 #### Parameters
 

@@ -9,14 +9,14 @@ import type { Routine, WorkoutSession } from '@/types';
 
 // Storage keys
 const STORAGE_KEYS = {
-    ROUTINES: 'gym_tracker_routines',
-    SESSIONS: 'gym_tracker_sessions',
-    PROFILE: 'gym_tracker_profile',
+    ROUTINES: 'gym_logic_routines',
+    SESSIONS: 'gym_logic_sessions',
+    PROFILE: 'gym_logic_profile',
     WEEKLY_PLAN: 'weekly_routine_plan',
     MONTHLY_PLAN: 'monthly_routine_plan',
-    ACTIVE_WORKOUT: 'gym-tracker-active-workout',
-    RECOMMENDATIONS: 'gym_tracker_recommendations',
-    LAST_WEIGHTS: 'gym_tracker_last_weights',
+    ACTIVE_WORKOUT: 'gym-logic-active-workout',
+    RECOMMENDATIONS: 'gym_logic_recommendations',
+    LAST_WEIGHTS: 'gym_logic_last_weights',
 } as const;
 
 // Helper to generate unique IDs
@@ -265,7 +265,7 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
                 id: sessionId,
                 totalSessions: sessions.length
             };
-            localStorage.setItem('gym_tracker_last_saved_session_local', JSON.stringify(marker));
+            localStorage.setItem('gym_logic_last_saved_session_local', JSON.stringify(marker));
             // También log para consola del navegador
              
             // console.log('[localStorage.saveSession] saved session local marker', marker);
@@ -540,7 +540,7 @@ export async function saveMonthlyPlan(plan: MonthlyPlan): Promise<void> {
 // ==================== MIGRATION ====================
 
 /**
- * Migrar sesiones de la clave antigua 'workoutSessions' a la nueva 'gym_tracker_sessions'
+ * Migrar sesiones de la clave antigua 'workoutSessions' a la nueva 'gym_logic_sessions'
  * Esta función consolida sesiones que puedan estar en claves antiguas
  */
 export async function migrateLegacySessions(): Promise<{ migrated: number; total: number }> {

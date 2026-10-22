@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / components/ui/Button
+[gym-logic](../../../README.md) / components/ui/Button
 
 # components/ui/Button
 

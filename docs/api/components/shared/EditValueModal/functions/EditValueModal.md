@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/shared/EditValueModal](../README.md) / EditValueModal
+[gym-logic](../../../../README.md) / [components/shared/EditValueModal](../README.md) / EditValueModal
 
 # Function: EditValueModal()
 
 > **EditValueModal**(`__namedParameters`): `Element`
 
-Defined in: [components/shared/EditValueModal.tsx:30](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/EditValueModal.tsx#L30)
+Defined in: [components/shared/EditValueModal.tsx:30](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/EditValueModal.tsx#L30)
 
 Modal reutilizable para editar reps o peso con teclado numérico estilo calculadora.
 - El primer dígito tecleado reemplaza el valor actual (no concatena).

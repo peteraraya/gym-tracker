@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / [components/features/workout/WorkoutCompleteSplash](../README.md) / CompleteSplashStats
+[gym-logic](../../../../../README.md) / [components/features/workout/WorkoutCompleteSplash](../README.md) / CompleteSplashStats
 
 # Interface: CompleteSplashStats
 
-Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:7](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L7)
+Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:7](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L7)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:7](https://gi
 
 > **durationSeconds**: `number`
 
-Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:12](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L12)
+Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:12](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L12)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:12](https://g
 
 > **exerciseCount**: `number`
 
-Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:9](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L9)
+Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:9](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L9)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:9](https://gi
 
 > **routineName**: `string`
 
-Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:8](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L8)
+Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:8](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L8)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:8](https://gi
 
 > **totalSets**: `number`
 
-Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:10](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L10)
+Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:10](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L10)
 
 ***
 
@@ -46,4 +46,4 @@ Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:10](https://g
 
 > **totalVolume**: `number`
 
-Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:11](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L11)
+Defined in: [components/features/workout/WorkoutCompleteSplash.tsx:11](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/features/workout/WorkoutCompleteSplash.tsx#L11)

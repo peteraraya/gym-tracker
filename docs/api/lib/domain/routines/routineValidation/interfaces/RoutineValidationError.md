@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / [lib/domain/routines/routineValidation](../README.md) / RoutineValidationError
+[gym-logic](../../../../../README.md) / [lib/domain/routines/routineValidation](../README.md) / RoutineValidationError
 
 # Interface: RoutineValidationError
 
-Defined in: [lib/domain/routines/routineValidation.ts:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L17)
+Defined in: [lib/domain/routines/routineValidation.ts:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L17)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/domain/routines/routineValidation.ts:17](https://github.com/pet
 
 > **exerciseIndex**: `number`
 
-Defined in: [lib/domain/routines/routineValidation.ts:18](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L18)
+Defined in: [lib/domain/routines/routineValidation.ts:18](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L18)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/domain/routines/routineValidation.ts:18](https://github.com/pet
 
 > **message**: `string`
 
-Defined in: [lib/domain/routines/routineValidation.ts:20](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L20)
+Defined in: [lib/domain/routines/routineValidation.ts:20](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L20)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [lib/domain/routines/routineValidation.ts:20](https://github.com/pet
 
 > **setIndex**: `number`
 
-Defined in: [lib/domain/routines/routineValidation.ts:19](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L19)
+Defined in: [lib/domain/routines/routineValidation.ts:19](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/routines/routineValidation.ts#L19)

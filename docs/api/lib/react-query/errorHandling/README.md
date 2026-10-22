@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/react-query/errorHandling
+[gym-logic](../../../README.md) / lib/react-query/errorHandling
 
 # lib/react-query/errorHandling
 

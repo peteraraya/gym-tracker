@@ -29,6 +29,22 @@ import logger from "@/lib/shared/logger";
 
 export type { WorkoutState };
 
+/**
+ * Envía mensaje de limpieza al Service Worker para detener
+ * temporizadores de descanso y borrar cachés de runtime.
+ */
+function notifySWCleanup(): void {
+  if (typeof window === "undefined") return;
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.ready
+    .then((registration) => {
+      registration.active?.postMessage({ type: "CLEANUP" });
+    })
+    .catch(() => {
+      // Ignorar errores: el SW puede no estar registrado aún
+    });
+}
+
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 /** Tiempo máximo (ms) que se considera un finish/cancel "reciente" */
@@ -100,6 +116,41 @@ function wasRecentOperation(sessionKey: string, persistentKey: string): boolean 
 function clearOperationMarkers(sessionKey: string, persistentKey: string) {
   sessionStorage.removeItem(sessionKey);
   localStorage.removeItem(persistentKey);
+}
+
+/**
+ * Limpia marcadores persistentes huérfanos de localStorage/sessionStorage
+ * que hayan expirado la ventana de protección (30s).
+ * Se ejecuta al montar para evitar que estado "fantasma"
+ * de sesiones previas bloquee la restauración legítima.
+ */
+function clearExpiredPersistentMarkers(): void {
+  if (typeof window === "undefined") return;
+  const now = Date.now();
+  const keysToCheck: Array<{ key: string; type: 'session' | 'local' }> = [
+    { key: "workout_finished", type: "session" },
+    { key: "workout_cancelled", type: "session" },
+    { key: "workout_finished_persistent", type: "local" },
+    { key: "workout_cancelled_persistent", type: "local" },
+    { key: "gym-active-workout-cleared", type: "local" },
+  ];
+
+  for (const { key, type } of keysToCheck) {
+    try {
+      const ts = type === "session"
+        ? sessionStorage.getItem(key)
+        : localStorage.getItem(key);
+      if (!ts) continue;
+      const elapsed = now - parseInt(ts, 10);
+      if (elapsed >= RECENT_OPERATION_WINDOW_MS) {
+        if (type === "session") {
+          sessionStorage.removeItem(key);
+        } else {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {}
+  }
 }
 
 // ─── Lógica de restauración en resume ────────────────────────────────────────
@@ -197,6 +248,10 @@ export function useWorkoutLifecycle(): WorkoutLifecycleResult {
     let mounted = true;
     (async () => {
       try {
+        // Limpiar marcadores persistentes huérfanos de sesiones previas
+        // que hayan expirado la ventana de protección (30s)
+        clearExpiredPersistentMarkers();
+
         const restored = await tryRestoreWorkout("initial_load");
         if (mounted && restored) setActiveWorkout(restored);
       } catch (e) {
@@ -205,7 +260,10 @@ export function useWorkoutLifecycle(): WorkoutLifecycleResult {
         if (mounted) setIsLoadingActiveWorkout(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+      notifySWCleanup();
+    };
   }, []);
 
   // ─── Persistencia automática al storage ───────────────────────────────────
@@ -268,7 +326,7 @@ export function useWorkoutLifecycle(): WorkoutLifecycleResult {
     setActiveWorkout,
     isLoadingActiveWorkout,
     activeWorkoutRef,
-    markFinished:  () => { setFinishMarkers();  emitClearedEvent(); },
-    markCancelled: () => { setCancelMarkers(); emitClearedEvent(); },
+    markFinished:  () => { setFinishMarkers();  emitClearedEvent(); notifySWCleanup(); },
+    markCancelled: () => { setCancelMarkers(); emitClearedEvent(); notifySWCleanup(); },
   };
 }

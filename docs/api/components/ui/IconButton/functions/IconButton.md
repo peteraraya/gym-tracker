@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/ui/IconButton](../README.md) / IconButton
+[gym-logic](../../../../README.md) / [components/ui/IconButton](../README.md) / IconButton
 
 # Function: IconButton()
 
 > **IconButton**(`__namedParameters`): `Element`
 
-Defined in: [components/ui/IconButton.tsx:25](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/IconButton.tsx#L25)
+Defined in: [components/ui/IconButton.tsx:25](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/IconButton.tsx#L25)
 
 Botón de ícono accesible.
 

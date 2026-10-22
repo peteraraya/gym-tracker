@@ -124,7 +124,7 @@ export function useWorkoutPageState(id: string) {
   const [workoutStartTime, setWorkoutStartTime] = useState(() => {
     if (typeof window === "undefined") return Date.now();
     try {
-      const stored = localStorage.getItem("gym-tracker-active-workout");
+      const stored = localStorage.getItem("gym-logic-active-workout");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.startedAt) return new Date(parsed.startedAt).getTime();
@@ -1276,8 +1276,7 @@ export function useWorkoutPageState(id: string) {
     if (!lastSetData) return;
     workoutState.setCurrentReps(lastSetData.reps);
     workoutState.setCurrentWeight(lastSetData.weight);
-    success(`Copiado: ${lastSetData.reps} reps × ${lastSetData.weight}kg`, 2000);
-  }, [lastSetData, workoutState, success]);
+  }, [lastSetData, workoutState]);
 
   const handleAddExercises = useCallback(async (exercisesToAdd: ExerciseTemplate[], insertIndex?: number) => {
     if (!routine || exercisesToAdd.length === 0) return;

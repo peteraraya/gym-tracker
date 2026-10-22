@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/onboarding/RestartOnboardingButton
+[gym-logic](../../../../README.md) / components/features/onboarding/RestartOnboardingButton
 
 # components/features/onboarding/RestartOnboardingButton
 

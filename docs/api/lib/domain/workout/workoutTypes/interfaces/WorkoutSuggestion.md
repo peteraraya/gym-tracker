@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / [lib/domain/workout/workoutTypes](../README.md) / WorkoutSuggestion
+[gym-logic](../../../../../README.md) / [lib/domain/workout/workoutTypes](../README.md) / WorkoutSuggestion
 
 # Interface: WorkoutSuggestion
 
-Defined in: [lib/domain/workout/workoutTypes.ts:47](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L47)
+Defined in: [lib/domain/workout/workoutTypes.ts:47](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L47)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:47](https://github.com/peteraray
 
 > **difficulty**: `"beginner"` \| `"intermediate"` \| `"advanced"`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:52](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L52)
+Defined in: [lib/domain/workout/workoutTypes.ts:52](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L52)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:52](https://github.com/peteraray
 
 > **estimatedDuration**: `number`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:51](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L51)
+Defined in: [lib/domain/workout/workoutTypes.ts:51](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L51)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:51](https://github.com/peteraray
 
 > **exercises**: `Exercise`[]
 
-Defined in: [lib/domain/workout/workoutTypes.ts:53](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L53)
+Defined in: [lib/domain/workout/workoutTypes.ts:53](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L53)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:53](https://github.com/peteraray
 
 > **id**: `string`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:48](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L48)
+Defined in: [lib/domain/workout/workoutTypes.ts:48](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L48)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [lib/domain/workout/workoutTypes.ts:48](https://github.com/peteraray
 
 > **muscleGroups**: `string`[]
 
-Defined in: [lib/domain/workout/workoutTypes.ts:50](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L50)
+Defined in: [lib/domain/workout/workoutTypes.ts:50](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L50)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [lib/domain/workout/workoutTypes.ts:50](https://github.com/peteraray
 
 > **name**: `string`
 
-Defined in: [lib/domain/workout/workoutTypes.ts:49](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L49)
+Defined in: [lib/domain/workout/workoutTypes.ts:49](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/domain/workout/workoutTypes.ts#L49)

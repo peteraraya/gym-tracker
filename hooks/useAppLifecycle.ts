@@ -18,7 +18,7 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks) {
     let listeners: any[] = [];
 
     // Intentar cargar el plugin de Capacitor
-    const setupCapacitorListeners = async () => {
+    const setupCapacitorListeners = async (): Promise<(() => void) | void> => {
       try {
         const { App: CapacitorApp } = await import('@capacitor/app');
         App = CapacitorApp;
@@ -45,11 +45,12 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('[AppLifecycle] Capacitor listeners registered');
         }
+        return undefined;
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.debug('[AppLifecycle] Capacitor not available, using web APIs');
         }
-        setupWebListeners();
+        return setupWebListeners();
       }
     };
 
@@ -88,8 +89,11 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks) {
       };
     };
 
-    // Inicializar listeners
-    setupCapacitorListeners();
+    // Inicializar listeners (async para manejar Capacitor o Web)
+    let webCleanup: (() => void) | undefined;
+    setupCapacitorListeners().then((cleanup) => {
+      if (cleanup) webCleanup = cleanup;
+    });
 
     // Cleanup
     return () => {
@@ -99,6 +103,10 @@ export function useAppLifecycle(callbacks: AppLifecycleCallbacks) {
           listener.remove();
         }
       });
+      // Ejecutar cleanup de Web listeners si existen
+      if (webCleanup) {
+        webCleanup();
+      }
     };
   }, [callbacks]);
 }

@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/layout/Providers](../README.md) / Providers
+[gym-logic](../../../../README.md) / [components/layout/Providers](../README.md) / Providers
 
 # Function: Providers()
 
 > **Providers**(`__namedParameters`): `Element`
 
-Defined in: [components/layout/Providers.tsx:21](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/layout/Providers.tsx#L21)
+Defined in: [components/layout/Providers.tsx:21](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/layout/Providers.tsx#L21)
 
 Consolidated provider tree.
 

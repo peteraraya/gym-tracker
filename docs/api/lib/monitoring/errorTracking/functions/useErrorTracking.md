@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/monitoring/errorTracking](../README.md) / useErrorTracking
+[gym-logic](../../../../README.md) / [lib/monitoring/errorTracking](../README.md) / useErrorTracking
 
 # Function: useErrorTracking()
 
 > **useErrorTracking**(): `object`
 
-Defined in: [lib/monitoring/errorTracking.tsx:169](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/monitoring/errorTracking.tsx#L169)
+Defined in: [lib/monitoring/errorTracking.tsx:169](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/monitoring/errorTracking.tsx#L169)
 
 ## Returns
 

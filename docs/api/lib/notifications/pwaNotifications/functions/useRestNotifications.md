@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/notifications/pwaNotifications](../README.md) / useRestNotifications
+[gym-logic](../../../../README.md) / [lib/notifications/pwaNotifications](../README.md) / useRestNotifications
 
 # Function: useRestNotifications()
 
 > **useRestNotifications**(): `object`
 
-Defined in: [lib/notifications/pwaNotifications.ts:304](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/notifications/pwaNotifications.ts#L304)
+Defined in: [lib/notifications/pwaNotifications.ts:304](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/notifications/pwaNotifications.ts#L304)
 
 ## Returns
 

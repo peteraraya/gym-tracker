@@ -120,12 +120,19 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [sessionsLoading, sessionsForAchievements]);
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === "true") {
-      if (authLoading) return;
-      if (user) {
-        void refetchRoutines();
-        void refetchSessions();
-      }
+    const isDbEnabled = process.env.NEXT_PUBLIC_ENABLE_DATABASE === "true";
+    if (!isDbEnabled) return;
+    if (authLoading) return;
+
+    if (user) {
+      void refetchRoutines();
+      void refetchSessions();
+    } else {
+      // DB habilitada pero sin usuario autenticado:
+      // fallback silencioso a localStorage para no bloquear la UI
+      logger.warn(
+        "[GymContext] DB habilitada sin usuario autenticado — usando fallback localStorage"
+      );
     }
   }, [user, authLoading, refetchRoutines, refetchSessions]);
 

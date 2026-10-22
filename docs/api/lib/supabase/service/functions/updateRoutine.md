@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/supabase/service](../README.md) / updateRoutine
+[gym-logic](../../../../README.md) / [lib/supabase/service](../README.md) / updateRoutine
 
 # Function: updateRoutine()
 
 > **updateRoutine**(`id`, `data`): `Promise`\<`Routine`\>
 
-Defined in: [lib/supabase/service.ts:164](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/service.ts#L164)
+Defined in: [lib/supabase/service.ts:164](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/supabase/service.ts#L164)
 
 Update a routine
 IMPROVED: Includes rollback if exercise insertion fails

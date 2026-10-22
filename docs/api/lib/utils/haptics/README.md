@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/utils/haptics
+[gym-logic](../../../README.md) / lib/utils/haptics
 
 # lib/utils/haptics
 

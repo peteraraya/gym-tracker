@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/routines/routineEstimation](../README.md) / calculateRoutineDurationRange
+[gym-logic](../../../../README.md) / [lib/routines/routineEstimation](../README.md) / calculateRoutineDurationRange
 
 # Function: calculateRoutineDurationRange()
 
 > **calculateRoutineDurationRange**(`exercises`, `restBetweenSets?`, `restBetweenExercises?`): `object`
 
-Defined in: [lib/routines/routineEstimation.ts:89](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/routines/routineEstimation.ts#L89)
+Defined in: [lib/routines/routineEstimation.ts:89](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/routines/routineEstimation.ts#L89)
 
 Obtiene un rango de duración estimada (mínimo y máximo)
 considerando variabilidad en la ejecución

@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/ui/A11yAlert](../README.md) / A11yAlert
+[gym-logic](../../../../README.md) / [components/ui/A11yAlert](../README.md) / A11yAlert
 
 # Function: A11yAlert()
 
 > **A11yAlert**(`__namedParameters`): `Element`
 
-Defined in: [components/ui/A11yAlert.tsx:28](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/A11yAlert.tsx#L28)
+Defined in: [components/ui/A11yAlert.tsx:28](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/A11yAlert.tsx#L28)
 
 Componente de región live (aria-live) para anuncios a lectores de pantalla.
 

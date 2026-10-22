@@ -5,7 +5,7 @@
 
 import type { UserProfile } from '@/types';
 
-const PROFILE_STORAGE_KEY = 'gym-tracker-user-profile';
+const PROFILE_STORAGE_KEY = 'gym-logic-user-profile';
 
 /**
  * Guarda el perfil del usuario en localStorage

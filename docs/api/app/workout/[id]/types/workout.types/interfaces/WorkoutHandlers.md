@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/types/workout.types](../README.md) / WorkoutHandlers
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/types/workout.types](../README.md) / WorkoutHandlers
 
 # Interface: WorkoutHandlers
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:150](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L150)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:150](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L150)
 
 Handlers para eventos del workout
 
@@ -16,7 +16,7 @@ Handlers para eventos del workout
 
 > **onCancelWorkout**: () => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:160](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L160)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:160](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L160)
 
 #### Returns
 
@@ -28,7 +28,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:160](https://github.com/p
 
 > **onCompleteSet**: () => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:152](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L152)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:152](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L152)
 
 #### Returns
 
@@ -40,7 +40,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:152](https://github.com/p
 
 > **onEditReps**: (`exerciseId`, `setIndex`, `value`) => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:154](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L154)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:154](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L154)
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:154](https://github.com/p
 
 > **onEditRestOverride**: (`exerciseId`, `value`) => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:156](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L156)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:156](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L156)
 
 #### Parameters
 
@@ -88,7 +88,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:156](https://github.com/p
 
 > **onEditSetRestOverride**: (`exerciseId`, `setIndex`, `value`) => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:157](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L157)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:157](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L157)
 
 #### Parameters
 
@@ -114,7 +114,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:157](https://github.com/p
 
 > **onEditSetType**: (`exerciseId`, `setIndex`, `type`) => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:155](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L155)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:155](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L155)
 
 #### Parameters
 
@@ -140,7 +140,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:155](https://github.com/p
 
 > **onEditWeight**: (`exerciseId`, `setIndex`, `value`) => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:153](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L153)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:153](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L153)
 
 #### Parameters
 
@@ -166,7 +166,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:153](https://github.com/p
 
 > **onFinishWorkout**: () => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:161](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L161)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:161](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L161)
 
 #### Returns
 
@@ -178,7 +178,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:161](https://github.com/p
 
 > **onMoveExercise**: (`fromIndex`, `toIndex`) => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:159](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L159)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:159](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L159)
 
 #### Parameters
 
@@ -200,7 +200,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:159](https://github.com/p
 
 > **onStartSet**: () => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:151](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L151)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:151](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L151)
 
 #### Returns
 
@@ -212,7 +212,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:151](https://github.com/p
 
 > **onToggleSetComplete**: (`exerciseId`, `setIndex`) => `void`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:158](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L158)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:158](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L158)
 
 #### Parameters
 

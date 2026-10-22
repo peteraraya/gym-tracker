@@ -1,9 +1,9 @@
 {
-  "name": "gym-tracker",
+  "name": "gym-logic",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -17,8 +17,8 @@
     "test:integration": "jest --testPathPattern=__tests__/integration",
     "test:e2e": "jest --testPathPattern=__tests__/e2e",
     "test:coverage": "jest --coverage --watchAll=false",
-    "build:mobile": "cp next.config.mobile.ts next.config.ts && next build && git checkout next.config.ts",
-    "cap:init": "cap init gym-tracker com.gymtracker.app",
+    "build:mobile": "NEXT_MOBILE_BUILD=true next build",
+    "cap:init": "cap init gym-logic com.gymlogic.app",
     "cap:add:android": "cap add android",
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",

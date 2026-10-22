@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/workout/normalizeWorkoutState](../README.md) / WorkoutState
+[gym-logic](../../../../README.md) / [lib/workout/normalizeWorkoutState](../README.md) / WorkoutState
 
 # Interface: WorkoutState
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:16](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L16)
+Defined in: [lib/workout/normalizeWorkoutState.ts:16](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L16)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:16](https://github.com/peterar
 
 > **actualReps**: `object`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:22](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L22)
+Defined in: [lib/workout/normalizeWorkoutState.ts:22](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L22)
 
 #### Index Signature
 
@@ -26,7 +26,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:22](https://github.com/peterar
 
 > **actualWeights**: `object`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L23)
+Defined in: [lib/workout/normalizeWorkoutState.ts:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L23)
 
 #### Index Signature
 
@@ -38,7 +38,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:23](https://github.com/peterar
 
 > **completedSets**: `object`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:21](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L21)
+Defined in: [lib/workout/normalizeWorkoutState.ts:21](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L21)
 
 #### Index Signature
 
@@ -50,7 +50,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:21](https://github.com/peterar
 
 > **currentExerciseIndex**: `number`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:19](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L19)
+Defined in: [lib/workout/normalizeWorkoutState.ts:19](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L19)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:19](https://github.com/peterar
 
 > **currentSet**: `number`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:20](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L20)
+Defined in: [lib/workout/normalizeWorkoutState.ts:20](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L20)
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:20](https://github.com/peterar
 
 > `optional` **isResting?**: `boolean`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:28](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L28)
+Defined in: [lib/workout/normalizeWorkoutState.ts:28](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L28)
 
 Estado del timer de descanso para persistencia entre recargas
 
@@ -76,7 +76,7 @@ Estado del timer de descanso para persistencia entre recargas
 
 > `optional` **modifiedRoutine?**: `Routine`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:26](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L26)
+Defined in: [lib/workout/normalizeWorkoutState.ts:26](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L26)
 
 Rutina modificada durante el entrenamiento (series agregadas/eliminadas)
 
@@ -86,7 +86,7 @@ Rutina modificada durante el entrenamiento (series agregadas/eliminadas)
 
 > `optional` **perSetRestOverrides?**: `object`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:41](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L41)
+Defined in: [lib/workout/normalizeWorkoutState.ts:41](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L41)
 
 #### Index Signature
 
@@ -98,7 +98,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:41](https://github.com/peterar
 
 > `optional` **restOverrides?**: `object`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:40](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L40)
+Defined in: [lib/workout/normalizeWorkoutState.ts:40](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L40)
 
 #### Index Signature
 
@@ -110,7 +110,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:40](https://github.com/peterar
 
 > `optional` **restTimerNextExercise?**: `string`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:34](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L34)
+Defined in: [lib/workout/normalizeWorkoutState.ts:34](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L34)
 
 ***
 
@@ -118,7 +118,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:34](https://github.com/peterar
 
 > `optional` **restTimerRemaining?**: `number`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:30](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L30)
+Defined in: [lib/workout/normalizeWorkoutState.ts:30](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L30)
 
 Tiempo restante en segundos (snapshot al guardar)
 
@@ -128,7 +128,7 @@ Tiempo restante en segundos (snapshot al guardar)
 
 > `optional` **restTimerStartedAt?**: `number`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:32](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L32)
+Defined in: [lib/workout/normalizeWorkoutState.ts:32](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L32)
 
 Timestamp (ms) cuando se guardó el tiempo restante
 
@@ -138,7 +138,7 @@ Timestamp (ms) cuando se guardó el tiempo restante
 
 > `optional` **restTimerTitle?**: `string`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:33](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L33)
+Defined in: [lib/workout/normalizeWorkoutState.ts:33](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L33)
 
 ***
 
@@ -146,7 +146,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:33](https://github.com/peterar
 
 > **routineId**: `string`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L17)
+Defined in: [lib/workout/normalizeWorkoutState.ts:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L17)
 
 ***
 
@@ -154,7 +154,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:17](https://github.com/peterar
 
 > **routineName**: `string`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:18](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L18)
+Defined in: [lib/workout/normalizeWorkoutState.ts:18](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L18)
 
 ***
 
@@ -162,7 +162,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:18](https://github.com/peterar
 
 > `optional` **setTypes?**: `object`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:39](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L39)
+Defined in: [lib/workout/normalizeWorkoutState.ts:39](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L39)
 
 #### Index Signature
 
@@ -174,7 +174,7 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:39](https://github.com/peterar
 
 > `optional` **skippedExercises?**: `string`[]
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:38](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L38)
+Defined in: [lib/workout/normalizeWorkoutState.ts:38](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L38)
 
 IDs de ejercicios omitidos en esta sesión (no eliminados)
 
@@ -184,7 +184,7 @@ IDs de ejercicios omitidos en esta sesión (no eliminados)
 
 > **startedAt**: `Date`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L24)
+Defined in: [lib/workout/normalizeWorkoutState.ts:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L24)
 
 ***
 
@@ -192,6 +192,6 @@ Defined in: [lib/workout/normalizeWorkoutState.ts:24](https://github.com/peterar
 
 > `optional` **totalPausedTime?**: `number`
 
-Defined in: [lib/workout/normalizeWorkoutState.ts:36](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L36)
+Defined in: [lib/workout/normalizeWorkoutState.ts:36](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/normalizeWorkoutState.ts#L36)
 
 Tiempo total pausado en el entrenamiento (en milisegundos)

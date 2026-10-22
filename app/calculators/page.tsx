@@ -1,18 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
-import OneRMCalculator from '@/components/features/calculators/OneRMCalculator';
-import PlateCalculator from '@/components/features/calculators/PlateCalculator';
-import UnitConverter from '@/components/features/calculators/UnitConverter';
-import TdeeCalculator from '@/components/features/calculators/TdeeCalculator';
-import PercentageRMCalculator from '@/components/features/calculators/PercentageRMCalculator';
-import VolumeCalculator from '@/components/features/calculators/VolumeCalculator';
-import RestTimeCalculator from '@/components/features/calculators/RestTimeCalculator';
-import BMICalculator from '@/components/features/calculators/BMICalculator';
-import CaloriesBurnedCalculator from '@/components/features/calculators/CaloriesBurnedCalculator';
-import ProgressionCalculator from '@/components/features/progress/ProgressionCalculator';
-import WilksCalculator from '@/components/features/calculators/WilksCalculator';
-import TempoCalculator from '@/components/features/calculators/TempoCalculator';
+import CalculatorRenderer from './CalculatorRenderer';
 import { Button } from '@/components/ui/Button';
 import {
   Calculator,
@@ -24,10 +13,12 @@ import {
   BarChart3,
   Clock,
   User,
-  Flame,
   TrendingUp,
   Trophy,
-  Activity
+  Activity,
+  Flame,
+
+  Zap
 } from '@/components/icons/lucide';
 
 export const metadata: Metadata = {
@@ -35,7 +26,7 @@ export const metadata: Metadata = {
   description: 'Calculadoras de entrenamiento y composición corporal',
 };
 
-type CalculatorType = '1rm' | 'plates' | 'units' | 'tdee' | 'percentage' | 'volume' | 'rest' | 'bmi' | 'calories' | 'progression' | 'wilks' | 'tempo' | null;
+type CalculatorType = '1rm' | 'plates' | 'units' | 'tdee' | 'percentage' | 'volume' | 'rest' | 'bmi' | 'calories' | 'progression' | 'wilks' | 'tempo' | 'heart_rate' | 'macro_split' | 'water_intake' | 'rep_progression' | null;
 
 export default async function CalculatorsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -170,6 +161,46 @@ export default async function CalculatorsPage(props: {
       bgColor: 'from-violet-50 to-purple-100 dark:from-violet-900/20 dark:to-purple-800/20',
       borderColor: 'border-violet-200 dark:border-violet-800'
     },
+    {
+      id: 'heart_rate' as CalculatorType,
+      name: 'Zonas de FC',
+      description: 'Zonas de frecuencia cardíaca',
+      icon: Activity,
+      category: 'body',
+      color: 'from-rose-500 to-orange-600',
+      bgColor: 'from-rose-50 to-orange-100 dark:from-rose-900/20 dark:to-orange-800/20',
+      borderColor: 'border-rose-200 dark:border-rose-800'
+    },
+    {
+      id: 'macro_split' as CalculatorType,
+      name: 'Distribución de Macros',
+      description: 'Divide tus calorías en macros',
+      icon: Zap,
+      category: 'body',
+      color: 'from-orange-500 to-amber-600',
+      bgColor: 'from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-800/20',
+      borderColor: 'border-orange-200 dark:border-orange-800'
+    },
+    {
+      id: 'water_intake' as CalculatorType,
+      name: 'Agua Diaria',
+      description: 'Ingesta de agua recomendada',
+      icon: Flame,
+      category: 'body',
+      color: 'from-cyan-500 to-blue-600',
+      bgColor: 'from-cyan-50 to-blue-100 dark:from-cyan-900/20 dark:to-blue-800/20',
+      borderColor: 'border-cyan-200 dark:border-cyan-800'
+    },
+    {
+      id: 'rep_progression' as CalculatorType,
+      name: 'Progresión 1RM',
+      description: 'Proyecta tu 1RM futuro',
+      icon: TrendingUp,
+      category: 'planning',
+      color: 'from-emerald-500 to-teal-600',
+      bgColor: 'from-emerald-50 to-teal-100 dark:from-emerald-900/20 dark:to-teal-800/20',
+      borderColor: 'border-emerald-200 dark:border-emerald-800'
+    },
   ];
 
   const categories = [
@@ -293,20 +324,7 @@ export default async function CalculatorsPage(props: {
           )}
 
           {/* Calculadoras */}
-          <div className="animate-fadeIn">
-            {selectedCalculator === '1rm' && <OneRMCalculator />}
-            {selectedCalculator === 'plates' && <PlateCalculator />}
-            {selectedCalculator === 'units' && <UnitConverter />}
-            {selectedCalculator === 'tdee' && <TdeeCalculator />}
-            {selectedCalculator === 'percentage' && <PercentageRMCalculator />}
-            {selectedCalculator === 'volume' && <VolumeCalculator />}
-            {selectedCalculator === 'rest' && <RestTimeCalculator />}
-            {selectedCalculator === 'bmi' && <BMICalculator />}
-            {selectedCalculator === 'calories' && <CaloriesBurnedCalculator />}
-            {selectedCalculator === 'progression' && <ProgressionCalculator />}
-            {selectedCalculator === 'wilks' && <WilksCalculator />}
-            {selectedCalculator === 'tempo' && <TempoCalculator />}
-          </div>
+          <CalculatorRenderer selectedCalculator={selectedCalculator} />
         </div>
       </div>
     </ProtectedRoute>

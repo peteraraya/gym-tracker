@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/data/weightSuggestions](../README.md) / generateWeightSuggestion
+[gym-logic](../../../../README.md) / [lib/data/weightSuggestions](../README.md) / generateWeightSuggestion
 
 # Function: generateWeightSuggestion()
 
 > **generateWeightSuggestion**(`exerciseName`, `sessions`, `targetReps?`): [`WeightSuggestion`](../interfaces/WeightSuggestion.md)
 
-Defined in: [lib/data/weightSuggestions.ts:14](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L14)
+Defined in: [lib/data/weightSuggestions.ts:14](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/data/weightSuggestions.ts#L14)
 
 Genera sugerencia de peso basada en historial
 

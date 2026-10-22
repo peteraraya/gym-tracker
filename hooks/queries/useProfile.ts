@@ -18,7 +18,7 @@ export function useProfile() {
 
   // ─── Lectura ─────────────────────────────────────────────────────────────
 
-  const query = useQuery<UserProfile>({
+  const query = useQuery<UserProfile | null>({
     queryKey: queryKeys.profile.detail(),
     queryFn: () => storageService.getProfile(),
     // El perfil cambia poco — 10 minutos de stale time es razonable

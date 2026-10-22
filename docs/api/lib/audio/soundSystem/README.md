@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/audio/soundSystem
+[gym-logic](../../../README.md) / lib/audio/soundSystem
 
 # lib/audio/soundSystem
 

@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / app/progress/components.lazy
+[gym-logic](../../../README.md) / app/progress/components.lazy
 
 # app/progress/components.lazy
 

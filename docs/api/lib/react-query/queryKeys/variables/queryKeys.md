@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/react-query/queryKeys](../README.md) / queryKeys
+[gym-logic](../../../../README.md) / [lib/react-query/queryKeys](../README.md) / queryKeys
 
 # Variable: queryKeys
 
 > `const` **queryKeys**: `object`
 
-Defined in: [lib/react-query/queryKeys.ts:1](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/react-query/queryKeys.ts#L1)
+Defined in: [lib/react-query/queryKeys.ts:1](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/react-query/queryKeys.ts#L1)
 
 ## Type Declaration
 

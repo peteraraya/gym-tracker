@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/workout/progression](../README.md) / default
+[gym-logic](../../../../README.md) / [lib/workout/progression](../README.md) / default
 
 # Variable: default
 
 > **default**: `object`
 
-Defined in: [lib/workout/progression.ts:87](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression.ts#L87)
+Defined in: [lib/workout/progression.ts:87](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/workout/progression.ts#L87)
 
 ## Type Declaration
 

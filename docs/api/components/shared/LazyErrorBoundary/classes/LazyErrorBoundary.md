@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/shared/LazyErrorBoundary](../README.md) / LazyErrorBoundary
+[gym-logic](../../../../README.md) / [components/shared/LazyErrorBoundary](../README.md) / LazyErrorBoundary
 
 # Class: LazyErrorBoundary
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:21](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L21)
+Defined in: [components/shared/LazyErrorBoundary.tsx:21](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L21)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [components/shared/LazyErrorBoundary.tsx:21](https://github.com/pete
 
 > **new LazyErrorBoundary**(`props`): `LazyErrorBoundary`
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L24)
+Defined in: [components/shared/LazyErrorBoundary.tsx:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L24)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [components/shared/LazyErrorBoundary.tsx:24](https://github.com/pete
 
 > **componentDidCatch**(`error`, `errorInfo`): `void`
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:41](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L41)
+Defined in: [components/shared/LazyErrorBoundary.tsx:41](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L41)
 
 Catches exceptions generated in descendant components. Unhandled exceptions will cause
 the entire component tree to unmount.
@@ -69,7 +69,7 @@ the entire component tree to unmount.
 
 > **componentWillUnmount**(): `void`
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:54](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L54)
+Defined in: [components/shared/LazyErrorBoundary.tsx:54](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L54)
 
 Called immediately before a component is destroyed. Perform any necessary cleanup in this method, such as
 cancelled network requests, or cleaning up any DOM elements created in `componentDidMount`.
@@ -88,7 +88,7 @@ cancelled network requests, or cleaning up any DOM elements created in `componen
 
 > **handleManualRetry**(): `void`
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:75](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L75)
+Defined in: [components/shared/LazyErrorBoundary.tsx:75](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L75)
 
 #### Returns
 
@@ -100,7 +100,7 @@ Defined in: [components/shared/LazyErrorBoundary.tsx:75](https://github.com/pete
 
 > **handleReload**(): `void`
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:84](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L84)
+Defined in: [components/shared/LazyErrorBoundary.tsx:84](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L84)
 
 #### Returns
 
@@ -112,7 +112,7 @@ Defined in: [components/shared/LazyErrorBoundary.tsx:84](https://github.com/pete
 
 > **render**(): `string` \| `number` \| `bigint` \| `boolean` \| `Iterable`\<`ReactNode`, `any`, `any`\> \| `Promise`\<`AwaitedReactNode`\> \| `Element`
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:88](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L88)
+Defined in: [components/shared/LazyErrorBoundary.tsx:88](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L88)
 
 #### Returns
 
@@ -128,7 +128,7 @@ Defined in: [components/shared/LazyErrorBoundary.tsx:88](https://github.com/pete
 
 > **scheduleRetry**(): `void`
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:60](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L60)
+Defined in: [components/shared/LazyErrorBoundary.tsx:60](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L60)
 
 #### Returns
 
@@ -140,7 +140,7 @@ Defined in: [components/shared/LazyErrorBoundary.tsx:60](https://github.com/pete
 
 > `static` **getDerivedStateFromError**(`error`): `Partial`\<`LazyErrorBoundaryState`\>
 
-Defined in: [components/shared/LazyErrorBoundary.tsx:34](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L34)
+Defined in: [components/shared/LazyErrorBoundary.tsx:34](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/shared/LazyErrorBoundary.tsx#L34)
 
 #### Parameters
 

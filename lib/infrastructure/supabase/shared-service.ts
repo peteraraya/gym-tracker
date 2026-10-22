@@ -79,7 +79,7 @@ export interface UserProfileData {
 
 export async function getRoutinesFromDb(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autenticado')
+  if (!user) return []
   const { data: routines, error } = await supabase
     .from('routines').select(`*, exercises (*)`)
     .eq('user_id', user.id).order('created_at', { ascending: false })
@@ -102,7 +102,7 @@ export async function getRoutinesFromDb(supabase: any) {
 
 export async function createRoutineInDb(supabase: any, data: CreateRoutineData) {
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autenticado')
+  if (!user) return { success: false, error: 'No autenticado' }
   const { data: routine, error: routineError } = await supabase
     .from('routines')
     .insert({ user_id: user.id, name: data.name, description: data.description, image_url: data.image,
@@ -171,7 +171,7 @@ export async function createSessionInDb(supabase: any, body: CreateSessionBody) 
 
 export async function getProfileFromDb(supabase: any): Promise<UserProfileData | null> {
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autenticado')
+  if (!user) return null
   const { data: profile, error } = await supabase
     .from('user_profiles').select('*').eq('user_id', user.id).single()
   if (error && error.code !== 'PGRST116') throw new Error(error.message)
@@ -187,7 +187,7 @@ export async function getProfileFromDb(supabase: any): Promise<UserProfileData |
 
 export async function saveProfileInDb(supabase: any, body: any) {
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('No autenticado')
+  if (!user) return { success: false, error: 'No autenticado' }
   const { age, gender, height, weight, weightHistory, fitnessGoal, fitnessLevel, weeklyWorkouts } = body
   const { data: existingProfile } = await supabase
     .from('user_profiles').select('id').eq('user_id', user.id).single()

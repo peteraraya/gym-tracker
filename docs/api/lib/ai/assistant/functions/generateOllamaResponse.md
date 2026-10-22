@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/ai/assistant](../README.md) / generateOllamaResponse
+[gym-logic](../../../../README.md) / [lib/ai/assistant](../README.md) / generateOllamaResponse
 
 # Function: generateOllamaResponse()
 
 > **generateOllamaResponse**(`messages`, `context`): `Promise`\<`string`\>
 
-Defined in: [lib/ai/assistant.ts:156](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/ai/assistant.ts#L156)
+Defined in: [lib/ai/assistant.ts:156](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/ai/assistant.ts#L156)
 
 OPCIÓN 3: Ollama (Local, Gratis)
 

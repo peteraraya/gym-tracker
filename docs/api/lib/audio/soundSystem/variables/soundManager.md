@@ -1,11 +1,11 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/audio/soundSystem](../README.md) / soundManager
+[gym-logic](../../../../README.md) / [lib/audio/soundSystem](../README.md) / soundManager
 
 # Variable: soundManager
 
 > `const` **soundManager**: `SoundManager`
 
-Defined in: [lib/audio/soundSystem.ts:266](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/audio/soundSystem.ts#L266)
+Defined in: [lib/audio/soundSystem.ts:266](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/audio/soundSystem.ts#L266)

@@ -10,7 +10,8 @@ export function useRoutines() {
   const query = useQuery({
     queryKey: queryKeys.routines.lists(),
     queryFn: () => storageService.getRoutines(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 1000, // 1 minute
+    refetchOnWindowFocus: true,
   });
   
   // Mutation for creating routine

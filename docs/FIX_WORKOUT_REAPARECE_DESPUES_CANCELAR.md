@@ -64,11 +64,11 @@ console.log('[WorkoutContext] Workout was recently cancelled, skipping restore. 
 El `ActiveWorkoutBanner` ahora usa los mismos marcadores que el contexto:
 
 ```typescript
-// Antes: Solo gym-tracker-cancelled
-localStorage.setItem('gym-tracker-cancelled', timestamp);
+// Antes: Solo gym-logic-cancelled
+localStorage.setItem('gym-logic-cancelled', timestamp);
 
 // Ahora: Todos los marcadores
-localStorage.setItem('gym-tracker-cancelled', timestamp);
+localStorage.setItem('gym-logic-cancelled', timestamp);
 sessionStorage.setItem('workout_cancelled', timestamp);
 localStorage.setItem('workout_cancelled_persistent', timestamp);
 ```
@@ -188,7 +188,7 @@ if (cancelledAt || cancelledPersistent) {
 |----------|---------|----------|-----------|
 | `workout_cancelled` | sessionStorage | Hasta cerrar pestaña | Protección inmediata |
 | `workout_cancelled_persistent` | localStorage | 30 segundos | Protección persistente |
-| `gym-tracker-cancelled` | localStorage | 30 segundos | Compatibilidad legacy |
+| `gym-logic-cancelled` | localStorage | 30 segundos | Compatibilidad legacy |
 | `workout_finished` | sessionStorage | Hasta cerrar pestaña | Protección inmediata |
 | `workout_finished_persistent` | localStorage | 30 segundos | Protección persistente |
 

@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/exercises/personalRecords](../README.md) / getProgressionStats
+[gym-logic](../../../../README.md) / [lib/exercises/personalRecords](../README.md) / getProgressionStats
 
 # Function: getProgressionStats()
 
 > **getProgressionStats**(`exerciseId`, `sessions`): `object`
 
-Defined in: [lib/exercises/personalRecords.ts:207](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L207)
+Defined in: [lib/exercises/personalRecords.ts:207](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L207)
 
 Calcula estadísticas de progresión
 

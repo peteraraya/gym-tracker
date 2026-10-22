@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWorkoutState](../README.md) / WorkoutData
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWorkoutState](../README.md) / WorkoutData
 
 # Interface: WorkoutData
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L17)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L17)
 
 Hook que centraliza todo el estado del workout
 
@@ -22,7 +22,7 @@ Maneja:
 
 > `optional` **\_lastUpdate?**: `number`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:32](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L32)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:32](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L32)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:32](https://github.com/
 
 > **actualPauseDurations**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:26](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L26)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:26](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L26)
 
 #### Index Signature
 
@@ -42,7 +42,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:26](https://github.com/
 
 > **actualReps**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:19](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L19)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:19](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L19)
 
 #### Index Signature
 
@@ -54,7 +54,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:19](https://github.com/
 
 > **actualRestTimes**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:27](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L27)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:27](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L27)
 
 #### Index Signature
 
@@ -66,7 +66,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:27](https://github.com/
 
 > **actualSetDurations**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:25](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L25)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:25](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L25)
 
 #### Index Signature
 
@@ -78,7 +78,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:25](https://github.com/
 
 > **actualWeights**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:20](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L20)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:20](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L20)
 
 #### Index Signature
 
@@ -90,7 +90,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:20](https://github.com/
 
 > **completedSetFlags**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:30](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L30)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:30](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L30)
 
 #### Index Signature
 
@@ -102,7 +102,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:30](https://github.com/
 
 > **completedSets**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:18](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L18)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:18](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L18)
 
 #### Index Signature
 
@@ -114,7 +114,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:18](https://github.com/
 
 > **lastWeights**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:22](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L22)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:22](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L22)
 
 #### Index Signature
 
@@ -126,7 +126,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:22](https://github.com/
 
 > **perSetRestOverrides**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L24)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L24)
 
 #### Index Signature
 
@@ -138,7 +138,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:24](https://github.com/
 
 > **restOverrides**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:23](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L23)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:23](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L23)
 
 #### Index Signature
 
@@ -150,7 +150,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:23](https://github.com/
 
 > **setTypes**: `object`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:21](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L21)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:21](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L21)
 
 #### Index Signature
 
@@ -162,4 +162,4 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:21](https://github.com/
 
 > **skippedExercises**: `string`[]
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:28](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L28)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutState.ts:28](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutState.ts#L28)

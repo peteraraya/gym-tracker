@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/types/workout.types](../README.md) / WorkoutComponentProps
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/types/workout.types](../README.md) / WorkoutComponentProps
 
 # Interface: WorkoutComponentProps
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:167](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L167)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:167](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L167)
 
 Props para componentes de workout
 
@@ -16,7 +16,7 @@ Props para componentes de workout
 
 > **currentExercise**: `Exercise`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:169](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L169)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:169](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L169)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:169](https://github.com/p
 
 > **currentExerciseIndex**: `number`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:170](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L170)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:170](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L170)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:170](https://github.com/p
 
 > **currentSet**: `number`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:171](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L171)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:171](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L171)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:171](https://github.com/p
 
 > **handlers**: [`WorkoutHandlers`](WorkoutHandlers.md)
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:175](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L175)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:175](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L175)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:175](https://github.com/p
 
 > **progress**: [`WorkoutProgress`](WorkoutProgress.md)
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:172](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L172)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:172](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L172)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:172](https://github.com/p
 
 > **restConfig**: [`RestConfiguration`](RestConfiguration.md)
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:173](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L173)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:173](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L173)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:173](https://github.com/p
 
 > **routine**: `Routine`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:168](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L168)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:168](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L168)
 
 ***
 
@@ -72,4 +72,4 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:168](https://github.com/p
 
 > **uiState**: [`WorkoutUIState`](WorkoutUIState.md)
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:174](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L174)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:174](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L174)

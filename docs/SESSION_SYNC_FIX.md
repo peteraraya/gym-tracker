@@ -12,7 +12,7 @@ Las sesiones se estaban guardando en localStorage pero no en la base de datos Su
 Existían sesiones en claves antiguas que no se estaban migrando:
 - `workoutSessions` (clave antigua)
 - `sessions` (clave antigua)
-- `gym_tracker_sessions` (clave actual)
+- `gym_logic_sessions` (clave actual)
 
 ### 2. Fallback Silencioso
 Cuando Supabase fallaba, el sistema hacía fallback a localStorage sin indicarlo claramente, causando que las sesiones solo se guardaran localmente.
@@ -30,7 +30,7 @@ export async function migrateLegacySessions(): Promise<{ migrated: number; total
 ```
 
 - Busca sesiones en claves antiguas (`workoutSessions`, `sessions`)
-- Las migra a la clave actual (`gym_tracker_sessions`)
+- Las migra a la clave actual (`gym_logic_sessions`)
 - Elimina las claves antiguas después de migrar
 - Evita duplicados verificando IDs
 
@@ -148,7 +148,7 @@ Botón de utilidad (solo en desarrollo) que permite:
 En la consola del navegador:
 ```javascript
 // Ver sesiones en localStorage
-localStorage.getItem('gym_tracker_sessions')
+localStorage.getItem('gym_logic_sessions')
 
 // Ver claves antiguas (deberían estar vacías después de migración)
 localStorage.getItem('workoutSessions')

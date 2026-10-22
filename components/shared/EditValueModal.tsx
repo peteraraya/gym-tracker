@@ -11,6 +11,8 @@ interface EditValueModalProps {
   field: 'reps' | 'weight';
   currentValue: number | '';
   onSave: (value: number) => void;
+  onEnter?: (value: number) => void;
+  onCancel?: () => void;
   historicalWeights?: number[];
   equipment?: string;
 }
@@ -34,6 +36,8 @@ export function EditValueModal({
   field,
   currentValue,
   onSave,
+  onEnter,
+  onCancel,
   historicalWeights = [],
   equipment,
 }: EditValueModalProps) {
@@ -121,6 +125,53 @@ export function EditValueModal({
     onClose();
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyboard = (event: KeyboardEvent) => {
+      if (/^\d$/.test(event.key)) {
+        event.preventDefault();
+        handleDigit(event.key);
+      } else if (event.key === "." || event.key === ",") {
+        if (field === "weight") {
+          event.preventDefault();
+          handleDot();
+        }
+      } else if (event.key === "Backspace") {
+        event.preventDefault();
+        handleBackspace();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        onCancel?.();
+        onClose();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const value = numericValue();
+        if (value > 0) {
+          onSave(value);
+          onClose();
+          onEnter?.(value);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyboard);
+    return () => window.removeEventListener("keydown", handleKeyboard);
+  }, [
+    isOpen,
+    field,
+    display,
+    replaceNext,
+    onSave,
+    onClose,
+    onEnter,
+    onCancel,
+    handleDigit,
+    handleDot,
+    handleBackspace,
+    numericValue,
+  ]);
+
   const displayText = display === '' ? '–' : display;
   const isValid = numericValue() > 0;
   
@@ -137,10 +188,7 @@ export function EditValueModal({
     : [{ label: '−5', delta: -5 }, { label: '−1', delta: -1 }, { label: '+1', delta: 1 }, { label: '+5', delta: 5 }];
 
   const handleClose = () => {
-    const v = numericValue();
-    if (v > 0 && v !== currentValue) {
-      onSave(v);
-    }
+    onCancel?.();
     onClose();
   };
 

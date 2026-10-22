@@ -26,7 +26,7 @@ const getTimeBasedTheme = (): 'light' | 'dark' => {
 - **Modo Oscuro**: 8:00 PM - 6:59 AM
 
 #### Funcionalidades:
-- Persistencia en localStorage (`gym-tracker-theme`)
+- Persistencia en localStorage (`gym-logic-theme`)
 - Verificación cada minuto para cambios de hora (solo en modo auto)
 - Aplicación inmediata al cambiar configuración
 - Escucha cambios en preferencia del sistema (opcional)

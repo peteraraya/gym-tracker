@@ -674,3 +674,70 @@ body.hide-navbar {
 .dark .text-body-base { color: var(--foreground); }
 .dark .text-body-sm { color: var(--foreground); }
 
+/* ===== RestTimer Variables ===== */
+:root {
+  --accent-primary: #ff6b00;
+  --accent-primary-dim: #cc5600;
+  --accent-success: #00d47e;
+  --accent-warning: #ffb800;
+  --accent-danger: #ff3d3d;
+  --accent-info: #00b4ff;
+
+  --bg-deep: #080808;
+  --bg-surface: #111111;
+  --bg-elevated: #1a1a1a;
+  --bg-input: #1e1e1e;
+
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-muted: #717171;
+  --text-inverse: #080808;
+
+  --border-subtle: #272727;
+  --border-focus: var(--accent-primary);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --transition-fast: 120ms ease-out;
+  --transition-base: 200ms ease-out;
+  --transition-slow: 300ms ease-out;
+  --text-timer: clamp(4rem, 18vw, 6rem);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-deep: #fafafa;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f5f5f5;
+    --bg-input: #eeeeee;
+    --text-primary: #111111;
+    --text-secondary: #525252;
+    --text-muted: #a3a3a3;
+    --border-subtle: #e5e5e5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rest-timer *, .rest-timer-compact * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.rest-timer button:focus-visible,
+.rest-timer-compact button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.rest-timer button,
+.rest-timer-compact button {
+  min-height: 44px;
+  min-width: 44px;
+}

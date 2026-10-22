@@ -51,16 +51,16 @@ export const APP_CONFIG = {
     cardio: "muscles.cardio",
   } as Record<MuscleGroup, string>,
 
-  // Keys de localStorage
+  // Keys de localStorage (sincronizadas con lib/infrastructure/storage/localStorage.ts)
   storage: {
     keys: {
-      sessions: "gym-sessions",
-      routines: "gym-routines",
-      profile: "gym-profile",
-      weeklyPlan: "gym-weekly-plan",
+      sessions: "gym_logic_sessions",
+      routines: "gym_logic_routines",
+      profile: "gym_logic_profile",
+      weeklyPlan: "weekly_routine_plan",
       planning: "gym-planning-data",
       equipment: "gym-equipment",
-      lastSavedSession: "gym_tracker_last_saved_session_local",
+      lastSavedSession: "gym_logic_last_saved_session_local",
     },
   },
 

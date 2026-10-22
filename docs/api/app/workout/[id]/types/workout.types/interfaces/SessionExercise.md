@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/types/workout.types](../README.md) / SessionExercise
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/types/workout.types](../README.md) / SessionExercise
 
 # Interface: SessionExercise
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:136](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L136)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:136](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L136)
 
 Datos de un ejercicio en una sesión
 
@@ -16,7 +16,7 @@ Datos de un ejercicio en una sesión
 
 > **actualReps**: `number`[]
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:140](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L140)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:140](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L140)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:140](https://github.com/p
 
 > `optional` **actualRestTimes?**: `number`[]
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:144](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L144)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:144](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L144)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:144](https://github.com/p
 
 > **actualWeight**: `number`[]
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:141](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L141)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:141](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L141)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:141](https://github.com/p
 
 > **completedSets**: `number`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:139](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L139)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:139](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L139)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:139](https://github.com/p
 
 > **exerciseId**: `string`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:137](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L137)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:137](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L137)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:137](https://github.com/p
 
 > **exerciseName**: `string`
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:138](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L138)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:138](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L138)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:138](https://github.com/p
 
 > `optional` **pauseDurations?**: `number`[]
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:143](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L143)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:143](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L143)
 
 ***
 
@@ -72,4 +72,4 @@ Defined in: [app/workout/\[id\]/types/workout.types.ts:143](https://github.com/p
 
 > `optional` **setDurations?**: `number`[]
 
-Defined in: [app/workout/\[id\]/types/workout.types.ts:142](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L142)
+Defined in: [app/workout/\[id\]/types/workout.types.ts:142](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/types/workout.types.ts#L142)

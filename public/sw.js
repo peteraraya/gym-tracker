@@ -2,11 +2,11 @@
 // Estrategias de caché avanzadas, offline-first, sync en segundo plano,
 // notificaciones push y temporizadores de descanso en background.
 
-const CACHE_NAME = 'gym-tracker-shell-v3';
-const RUNTIME_CACHE = 'gym-tracker-runtime-v3';
-const API_CACHE = 'gym-tracker-api-v3';
-const IMAGE_CACHE = 'gym-tracker-images-v3';
-const FONT_CACHE = 'gym-tracker-fonts-v3';
+const CACHE_NAME = 'gym-logic-shell-v3';
+const RUNTIME_CACHE = 'gym-logic-runtime-v3';
+const API_CACHE = 'gym-logic-api-v3';
+const IMAGE_CACHE = 'gym-logic-images-v3';
+const FONT_CACHE = 'gym-logic-fonts-v3';
 
 const SW_VERSION = '3.0.0';
 
@@ -220,7 +220,7 @@ self.addEventListener('sync', (event) => {
 
 async function openIDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('gym-tracker-sync', 1);
+    const request = indexedDB.open('gym-logic-sync', 1);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = () => {
@@ -360,7 +360,7 @@ self.addEventListener('push', (event) => {
     icon: '/icons/icon-192x192.png',
     badge: '/icons/badge-72x72.png',
     vibrate: [200, 100, 200],
-    tag: 'gym-tracker-push',
+    tag: 'gym-logic-push',
     renotify: true,
     actions: [
       { action: 'open', title: 'Abrir', icon: '/icons/icon-192x192.png' },
@@ -421,5 +421,23 @@ self.addEventListener('message', (event) => {
   if (type === 'STOP_REST_TIMER') {
     const { tag } = payload;
     restTimers.delete(tag);
+  }
+  if (type === 'CLEANUP') {
+    // Detener todos los temporizadores de descanso pendientes
+    for (const [tag] of restTimers) {
+      restTimers.delete(tag);
+    }
+    // Borrar todas las cachés de runtime y API (mantener app shell)
+    event.waitUntil(
+      (async () => {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => caches.delete(name))
+        );
+      })()
+    );
+    console.log('[SW] Cleanup ejecutado: restTimers y cachés borrados');
   }
 });

@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/progress/progressAggregator](../README.md) / ProgressMetrics
+[gym-logic](../../../../README.md) / [lib/progress/progressAggregator](../README.md) / ProgressMetrics
 
 # Interface: ProgressMetrics
 
-Defined in: [lib/progress/progressAggregator.ts:8](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L8)
+Defined in: [lib/progress/progressAggregator.ts:8](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L8)
 
 Aggregates workout session data into meaningful progress metrics
 for display in the Progress Dashboard
@@ -17,7 +17,7 @@ for display in the Progress Dashboard
 
 > **estimated1RMProgress**: `Record`\<`string`, `number`[]\>
 
-Defined in: [lib/progress/progressAggregator.ts:15](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L15)
+Defined in: [lib/progress/progressAggregator.ts:15](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L15)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [lib/progress/progressAggregator.ts:15](https://github.com/peteraray
 
 > **monthlyVolume**: `number`
 
-Defined in: [lib/progress/progressAggregator.ts:9](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L9)
+Defined in: [lib/progress/progressAggregator.ts:9](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L9)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [lib/progress/progressAggregator.ts:9](https://github.com/peteraraya
 
 > **monthlyVolumeChange**: `number`
 
-Defined in: [lib/progress/progressAggregator.ts:10](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L10)
+Defined in: [lib/progress/progressAggregator.ts:10](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L10)
 
 ***
 
@@ -41,7 +41,7 @@ Defined in: [lib/progress/progressAggregator.ts:10](https://github.com/peteraray
 
 > **strengthTrend**: `"stable"` \| `"up"` \| `"down"`
 
-Defined in: [lib/progress/progressAggregator.ts:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L17)
+Defined in: [lib/progress/progressAggregator.ts:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L17)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [lib/progress/progressAggregator.ts:17](https://github.com/peteraray
 
 > **trainingConsistency**: `number`
 
-Defined in: [lib/progress/progressAggregator.ts:16](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L16)
+Defined in: [lib/progress/progressAggregator.ts:16](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L16)
 
 ***
 
@@ -57,7 +57,7 @@ Defined in: [lib/progress/progressAggregator.ts:16](https://github.com/peteraray
 
 > **wilksScore**: `number`
 
-Defined in: [lib/progress/progressAggregator.ts:11](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L11)
+Defined in: [lib/progress/progressAggregator.ts:11](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L11)
 
 ***
 
@@ -65,7 +65,7 @@ Defined in: [lib/progress/progressAggregator.ts:11](https://github.com/peteraray
 
 > **wilksScoreChange**: `number`
 
-Defined in: [lib/progress/progressAggregator.ts:12](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L12)
+Defined in: [lib/progress/progressAggregator.ts:12](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L12)
 
 ***
 
@@ -73,7 +73,7 @@ Defined in: [lib/progress/progressAggregator.ts:12](https://github.com/peteraray
 
 > **workoutDensity**: `number`
 
-Defined in: [lib/progress/progressAggregator.ts:13](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L13)
+Defined in: [lib/progress/progressAggregator.ts:13](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L13)
 
 ***
 
@@ -81,4 +81,4 @@ Defined in: [lib/progress/progressAggregator.ts:13](https://github.com/peteraray
 
 > **workoutDensityChange**: `number`
 
-Defined in: [lib/progress/progressAggregator.ts:14](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L14)
+Defined in: [lib/progress/progressAggregator.ts:14](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/progress/progressAggregator.ts#L14)

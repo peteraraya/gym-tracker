@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / components/layout/BottomNavBar
+[gym-logic](../../../README.md) / components/layout/BottomNavBar
 
 # components/layout/BottomNavBar
 

@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../../README.md)
+[**gym-logic**](../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../README.md) / app/workout/\[id\]/hooks/useWeightPrediction
+[gym-logic](../../../../../README.md) / app/workout/\[id\]/hooks/useWeightPrediction
 
 # app/workout/\[id\]/hooks/useWeightPrediction
 

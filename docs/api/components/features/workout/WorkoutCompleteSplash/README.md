@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/workout/WorkoutCompleteSplash
+[gym-logic](../../../../README.md) / components/features/workout/WorkoutCompleteSplash
 
 # components/features/workout/WorkoutCompleteSplash
 

@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / lib/workout/progression
+[gym-logic](../../../README.md) / lib/workout/progression
 
 # lib/workout/progression
 

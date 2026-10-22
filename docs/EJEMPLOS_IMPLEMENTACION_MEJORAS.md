@@ -651,8 +651,8 @@ export const APP_CONFIG = {
       lastWeights: 'gym:last-weights',
       
       // Preferencias
-      theme: 'gym-tracker-theme',
-      language: 'gym-tracker-language',
+      theme: 'gym-logic-theme',
+      language: 'gym-logic-language',
       restSoundEnabled: 'restSoundEnabled',
       
       // Legacy (para migración)
@@ -707,7 +707,7 @@ localStorage.setItem(key, JSON.stringify(weights));
 ```javascript
 (function() {
   try {
-    const theme = localStorage.getItem('gym-tracker-theme') || 'dark';
+    const theme = localStorage.getItem('gym-logic-theme') || 'dark';
     
     const getTimeBasedTheme = () => {
       const hour = new Date().getHours();

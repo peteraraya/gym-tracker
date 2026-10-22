@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../README.md)
+[**gym-logic**](../../../README.md)
 
 ***
 
-[gym-tracker](../../../README.md) / app/equipment/EquipmentGrid
+[gym-logic](../../../README.md) / app/equipment/EquipmentGrid
 
 # app/equipment/EquipmentGrid
 

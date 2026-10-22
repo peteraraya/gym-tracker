@@ -32,7 +32,7 @@ npm run cap:init
 ```
 
 Esto ya está preconfigurado para:
-- **App ID**: `com.gymtracker.app`
+- **App ID**: `com.gymlogic.app`
 - **App Name**: `GymLogiX`
 - **WebDir**: `out` (carpeta de build estático de Next.js)
 
@@ -98,7 +98,7 @@ Ya está configurado con:
 
 ```typescript
 {
-  appId: 'com.gymtracker.app',
+  appId: 'com.gymlogic.app',
   appName: 'GymLogiX',
   webDir: 'out',
   androidScheme: 'https',

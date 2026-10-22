@@ -1,11 +1,11 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [components/ui/Card](../README.md) / CardHeader
+[gym-logic](../../../../README.md) / [components/ui/Card](../README.md) / CardHeader
 
 # Variable: CardHeader
 
 > `const` **CardHeader**: `React.FC`\<\{ `children`: `React.ReactNode`; `className?`: `string`; \}\>
 
-Defined in: [components/ui/Card.tsx:24](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/Card.tsx#L24)
+Defined in: [components/ui/Card.tsx:24](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/components/ui/Card.tsx#L24)

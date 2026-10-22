@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/calculators/WilksCalculator
+[gym-logic](../../../../README.md) / components/features/calculators/WilksCalculator
 
 # components/features/calculators/WilksCalculator
 

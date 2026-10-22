@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/progress/IntegratedProgressPanel
+[gym-logic](../../../../README.md) / components/features/progress/IntegratedProgressPanel
 
 # components/features/progress/IntegratedProgressPanel
 

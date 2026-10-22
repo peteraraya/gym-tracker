@@ -42,6 +42,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
   const hasRestoredRef = useRef(false);
   const currentTimeLeftRef = useRef(currentTimeLeft);
   const lastStartAtRef = useRef<number | null>(null);
+  const hasCompletedTimerRef = useRef(false);
   
   // Update ref when callback changes
   useEffect(() => {
@@ -63,15 +64,19 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
       hasRestoredRef.current = true;
       
       if (remaining > 0) {
-        setShowTimer(true);
-        setTimerDuration(remaining);
-        setTimerStartTime(Date.now());
-        setCurrentTimeLeft(remaining);
-        setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
-        setNextExerciseName(activeWorkout.restTimerNextExercise);
-        setTimerMinimized(false);
+        const restoreTimeout = setTimeout(() => {
+          setShowTimer(true);
+          setTimerDuration(remaining);
+          setTimerStartTime(Date.now());
+          setCurrentTimeLeft(remaining);
+          currentTimeLeftRef.current = remaining;
+          setTimerTitle(activeWorkout.restTimerTitle || 'Descanso');
+          setNextExerciseName(activeWorkout.restTimerNextExercise);
+          setTimerMinimized(false);
+        }, 0);
         
         logger.debug('[useWorkoutTimer] restored timer', { remaining, title: activeWorkout.restTimerTitle, nextExercise: activeWorkout.restTimerNextExercise });
+        return () => clearTimeout(restoreTimeout);
       } else {
         // El timer expiró mientras la página estaba cerrada
         // console.log('[useWorkoutTimer] Timer expirado durante F5, ejecutando callback');
@@ -85,16 +90,17 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     currentTimeLeftRef.current = currentTimeLeft;
   }, [currentTimeLeft]);
 
-  // Countdown when minimized
+  // Keep one source of truth for the expanded and minimized timer views.
   useEffect(() => {
-    if (!showTimer || !timerMinimized || !timerStartTime) {
+    if (!showTimer || !timerStartTime) {
       return;
     }
     const intervalId = setInterval(() => {
       const remaining = Math.max(0, currentTimeLeftRef.current - 1);
       setCurrentTimeLeft(remaining);
       currentTimeLeftRef.current = remaining;
-      if (remaining === 0) {
+      if (remaining === 0 && !hasCompletedTimerRef.current) {
+        hasCompletedTimerRef.current = true;
         // Asegurar que la notificación final se muestre antes de ejecutar el callback
         try {
           endRestNotification().catch(() => {});
@@ -107,7 +113,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
       }
     }, 1000);
     return () => clearInterval(intervalId);
-  }, [showTimer, timerMinimized, timerStartTime]); // Note: `currentTimeLeft` intentionally excluded from deps
+  }, [showTimer, timerStartTime]);
   
   const startTimer = useCallback((duration: number, title: string, nextExercise?: string) => {
     const startTime = Date.now();
@@ -136,11 +142,13 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     }
 
     lastStartAtRef.current = startTime;
+    hasCompletedTimerRef.current = false;
 
     setShowTimer(true);
     setTimerDuration(duration);
     setTimerStartTime(startTime);
     setCurrentTimeLeft(duration);
+    currentTimeLeftRef.current = duration;
     setTimerTitle(title);
     setNextExerciseName(nextExercise);
     setTimerMinimized(false);
@@ -200,6 +208,7 @@ export function useWorkoutTimer(onTimerComplete: () => void): UseWorkoutTimerRet
     setTimerMinimized(true);
     setCurrentTimeLeft(timeLeft);
     setTimerStartTime(Date.now());
+    currentTimeLeftRef.current = timeLeft;
     
     // ✅ Persistir el tiempo restante y el timestamp cuando se minimiza
     if (activeWorkout && updateWorkoutProgress) {

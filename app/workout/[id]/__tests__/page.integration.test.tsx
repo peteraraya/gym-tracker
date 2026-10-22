@@ -457,7 +457,7 @@ describe('WorkoutPage Integration', () => {
       sessionStorage.removeItem('workout_splash_ts')
     } catch (e) {}
     try {
-      localStorage.removeItem('gym-tracker-active-workout')
+      localStorage.removeItem('gym-logic-active-workout')
     } catch (e) {}
   });
 

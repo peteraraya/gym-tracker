@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../../../README.md)
+[**gym-logic**](../../../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWorkoutTimer](../README.md) / TimerState
+[gym-logic](../../../../../../README.md) / [app/workout/\[id\]/hooks/useWorkoutTimer](../README.md) / TimerState
 
 # Interface: TimerState
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:10](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L10)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:10](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L10)
 
 ## Extended by
 
@@ -18,7 +18,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:10](https://github.com/
 
 > **currentTimeLeft**: `number`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:17](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L17)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:17](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L17)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:17](https://github.com/
 
 > `optional` **nextExerciseName?**: `string`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:14](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L14)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:14](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L14)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:14](https://github.com/
 
 > **showTimer**: `boolean`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:11](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L11)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:11](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L11)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:11](https://github.com/
 
 > **timerDuration**: `number`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:12](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L12)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:12](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L12)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:12](https://github.com/
 
 > **timerMinimized**: `boolean`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:15](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L15)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:15](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L15)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:15](https://github.com/
 
 > **timerStartTime**: `number`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:16](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L16)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:16](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L16)
 
 ***
 
@@ -66,4 +66,4 @@ Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:16](https://github.com/
 
 > **timerTitle**: `string`
 
-Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:13](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L13)
+Defined in: [app/workout/\[id\]/hooks/useWorkoutTimer.ts:13](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/workout/[id]/hooks/useWorkoutTimer.ts#L13)

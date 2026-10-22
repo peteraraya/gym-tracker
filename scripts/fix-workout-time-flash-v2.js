@@ -12,7 +12,7 @@ const oldPattern = /const \[workoutStartTime, setWorkoutStartTime\] = useState\(
 const newCode = `const [workoutStartTime, setWorkoutStartTime] = useState(() => {
     // Intentar leer el tiempo de inicio guardado para evitar el flash
     try {
-      const stored = localStorage.getItem('gym-tracker-active-workout');
+      const stored = localStorage.getItem('gym-logic-active-workout');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.startedAt) {

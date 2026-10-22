@@ -11,7 +11,7 @@ Error updating routine: Error: Rutina no encontrada
 
 1. Ve a [https://supabase.com/dashboard](https://supabase.com/dashboard)
 2. Inicia sesión con tu cuenta
-3. Selecciona tu proyecto (gym-tracker o el nombre que uses)
+3. Selecciona tu proyecto (gym-logic o el nombre que uses)
 
 ## Paso 2: Abrir SQL Editor
 

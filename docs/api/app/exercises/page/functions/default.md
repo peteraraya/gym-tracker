@@ -1,14 +1,14 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [app/exercises/page](../README.md) / default
+[gym-logic](../../../../README.md) / [app/exercises/page](../README.md) / default
 
 # Function: default()
 
 > **default**(`props`): `Promise`\<`Element`\>
 
-Defined in: [app/exercises/page.tsx:29](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/app/exercises/page.tsx#L29)
+Defined in: [app/exercises/page.tsx:29](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/app/exercises/page.tsx#L29)
 
 ## Parameters
 

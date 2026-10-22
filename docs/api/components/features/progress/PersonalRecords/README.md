@@ -1,8 +1,8 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / components/features/progress/PersonalRecords
+[gym-logic](../../../../README.md) / components/features/progress/PersonalRecords
 
 # components/features/progress/PersonalRecords
 

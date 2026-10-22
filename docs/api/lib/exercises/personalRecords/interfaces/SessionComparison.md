@@ -1,12 +1,12 @@
-[**gym-tracker**](../../../../README.md)
+[**gym-logic**](../../../../README.md)
 
 ***
 
-[gym-tracker](../../../../README.md) / [lib/exercises/personalRecords](../README.md) / SessionComparison
+[gym-logic](../../../../README.md) / [lib/exercises/personalRecords](../README.md) / SessionComparison
 
 # Interface: SessionComparison
 
-Defined in: [lib/exercises/personalRecords.ts:414](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L414)
+Defined in: [lib/exercises/personalRecords.ts:414](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L414)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/exercises/personalRecords.ts:414](https://github.com/peteraraya
 
 > **commonExercises**: `string`[]
 
-Defined in: [lib/exercises/personalRecords.ts:415](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L415)
+Defined in: [lib/exercises/personalRecords.ts:415](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L415)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/exercises/personalRecords.ts:415](https://github.com/peteraraya
 
 > **differences**: `object`[]
 
-Defined in: [lib/exercises/personalRecords.ts:418](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L418)
+Defined in: [lib/exercises/personalRecords.ts:418](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L418)
 
 #### exercise
 
@@ -50,7 +50,7 @@ Defined in: [lib/exercises/personalRecords.ts:418](https://github.com/peteraraya
 
 > **onlyInSession1**: `string`[]
 
-Defined in: [lib/exercises/personalRecords.ts:416](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L416)
+Defined in: [lib/exercises/personalRecords.ts:416](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L416)
 
 ***
 
@@ -58,4 +58,4 @@ Defined in: [lib/exercises/personalRecords.ts:416](https://github.com/peteraraya
 
 > **onlyInSession2**: `string`[]
 
-Defined in: [lib/exercises/personalRecords.ts:417](https://github.com/peteraraya/gym-tracker/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L417)
+Defined in: [lib/exercises/personalRecords.ts:417](https://github.com/peteraraya/gym-logic/blob/74372adb244d74daa6aebba3b788149270126542/lib/exercises/personalRecords.ts#L417)

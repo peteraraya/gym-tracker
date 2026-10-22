@@ -111,7 +111,7 @@ export function exportToJSON(data: {
   const exportData = {
     version: '1.0',
     exportDate: new Date().toISOString(),
-    app: 'gym-tracker',
+    app: 'gym-logic',
     data: {
       sessions: data.sessions,
       routines: data.routines,
@@ -294,7 +294,7 @@ export function importFromHevyCSV(csvContent: string): WorkoutSession[] {
 /**
  * Detecta el formato de un archivo CSV
  */
-export function detectCSVFormat(csvContent: string): 'strong' | 'hevy' | 'gym-tracker' | 'unknown' {
+export function detectCSVFormat(csvContent: string): 'strong' | 'hevy' | 'gym-logic' | 'unknown' {
   const firstLine = csvContent.split('\n')[0].toLowerCase();
   
   if (firstLine.includes('workout name') && firstLine.includes('set order')) {
@@ -307,7 +307,7 @@ export function detectCSVFormat(csvContent: string): 'strong' | 'hevy' | 'gym-tr
   }
   
   if (firstLine.includes('routine id') && firstLine.includes('exercise id')) {
-    return 'gym-tracker';
+    return 'gym-logic';
   }
   
   return 'unknown';
@@ -324,7 +324,7 @@ export function importCSVAuto(csvContent: string): WorkoutSession[] | null {
       return importFromStrongCSV(csvContent);
     case 'hevy':
       return importFromHevyCSV(csvContent);
-    case 'gym-tracker':
+    case 'gym-logic':
       // Implementar si necesitas importar tu propio formato
       return null;
     default:
