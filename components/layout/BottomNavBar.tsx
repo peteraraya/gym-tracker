@@ -37,22 +37,22 @@ const NavTab: React.FC<{
   <Link
     href={href}
     aria-current={isActive ? 'page' : undefined}
-    className="flex min-h-11 min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
+    className="flex min-h-[44px] min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
   >
     <motion.div
-      whileTap={{ scale: 0.82 }}
+      whileTap={{ scale: 0.94 }}
       className={`p-1.5 rounded-xl transition-colors ${
         isActive
-          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
+          ? 'bg-brand/10 text-brand dark:bg-brand/15 dark:text-brand-muted'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
       <Icon className="w-5 h-5" />
     </motion.div>
     <span
-      className={`max-w-full truncate text-[11px] font-medium leading-none ${
+      className={`max-w-full truncate text-xs font-medium leading-none ${
         isActive
-          ? 'text-emerald-800 dark:text-emerald-200'
+          ? 'text-brand dark:text-brand-muted'
           : 'text-zinc-400 dark:text-zinc-500'
       }`}
     >
@@ -220,7 +220,7 @@ export const BottomNavBar: React.FC = () => {
               <div className="max-h-[70vh] overflow-y-auto p-3 space-y-4">
                 {moreGroups.map((group) => (
                   <div key={group.title}>
-                    <h3 className="px-1 mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                    <h3 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
                       {group.title}
                     </h3>
                     <div className="grid grid-cols-2 gap-1 min-[380px]:grid-cols-4">
@@ -243,7 +243,7 @@ export const BottomNavBar: React.FC = () => {
                             }`}
                           />
                           <span
-                            className={`text-[11px] font-medium text-center leading-tight ${
+                            className={`text-xs text-center font-medium leading-tight ${
                               isActive(item.href)
                                 ? 'text-indigo-600 dark:text-indigo-400'
                                 : 'text-zinc-500 dark:text-zinc-400'
@@ -298,16 +298,16 @@ export const BottomNavBar: React.FC = () => {
               className="relative -mt-6 mx-1 flex shrink-0 touch-manipulation flex-col items-center gap-1"
             >
               <motion.div
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.05 }}
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700 shadow-lg shadow-emerald-900/20 dark:bg-emerald-300 dark:shadow-emerald-950/30"
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-brand shadow-md text-white dark:text-zinc-950"
               >
                 <Dumbbell className="w-6 h-6 text-white" strokeWidth={2.4} />
               </motion.div>
               {activeWorkout && (
-                <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 dark:border-zinc-900 dark:bg-emerald-300" />
+                <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-brand dark:border-zinc-900 dark:bg-brand-muted" />
               )}
-              <span className="text-[11px] font-semibold leading-none text-zinc-700 dark:text-zinc-300">
+              <span className="text-xs font-semibold leading-none text-zinc-700 dark:text-zinc-300">
                 {activeWorkout ? t('activeWorkout') : t('train')}
               </span>
             </Link>
@@ -331,22 +331,22 @@ export const BottomNavBar: React.FC = () => {
               aria-expanded={moreOpen}
               aria-haspopup="dialog"
               aria-label={t('more')}
-              className="flex min-h-11 min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
+              className="flex min-h-[44px] min-w-0 flex-1 touch-manipulation flex-col items-center justify-center gap-1 py-1"
             >
               <motion.div
-                whileTap={{ scale: 0.82 }}
+                whileTap={{ scale: 0.94 }}
                 className={`p-1.5 rounded-xl transition-colors ${
                   isMoreActive || moreOpen
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
+                    ? 'bg-brand/10 text-brand dark:bg-brand/15 dark:text-brand-muted'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >
                 {moreOpen ? <X className="w-5 h-5" /> : <Grid3x3 className="w-5 h-5" />}
               </motion.div>
               <span
-                className={`text-[11px] font-medium leading-none ${
+                className={`text-xs font-medium leading-none ${
                   isMoreActive || moreOpen
-                    ? 'text-emerald-800 dark:text-emerald-200'
+                    ? 'text-brand dark:text-brand-muted'
                     : 'text-zinc-400 dark:text-zinc-500'
                 }`}
               >

@@ -97,7 +97,7 @@ export const Modal: React.FC<ModalProps> = ({
 				aria-labelledby={hideHeader ? undefined : titleId}
 				aria-label={hideHeader ? title : undefined}
 				tabIndex={-1}
-				className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto ${contentClassName ?? 'max-w-2xl'}`}
+				className={`relative w-full max-h-[95vh] overflow-y-auto rounded-2xl bg-white shadow-xl dark:bg-gray-800 sm:max-h-[90vh] ${contentClassName ?? 'max-w-2xl'}`}
 			>
 				{!hideHeader ? (
 					<>
@@ -106,7 +106,7 @@ export const Modal: React.FC<ModalProps> = ({
 							<button
 								type="button"
 								onClick={onClose}
-								className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl sm:text-2xl shrink-0 w-8 h-8 flex items-center justify-center"
+								className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl text-2xl text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
 								aria-label={`Cerrar ${title}`}
 							>
 								×

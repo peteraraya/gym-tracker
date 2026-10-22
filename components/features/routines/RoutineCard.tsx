@@ -71,10 +71,10 @@ export function RoutineCard({
 
   return (
     <Card
-      className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-indigo-400 dark:hover:border-indigo-500 bg-linear-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/10 overflow-hidden"
+      className="group overflow-hidden transition-shadow hover:shadow-md"
       style={accentColor ? { borderLeft: `4px solid ${accentColor}` } : undefined}
     >
-      <CardContent className="p-5">
+      <CardContent>
         {/* Active workout badge */}
         {isActive && (
           <div className="absolute top-3 right-3 z-20">
@@ -103,21 +103,21 @@ export function RoutineCard({
 
         {/* Stats rápidas */}
         <div className="flex items-center gap-3 mb-4 text-sm flex-wrap">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-            <Dumbbell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span className="font-semibold text-blue-700 dark:text-blue-300">
+          <div className="flex items-center gap-1.5 rounded-xl border border-brand/20 bg-brand/10 px-3 py-1.5">
+            <Dumbbell className="h-4 w-4 text-brand" />
+            <span className="font-semibold text-brand dark:text-brand-muted">
               {totalExercises}
             </span>
-            <span className="text-blue-600 dark:text-blue-400 text-xs">
+            <span className="text-xs text-brand dark:text-brand-muted">
               ejercicio{totalExercises !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800">
-            <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+          <div className="flex items-center gap-1.5 rounded-xl border border-border-light bg-surface-alt px-3 py-1.5">
+            <Activity className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+            <span className="font-semibold text-zinc-700 dark:text-zinc-200">
               {totalSeries}
             </span>
-            <span className="text-emerald-600 dark:text-emerald-400 text-xs">
+            <span className="text-xs text-zinc-600 dark:text-zinc-300">
               series
             </span>
           </div>
@@ -150,10 +150,10 @@ export function RoutineCard({
 
         {/* Botón de acción principal */}
         <Button
-          variant="gradient"
+          variant="primary"
           onClick={() => onStart(routine.id)}
           disabled={isStarting}
-          className="w-full gap-2 shadow-lg hover:shadow-xl transition-all bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 mb-2"
+          className="mb-2 w-full gap-2"
         >
           {isStarting ? (
             <>
@@ -180,7 +180,7 @@ export function RoutineCard({
             variant="ghost"
             size="sm"
             onClick={() => onEdit(routine.id)}
-            className="flex-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
+            className="flex-1 text-xs"
           >
             <Pencil className="w-3.5 h-3.5" />
             Editar
@@ -190,7 +190,7 @@ export function RoutineCard({
             size="sm"
             onClick={() => onDuplicate(routine.id)}
             disabled={isDuplicating}
-            className="flex-1 text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800"
+            className="flex-1 text-xs"
           >
             {isDuplicating ? (
               <>
@@ -209,7 +209,7 @@ export function RoutineCard({
             variant="ghost"
             size="sm"
             onClick={() => onDelete(routine.id)}
-            className="flex-1 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800"
+            className="flex-1 text-xs text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/20"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Eliminar

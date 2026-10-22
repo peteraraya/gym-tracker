@@ -77,7 +77,7 @@ export const Navbar: React.FC = () => {
                 <Link
                   href={workoutHref}
                   aria-label={workoutLabel}
-                  className="flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-gray-950 dark:hover:bg-emerald-200 dark:focus-visible:ring-emerald-300 dark:focus-visible:ring-offset-zinc-900"
+                  className="flex min-h-[44px] items-center gap-2 rounded-xl bg-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-950 dark:focus-visible:ring-offset-zinc-900"
                 >
                   <Dumbbell className="h-4 w-4" />
                   <span>{workoutLabel}</span>
@@ -196,7 +196,7 @@ const NavLink: React.FC<NavLinkProps> = ({
       data-tour={dataTour}
       className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap ${
         isActive
-          ? "bg-emerald-700 text-white shadow-sm dark:bg-emerald-300 dark:text-gray-950"
+          ? "bg-brand text-white dark:text-zinc-950"
           : "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
       }`}
     >
@@ -248,7 +248,7 @@ const DropdownNav: React.FC<DropdownNavProps> = ({
         onClick={() => setOpen((v) => !v)}
         className={`px-3 py-2 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
           {
-            true: "bg-emerald-700 text-white shadow-sm dark:bg-emerald-300 dark:text-gray-950",
+            true: "bg-brand text-white dark:text-zinc-950",
           }[String(parentActive)] ||
           "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700/50"
         }`}

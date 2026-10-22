@@ -22,14 +22,14 @@ export function EmptyStateCard({
   onAction,
   secondaryActionLabel,
   onSecondaryAction,
-  gradient = 'from-blue-50 to-purple-50 dark:from-zinc-800 dark:to-zinc-800'
+  gradient
 }: EmptyStateCardProps) {
   return (
-    <div className={`bg-linear-to-br ${gradient} border-2 border-gray-200 dark:border-zinc-700 rounded-2xl p-8 text-center mt-4`}>
+    <div className={`mt-4 rounded-2xl border border-border-light bg-surface p-4 text-center sm:p-6 ${gradient ? `bg-linear-to-br ${gradient}` : ''}`}>
       {/* Icon */}
-      <div className="w-20 h-20 mx-auto mb-4 bg-white/50 dark:bg-gray-700/50 rounded-full flex items-center justify-center">
+      <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-surface-alt">
         {typeof icon === 'string' ? (
-          <span className="text-5xl">{icon}</span>
+          <span className="text-4xl">{icon}</span>
         ) : (
           <div className="text-gray-600 dark:text-gray-400">
             {icon}
@@ -38,12 +38,12 @@ export function EmptyStateCard({
       </div>
 
       {/* Title */}
-      <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+      <h3 className="mb-1.5 text-lg font-bold text-zinc-900 dark:text-zinc-100 sm:text-xl">
         {title}
       </h3>
 
       {/* Description */}
-      <p className="text-zinc-600 dark:text-zinc-400 mb-6 max-w-md mx-auto">
+      <p className="mx-auto mb-4 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
         {description}
       </p>
 
@@ -52,9 +52,9 @@ export function EmptyStateCard({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {actionLabel && onAction && (
               <Button
-              variant="gradient"
+              variant="primary"
               onClick={onAction}
-              className="gap-2 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="gap-2"
             >
               {actionLabel}
             </Button>

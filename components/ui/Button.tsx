@@ -22,19 +22,15 @@ export const Button: React.FC<ButtonProps> = ({
   block = false,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-sm hover:shadow-md whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900';
+  const baseStyles = 'inline-flex items-center justify-center gap-2 rounded-xl font-semibold whitespace-nowrap transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900';
   
   const variants = {
-    // Acción principal: verde profundo con acentos turquesa de marca.
-    primary: 'bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-blue-700/30',
-    // Secundario: gris neutro en degradado (y versión dark)
-    secondary: 'bg-linear-to-r from-[#f4f4f5] via-[#e4e4e7] to-[#d4d4d8] dark:from-[#3f3f46] dark:via-[#262626] dark:to-[#131313] text-zinc-900 dark:text-zinc-100 border border-transparent dark:border-transparent bg-[length:200%_auto] hover:bg-right shadow-sm',
-    // Error: degradado rojo profesional (incluye dark)
-    danger: 'bg-linear-to-r from-[#ff4d5e] via-[#e11d48] to-[#b91c1c] dark:from-[#b91c1c] dark:via-[#991b1b] dark:to-[#7f1d1d] text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-red-500/20',
-    // Información: turquesa institucional
-    info: 'bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-blue-700/30',
-    ghost: 'bg-transparent text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 shadow-none',
-    gradient: 'bg-linear-to-r from-indigo-600 via-blue-500 to-blue-400 text-white bg-[length:200%_auto] hover:bg-right shadow-lg shadow-blue-700/30',
+    primary: 'bg-brand text-white hover:bg-brand-dark dark:text-zinc-950',
+    secondary: 'border border-border-light bg-surface-alt text-zinc-900 hover:bg-surface dark:text-zinc-100',
+    danger: 'bg-red-700 text-white hover:bg-red-800 dark:bg-red-500 dark:text-zinc-950 dark:hover:bg-red-400',
+    info: 'bg-brand text-white hover:bg-brand-dark dark:text-zinc-950',
+    ghost: 'bg-transparent text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800',
+    gradient: 'bg-brand text-white hover:bg-brand-dark dark:text-zinc-950',
   };
 
   const sizes = {
@@ -48,7 +44,6 @@ export const Button: React.FC<ButtonProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!props.disabled && !loading) {
-      // Diferenciar la vibración según la importancia del botón
       if (variant === 'primary' || variant === 'danger' || variant === 'gradient') {
         triggerHaptic('medium');
       } else {

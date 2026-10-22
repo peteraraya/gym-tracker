@@ -6,6 +6,8 @@ import {
   GripVertical,
   ChevronLeft,
   ChevronRight,
+  Calendar,
+  Grid3x3,
 } from "@/components/icons/lucide";
 import { useRoutines } from "@/context/GymContext";
 import { useAuth } from "@/context/AuthContext";
@@ -570,26 +572,30 @@ export default function WeeklyPlanner({
         </div>
 
         {/* Selector de vista — full-width en móvil */}
-        <div className="flex gap-1 bg-gray-800 rounded-xl p-1">
+        <div className="flex gap-1 rounded-xl bg-gray-800 p-1">
           <button
+            type="button"
             onClick={() => setViewMode("weekly")}
-            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               viewMode === "weekly"
-                ? "bg-blue-600 text-white shadow-md"
+                ? "bg-brand text-white dark:text-zinc-950"
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            📅 Semanal
+            <Calendar className="h-4 w-4" aria-hidden="true" />
+            Semanal
           </button>
           <button
+            type="button"
             onClick={() => setViewMode("monthly")}
-            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               viewMode === "monthly"
-                ? "bg-blue-600 text-white shadow-md"
+                ? "bg-brand text-white dark:text-zinc-950"
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            🗓️ Mensual
+            <Grid3x3 className="h-4 w-4" aria-hidden="true" />
+            Mensual
           </button>
         </div>
       </div>
@@ -1070,7 +1076,7 @@ export default function WeeklyPlanner({
                       >
                         {/* Badge HOY */}
                         {isToday && (
-                          <div className="absolute -top-2 left-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg z-10">
+                          <div className="absolute -top-2 left-3 z-10 rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white shadow-md dark:text-zinc-950">
                             HOY
                           </div>
                         )}

@@ -20,7 +20,8 @@
     "pause": "Pausar",
     "resume": "Reanudar",
     "restart": "Reiniciar",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "loading": "Cargando..."
   },
   "workoutShare": {
     "title": "Compartir entrenamiento en vivo",
@@ -635,6 +636,11 @@
     "loadingStats": "Cargando estadísticas...",
     "pageTitle": "Panel de Control",
     "pageDescription": "Gráficos y análisis detallado de tu progreso a largo plazo",
+    "quickStart": "Inicio rápido",
+    "quickStartContinue": "Continuar entrenamiento",
+    "quickStartContinueDescription": "Retoma donde lo dejaste.",
+    "quickStartRepeat": "Empezar rutina",
+    "quickStartRepeatDescription": "Repite la última rutina que entrenaste.",
     "fitnessGoals": {
       "muscle_gain": "Ganancia Muscular",
       "strength": "Fuerza",

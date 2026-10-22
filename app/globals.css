@@ -75,6 +75,15 @@
 }
 
 @theme inline {
+  --color-brand: var(--primary);
+  --color-brand-dark: var(--primary-dark);
+  --color-brand-light: var(--primary-light);
+  --color-brand-muted: var(--palette-brand-300);
+  --color-focus-ring: var(--focus-ring);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
   --color-gray-50: var(--palette-neutral-50);
   --color-gray-100: var(--palette-neutral-100);
   --color-gray-200: var(--palette-neutral-200);
@@ -402,7 +411,7 @@ body.modal-open {
 /* Responsive typography */
 @media (max-width: 640px) {
   html {
-    font-size: 14px;
+    font-size: 15px;
   }
 }
 
@@ -440,10 +449,6 @@ body.modal-open {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
 }
 
 .animate-fadeIn {

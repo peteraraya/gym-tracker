@@ -54,10 +54,10 @@ export function EmptyState({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center py-12 text-center ${className}`}
+      className={`flex flex-col items-center justify-center py-8 text-center ${className}`}
     >
       {/* Icon container */}
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+      <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full">
         <div
           className={`w-full h-full rounded-full flex items-center justify-center ${variantBg[variant]}`}
         >
@@ -70,13 +70,13 @@ export function EmptyState({
       </div>
 
       {/* Title */}
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      <h3 className="mb-1.5 text-lg font-semibold text-gray-900 dark:text-white">
         {title}
       </h3>
 
       {/* Description */}
       {description && (
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto leading-relaxed">
+        <p className="mx-auto mb-4 max-w-md text-sm leading-relaxed text-gray-600 dark:text-gray-400">
           {description}
         </p>
       )}
@@ -88,7 +88,7 @@ export function EmptyState({
             <Button
               variant="primary"
               onClick={onAction}
-              className="px-6 py-3 font-medium shadow-sm hover:shadow-md"
+              className="font-medium"
             >
               {actionIcon && <span className="mr-2">{actionIcon}</span>}
               {actionLabel}

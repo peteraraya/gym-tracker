@@ -1,13 +1,24 @@
 'use client';
 
 import React from 'react';
+import { NextIntlClientProvider } from 'next-intl';
 import { AuthProvider } from '@/context/AuthContext';
-import { LocaleProvider } from '@/context/LocaleContext';
+import { LocaleProvider, useLocale } from '@/context/LocaleContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { EquipmentProvider } from '@/context/EquipmentContext';
 import { GymProvider } from '@/context/GymContext';
 import { WorkoutProvider } from '@/context/WorkoutContext';
 import { PrefetchData } from '@/components/layout/PrefetchData';
+
+function SyncedIntlProvider({ children }: { children: React.ReactNode }) {
+  const { locale, messages } = useLocale();
+
+  return (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {children}
+    </NextIntlClientProvider>
+  );
+}
 
 /**
  * Consolidated provider tree.
@@ -21,18 +32,20 @@ import { PrefetchData } from '@/components/layout/PrefetchData';
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LocaleProvider>
-      <NotificationProvider>
-        <AuthProvider>
-          <EquipmentProvider>
-            <GymProvider>
-              <PrefetchData />
-              <WorkoutProvider>
-                {children}
-              </WorkoutProvider>
-            </GymProvider>
-          </EquipmentProvider>
-        </AuthProvider>
-      </NotificationProvider>
+      <SyncedIntlProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <EquipmentProvider>
+              <GymProvider>
+                <PrefetchData />
+                <WorkoutProvider>
+                  {children}
+                </WorkoutProvider>
+              </GymProvider>
+            </EquipmentProvider>
+          </AuthProvider>
+        </NotificationProvider>
+      </SyncedIntlProvider>
     </LocaleProvider>
   );
 }

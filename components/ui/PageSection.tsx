@@ -22,7 +22,7 @@ export function PageSection({
   noPadding = false
 }: PageSectionProps) {
   return (
-    <section className={`${noPadding ? '' : 'mb-8'} ${className}`}>
+    <section className={`${noPadding ? '' : 'mb-4'} ${className}`}>
       {/* Header */}
       {(title || subtitle || actions) && (
         <div className="flex items-start justify-between mb-4">
@@ -78,7 +78,7 @@ export function PageSectionCard({
       actions={actions}
       className={className}
     >
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+      <div className="rounded-2xl border border-border-light bg-surface p-4 shadow-sm sm:p-5">
         {children}
       </div>
     </PageSection>

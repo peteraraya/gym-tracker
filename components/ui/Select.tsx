@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useId } from 'react';
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -6,8 +8,9 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, className = '', children, ...props }, ref) => {
-    const id = props.id || props.name || undefined;
+  ({ label, error, className = '', children, id: providedId, name, 'aria-describedby': describedBy, ...props }, ref) => {
+    const generatedId = useId();
+    const id = providedId || name || generatedId;
     const errorId = id ? `${id}-error` : undefined;
 
     return (
@@ -21,12 +24,12 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={id}
           aria-invalid={!!error}
-          aria-describedby={error ? errorId : undefined}
-          className={`w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors
+          className={`w-full min-h-[44px] rounded-xl border border-border-light bg-surface px-3 py-2 text-sm text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring
             ${error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-            bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100
             ${className}`}
           {...props}
+          name={name}
+          aria-describedby={[describedBy, error ? errorId : undefined].filter(Boolean).join(' ') || undefined}
         >
           {children}
         </select>

@@ -147,7 +147,7 @@ const NoScheduleCard: React.FC = () => {
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{t("noPlan.description")}</p>
       <Link
         href="/planning"
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 dark:bg-emerald-300 dark:text-zinc-950 dark:hover:bg-emerald-200"
+        className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 dark:text-zinc-950"
       >
         {t("noPlan.cta")} <ChevronRight className="h-4 w-4" />
       </Link>
@@ -193,16 +193,18 @@ const TodayWorkoutCard: React.FC<{
     const active = routines.find((r) => r.id === activeWorkout.routineId);
     return (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-emerald-500 to-green-600 p-5 shadow-xl shadow-emerald-500/20"
+        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand to-brand-dark p-5 shadow-lg shadow-brand/20"
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/40" />
         </div>
         <div className="relative">
-          <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">🔥 {t("activeWorkout")}</p>
-          <h2 className="text-white font-bold text-xl mb-3">{active?.name || activeWorkout.routineName || t("workoutFallback")}</h2>
+          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white dark:text-zinc-950">
+            <Flame className="h-3.5 w-3.5" aria-hidden="true" /> {t("activeWorkout")}
+          </p>
+          <h2 className="mb-3 text-xl font-bold text-white dark:text-zinc-950">{active?.name || activeWorkout.routineName || t("workoutFallback")}</h2>
           <button onClick={() => router.push(`/workout/${activeWorkout.routineId}`)}
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+            className="flex min-h-[44px] items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/30 dark:text-zinc-950"
           >
             <Activity className="w-4 h-4" /> {t("continueWorkout")} <ArrowRight className="w-4 h-4" />
           </button>
@@ -215,7 +217,7 @@ const TodayWorkoutCard: React.FC<{
     return (
       <div role="alert" className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
         <h2 className="font-semibold">{t("dataLoadError")}</h2>
-        <button type="button" onClick={onRetryPlan} className="mt-3 min-h-11 font-semibold underline underline-offset-2">
+        <button type="button" onClick={onRetryPlan} className="mt-3 min-h-[44px] font-semibold underline underline-offset-2">
           {t("retry")}
         </button>
       </div>
@@ -228,7 +230,7 @@ const TodayWorkoutCard: React.FC<{
     return (
       <div role="alert" className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
         <h2 className="font-semibold">{t("planLoadError")}</h2>
-        <button type="button" onClick={onRetryPlan} className="mt-3 min-h-11 font-semibold underline underline-offset-2">
+        <button type="button" onClick={onRetryPlan} className="mt-3 min-h-[44px] font-semibold underline underline-offset-2">
           {t("retry")}
         </button>
       </div>
@@ -243,7 +245,7 @@ const TodayWorkoutCard: React.FC<{
       return (
         <div role="status" className="rounded-3xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">{t("noPlan.routineUnavailable")}</h2>
-          <Link href="/planning" className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-700 dark:text-emerald-300">
+          <Link href="/planning" className="mt-3 inline-flex min-h-[44px] items-center font-semibold text-brand dark:text-brand-muted">
             {t("noPlan.cta")} <ChevronRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
@@ -260,7 +262,8 @@ const TodayWorkoutCard: React.FC<{
         </div>
         <div className="relative">
           <p className="text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-1">
-            📅 {t("plannedWorkout")} · {t(`days.${todayKey}`)}
+            <Calendar className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
+            {t("plannedWorkout")} · {t(`days.${todayKey}`)}
           </p>
           <h2 className="text-white font-bold text-2xl truncate mb-1">{first.name}</h2>
           <p className="text-indigo-100 text-sm mb-6">
@@ -271,7 +274,7 @@ const TodayWorkoutCard: React.FC<{
             onClick={() => onStart(first.id)}
             disabled={startingRoutineId !== null}
             aria-busy={startingRoutineId === first.id}
-            className="w-full flex items-center justify-center gap-3 bg-white text-indigo-700 text-base font-bold py-4 rounded-2xl shadow-xl hover:bg-indigo-50 transform hover:scale-[1.02] active:scale-95 transition-all disabled:cursor-wait disabled:opacity-70"
+            className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-xl bg-brand py-3 text-base font-bold text-white transition-colors hover:bg-brand-dark disabled:cursor-wait disabled:opacity-70 dark:text-zinc-950"
           >
             <Play className="w-5 h-5 fill-indigo-600" /> {startingRoutineId === first.id ? t("startPending") : t("startWorkout")}
           </button>
@@ -412,7 +415,7 @@ export default function Home() {
                 >
                   <AnimatedFlame size={22} />
                   <span className="text-orange-600 dark:text-orange-400 font-black text-xl leading-none">{streakCount}</span>
-                  <span className="text-orange-400/70 dark:text-orange-400/60 text-[10px] font-medium">{t(`streakDays.${new Intl.PluralRules(locale).select(streakCount)}`)}</span>
+                  <span className="text-xs font-medium text-orange-400/70 dark:text-orange-400/60">{t(`streakDays.${new Intl.PluralRules(locale).select(streakCount)}`)}</span>
                 </motion.div>
               </Link>
             )}
@@ -463,7 +466,7 @@ export default function Home() {
                     <div className="flex items-center justify-between mb-1">
                       <TrendingUp className="w-4 h-4 text-indigo-500" />
                       {volTrend !== null && (
-                        <span className={`text-[10px] font-bold ${volTrend >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+                        <span className={`text-xs font-bold ${volTrend >= 0 ? "text-brand dark:text-brand-muted" : "text-red-500"}`}>
                           {volTrend >= 0 ? "↗" : "↘"} {Math.abs(volTrend)}%
                         </span>
                       )}
@@ -471,21 +474,21 @@ export default function Home() {
                     <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">
                       {thisWeekVol >= 1000 ? `${(thisWeekVol / 1000).toFixed(1)}t` : `${thisWeekVol}kg`}
                     </p>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{t("volumeThisWeek")}</p>
+                    <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{t("volumeThisWeek")}</p>
                   </div>
                 </Link>
                 <Link href="/sessions">
                   <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
                     <Calendar className="w-4 h-4 text-blue-500 mb-1" />
                     <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{monthSessions}</p>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{t("currentMonth")}</p>
+                    <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{t("currentMonth")}</p>
                   </div>
                 </Link>
                 <Link href="/achievements">
                   <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
                     <Trophy className="w-4 h-4 text-amber-500 mb-1" />
                     <p className="text-zinc-900 dark:text-zinc-100 font-bold text-base leading-none">{streakCount > 0 ? streakCount : sessions.length}</p>
-                    <p className="text-zinc-400 dark:text-zinc-500 text-[10px] mt-0.5">{streakCount > 0 ? t("currentStreak") : t("sessions")}</p>
+                    <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">{streakCount > 0 ? t("currentStreak") : t("sessions")}</p>
                   </div>
                 </Link>
               </>
@@ -600,7 +603,7 @@ export default function Home() {
                             </span>
                           )}
                           {durLabel && (
-                            <span className="text-zinc-400 dark:text-zinc-500 text-[10px]">{durLabel}</span>
+                            <span className="text-xs text-zinc-400 dark:text-zinc-500">{durLabel}</span>
                           )}
                         </div>
                       </div>
@@ -621,7 +624,7 @@ export default function Home() {
               <p className="text-zinc-400 text-sm mb-4">{t("getStartedDesc")}</p>
               <Link
                 href="/routines"
-                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 dark:text-zinc-950"
               >
                 {t("cta.create")}
               </Link>

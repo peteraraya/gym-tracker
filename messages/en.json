@@ -20,7 +20,8 @@
     "pause": "Pause",
     "resume": "Resume",
     "restart": "Restart",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "loading": "Loading..."
   },
   "workoutShare": {
     "title": "Share live workout",
@@ -691,6 +692,11 @@
     "loadingStats": "Loading stats...",
     "pageTitle": "Dashboard",
     "pageDescription": "Charts and in-depth analysis of your long-term progress",
+    "quickStart": "Quick start",
+    "quickStartContinue": "Continue workout",
+    "quickStartContinueDescription": "Pick up where you left off.",
+    "quickStartRepeat": "Start routine",
+    "quickStartRepeatDescription": "Repeat the routine you trained most recently.",
     "fitnessGoals": {
       "muscle_gain": "Muscle Gain",
       "strength": "Strength",
