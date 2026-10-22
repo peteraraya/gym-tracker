@@ -706,7 +706,7 @@ body.hide-navbar {
   --transition-fast: 120ms ease-out;
   --transition-base: 200ms ease-out;
   --transition-slow: 300ms ease-out;
-  --text-timer: clamp(5rem, 18vw, 9rem);
+  --text-timer: clamp(4rem, 18vw, 6rem);
 }
 
 @media (prefers-color-scheme: light) {
@@ -741,4 +741,3 @@ body.hide-navbar {
   min-height: 44px;
   min-width: 44px;
 }
-

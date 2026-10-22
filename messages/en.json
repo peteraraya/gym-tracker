@@ -448,7 +448,21 @@
     "restBetweenExercises": "Rest between exercises",
     "timeCompleted": "Time completed!",
     "newRest": "New rest",
-    "skipRest": "Skip rest"
+    "skipRest": "Skip rest",
+    "startSet": "Start set",
+    "tapOrSwipeToComplete": "Tap or swipe to complete set",
+    "setDone": "Set completed!",
+    "startingRest": "Starting rest…",
+    "enterValue": "Enter a value",
+    "valueUpdated": "Value updated",
+    "undo": "Undo",
+    "repeatPrevious": "Repeat",
+    "repsUnit": "reps",
+    "tapToEdit": "Tap to edit",
+    "decreaseReps": "Decrease reps",
+    "increaseReps": "Increase reps",
+    "decreaseWeight": "Decrease weight",
+    "increaseWeight": "Increase weight"
   },
   "sessions": {
     "title": "Session History",

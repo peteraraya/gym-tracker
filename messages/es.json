@@ -392,7 +392,21 @@
     "restBetweenExercises": "Descanso entre ejercicios",
     "timeCompleted": "¡Tiempo completado!",
     "newRest": "Nuevo descanso",
-    "skipRest": "Saltar descanso"
+    "skipRest": "Saltar descanso",
+    "startSet": "Iniciar serie",
+    "tapOrSwipeToComplete": "Toca o desliza para completar serie",
+    "setDone": "¡Serie completada!",
+    "startingRest": "Iniciando descanso…",
+    "enterValue": "Ingresa un valor",
+    "valueUpdated": "Valor actualizado",
+    "undo": "Deshacer",
+    "repeatPrevious": "Repetir",
+    "repsUnit": "reps",
+    "tapToEdit": "Toca para editar",
+    "decreaseReps": "Restar una repetición",
+    "increaseReps": "Añadir una repetición",
+    "decreaseWeight": "Restar peso",
+    "increaseWeight": "Añadir peso"
   },
   "sessions": {
     "title": "Historial de Sesiones",

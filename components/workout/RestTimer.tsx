@@ -45,7 +45,7 @@ const SIZE_CONFIG = {
   sm: { ringSize: 80, strokeWidth: 4, fontSize: 'text-2xl', iconSize: 20 },
   md: { ringSize: 120, strokeWidth: 6, fontSize: 'text-4xl', iconSize: 24 },
   lg: { ringSize: 180, strokeWidth: 8, fontSize: 'text-6xl', iconSize: 32 },
-  xl: { ringSize: 280, strokeWidth: 10, fontSize: 'text-timer', iconSize: 40 },
+  xl: { ringSize: 280, strokeWidth: 10, fontSize: 'text-[length:var(--text-timer)]', iconSize: 40 },
 } as const;
 
 const STATE_COLORS: Record<RestTimerState, string> = {
@@ -120,7 +120,9 @@ export function RestTimer({
     ? duration <= 0 ? 0 : Math.max(0, Math.min(1, 1 - remaining / duration))
     : internalState.progress;
 
-  const isWarning = timerIsActive && remaining <= WARNING_THRESHOLD && remaining > 0;
+  const isWarning = (state === 'running' || state === 'warning') &&
+    remaining <= WARNING_THRESHOLD &&
+    remaining > 0;
   const currentColor = STATE_COLORS[isWarning ? 'warning' : state];
   const suggestionKey = smartSuggestion
     ? `${smartSuggestion.seconds}:${smartSuggestion.reason}`

@@ -1276,8 +1276,7 @@ export function useWorkoutPageState(id: string) {
     if (!lastSetData) return;
     workoutState.setCurrentReps(lastSetData.reps);
     workoutState.setCurrentWeight(lastSetData.weight);
-    success(`Copiado: ${lastSetData.reps} reps × ${lastSetData.weight}kg`, 2000);
-  }, [lastSetData, workoutState, success]);
+  }, [lastSetData, workoutState]);
 
   const handleAddExercises = useCallback(async (exercisesToAdd: ExerciseTemplate[], insertIndex?: number) => {
     if (!routine || exercisesToAdd.length === 0) return;

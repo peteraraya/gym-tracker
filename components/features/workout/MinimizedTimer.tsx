@@ -10,6 +10,7 @@ interface MinimizedTimerProps {
   title?: string;
   onExpand: () => void;
   onSkip: () => void;
+  embedded?: boolean;
 }
 
 export function MinimizedTimer({ 
@@ -17,7 +18,8 @@ export function MinimizedTimer({
   duration, 
   title = 'Descanso',
   onExpand,
-  onSkip 
+  onSkip,
+  embedded = false,
 }: MinimizedTimerProps) {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -25,11 +27,13 @@ export function MinimizedTimer({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const progressWidth = timeLeft <= 10 ? '100%' : `${(timeLeft / duration) * 100}%`;
+  const progressWidth = duration > 0
+    ? `${Math.max(0, Math.min(100, (timeLeft / duration) * 100))}%`
+    : '0%';
 
   return (
-    <div className="fixed bottom-6 left-4 right-4 z-40 md:right-20 md:left-auto px-4">
-      <div className="bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-2xl shadow-md border border-white/10 backdrop-blur-sm max-w-3xl md:w-80 mx-auto md:mx-0">
+    <div className={embedded ? "w-full" : "fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 px-4 md:right-20 md:left-auto"}>
+      <div className={`bg-linear-to-r from-blue-700 via-blue-600 to-blue-500 text-white dark:from-blue-600 dark:via-blue-500 dark:to-blue-400 rounded-2xl shadow-md border border-white/10 backdrop-blur-sm ${embedded ? "w-full" : "mx-auto max-w-3xl md:mx-0 md:w-80"}`}>
         <div className="px-3 py-2 flex items-center gap-3">
           <button
             onClick={onExpand}

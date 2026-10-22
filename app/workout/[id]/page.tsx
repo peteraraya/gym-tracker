@@ -164,6 +164,8 @@ export default function WorkoutPage() {
             >
               <RestTimer
                 duration={state.timerHandlers.timerDuration}
+                remaining={state.timerHandlers.currentTimeLeft}
+                state="running"
                 label={state.timerHandlers.timerTitle}
                 nextExercise={isLastSet && nextEx ? nextEx.name : state.timerHandlers.nextExerciseName}
                 smartSuggestion={smartSuggestion}
@@ -171,7 +173,6 @@ export default function WorkoutPage() {
                 onSkip={state.timerHandlers.skipAndAdvance}
                 onExtend={(s) => state.timerHandlers.setCurrentTimeLeft(state.timerHandlers.currentTimeLeft + s)}
                 onPause={() => state.timerHandlers.minimizeTimer(state.timerHandlers.currentTimeLeft)}
-                autoStart={true}
                 size="xl"
               />
               
@@ -222,15 +223,18 @@ export default function WorkoutPage() {
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto w-full max-w-3xl px-3 pt-2 pb-[calc(9rem+env(safe-area-inset-bottom))] sm:px-4 sm:pt-4">
-        {state.timerHandlers.showTimer && state.timerHandlers.timerMinimized && (
+      <div className={`mx-auto w-full max-w-3xl px-3 pt-2 ${state.timerHandlers.showTimer && state.timerHandlers.timerMinimized ? "pb-[calc(12rem+env(safe-area-inset-bottom))]" : "pb-[calc(9rem+env(safe-area-inset-bottom))]"} sm:px-4 sm:pt-4`}>
+        {state.isQuickEditMode && state.timerHandlers.showTimer && state.timerHandlers.timerMinimized && (
+          <div className="mb-3">
           <MinimizedTimer
+            embedded
             timeLeft={state.timerHandlers.currentTimeLeft}
             title={state.timerHandlers.timerTitle}
             duration={state.timerHandlers.timerDuration}
             onExpand={state.timerHandlers.expandTimer}
             onSkip={state.timerHandlers.skipAndAdvance}
           />
+          </div>
         )}
 
         <div className={`mb-3 ${!state.isQuickEditMode ? 'sticky top-0 z-20 -mx-3 px-3 pt-[env(safe-area-inset-top)] sm:mx-0 sm:px-0 sm:pt-0' : ''}`}>

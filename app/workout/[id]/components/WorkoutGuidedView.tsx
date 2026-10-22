@@ -1,4 +1,4 @@
-import { Suspense, memo } from "react";
+import { Suspense, memo, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { SwipeButton } from "@/components/ui/SwipeButton";
 import { ExerciseCard as ExerciseCardBase } from "./ExerciseCard";
@@ -6,6 +6,9 @@ import { QuickExerciseSwitcher } from "./QuickExerciseSwitcher";
 import { AddExerciseButton } from "./AddExerciseButton";
 import { ExerciseList } from "./ExerciseList";
 import { lazy } from "react";
+import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
+import { useTranslations } from "@/context/LocaleContext";
+import type { useWorkoutPageState } from "../hooks/useWorkoutPageState";
 
 const SeriesTable = lazy(() =>
   import("./SeriesTable").then((m) => ({ default: m.SeriesTable })),
@@ -43,27 +46,38 @@ export function WorkoutGuidedView({
   updateModifiedRoutine,
   prepareRoutineForSave,
   setRoutine,
-  addExerciseAnchorRef,
-}: any) {
-  if (!currentExercise) return null;
+}: ReturnType<typeof useWorkoutPageState>) {
+  const t = useTranslations("workout");
+  const addExerciseAnchorRef = useRef<HTMLDivElement>(null);
+  if (!currentExercise || !routine) return null;
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-28 bg-linear-to-t from-white via-white/95 to-transparent dark:from-black dark:via-black/95 dark:to-transparent" />
-
-      <div className="fixed inset-x-0 bottom-0 z-30 px-3 pt-5 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200/80 bg-white/95 px-3 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-12px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/95 sm:px-4 sm:pt-3">
+        {timerHandlers.showTimer && timerHandlers.timerMinimized && (
+          <div className="mx-auto mb-2 w-full max-w-3xl">
+            <MinimizedTimer
+              embedded
+              timeLeft={timerHandlers.currentTimeLeft}
+              title={timerHandlers.timerTitle}
+              duration={timerHandlers.timerDuration}
+              onExpand={timerHandlers.expandTimer}
+              onSkip={timerHandlers.skipAndAdvance}
+            />
+          </div>
+        )}
+        <div className="mx-auto w-full max-w-3xl">
         {!setExecution.isExecutingSet ? (
           <Button
             variant="primary"
             onClick={() => {
               setExecution.startSet();
             }}
-            className="min-h-16 w-full justify-center gap-3 rounded-2xl border border-blue-400/30 bg-blue-600 py-3 text-base font-bold shadow-xl shadow-blue-950/15 touch-manipulation hover:bg-blue-700"
+            className="min-h-16 w-full justify-center rounded-2xl border border-blue-400/30 bg-blue-600 py-3 text-base font-bold shadow-xl shadow-blue-950/15 touch-manipulation hover:bg-blue-700"
           >
-            <span className="text-2xl">▶️</span>
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-center text-center">
               <span>
-                Iniciar Serie{" "}
+                {t("startSet")}{" "}
                 {Math.min(
                   workoutState.currentSet,
                   currentExercise.sets.length,
@@ -82,12 +96,13 @@ export function WorkoutGuidedView({
               onComplete={() => handleCompleteSet(workoutState.currentSet)}
               disabled={
                 workoutState.currentReps === "" ||
+                workoutState.currentReps <= 0 ||
                 workoutState.currentWeight === ""
               }
               text={
                 <div className="flex flex-col items-start leading-tight">
                   <span className="text-[17px]">
-                    Desliza para completar serie {Math.min(workoutState.currentSet, currentExercise.sets.length)}
+                    {t("tapOrSwipeToComplete")} {Math.min(workoutState.currentSet, currentExercise.sets.length)}
                   </span>
                   <span className="text-xs font-normal text-white/90">
                     {workoutState.currentReps} reps × {workoutState.currentWeight}kg
@@ -96,13 +111,14 @@ export function WorkoutGuidedView({
               }
               completedText={
                 <div className="flex flex-col items-start leading-tight">
-                  <span className="text-[17px]">¡Completada!</span>
-                  <span className="text-xs font-normal text-white/90">Iniciando descanso...</span>
+                  <span className="text-[17px]">{t("setDone")}</span>
+                  <span className="text-xs font-normal text-white/90">{t("startingRest")}</span>
                 </div>
               }
             />
           </div>
         )}
+        </div>
       </div>
 
       <ExerciseCard
@@ -130,7 +146,6 @@ export function WorkoutGuidedView({
             workoutState.updateActualWeights(currentExercise.id, newWeights);
           }
         }}
-        onCompleteSet={() => handleCompleteSet(workoutState.currentSet)}
         onShowInfo={() => {
           if (currentExercise && currentExercise.name)
             setSelectedExerciseName(currentExercise.name);
@@ -143,10 +158,6 @@ export function WorkoutGuidedView({
         }
         lastSetData={lastSetData}
         onRepeatPrevious={handleRepeatPrevious}
-        setStartTime={setExecution.setStartTime}
-        actualWeights={
-          workoutState.workoutData.actualWeights[currentExercise.id] || []
-        }
         quickSwitcher={
           <QuickExerciseSwitcher
             routine={routine}
@@ -160,7 +171,7 @@ export function WorkoutGuidedView({
         }
         onTempoChange={(tempo: string | null) => {
           if (!routine) return;
-          const newExercises = routine.exercises.map((ex: any, i: number) =>
+          const newExercises = routine.exercises.map((ex, i) =>
             i === workoutState.currentExerciseIndex ? { ...ex, tempo: tempo || undefined } : ex
           );
           const updatedRoutine = { ...routine, exercises: newExercises };
