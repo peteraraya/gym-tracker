@@ -1,4 +1,4 @@
-import { Suspense, memo, useEffect, useRef, useState } from "react";
+import { Suspense, memo, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
 import { SwipeButton } from "@/components/ui/SwipeButton";
 import { ExerciseCard as ExerciseCardBase } from "./ExerciseCard";
@@ -7,17 +7,44 @@ import { AddExerciseButton } from "./AddExerciseButton";
 import { ExerciseList } from "./ExerciseList";
 import { lazy } from "react";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
-import { useTranslations } from "@/context/LocaleContext";
+import { WorkoutShareControl } from "@/components/features/workout/WorkoutShareControl";
+import { useLocale, useTranslations } from "@/context/LocaleContext";
 import type { useWorkoutPageState } from "../hooks/useWorkoutPageState";
+import { recordRestExtension } from "../services/restCalculationService";
 
 const SeriesTable = lazy(() =>
   import("./SeriesTable").then((m) => ({ default: m.SeriesTable })),
 );
 const ExerciseCard = memo(ExerciseCardBase);
 
+interface VoiceRecognition {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+type VoiceRecognitionConstructor = new () => VoiceRecognition;
+
+const subscribeToVoiceSupport = () => () => {};
+const getVoiceSupport = () => {
+  if (typeof window === "undefined") return false;
+  const speechWindow = window as Window & {
+    SpeechRecognition?: VoiceRecognitionConstructor;
+    webkitSpeechRecognition?: VoiceRecognitionConstructor;
+  };
+  return Boolean(speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition);
+};
+
 export function WorkoutGuidedView({
   routine,
   currentExercise,
+  lastSessionForExercise,
   workoutState,
   setExecution,
   handleCompleteSet,
@@ -48,8 +75,96 @@ export function WorkoutGuidedView({
   setRoutine,
 }: ReturnType<typeof useWorkoutPageState>) {
   const t = useTranslations("workout");
+  const { locale } = useLocale();
   const addExerciseAnchorRef = useRef<HTMLDivElement>(null);
+  const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const [tutElapsed, setTutElapsed] = useState(0);
+  const voiceSupported = useSyncExternalStore(
+    subscribeToVoiceSupport,
+    getVoiceSupport,
+    () => false,
+  );
+  const [voiceStatus, setVoiceStatus] = useState<
+    "ready" | "listening" | "completed" | "started" | "unknown" | "error"
+  >("ready");
+
+  useEffect(() => {
+    return () => voiceRecognitionRef.current?.stop();
+  }, []);
+
+  const listenForWorkoutCommand = () => {
+    const speechWindow = window as Window & {
+      SpeechRecognition?: VoiceRecognitionConstructor;
+      webkitSpeechRecognition?: VoiceRecognitionConstructor;
+    };
+    const Recognition =
+      speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+    if (!Recognition) return;
+
+    const recognition = new Recognition();
+    voiceRecognitionRef.current = recognition;
+    recognition.lang = locale.startsWith("es") ? "es-ES" : "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event) => {
+      const transcript = event.results[0]?.[0]?.transcript
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      if (!transcript) {
+        setVoiceStatus("unknown");
+        return;
+      }
+
+      if (/\b(iniciar|start)\s+(la\s+)?serie\b/.test(transcript)) {
+        setExecution.startSet();
+        setVoiceStatus("started");
+        return;
+      }
+
+      if (/\b(completar|terminar|complete|finish)\s+(la\s+)?serie\b/.test(transcript)) {
+        if (
+          setExecution.isExecutingSet &&
+          workoutState.currentReps !== "" &&
+          workoutState.currentReps > 0 &&
+          workoutState.currentWeight !== ""
+        ) {
+          void handleCompleteSet(workoutState.currentSet);
+          setVoiceStatus("completed");
+        } else {
+          setVoiceStatus("error");
+        }
+        return;
+      }
+
+      setVoiceStatus("unknown");
+    };
+    recognition.onerror = (event) => {
+      setVoiceStatus(event.error === "not-allowed" ? "error" : "unknown");
+    };
+    recognition.onend = () => {
+      voiceRecognitionRef.current = null;
+      setVoiceStatus((status) => (status === "listening" ? "ready" : status));
+    };
+
+    try {
+      setVoiceStatus("listening");
+      recognition.start();
+    } catch {
+      voiceRecognitionRef.current = null;
+      setVoiceStatus("error");
+    }
+  };
+
+  const voiceStatusMessage = {
+    ready: voiceSupported ? t("voiceReady") : t("voiceUnsupported"),
+    listening: t("voiceListening"),
+    completed: t("voiceCompleted"),
+    started: t("voiceStarted"),
+    unknown: t("voiceUnknown"),
+    error: t("voiceError"),
+  }[voiceStatus];
 
   useEffect(() => {
     const startTime = setExecution.setStartTime;
@@ -83,6 +198,20 @@ export function WorkoutGuidedView({
           </div>
         )}
         <div className="mx-auto w-full max-w-3xl">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p aria-live="polite" className="min-w-0 truncate text-xs text-blue-700 dark:text-blue-300">
+            {voiceStatusMessage}
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!voiceSupported || voiceStatus === "listening"}
+            onClick={listenForWorkoutCommand}
+            className="shrink-0"
+          >
+            {voiceStatus === "listening" ? t("voiceListening") : t("voiceListen")}
+          </Button>
+        </div>
         {setExecution.isExecutingSet && setExecution.setStartTime && (
           <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-900 dark:bg-blue-950/50">
             <div className="flex min-w-0 items-center gap-2">
@@ -162,6 +291,8 @@ export function WorkoutGuidedView({
       <ExerciseCard
         exercise={currentExercise}
         exerciseIndex={workoutState.currentExerciseIndex}
+        exerciseCount={routine.exercises.length}
+        onSelectExerciseIndex={handleSelectExercise}
         currentSet={workoutState.currentSet}
         completedSets={
           workoutState.workoutData.completedSets[currentExercise.id] || 0
@@ -195,6 +326,26 @@ export function WorkoutGuidedView({
           weightPrediction.setDismissedWeightSuggestion(true)
         }
         lastSetData={lastSetData}
+        previousSessionPerformance={(() => {
+          const previousExercise = lastSessionForExercise?.exercises.find(
+            (exercise) =>
+              exercise.exerciseId === currentExercise.id ||
+              exercise.exerciseName === currentExercise.name,
+          );
+          if (!previousExercise || !lastSessionForExercise) return null;
+          const setIndex = Math.min(
+            workoutState.currentSet - 1,
+            previousExercise.actualReps.length - 1,
+          );
+          const reps = previousExercise.actualReps[setIndex];
+          const weight = previousExercise.actualWeight[setIndex];
+          if (reps === undefined || weight === undefined) return null;
+          return {
+            reps,
+            weight,
+            date: new Date(lastSessionForExercise.date),
+          };
+        })()}
         onRepeatPrevious={handleRepeatPrevious}
         quickSwitcher={
           <QuickExerciseSwitcher
@@ -222,7 +373,12 @@ export function WorkoutGuidedView({
         restTitle={timerHandlers.timerTitle}
         nextExerciseName={timerHandlers.nextExerciseName}
         onRestComplete={handleTimerComplete}
-        onRestExtend={(s) => timerHandlers.setCurrentTimeLeft(timerHandlers.currentTimeLeft + s)}
+        onRestExtend={(seconds) => {
+          timerHandlers.setCurrentTimeLeft(
+            timerHandlers.currentTimeLeft + seconds,
+          );
+          recordRestExtension(currentExercise.id, seconds);
+        }}
         onRestPause={() => timerHandlers.minimizeTimer(timerHandlers.currentTimeLeft)}
         onRestSkip={timerHandlers.skipAndAdvance}
         smartRestSuggestion={smartRestTime ? { seconds: smartRestTime, reason: `Descanso inteligente para ${currentExercise?.name}` } : null}
@@ -302,6 +458,7 @@ export function WorkoutGuidedView({
       <div className="mb-6" ref={addExerciseAnchorRef}>
         <AddExerciseButton onAddExercises={handleAddExercises} />
       </div>
+      <WorkoutShareControl />
     </>
   );
 }

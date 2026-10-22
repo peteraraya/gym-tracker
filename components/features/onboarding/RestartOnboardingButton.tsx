@@ -3,9 +3,11 @@
 import { useOnboarding } from '@/context/OnboardingContext';
 import { Button } from '@/components/ui/Button';
 import { Lightbulb } from '@/components/icons/lucide';
+import { useTranslations } from '@/context/LocaleContext';
 
 export default function RestartOnboardingButton() {
   const { startOnboarding } = useOnboarding();
+  const t = useTranslations('onboarding');
 
   return (
     <Button
@@ -14,7 +16,7 @@ export default function RestartOnboardingButton() {
       className="w-full"
     >
       <Lightbulb className="w-4 h-4 mr-2" />
-      Ver Tutorial de Nuevo
+      {t('restart')}
     </Button>
   );
 }

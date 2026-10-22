@@ -119,7 +119,7 @@ jest.mock('@/components/icons/lucide', () => {
   }
 })
 
-jest.mock('@/lib/supabase/client', () => {
+jest.mock('@/lib/infrastructure/supabase/client', () => {
   // Helper to create a chainable query builder that resolves to `{ data, error }`
   function createQueryChain(defaultData = []) {
     const chain = {};

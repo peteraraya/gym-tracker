@@ -22,6 +22,24 @@
     "restart": "Reiniciar",
     "confirm": "Confirmar"
   },
+  "workoutShare": {
+    "title": "Compartir entrenamiento en vivo",
+    "description": "Enlace privado de solo lectura, válido por 2 horas y revocable en cualquier momento.",
+    "createLink": "Crear enlace privado",
+    "copyLink": "Copiar enlace",
+    "copied": "Copiado",
+    "revoke": "Revocar",
+    "working": "Procesando…",
+    "linkLabel": "Enlace privado para compartir",
+    "error": "No se pudo crear, copiar o revocar el enlace. Verifica tu conexión e inténtalo de nuevo.",
+    "viewerLabel": "Vista compartida de solo lectura",
+    "loading": "Cargando entrenamiento…",
+    "unavailable": "Este enlace expiró, fue revocado o el entrenamiento ya no está disponible.",
+    "exercisePosition": "Ejercicio {current} de {total}",
+    "setProgress": "{completed} de {total} series completadas",
+    "betweenExercises": "Entre ejercicios",
+    "readOnly": "Los cambios solo los puede realizar quien inició el entrenamiento."
+  },
   "setTimer": {
     "title": "Cronómetro de Serie",
     "paused": "PAUSADO",
@@ -83,6 +101,35 @@
     "installableDescription": "Instala la aplicación en tu dispositivo para acceder rápidamente.",
     "offline": "Acceso sin conexión",
     "offlineDescription": "Las pantallas y los datos disponibles sin conexión dependen de lo guardado o cargado previamente en este dispositivo."
+  },
+  "onboarding": {
+    "stepCount": "Paso {current} de {total}",
+    "skip": "Saltar tutorial",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "finish": "¡Empezar!",
+    "restart": "Ver tutorial de nuevo",
+    "steps": {
+      "welcome": { "title": "¡Bienvenido a GymLogiX!", "description": "Te guiaremos por las herramientas principales para que puedas empezar a entrenar." },
+      "profile": { "title": "Configura tu perfil", "description": "Completa tus datos y objetivos para personalizar tu experiencia." },
+      "routines": { "title": "Crea tu primera rutina", "description": "Crea una rutina reutilizable o elige una de las rutinas recomendadas." },
+      "exercises": { "title": "Explora los ejercicios", "description": "Consulta ejercicios, grupos musculares, equipamiento e instrucciones disponibles." },
+      "glossary": { "title": "Aprende los términos", "description": "Busca conceptos de entrenamiento como 1RM, RPE e hipertrofia en el glosario." },
+      "workout": { "title": "Registra tus entrenamientos", "description": "Inicia una rutina y registra las repeticiones y el peso de cada serie." },
+      "progress": { "title": "Visualiza tu progreso", "description": "Revisa tus sesiones, volumen y récords personales en las vistas de progreso." },
+      "calculators": { "title": "Usa las calculadoras", "description": "Encuentra herramientas para estimar cargas y consultar otros cálculos de entrenamiento." },
+      "complete": { "title": "¡Listo para empezar!", "description": "Ya conoces las secciones principales. Elige una rutina y comienza a entrenar." }
+    }
+  },
+  "exerciseSearch": {
+    "placeholder": "Busca por ejercicio, músculo o equipamiento…",
+    "hint": "También puedes combinar filtros, por ejemplo: pecho con mancuernas sin banco."
+  },
+  "dataManagement": {
+    "backupImportSuccess": "Backup restaurado: {routines} rutinas y {sessions} sesiones procesadas.",
+    "backupImportWithoutSessions": "Backup restaurado. No incluía sesiones.",
+    "backupEmpty": "El archivo no contiene datos para importar.",
+    "backupImportError": "No se pudo importar el backup. Verifica el formato e inténtalo de nuevo."
   },
   "pwa": {
     "updateTitle": "Nueva versión disponible",
@@ -226,6 +273,10 @@
     "dashboard": "Panel de control",
     "sessionsCount": "{count} sesiones",
     "quickStart": "Inicio rápido",
+    "quickStartContinue": "Continuar entrenamiento",
+    "quickStartContinueDescription": "Retoma donde lo dejaste.",
+    "quickStartRepeat": "Empezar rutina",
+    "quickStartRepeatDescription": "Repite la última rutina que entrenaste.",
     "plan": "Planificar",
     "planLoadError": "No se pudo cargar tu planificación semanal.",
     "dataLoadError": "No se pudieron cargar tus datos de entrenamiento.",
@@ -348,6 +399,9 @@
     "set": "Serie",
     "progress": "Progreso",
     "currentExercise": "Ejercicio actual",
+    "exercisePosition": "Ejercicio {current} de {total}",
+    "previousExercise": "Anterior",
+    "previousSession": "Sesión anterior",
     "repsPerformed": "Repeticiones realizadas",
     "weightUsed": "Peso utilizado (kg)",
     "completeSet": "Completar serie",
@@ -394,6 +448,14 @@
     "newRest": "Nuevo descanso",
     "skipRest": "Saltar descanso",
     "startSet": "Iniciar serie",
+    "voiceListen": "Escuchar comando",
+    "voiceReady": "Micrófono apagado. Al activarlo, el navegador escucha un comando y puede procesarlo según su política; GymLogiX no guarda el audio.",
+    "voiceListening": "Escuchando una orden…",
+    "voiceStarted": "Serie iniciada por voz.",
+    "voiceCompleted": "Serie completada por voz.",
+    "voiceUnknown": "No reconocí la orden. Di “iniciar serie” o “completar serie”.",
+    "voiceError": "No se pudo usar el micrófono o completar la serie.",
+    "voiceUnsupported": "Este navegador no admite el reconocimiento de voz.",
     "tapOrSwipeToComplete": "Toca o desliza para completar serie",
     "setDone": "¡Serie completada!",
     "startingRest": "Iniciando descanso…",
@@ -587,6 +649,12 @@
       "mostPerformedExercise": "El ejercicio que más has realizado",
       "thisMonthVolume": "Volumen Este Mes",
       "vsLastMonthShort": "% vs mes anterior"
+    },
+    "trainingLoad": {
+      "title": "Tendencia de carga",
+      "increasing": "Tu volumen de entrenamiento subió durante tres semanas consecutivas. Considera priorizar la recuperación y ajustar la carga si lo necesitas.",
+      "steady": "No se detecta un aumento continuo del volumen en las últimas semanas.",
+      "disclaimer": "Es una referencia basada en volumen registrado, no una evaluación médica ni una medida completa de fatiga."
     },
     "achievements": {
       "recentAchievementsTitle": "Logros Recientes",

@@ -4,8 +4,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface OnboardingStep {
   id: string;
-  title: string;
-  description: string;
   target?: string; // Selector CSS del elemento a destacar
   position?: 'top' | 'bottom' | 'left' | 'right';
   action?: () => void;
@@ -28,63 +26,45 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(undef
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: '¡Bienvenido a GymLogiX! 💪',
-    description: 'Te guiaremos paso a paso para que aproveches al máximo la aplicación. Este tour solo tomará 2 minutos.',
     position: 'bottom'
   },
   {
     id: 'profile',
-    title: 'Configura tu Perfil',
-    description: 'Primero, configura tu perfil con tu información básica: edad, peso, altura y objetivos. Esto nos ayudará a darte recomendaciones personalizadas.',
     target: '[data-tour="profile"]',
     position: 'bottom'
   },
   {
     id: 'routines',
-    title: 'Crea tu Primera Rutina',
-    description: 'Las rutinas son plantillas de entrenamiento que puedes reutilizar. Puedes crear las tuyas o usar nuestras rutinas recomendadas.',
     target: '[data-tour="routines"]',
     position: 'bottom'
   },
   {
     id: 'exercises',
-    title: 'Explora la Biblioteca de Ejercicios',
-    description: 'Tenemos más de 190 ejercicios con guías detalladas, instrucciones paso a paso y videos. Perfectos para aprender la técnica correcta.',
     target: '[data-tour="exercises"]',
     position: 'bottom'
   },
   {
     id: 'glossary',
-    title: 'Aprende los Términos',
-    description: '¿No entiendes qué es 1RM, RPE o hipertrofia? Nuestro glosario tiene más de 60 términos explicados de forma simple.',
     target: '[data-tour="glossary"]',
     position: 'bottom'
   },
   {
     id: 'workout',
-    title: 'Registra tus Entrenamientos',
-    description: 'Cuando estés listo, inicia un entrenamiento desde una rutina o crea uno libre. Registra series, reps y peso para ver tu progreso.',
     target: '[data-tour="start-workout"]',
     position: 'left'
   },
   {
     id: 'progress',
-    title: 'Visualiza tu Progreso',
-    description: 'Ve gráficos de tu evolución, récords personales, volumen de entrenamiento y mucho más. ¡La motivación viene de ver tus logros!',
     target: '[data-tour="progress"]',
     position: 'bottom'
   },
   {
     id: 'calculators',
-    title: 'Usa las Calculadoras',
-    description: 'Tenemos 12 calculadoras útiles: 1RM, IMC, TDEE, placas para barra y más. Herramientas profesionales al alcance de tu mano.',
     target: '[data-tour="calculators"]',
     position: 'bottom'
   },
   {
     id: 'complete',
-    title: '¡Listo para Empezar! 🎉',
-    description: 'Ya conoces lo básico. Recuerda: la consistencia es clave. ¡Empieza con tu primer entrenamiento y disfruta el viaje!',
     position: 'bottom'
   }
 ];

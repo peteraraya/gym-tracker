@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useTranslations } from '@/context/LocaleContext';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { 
@@ -13,6 +14,7 @@ import {
 } from '@/components/icons/lucide';
 
 export default function Onboarding() {
+  const t = useTranslations('onboarding');
   const {
     isActive,
     currentStep,
@@ -29,6 +31,8 @@ export default function Onboarding() {
   const [isDark, setIsDark] = useState(false);
 
   const currentStepData = steps[currentStep];
+  const stepTitle = t(`steps.${currentStepData.id}.title`);
+  const stepDescription = t(`steps.${currentStepData.id}.description`);
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === steps.length - 1;
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -40,7 +44,7 @@ export default function Onboarding() {
         const id = setTimeout(() => setIsDark(document.documentElement.classList.contains('dark')), 0);
         return () => clearTimeout(id);
       }
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
 
     // schedule updates to avoid calling setState synchronously inside effect
     if (!isActive || !currentStepData.target) {
@@ -174,10 +178,12 @@ export default function Onboarding() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  {currentStepData.title}
+                  {stepTitle}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Paso {currentStep + 1} de {steps.length}
+                  {t('stepCount')
+                    .replace('{current}', String(currentStep + 1))
+                    .replace('{total}', String(steps.length))}
                 </p>
               </div>
             </div>
@@ -201,7 +207,7 @@ export default function Onboarding() {
 
           {/* Content */}
           <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-            {currentStepData.description}
+            {stepDescription}
           </p>
 
           {/* Actions */}
@@ -211,7 +217,7 @@ export default function Onboarding() {
               onClick={skipOnboarding}
               className="text-gray-600 dark:text-gray-400"
             >
-              Saltar tutorial
+              {t('skip')}
             </Button>
 
             <div className="flex gap-2">
@@ -222,7 +228,7 @@ export default function Onboarding() {
                   size="sm"
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
-                  Anterior
+                  {t('previous')}
                 </Button>
               )}
               
@@ -233,7 +239,7 @@ export default function Onboarding() {
                   className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 >
                   <Check className="w-4 h-4 mr-2" />
-                  ¡Empezar!
+                  {t('finish')}
                 </Button>
               ) : (
                 <Button
@@ -242,7 +248,7 @@ export default function Onboarding() {
                   className="bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                   size="sm"
                 >
-                  Siguiente
+                  {t('next')}
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               )}

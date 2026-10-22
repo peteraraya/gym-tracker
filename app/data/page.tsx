@@ -6,11 +6,12 @@ import { Database, Shield, Download, Upload, Info } from '@/components/icons/luc
 import ExportData from '@/components/features/data/ExportData';
 import ImportData from '@/components/features/data/ImportData';
 import { useGym } from '@/context/GymContext';
-import type { WorkoutSession, UserProfile } from '@/types';
+import type { Routine, WorkoutSession, UserProfile } from '@/types';
 import * as storageService from '@/lib/infrastructure/storage/storage';
+import logger from '@/lib/shared/logger';
 
 export default function DataManagementPage() {
-  const { routines, sessions: contextSessions } = useGym();
+  const { routines, sessions: contextSessions, refreshRoutines } = useGym();
   
   const [localSessions, setLocalSessions] = useState<WorkoutSession[]>([]);
 
@@ -23,8 +24,8 @@ export default function DataManagementPage() {
         const serverIds = new Set(contextSessions.filter(s => s.id).map(s => s.id));
         const locals = all.filter(s => !s.id || !serverIds.has(s.id));
         if (mounted) setLocalSessions(locals);
-      } catch (e) {
-        // fallback keep empty
+      } catch (error) {
+        logger.warn('[DataManagementPage] Could not load local sessions', error);
       }
     })();
     return () => { mounted = false };
@@ -47,9 +48,17 @@ export default function DataManagementPage() {
     // Determine which imported sessions are new
     const existing = [...allSessions];
     const newSessions = importedSessions.filter(
-      imported => !existing.some(existingItem => 
-        existingItem.date === imported.date && existingItem.routineId === imported.routineId
-      )
+      (imported) =>
+        !existing.some((existingItem) => {
+          if (imported.id && existingItem.id === imported.id) return true;
+          const importedDate = new Date(imported.date).getTime();
+          const existingDate = new Date(existingItem.date).getTime();
+          return (
+            Number.isFinite(importedDate) &&
+            importedDate === existingDate &&
+            existingItem.routineId === imported.routineId
+          );
+        }),
     );
 
     if (newSessions.length === 0) return;
@@ -63,9 +72,50 @@ export default function DataManagementPage() {
       const serverIds = new Set(contextSessions.filter(s => s.id).map(s => s.id));
       const locals = all.filter(s => !s.id || !serverIds.has(s.id));
       setLocalSessions(locals);
-    } catch (e) {
-      // ignore
+    } catch (error) {
+      logger.error('[DataManagementPage] Sessions imported but could not refresh the list', error);
+      throw error;
     }
+  };
+
+  const handleImportRoutines = async (importedRoutines: Routine[]) => {
+    const routineIds: Record<string, string> = {};
+    const existingRoutines = await storageService.getRoutines();
+
+    for (const imported of importedRoutines) {
+      const existingRoutine = existingRoutines.find(
+        (routine) =>
+          routine.id === imported.id ||
+          (routine.name.trim().toLocaleLowerCase() ===
+            imported.name.trim().toLocaleLowerCase() &&
+            JSON.stringify(routine.exercises) ===
+              JSON.stringify(imported.exercises)),
+      );
+      if (existingRoutine) {
+        routineIds[imported.id] = existingRoutine.id;
+        continue;
+      }
+
+      const created = await storageService.createRoutine({
+        name: imported.name,
+        description: imported.description,
+        image: imported.image,
+        exercises: imported.exercises,
+        restBetweenSets: imported.restBetweenSets,
+        restBetweenExercises: imported.restBetweenExercises,
+      });
+      routineIds[imported.id] = created.id;
+    }
+
+    await refreshRoutines();
+    return routineIds;
+  };
+
+  const handleImportProfile = async (importedProfile: UserProfile) => {
+    await storageService.updateProfile(importedProfile);
+    const updatedProfile = { ...profile, ...importedProfile };
+    setProfile(updatedProfile);
+    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
   };
 
   return (
@@ -207,7 +257,11 @@ export default function DataManagementPage() {
               Importar Datos
             </h2>
           </div>
-          <ImportData onImportSessions={handleImportSessions} />
+          <ImportData
+            onImportSessions={handleImportSessions}
+            onImportRoutines={handleImportRoutines}
+            onImportProfile={handleImportProfile}
+          />
         </div>
       </div>
     </div>

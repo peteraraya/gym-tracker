@@ -5,13 +5,21 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Upload, FileJson, FileSpreadsheet, AlertCircle, CheckCircle, Info } from '@/components/icons/lucide';
 import { importFromJSON, importCSVAuto, detectCSVFormat } from '@/lib/shared/utils/dataExport';
-import type { WorkoutSession } from '@/types';
+import type { Routine, UserProfile, WorkoutSession } from '@/types';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface ImportDataProps {
   onImportSessions: (sessions: WorkoutSession[]) => Promise<void>;
+  onImportRoutines: (routines: Routine[]) => Promise<Record<string, string>>;
+  onImportProfile: (profile: UserProfile) => Promise<void>;
 }
 
-export default function ImportData({ onImportSessions }: ImportDataProps) {
+export default function ImportData({
+  onImportSessions,
+  onImportRoutines,
+  onImportProfile,
+}: ImportDataProps) {
+  const t = useTranslations('dataManagement');
   const [importing, setImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<{
     type: 'success' | 'error' | 'info' | null;
@@ -36,23 +44,33 @@ export default function ImportData({ onImportSessions }: ImportDataProps) {
         throw new Error('Formato JSON inválido');
       }
 
-      if (data.sessions && data.sessions.length > 0) {
-        await onImportSessions(data.sessions);
+      const routineIds = await onImportRoutines(data.routines);
+      if (data.profile) await onImportProfile(data.profile);
+      const sessions = data.sessions.map((session) => ({
+        ...session,
+        routineId: routineIds[session.routineId] ?? session.routineId,
+      }));
+      if (sessions.length > 0) {
+        await onImportSessions(sessions);
         setImportStatus({
           type: 'success',
-          message: `✓ Importadas ${data.sessions.length} sesiones exitosamente`
+          message: t('backupImportSuccess')
+            .replace('{sessions}', String(sessions.length))
+            .replace('{routines}', String(data.routines.length))
         });
-      } else {
+      } else if (data.routines.length > 0 || data.profile) {
         setImportStatus({
           type: 'info',
-          message: 'No se encontraron sesiones en el archivo'
+          message: t('backupImportWithoutSessions')
         });
+      } else {
+        setImportStatus({ type: 'info', message: t('backupEmpty') });
       }
     } catch (error) {
       console.error('Error importing JSON:', error);
       setImportStatus({
         type: 'error',
-        message: 'Error al importar el archivo JSON. Verifica el formato.'
+        message: t('backupImportError')
       });
     } finally {
       setImporting(false);

@@ -6,6 +6,7 @@ import { MuscleGroupIcon } from '@/components/icons/MuscleGroupIcons';
 import { MUSCLE_GROUPS, MuscleGroup } from '@/data/exercises';
 import { WarmupCategory } from '@/data/warmupExercises';
 import { Button } from '@/components/ui/Button';
+import { useTranslations } from '@/context/LocaleContext';
 
 interface ExercisesFiltersProps {
   isGlobalMode: boolean;
@@ -29,6 +30,7 @@ export function ExercisesFilters({
   allWarmupExercisesCount,
 }: ExercisesFiltersProps) {
   const router = useRouter();
+  const t = useTranslations('exerciseSearch');
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -92,8 +94,11 @@ export function ExercisesFilters({
           <SearchInput
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Buscar ejercicio por nombre, grupo o equipamiento..."
+            placeholder={t('placeholder')}
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {t('hint')}
+          </p>
           <div className="flex flex-wrap gap-2">
             {MUSCLE_GROUPS.map((muscle) => {
               const checked = selectedMuscleFilters.has(muscle.id);
@@ -141,7 +146,7 @@ export function ExercisesFilters({
           <SearchInput
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Buscar ejercicio..."
+            placeholder={t('placeholder')}
             className="mb-6"
           />
 

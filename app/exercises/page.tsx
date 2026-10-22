@@ -16,10 +16,11 @@ import {
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { MuscleGroupIcon } from "@/components/icons/MuscleGroupIcons";
 import Link from 'next/link';
-import { PageHeader, PageLayout, PageContent } from "@/layouts";
+import { PageLayout, PageContent } from "@/layouts";
 import { ExercisesClientList } from "./ExercisesClientList";
 import { ExercisesFilters } from "./ExercisesFilters";
 import { ExercisesHeaderClient } from "./ExercisesHeaderClient";
+import { matchesNaturalExerciseSearch } from "@/lib/domain/exercises/naturalSearch";
 
 export const metadata: Metadata = {
   title: 'Ejercicios | GymLogiX',
@@ -65,12 +66,8 @@ export default async function ExercisesPage(props: {
       );
     }
     if (searchTerm.trim()) {
-      const term = searchTerm.trim().toLowerCase();
-      globalResults = globalResults.filter(
-        (ex) =>
-          ex.name.toLowerCase().includes(term) ||
-          ex.muscleGroup.toLowerCase().includes(term) ||
-          (ex.equipment && ex.equipment.toLowerCase().includes(term)),
+      globalResults = globalResults.filter((exercise) =>
+        matchesNaturalExerciseSearch(exercise, searchTerm),
       );
     }
     const muscleOrder = new Map(MUSCLE_GROUPS.map((m, i) => [m.id, i]));
@@ -78,6 +75,15 @@ export default async function ExercisesPage(props: {
       (a, b) =>
         (muscleOrder.get(a.muscleGroup) ?? 99) -
         (muscleOrder.get(b.muscleGroup) ?? 99),
+    );
+  }
+
+  if (selectedMuscle && searchTerm.trim()) {
+    muscleExercises = muscleExercises.filter((exercise) =>
+      matchesNaturalExerciseSearch(exercise, searchTerm),
+    );
+    muscleWarmups = muscleWarmups.filter((exercise) =>
+      matchesNaturalExerciseSearch(exercise, searchTerm),
     );
   }
 

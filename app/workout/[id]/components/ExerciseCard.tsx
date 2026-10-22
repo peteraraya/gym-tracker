@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { WeightSuggestionBanner } from "@/components/features/workout/WeightSuggestionBanner";
 import { useToast } from "@/context/NotificationContext";
-import { useTranslations } from "@/context/LocaleContext";
+import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { formatRestTime } from "@/lib/shared/utils/formatTime";
 import { RestTimer } from "@/components/workout/RestTimer";
 import type { Exercise } from "@/types";
@@ -16,6 +16,8 @@ import type { WeightSuggestion } from "@/lib/shared/utils/weightSuggestions";
 interface ExerciseCardProps {
   exercise: Exercise;
   exerciseIndex: number;
+  exerciseCount?: number;
+  onSelectExerciseIndex?: (index: number) => void;
   currentSet: number;
   completedSets: number;
   currentReps: number | "";
@@ -29,6 +31,7 @@ interface ExerciseCardProps {
   onDismissWeightSuggestion?: () => void;
   // New props for "Repeat Previous" feature
   lastSetData?: { reps: number; weight: number } | null;
+  previousSessionPerformance?: { reps: number; weight: number; date: Date } | null;
   onRepeatPrevious?: () => void;
   // Quick exercise switcher (rendered as children)
   quickSwitcher?: React.ReactNode;
@@ -61,6 +64,8 @@ interface ExerciseCardProps {
 export function ExerciseCard({
   exercise,
   exerciseIndex,
+  exerciseCount,
+  onSelectExerciseIndex,
   currentSet,
   completedSets,
   currentReps,
@@ -72,6 +77,7 @@ export function ExerciseCard({
   weightSuggestion,
   onDismissWeightSuggestion,
   lastSetData,
+  previousSessionPerformance,
   onRepeatPrevious,
   quickSwitcher,
   personalRecord,
@@ -89,6 +95,7 @@ isResting = false,
 }: ExerciseCardProps) {
   const { success, error } = useToast();
   const t = useTranslations("workout");
+  const { locale } = useLocale();
   const totalSets = exercise.sets.length;
   const isSetComplete = currentReps !== "" && currentReps > 0 && currentWeight !== "";
 
@@ -322,6 +329,50 @@ isResting = false,
 
       {/* Contenido principal */}
       <CardContent className="space-y-3">
+        {exerciseCount && exerciseCount > 1 && (
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-900">
+            <button
+              type="button"
+              onClick={() => onSelectExerciseIndex?.(exerciseIndex - 1)}
+              disabled={isSetStarted || exerciseIndex === 0}
+              aria-label={t("previousExercise")}
+              className="min-h-10 rounded-lg px-3 text-sm font-semibold text-blue-700 disabled:opacity-40 dark:text-blue-300"
+            >
+              ← {t("previousExercise")}
+            </button>
+            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300" aria-live="polite">
+              {t("exercisePosition")
+                .replace("{current}", String(exerciseIndex + 1))
+                .replace("{total}", String(exerciseCount))}
+            </span>
+            <button
+              type="button"
+              onClick={() => onSelectExerciseIndex?.(exerciseIndex + 1)}
+              disabled={isSetStarted || exerciseIndex === exerciseCount - 1}
+              aria-label={t("nextExercise")}
+              className="min-h-10 rounded-lg px-3 text-sm font-semibold text-blue-700 disabled:opacity-40 dark:text-blue-300"
+            >
+              {t("nextExercise")} →
+            </button>
+          </div>
+        )}
+
+        {previousSessionPerformance && (
+          <div className="flex flex-wrap items-center justify-between gap-1 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs dark:border-indigo-900 dark:bg-indigo-950/30">
+            <span className="font-semibold text-indigo-800 dark:text-indigo-200">
+              {t("previousSession")}
+            </span>
+            <span className="tabular-nums text-indigo-900 dark:text-indigo-100">
+              {previousSessionPerformance.weight} kg × {previousSessionPerformance.reps} {t("repsUnit")}
+            </span>
+            <time className="text-indigo-700 dark:text-indigo-300">
+              {previousSessionPerformance.date.toLocaleDateString(
+                locale === "en" ? "en-US" : "es",
+              )}
+            </time>
+          </div>
+        )}
+
         {/* Weight suggestion banner - Solo si hay sugerencia Y showSuggestion es true */}
         {weightSuggestion && showSuggestion && (
           <WeightSuggestionBanner

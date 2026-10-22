@@ -1,10 +1,12 @@
 ﻿import { calculateRestBetweenSets, calculateRestBetweenExercises } from '@/lib/application/workout/restCalculator';
 import { EXERCISE_DATABASE } from '@/data/exercises';
+import logger from '@/lib/shared/logger';
+import type { Exercise, Routine } from '@/types';
 
 interface RestCalculationParams {
-  currentExercise: any;
-  nextExercise?: any;
-  routine: any;
+  currentExercise: Exercise;
+  nextExercise?: Exercise;
+  routine: Routine;
   restOverrides?: Record<string, number>;
   perSetOverrides?: Record<string, number[]>;
   currentSet?: number;
@@ -101,10 +103,66 @@ export function calculateExerciseRestTime({
 /**
  * Calculate smart rest time based on exercise characteristics
  */
-export function calculateSmartRestTime(exercise: { name: string; sets: Array<{ reps: number; weight?: number }> }): number | undefined {
+const REST_LEARNING_STORAGE_KEY = "gymlogix_rest_learning_v1";
+
+function getLearnedRestAdjustment(exerciseId: string | undefined): number {
+  if (typeof window === "undefined" || !exerciseId) return 0;
+  try {
+    const stored = localStorage.getItem(REST_LEARNING_STORAGE_KEY);
+    if (!stored) return 0;
+    const learning = JSON.parse(stored) as Record<string, number[]>;
+    const extensions = learning[exerciseId];
+    if (!Array.isArray(extensions) || extensions.length === 0) return 0;
+    const average =
+      extensions.reduce((total, seconds) => total + seconds, 0) /
+      extensions.length;
+    return Math.min(60, Math.max(0, Math.round(average / 5) * 5));
+  } catch (error) {
+    logger.warn("[restCalculationService] Could not read rest learning data", error);
+    return 0;
+  }
+}
+
+export function recordRestExtension(
+  exerciseId: string,
+  seconds: number,
+): void {
+  if (
+    typeof window === "undefined" ||
+    !exerciseId ||
+    !Number.isFinite(seconds) ||
+    seconds <= 0
+  ) {
+    return;
+  }
+  try {
+    const stored = localStorage.getItem(REST_LEARNING_STORAGE_KEY);
+    const learning = stored
+      ? (JSON.parse(stored) as Record<string, number[]>)
+      : {};
+    const extensions = Array.isArray(learning[exerciseId])
+      ? learning[exerciseId].filter(
+          (value) => Number.isFinite(value) && value > 0,
+        )
+      : [];
+    learning[exerciseId] = [...extensions, Math.min(seconds, 180)].slice(-8);
+    localStorage.setItem(REST_LEARNING_STORAGE_KEY, JSON.stringify(learning));
+  } catch (error) {
+    logger.error(
+      "[restCalculationService] Could not save rest learning data",
+      error instanceof Error ? error : undefined,
+    );
+  }
+}
+
+export function calculateSmartRestTime(exercise: {
+  id?: string;
+  name: string;
+  sets: Array<{ reps: number; weight?: number }>;
+}): number | undefined {
   const exerciseTemplate = EXERCISE_DATABASE.find(e => e.name.toLowerCase() === exercise.name.toLowerCase());
 
-  if (!exerciseTemplate) return undefined;
+  if (!exerciseTemplate || exercise.sets.length === 0) return undefined;
 
   const avgReps = Math.round(
     exercise.sets.reduce((sum: number, set: { reps: number; weight?: number }) => sum + set.reps, 0) / exercise.sets.length
@@ -117,14 +175,18 @@ export function calculateSmartRestTime(exercise: { name: string; sets: Array<{ r
     'intermediate'
   );
 
-  return Math.round(restRecommendation.recommended / 5) * 5;
+  const baseRest = Math.round(restRecommendation.recommended / 5) * 5;
+  return Math.min(
+    300,
+    baseRest + getLearnedRestAdjustment(exercise.id),
+  );
 }
 
 /**
  * Apply smart rest to all sets of an exercise
  */
 export function applySmartRestToAllSets(
-  exercise: any,
+  exercise: Exercise,
   updatePerSetRestOverride: (exerciseId: string, setIndex: number, restTime: number) => void
 ): number | null {
   const smartRestTime = calculateSmartRestTime(exercise);

@@ -146,17 +146,41 @@ export function importFromJSON(jsonString: string): {
   profile?: UserProfile;
 } | null {
   try {
-    const data = JSON.parse(jsonString);
+    const parsed: unknown = JSON.parse(jsonString);
+    const isRecord = (value: unknown): value is Record<string, unknown> =>
+      typeof value === 'object' && value !== null && !Array.isArray(value);
     
-    // Validar estructura
-    if (!data.data || !data.data.sessions || !data.data.routines) {
+    if (!isRecord(parsed) || !isRecord(parsed.data)) {
       throw new Error('Invalid JSON structure');
     }
 
+    const { sessions, routines, profile } = parsed.data;
+    const validSessions =
+      Array.isArray(sessions) &&
+      sessions.every(
+        (session) =>
+          isRecord(session) &&
+          typeof session.routineId === 'string' &&
+          (typeof session.date === 'string' || typeof session.date === 'number') &&
+          Array.isArray(session.exercises),
+      );
+    const validRoutines =
+      Array.isArray(routines) &&
+      routines.every(
+        (routine) =>
+          isRecord(routine) &&
+          typeof routine.id === 'string' &&
+          typeof routine.name === 'string' &&
+          Array.isArray(routine.exercises),
+      );
+    if (!validSessions || !validRoutines || (profile !== undefined && !isRecord(profile))) {
+      throw new Error('Invalid JSON data');
+    }
+
     return {
-      sessions: data.data.sessions,
-      routines: data.data.routines,
-      profile: data.data.profile
+      sessions: sessions as WorkoutSession[],
+      routines: routines as Routine[],
+      profile: profile as UserProfile | undefined
     };
   } catch (error) {
     console.error('Error importing JSON:', error);

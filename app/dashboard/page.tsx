@@ -18,6 +18,8 @@ import {
   calculateTotalVolume,
   calculateTotalSets,
   filterSessionsByMonth,
+  getWeekKey,
+  getWeekStart,
 } from "@/lib/shared/utils/dateUtils";
 import {
   Dumbbell,
@@ -28,6 +30,7 @@ import {
   BarChart3,
 } from "@/components/icons/lucide";
 import { useGym } from "@/context/GymContext";
+import { useWorkout } from "@/context/WorkoutContext";
 import { useValidSessions } from "@/hooks/useValidSessions";
 import { PageHeader, PageLayout, PageContent } from "@/layouts";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -63,7 +66,26 @@ export default function DashboardPage() {
   const t = useTranslations("dashboard");
 
   const { routines } = useGym();
+  const { activeWorkout } = useWorkout();
   const validSessions = useValidSessions();
+  const quickStartRoutine = useMemo(() => {
+    if (activeWorkout?.routineId) {
+      const activeRoutine = routines.find(
+        (routine) => routine.id === activeWorkout.routineId,
+      );
+      if (activeRoutine) return activeRoutine;
+    }
+
+    const mostRecentSession = [...validSessions].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    )[0];
+    return (
+      routines.find((routine) => routine.id === mostRecentSession?.routineId) ??
+      null
+    );
+  }, [activeWorkout?.routineId, routines, validSessions]);
+  const isContinuingWorkout =
+    Boolean(activeWorkout) && activeWorkout?.routineId === quickStartRoutine?.id;
   const exerciseNameById = useMemo(
     () =>
       new Map(
@@ -211,6 +233,37 @@ export default function DashboardPage() {
         100
       : 0;
 
+  const trainingLoadTrend = useMemo(() => {
+    const currentWeekStart = getWeekStart(new Date());
+    const completedWeekKeys = Array.from({ length: 4 }, (_, index) => {
+      const weekStart = new Date(currentWeekStart);
+      weekStart.setDate(weekStart.getDate() - (index + 1) * 7);
+      return getWeekKey(weekStart);
+    }).reverse();
+    const sessionsByWeek = new Map<string, typeof validSessions>();
+
+    for (const session of validSessions) {
+      const sessionDate = new Date(session.date);
+      if (Number.isNaN(sessionDate.getTime())) continue;
+      const weekKey = getWeekKey(sessionDate);
+      const sessions = sessionsByWeek.get(weekKey) ?? [];
+      sessions.push(session);
+      sessionsByWeek.set(weekKey, sessions);
+    }
+
+    const weeklyVolumes = completedWeekKeys.map((weekKey) =>
+      calculateTotalVolume(sessionsByWeek.get(weekKey) ?? []),
+    );
+    const showsSustainedIncrease =
+      weeklyVolumes[0] > 0 &&
+      weeklyVolumes[3] >= weeklyVolumes[0] * 1.1 &&
+      weeklyVolumes.every(
+        (volume, index) => index === 0 || volume > weeklyVolumes[index - 1],
+      );
+
+    return { hasEnoughHistory: weeklyVolumes.some((volume) => volume > 0), showsSustainedIncrease };
+  }, [validSessions]);
+
   // Memoizar logros y racha (costosos de calcular)
   const achievementsData = useMemo(() => {
     const all = calculateAchievements(validSessions);
@@ -261,6 +314,35 @@ export default function DashboardPage() {
       />
 
       <PageContent>
+        {quickStartRoutine && (
+          <Card className="mb-4 border-indigo-200 bg-indigo-50/70 dark:border-indigo-900 dark:bg-indigo-950/30">
+            <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+                  {t("quickStart")}
+                </p>
+                <h2 className="mt-1 truncate text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                  {quickStartRoutine.name}
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {isContinuingWorkout
+                    ? t("quickStartContinueDescription")
+                    : t("quickStartRepeatDescription")}
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => router.push(`/workout/${quickStartRoutine.id}`)}
+                className="shrink-0"
+              >
+                {isContinuingWorkout
+                  ? t("quickStartContinue")
+                  : t("quickStartRepeat")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Volume Chart */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
@@ -353,6 +435,27 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {trainingLoadTrend.hasEnoughHistory && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-indigo-600" />
+                {t("trainingLoad.title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                {trainingLoadTrend.showsSustainedIncrease
+                  ? t("trainingLoad.increasing")
+                  : t("trainingLoad.steady")}
+              </p>
+              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                {t("trainingLoad.disclaimer")}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Advanced Statistics */}
         {validSessions.length > 0 && (

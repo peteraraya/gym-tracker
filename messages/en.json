@@ -22,6 +22,24 @@
     "restart": "Restart",
     "confirm": "Confirm"
   },
+  "workoutShare": {
+    "title": "Share live workout",
+    "description": "Private, read-only link that expires after 2 hours and can be revoked at any time.",
+    "createLink": "Create private link",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "revoke": "Revoke",
+    "working": "Working…",
+    "linkLabel": "Private workout share link",
+    "error": "Could not create, copy, or revoke the link. Check your connection and try again.",
+    "viewerLabel": "Read-only shared workout",
+    "loading": "Loading workout…",
+    "unavailable": "This link expired, was revoked, or the workout is no longer available.",
+    "exercisePosition": "Exercise {current} of {total}",
+    "setProgress": "{completed} of {total} sets completed",
+    "betweenExercises": "Between exercises",
+    "readOnly": "Only the person who started the workout can make changes."
+  },
   "setTimer": {
     "title": "Set Stopwatch",
     "paused": "PAUSED",
@@ -83,6 +101,35 @@
     "installableDescription": "Install the app on your device for quick access.",
     "offline": "Offline access",
     "offlineDescription": "Screens and data available offline depend on what was previously saved or loaded on this device."
+  },
+  "onboarding": {
+    "stepCount": "Step {current} of {total}",
+    "skip": "Skip tutorial",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Get started!",
+    "restart": "Replay tutorial",
+    "steps": {
+      "welcome": { "title": "Welcome to GymLogiX!", "description": "We'll walk you through the main tools so you can get started with your training." },
+      "profile": { "title": "Set up your profile", "description": "Add your details and goals to personalize your experience." },
+      "routines": { "title": "Create your first routine", "description": "Build a reusable routine or choose one of the recommended routines." },
+      "exercises": { "title": "Explore exercises", "description": "Browse available exercises, muscle groups, equipment, and instructions." },
+      "glossary": { "title": "Learn the terminology", "description": "Look up training terms such as 1RM, RPE, and hypertrophy in the glossary." },
+      "workout": { "title": "Log your workouts", "description": "Start a routine and record reps and weight for each set." },
+      "progress": { "title": "Track your progress", "description": "Review your sessions, volume, and personal records in the progress views." },
+      "calculators": { "title": "Use the calculators", "description": "Find tools for estimating loads and other training calculations." },
+      "complete": { "title": "Ready to get started!", "description": "You now know the main sections. Choose a routine and start training." }
+    }
+  },
+  "exerciseSearch": {
+    "placeholder": "Search by exercise, muscle, or equipment…",
+    "hint": "You can combine filters too, for example: chest with dumbbells without a bench."
+  },
+  "dataManagement": {
+    "backupImportSuccess": "Backup restored: {routines} routines and {sessions} sessions processed.",
+    "backupImportWithoutSessions": "Backup restored. It did not include sessions.",
+    "backupEmpty": "The file does not contain any data to import.",
+    "backupImportError": "The backup could not be imported. Check the format and try again."
   },
   "pwa": {
     "updateTitle": "New version available",
@@ -226,6 +273,10 @@
     "dashboard": "Dashboard",
     "sessionsCount": "{count} sessions",
     "quickStart": "Quick start",
+    "quickStartContinue": "Continue workout",
+    "quickStartContinueDescription": "Pick up where you left off.",
+    "quickStartRepeat": "Start routine",
+    "quickStartRepeatDescription": "Repeat the routine you trained most recently.",
     "plan": "Plan",
     "planLoadError": "Your weekly plan could not be loaded.",
     "dataLoadError": "Your training data could not be loaded.",
@@ -404,6 +455,9 @@
     "set": "Set",
     "progress": "Progress",
     "currentExercise": "Current exercise",
+    "exercisePosition": "Exercise {current} of {total}",
+    "previousExercise": "Previous",
+    "previousSession": "Previous session",
     "repsPerformed": "Reps performed",
     "weightUsed": "Weight used (kg)",
     "completeSet": "Complete set",
@@ -450,6 +504,14 @@
     "newRest": "New rest",
     "skipRest": "Skip rest",
     "startSet": "Start set",
+    "voiceListen": "Listen for command",
+    "voiceReady": "Microphone is off. When enabled, the browser listens for one command and may process it under its policy; GymLogiX does not store audio.",
+    "voiceListening": "Listening for one command…",
+    "voiceStarted": "Set started by voice.",
+    "voiceCompleted": "Set completed by voice.",
+    "voiceUnknown": "Command not recognized. Say “start set” or “complete set”.",
+    "voiceError": "The microphone could not be used or the set could not be completed.",
+    "voiceUnsupported": "Voice recognition is not supported by this browser.",
     "tapOrSwipeToComplete": "Tap or swipe to complete set",
     "setDone": "Set completed!",
     "startingRest": "Starting rest…",
@@ -643,6 +705,12 @@
       "mostPerformedExercise": "The exercise you've performed the most",
       "thisMonthVolume": "This Month's Volume",
       "vsLastMonthShort": "% vs last month"
+    },
+    "trainingLoad": {
+      "title": "Training load trend",
+      "increasing": "Your training volume increased for three consecutive weeks. Consider prioritizing recovery and adjusting your load if needed.",
+      "steady": "No continuous increase in training volume was detected over the recent weeks.",
+      "disclaimer": "This is a reference based on logged volume, not a medical assessment or a complete measure of fatigue."
     },
     "achievements": {
       "recentAchievementsTitle": "Recent Achievements",
