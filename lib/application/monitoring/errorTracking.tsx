@@ -1,10 +1,13 @@
 "use client";
 
 import React from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 /**
  * Sistema de Error Monitoring y Analytics
- * Tracking de errores, performance y uso de la aplicación
+ * Tracking de errores, performance y uso de la aplicación.
+ * En producción, los errores se envían a Sentry.
+ * En desarrollo, se loguean en consola y se guardan en localStorage.
  */
 
 interface ErrorContext {
@@ -13,14 +16,14 @@ interface ErrorContext {
   sessionId?: string;
   component?: string;
   action?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface PerformanceMetric {
   name: string;
   value: number;
   timestamp: number;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 class ErrorTracker {
@@ -53,14 +56,19 @@ class ErrorTracker {
       });
     }
 
-    // En producción, enviar a servicio de monitoring
+    // En producción, enviar a Sentry
     if (process.env.NODE_ENV === 'production') {
-      this.sendToMonitoring(errorEntry);
+      Sentry.captureException(error, {
+        extra: {
+          ...context,
+          timestamp: errorEntry.timestamp,
+        },
+      });
     }
   }
 
   // Performance tracking
-  trackPerformance(name: string, value: number, context?: Record<string, any>) {
+  trackPerformance(name: string, value: number, context?: Record<string, unknown>) {
     const metric: PerformanceMetric = {
       name,
       value,
@@ -69,7 +77,7 @@ class ErrorTracker {
     };
 
     this.metrics.push(metric);
-    
+
     if (this.metrics.length > this.maxMetrics) {
       this.metrics = this.metrics.slice(-this.maxMetrics);
     }
@@ -77,6 +85,13 @@ class ErrorTracker {
     // Log métricas importantes
     if (value > 1000) { // > 1 segundo
       console.warn(`⚠️ Slow operation: ${name} took ${value}ms`);
+
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.captureException(new Error(`Slow operation: ${name}`), {
+          level: 'warning',
+          extra: { ...context, value },
+        });
+      }
     }
   }
 
@@ -87,7 +102,7 @@ class ErrorTracker {
     }
     
     // Analytics en producción
-    this.trackPerformance(`user_action_${action}`, Date.now(), context);
+    this.trackPerformance(`user_action_${action}`, Date.now(), context as Record<string, unknown>);
   }
 
   // Obtener estadísticas de errores
@@ -136,30 +151,6 @@ class ErrorTracker {
       return acc;
     }, {} as Record<string, number>);
   }
-
-  private async sendToMonitoring(errorEntry: any) {
-    try {
-      // Aquí integrarías con Sentry, LogRocket, etc.
-      // Por ahora, guardamos en localStorage para debug
-      const stored = localStorage.getItem('gym_logic_errors') || '[]';
-      const errors = JSON.parse(stored);
-      errors.push({
-        message: errorEntry.error.message,
-        stack: errorEntry.error.stack,
-        context: errorEntry.context,
-        timestamp: errorEntry.timestamp,
-      });
-      
-      // Mantener solo los últimos 50 errores en localStorage
-      if (errors.length > 50) {
-        errors.splice(0, errors.length - 50);
-      }
-      
-      localStorage.setItem('gym_logic_errors', JSON.stringify(errors));
-    } catch (e) {
-      console.error('Failed to store error:', e);
-    }
-  }
 }
 
 // Singleton instance
@@ -186,11 +177,11 @@ export function withErrorTracking<T extends object>(
   return function TrackedComponent(props: T) {
     const { trackError } = useErrorTracking();
 
-    const handleError = (error: Error, errorInfo: any) => {
+    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
       trackError(error, {
         component: componentName,
         action: 'render_error',
-        metadata: errorInfo,
+        metadata: { componentStack: errorInfo.componentStack },
       });
     };
 
@@ -204,10 +195,10 @@ export function withErrorTracking<T extends object>(
 
 // Error Boundary component
 class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError?: (error: Error, errorInfo: any) => void },
+  { children: React.ReactNode; onError?: (error: Error, errorInfo: React.ErrorInfo) => void },
   { hasError: boolean }
 > {
-  constructor(props: any) {
+  constructor(props: { children: React.ReactNode; onError?: (error: Error, errorInfo: React.ErrorInfo) => void }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -216,8 +207,17 @@ class ErrorBoundary extends React.Component<
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.props.onError?.(error, errorInfo);
+
+    // En producción, reportar a Sentry
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.captureException(error, {
+        extra: {
+          componentStack: errorInfo.componentStack,
+        },
+      });
+    }
   }
 
   render() {

@@ -1,17 +1,25 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 import {
   createSupabaseServerClient,
   getRoutinesFromDb,
   createRoutineInDb,
-} from '@/lib/infrastructure/supabase/shared-service'
+} from '@/lib/infrastructure/supabase/shared-service';
 import {
   ApiCreateRoutineBodySchema,
   validateApiBody,
-} from '@/lib/shared/validation/api'
+} from '@/lib/shared/validation/api';
+import { rateLimitMiddleware } from '@/lib/shared/rate-limiter';
 
 // ⚠️ DEPRECATED: Esta API Route usa lib/supabase/shared-service.ts internamente.
 // Se mantiene para compatibilidad con SSR. Nuevos clientes deben usar service.ts
 // (cliente) para evitar duplicación de código.
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  return cfConnectingIp || realIp || forwarded?.split(',')[0]?.trim() || 'unknown';
+}
 
 function dbDisabledResponse() {
   if (process.env.NEXT_PUBLIC_ENABLE_DATABASE !== 'true') {
@@ -44,6 +52,21 @@ export async function GET() {
 export async function POST(request: Request) {
   const guard = dbDisabledResponse()
   if (guard) return guard
+
+  // Rate limiting por IP
+  const clientIp = getClientIp(request)
+  const rateLimitResult = rateLimitMiddleware(clientIp, {
+    windowMs: 60 * 1000,   // 1 minuto
+    maxRequests: 30,       // 30 peticiones por minuto para crear rutinas
+  })
+
+  if (rateLimitResult && !rateLimitResult.success) {
+    return new Response(rateLimitResult.response.body, {
+      status: 429,
+      headers: rateLimitResult.response.headers,
+    })
+  }
+
   try {
     const supabase = await createSupabaseServerClient()
     const body = await request.json()

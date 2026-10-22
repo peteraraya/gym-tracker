@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Servicios compartidos de Supabase para API Routes (Server) y service.ts (Client).
  *
@@ -70,12 +69,63 @@ export interface UserProfileData {
   gender?: string;
   height?: number;
   weight?: number;
-  weightHistory?: any[];
+  weightHistory?: unknown[];
   fitnessGoal?: string;
   fitnessLevel?: string;
   weeklyWorkouts?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+// ==================== TIPOS DE RESPUESTA DE SUPABASE ====================
+
+interface DbRoutine {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  rest_between_sets: number;
+  rest_between_exercises: number;
+  created_at: string;
+  updated_at: string;
+  exercises: DbExercise[] | null;
+}
+
+interface DbExercise {
+  id: string;
+  name: string;
+  sets_data: unknown;
+  sets: number | null;
+  reps: number | null;
+  weight: number | null;
+  equipment: string | null;
+  notes: string | null;
+  order_index: number;
+  rest_between_sets?: number;
+  use_smart_rest?: boolean;
+}
+
+interface DbSession {
+  id: string;
+  routine_id: string;
+  routines: { name: string | null } | null;
+  date: string;
+  notes: string | null;
+  total_duration: number | null;
+  total_paused_time: number | null;
+  session_exercises: DbSessionExercise[] | null;
+}
+
+interface DbSessionExercise {
+  id: string;
+  session_id: string;
+  exercise_id: string;
+  exercises: { name: string | null } | null;
+  completed_sets: number;
+  actual_reps: number[];
+  actual_weight: number[];
+  set_durations: number[] | null;
+  pause_durations: number[] | null;
 }
 
 export async function getRoutinesFromDb(supabase: SupabaseClient) {
@@ -85,16 +135,16 @@ export async function getRoutinesFromDb(supabase: SupabaseClient) {
     .from('routines').select(`*, exercises (*)`)
     .eq('user_id', user.id).order('created_at', { ascending: false })
   if (error) throw new Error(`Error al obtener rutinas: ${error.message}`)
-  return routines?.map((routine: any) => ({
+  return routines?.map((routine: DbRoutine) => ({
     id: routine.id, name: routine.name, description: routine.description,
     image: routine.image_url, restBetweenSets: routine.rest_between_sets,
     restBetweenExercises: routine.rest_between_exercises,
     createdAt: new Date(routine.created_at), updatedAt: new Date(routine.updated_at),
     exercises: (routine.exercises || [])
-      .sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index)
-      .map((ex: any) => {
+      .sort((a: DbExercise, b: DbExercise) => a.order_index - b.order_index)
+      .map((ex: DbExercise) => {
         let sets: SetData[];
-        if (ex.sets_data) { sets = ex.sets_data; }
+        if (ex.sets_data) { sets = ex.sets_data as SetData[]; }
         else { sets = Array(ex.sets || 1).fill(null).map(() => ({ reps: ex.reps || 10, weight: ex.weight || 0 })) }
         return { id: ex.id, name: ex.name, sets, equipment: ex.equipment, notes: ex.notes }
       })
@@ -131,17 +181,18 @@ export async function getSessionsFromDb(supabase: SupabaseClient) {
     .select(`, routines (name), session_exercises (*, exercises (name))`)
     .eq('user_id', user.id).order('date', { ascending: false })
   if (error) throw new Error(`Error al obtener sesiones: ${error.message}`)
-  return sessions?.map((session: any) => ({
+  const rows = (sessions ?? []) as unknown as DbSession[]
+  return rows.map((session: DbSession) => ({
     id: session.id, routineId: session.routine_id, routineName: session.routines?.name,
     date: new Date(session.date), notes: session.notes,
     totalDuration: session.total_duration, totalPausedTime: session.total_paused_time,
-    exercises: session.session_exercises.map((se: any) => ({
+    exercises: (session.session_exercises ?? []).map((se: DbSessionExercise) => ({
       exerciseId: se.exercise_id, exerciseName: se.exercises?.name,
       completedSets: se.completed_sets, actualReps: se.actual_reps,
       actualWeight: se.actual_weight, setDurations: se.set_durations,
       pauseDurations: se.pause_durations
     }))
-  })) || []
+  }))
 }
 
 export async function createSessionInDb(supabase: SupabaseClient, body: CreateSessionBody) {

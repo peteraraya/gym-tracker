@@ -11,6 +11,15 @@ try {
   // bundle analyzer not installed — skip
 }
 
+let withSentry = (c: NextConfig) => c;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const sentryPlugin = require("@sentry/nextjs/plugin");
+  withSentry = sentryPlugin();
+} catch {
+  // Sentry plugin not installed — skip
+}
+
 const isMobileBuild = process.env.NEXT_MOBILE_BUILD === 'true';
 
 const nextConfig: NextConfig = {
@@ -49,4 +58,4 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
 };
 
-export default bundleAnalyzer(nextConfig);
+export default withSentry(bundleAnalyzer(nextConfig));

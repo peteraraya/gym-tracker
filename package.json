@@ -35,6 +35,8 @@
     "@capacitor/app": "^6.0.1",
     "@capacitor/core": "^6.2.0",
     "@hookform/resolvers": "^5.2.2",
+    "@sentry/nextjs": "^11.8.0",
+    "@sentry/react": "^11.8.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.0",
     "@tanstack/react-query": "^5.95.2",
