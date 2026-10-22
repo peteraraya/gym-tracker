@@ -69,14 +69,14 @@ export function measureBundleSize(): number {
 }
 
 // Measure cache hit rate for React Query
-export function measureCacheHitRate(queryClient: any): number {
+export function measureCacheHitRate(queryClient: { getQueryCache: () => { getAll: () => Array<{ state: { data: unknown } }> } }): number {
   if (!queryClient) return 0;
   
   try {
     const cache = queryClient.getQueryCache();
     const queries = cache.getAll();
     
-    const cachedQueries = queries.filter((q: any) => q.state.data !== undefined);
+    const cachedQueries = queries.filter((q: { state: { data: unknown } }) => q.state.data !== undefined);
     const hitRate = queries.length > 0 ? (cachedQueries.length / queries.length) * 100 : 0;
     
     if (isDev) {

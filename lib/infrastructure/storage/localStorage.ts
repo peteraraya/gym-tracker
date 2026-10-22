@@ -518,7 +518,7 @@ export async function getWeeklyPlan(): Promise<WeeklyPlan> {
     if (!raw) {
         // Default empty plan structure
         const defaultPlan = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
-            .reduce((acc: any, d: string) => ({ ...acc, [d]: { routines: [] } }), {});
+            .reduce((acc: Record<string, unknown>, d: string) => ({ ...acc, [d]: { routines: [] } }), {}) as WeeklyPlan;
         return defaultPlan;
     }
     return raw;

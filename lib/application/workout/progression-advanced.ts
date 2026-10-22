@@ -38,10 +38,16 @@ export function estimate1RM(weight: number, reps: number) {
   return Math.round(weight * (1 + reps / 30));
 }
 
+type ProgressionExercise = {
+  actualWeight: number[];
+  actualReps: number[];
+  [key: string]: unknown;
+};
+
 /**
  * Calcula el volumen total (peso × reps × series) para un ejercicio en una sesión
  */
-function calculateVolume(exercise: any): number {
+function calculateVolume(exercise: ProgressionExercise): number {
   if (!exercise.actualWeight || !exercise.actualReps) return 0;
   
   // ✅ Validar que ambos arrays existan

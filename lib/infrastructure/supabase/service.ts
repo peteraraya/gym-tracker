@@ -16,6 +16,34 @@
 import { createClient } from '@/lib/infrastructure/supabase/client';
 import type { Routine, WorkoutSession } from '@/types';
 
+// ==================== TIPOS DE RESPUESTA DE SUPABASE ====================
+
+interface DbRoutineExercise {
+  id: string;
+  name: string;
+  sets_data: unknown;
+  sets: number | null;
+  reps: number | null;
+  weight: number | null;
+  equipment: string | null;
+  notes: string | null;
+  order_index: number;
+  rest_between_sets?: number;
+  use_smart_rest?: boolean;
+}
+
+interface DbRoutine {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  rest_between_sets: number;
+  rest_between_exercises: number;
+  created_at: string;
+  updated_at: string;
+  exercises: DbRoutineExercise[] | null;
+}
+
 export async function getCurrentUserId(): Promise<string | null> {
   const { data, error } = await createClient().auth.getSession();
   if (error) throw new Error(`Error al leer la sesión: ${error.message}`);
@@ -74,35 +102,36 @@ export async function getRoutines(): Promise<Routine[]> {
   if (error) throw new Error(`Error al obtener rutinas: ${error.message}`);
 
   // Transform to frontend format
-  return routines?.map(routine => ({
+  const dbRoutines = (routines ?? []) as DbRoutine[];
+  return dbRoutines.map(routine => ({
     id: routine.id,
     name: routine.name,
-    description: routine.description,
-    image: routine.image_url,
+    description: routine.description ?? undefined,
+    image: routine.image_url ?? undefined,
     restBetweenSets: routine.rest_between_sets,
     restBetweenExercises: routine.rest_between_exercises,
     createdAt: new Date(routine.created_at),
     updatedAt: new Date(routine.updated_at),
     exercises: (routine.exercises || [])
-      .sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index)
-      .map((ex: any) => {
+      .sort((a: DbRoutineExercise, b: DbRoutineExercise) => a.order_index - b.order_index)
+      .map((ex: DbRoutineExercise) => {
         let sets: SetData[];
         if (ex.sets_data) {
-          sets = ex.sets_data;
+          sets = ex.sets_data as SetData[];
         } else {
           sets = Array(ex.sets || 1).fill(null).map(() => ({
             reps: ex.reps || 10,
-            weight: ex.weight || 0
+            weight: ex.weight || 0,
           }));
         }
         return {
           id: ex.id,
           name: ex.name,
           sets,
-          equipment: ex.equipment,
-          notes: ex.notes,
-          restBetweenSets: ex.rest_between_sets, // ✅ Cargar tiempo de descanso del ejercicio
-          useSmartRest: ex.use_smart_rest // ✅ Cargar flag de descanso inteligente
+          equipment: ex.equipment ?? undefined,
+          notes: ex.notes ?? undefined,
+          restBetweenSets: ex.rest_between_sets,
+          useSmartRest: ex.use_smart_rest,
         };
       })
   })) || [];
@@ -195,8 +224,8 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
   if (routineError) throw new Error(`Error al actualizar rutina: ${routineError.message}`);
   // Upsert/update existing exercises and insert new ones without deleting first.
   // This avoids losing data if an insertion fails mid-way.
-  const upsertPayload: any[] = [];
-  const insertPayload: any[] = [];
+  const upsertPayload: Record<string, unknown>[] = [];
+  const insertPayload: Record<string, unknown>[] = [];
 
   data.exercises.forEach((ex, index) => {
     const payload = {
@@ -241,7 +270,7 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
   // Delete exercises that were removed in the new payload
   try {
     const incomingIds = new Set(data.exercises.filter(e => e.id).map(e => e.id));
-    const toDelete = ((oldExercises || []).filter((ex: any) => !incomingIds.has(ex.id)).map((ex: any) => ex.id));
+    const toDelete = ((oldExercises || []).filter((ex: { id: string }) => !incomingIds.has(ex.id)).map((ex: { id: string }) => ex.id));
     if (toDelete.length > 0) {
       await supabase.from('exercises').delete().in('id', toDelete).eq('routine_id', id);
     }
@@ -352,15 +381,15 @@ export async function getSessions(): Promise<WorkoutSession[]> {
     completedAt: session.completed_at ? new Date(session.completed_at) : undefined,
     totalDuration: session.total_duration,
     totalPausedTime: session.total_paused_time,
-    exercises: (session.session_exercises || []).map((ex: any) => ({
+    exercises: (session.session_exercises || []).map((ex: { exercise_id: string; exercise_ref_id?: string; exercise_name?: string; sets_completed?: Array<{ reps: number; weight?: number }> | null; completed_sets: number; actual_reps: number[]; actual_weight: number[]; set_durations?: number[]; pause_durations?: number[]; notes?: string }) => ({
       // exercise_ref_id es el snapshot seguro (sin FK) del id real del
       // ejercicio; exercise_name es el fallback para filas guardadas antes
       // de que existiera esa columna.
-      exerciseId: ex.exercise_ref_id || ex.exercise_name || ex.id,
+      exerciseId: ex.exercise_ref_id || ex.exercise_name || ex.exercise_id,
       exerciseName: ex.exercise_name,
       completedSets: ex.sets_completed ? (Array.isArray(ex.sets_completed) ? ex.sets_completed.length : 0) : 0,
-      actualReps: ex.sets_completed ? ex.sets_completed.map((s: any) => s.reps) : [],
-      actualWeight: ex.sets_completed ? ex.sets_completed.map((s: any) => s.weight || 0) : [],
+      actualReps: ex.sets_completed ? ex.sets_completed.map((s: { reps: number }) => s.reps) : [],
+      actualWeight: ex.sets_completed ? ex.sets_completed.map((s: { weight?: number }) => s.weight || 0) : [],
       setDurations: ex.set_durations || [],
       pauseDurations: ex.pause_durations || [],
       notes: ex.notes
@@ -744,7 +773,7 @@ function hasWeeklyPlanAssignments(plan: unknown): boolean {
 /**
  * Guardar el plan semanal en el perfil del usuario
  */
-export async function saveWeeklyPlan(plan: any): Promise<void> {
+export async function saveWeeklyPlan(plan: Record<string, unknown>): Promise<void> {
   const supabase = createClient();
 
   const { data: { user } } = await supabase.auth.getUser();

@@ -11,18 +11,18 @@ import type { WorkoutData } from "./workoutTypes";
  * Útil para operaciones que no deben ejecutarse en cada cambio,
  * sino después de un período de inactividad.
  */
-export function createDebounce<T extends (...args: any[]) => any>(
-  func: T,
+export function createDebounce<Args extends unknown[], Return>(
+  func: (...args: Args) => Return,
   wait: number,
 ): {
-  (...args: Parameters<T>): void;
+  (...args: Args): void;
   cancel: () => void;
   flush: () => void;
 } {
   let timeout: NodeJS.Timeout | null = null;
-  let lastArgs: Parameters<T> | null = null;
+  let lastArgs: Args | null = null;
 
-  const executedFunction = function (...args: Parameters<T>) {
+  const executedFunction = function (...args: Args) {
     lastArgs = args;
     const later = () => {
       timeout = null;
@@ -32,7 +32,7 @@ export function createDebounce<T extends (...args: any[]) => any>(
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   } as {
-    (...args: Parameters<T>): void;
+    (...args: Args): void;
     cancel: () => void;
     flush: () => void;
   };
@@ -129,20 +129,27 @@ export function calculateWorkoutProgress(
 /**
  * Filtra sugerencias de rutinas basándose en los criterios del usuario.
  */
+interface SuggestableRoutine {
+  estimatedDuration?: number;
+  muscleGroups?: string[];
+  [key: string]: unknown;
+}
+
 export function filterSuggestedRoutines(
-  routines: any[],
+  routines: SuggestableRoutine[],
   filters: {
     minDuration?: number;
     maxDuration?: number;
     muscleGroups?: string[];
     difficulty?: string;
   },
-): any[] {
+): SuggestableRoutine[] {
   return routines.filter((routine) => {
-    if (filters.minDuration && routine.estimatedDuration < filters.minDuration) {
+    const estimatedDuration = routine.estimatedDuration;
+    if (filters.minDuration && typeof estimatedDuration === 'number' && estimatedDuration < filters.minDuration) {
       return false;
     }
-    if (filters.maxDuration && routine.estimatedDuration > filters.maxDuration) {
+    if (filters.maxDuration && typeof estimatedDuration === 'number' && estimatedDuration > filters.maxDuration) {
       return false;
     }
     if (

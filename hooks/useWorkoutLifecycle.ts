@@ -214,7 +214,7 @@ async function tryRestoreWorkout(context: string): Promise<WorkoutState | null> 
     const recovered = attemptPartialRecovery(stored);
     if (recovered) {
       logger.warn(`[useWorkoutLifecycle] Partial recovery successful (${context})`);
-      return recovered;
+      return recovered as unknown as WorkoutState;
     }
 
     logger.error(`[useWorkoutLifecycle] Invalid state after normalization (${context}), clearing`);
@@ -225,7 +225,7 @@ async function tryRestoreWorkout(context: string): Promise<WorkoutState | null> 
     const recovered = attemptPartialRecovery(stored);
     if (recovered) {
       logger.warn(`[useWorkoutLifecycle] Recovery after normalization error (${context})`);
-      return recovered;
+      return recovered as unknown as WorkoutState;
     }
     logger.error(`[useWorkoutLifecycle] Fatal normalization error (${context}):`, err);
     await storageService.clearActiveWorkout();

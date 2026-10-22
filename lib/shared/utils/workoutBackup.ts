@@ -13,14 +13,14 @@ const BACKUP_EXPIRY_DAYS = 7;
 
 export interface WorkoutBackup {
   timestamp: number;
-  data: any;
+  data: unknown;
   reason: string;
 }
 
 /**
  * Guarda un backup del workout antes de limpiarlo
  */
-export function saveBackup(data: any, reason: string): string {
+export function saveBackup(data: unknown, reason: string): string {
   if (typeof window === 'undefined') return '';
   
   try {
@@ -80,7 +80,7 @@ export function getBackups(): Array<{ key: string; backup: WorkoutBackup }> {
 /**
  * Restaura un backup específico
  */
-export function restoreBackup(backupKey: string): any | null {
+export function restoreBackup(backupKey: string): unknown | null {
   if (typeof window === 'undefined') return null;
   
   try {
@@ -147,47 +147,52 @@ function cleanOldBackups(): void {
 /**
  * Intenta recuperar datos parciales de un workout corrupto
  */
-export function attemptPartialRecovery(data: any): any | null {
+export function attemptPartialRecovery(data: unknown): Record<string, unknown> | null {
   try {
     // Validar campos mínimos requeridos
-    if (!data.routineId || !data.routineName) {
+    if (!data || typeof data !== 'object') {
+      return null;
+    }
+
+    const obj = data as Record<string, unknown>;
+    if (!obj.routineId || !obj.routineName) {
       return null;
     }
     
     // Construir objeto con valores por defecto seguros
-    const recovered = {
-      routineId: String(data.routineId),
-      routineName: String(data.routineName),
+    const recovered: Record<string, unknown> = {
+      routineId: String(obj.routineId),
+      routineName: String(obj.routineName),
       currentExerciseIndex: 0,
       currentSet: 1,
       completedSets: {},
       actualReps: {},
       actualWeights: {},
-      startedAt: data.startedAt ? new Date(data.startedAt) : new Date()
+      startedAt: obj.startedAt ? new Date(String(obj.startedAt)) : new Date()
     };
     
     // Intentar recuperar datos parciales
-    if (typeof data.currentExerciseIndex === 'number' && data.currentExerciseIndex >= 0) {
-      recovered.currentExerciseIndex = data.currentExerciseIndex;
+    if (typeof obj.currentExerciseIndex === 'number' && obj.currentExerciseIndex >= 0) {
+      recovered.currentExerciseIndex = obj.currentExerciseIndex;
     }
     
-    if (typeof data.currentSet === 'number' && data.currentSet >= 1) {
-      recovered.currentSet = data.currentSet;
+    if (typeof obj.currentSet === 'number' && obj.currentSet >= 1) {
+      recovered.currentSet = obj.currentSet;
     }
     
     // Recuperar completedSets si es válido
-    if (typeof data.completedSets === 'object' && data.completedSets !== null && !Array.isArray(data.completedSets)) {
-      recovered.completedSets = data.completedSets;
+    if (typeof obj.completedSets === 'object' && obj.completedSets !== null && !Array.isArray(obj.completedSets)) {
+      recovered.completedSets = obj.completedSets as Record<string, number>;
     }
     
     // Recuperar actualReps si es válido
-    if (typeof data.actualReps === 'object' && data.actualReps !== null && !Array.isArray(data.actualReps)) {
-      recovered.actualReps = data.actualReps;
+    if (typeof obj.actualReps === 'object' && obj.actualReps !== null && !Array.isArray(obj.actualReps)) {
+      recovered.actualReps = obj.actualReps as Record<string, number[]>;
     }
     
     // Recuperar actualWeights si es válido
-    if (typeof data.actualWeights === 'object' && data.actualWeights !== null && !Array.isArray(data.actualWeights)) {
-      recovered.actualWeights = data.actualWeights;
+    if (typeof obj.actualWeights === 'object' && obj.actualWeights !== null && !Array.isArray(obj.actualWeights)) {
+      recovered.actualWeights = obj.actualWeights as Record<string, number[]>;
     }
     
     logger.info('Partial recovery successful', { recovered });

@@ -9,12 +9,26 @@ import type { WorkoutSession } from '@/types';
 import { EXERCISE_DATABASE } from '@/data/exercises';
 import { getWeekKey } from '@/lib/shared/utils/dateUtils';
 
+type RoutineExerciseLike = {
+  sets: Array<{ reps: number; weight?: number }>;
+  [key: string]: unknown;
+};
+
+type SessionExerciseLike = {
+  actualReps: number[];
+  actualWeight?: number[];
+  exerciseId?: string;
+  [key: string]: unknown;
+};
+
+type ExerciseLike = RoutineExerciseLike | SessionExerciseLike;
+
 /**
  * Calcula el volumen total (series × reps × peso) de una sesión
  */
 export function calculateSessionVolume(session: WorkoutSession): number {
   return (session.exercises || []).reduce((total, exercise) => {
-    const exerciseVolume = calculateExerciseVolume(exercise as any);
+    const exerciseVolume = calculateExerciseVolume(exercise as ExerciseLike);
     return total + exerciseVolume;
   }, 0);
 }
@@ -31,15 +45,15 @@ export function calculateTotalVolume(sessions: WorkoutSession[]): number {
  */
 export function calculateVolumeByMuscleGroup(
   sessions: WorkoutSession[],
-  muscleGroup: string
+  muscleGroup: string,
 ): number {
   return sessions.reduce((total, session) => {
     const volume = (session.exercises || [])
-      .filter(se => {
-        const template = EXERCISE_DATABASE.find(e => e.id === (se as any).exerciseId);
+      .filter((se) => {
+        const template = EXERCISE_DATABASE.find((e) => e.id === se.exerciseId);
         return template?.muscleGroup === muscleGroup;
       })
-      .reduce((sum, se) => sum + calculateExerciseVolume(se as any), 0);
+      .reduce((sum, se) => sum + calculateExerciseVolume(se as ExerciseLike), 0);
     return total + volume;
   }, 0);
 }
@@ -47,21 +61,23 @@ export function calculateVolumeByMuscleGroup(
 /**
  * Calcula el volumen de un ejercicio individual
  */
-export function calculateExerciseVolume(exercise: any): number {
+export function calculateExerciseVolume(exercise: ExerciseLike): number {
   // If exercise has `sets` (routine/exercise template), use that
-  if (exercise && Array.isArray(exercise.sets)) {
-    return (exercise.sets || []).reduce((total: number, set: any) => {
+  if (exercise && Array.isArray((exercise as RoutineExerciseLike).sets)) {
+    const sets = (exercise as RoutineExerciseLike).sets || [];
+    return sets.reduce((total: number, set: { reps: number; weight?: number }) => {
       const reps = set.reps || 0;
       const weight = set.weight || 0;
-      return total + (reps * weight);
+      return total + reps * weight;
     }, 0);
   }
 
   // If exercise is a session exercise with actualReps/actualWeight arrays
-  if (exercise && Array.isArray(exercise.actualReps)) {
-    return (exercise.actualReps || []).reduce((total: number, reps: number, idx: number) => {
-      const weight = (exercise.actualWeight && exercise.actualWeight[idx]) || 0;
-      return total + (reps * weight);
+  if (exercise && Array.isArray((exercise as SessionExerciseLike).actualReps)) {
+    const sessionEx = exercise as SessionExerciseLike;
+    return (sessionEx.actualReps || []).reduce((total: number, reps: number, idx: number) => {
+      const weight = (sessionEx.actualWeight && sessionEx.actualWeight[idx]) || 0;
+      return total + reps * weight;
     }, 0);
   }
 

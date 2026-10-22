@@ -371,7 +371,7 @@ export function useWorkoutPageState(id: string) {
     if (performSaveRef.current) performSaveRef.current(data);
   }, []);
 
-  const debouncedSaveRef = useRef<ReturnType<typeof createDebounce> | null>(null);
+  const debouncedSaveRef = useRef<{ (data: WorkoutData): void; cancel: () => void; flush: () => void; } | null>(null);
 
   useEffect(() => {
     debouncedSaveRef.current = createDebounce(saveWrapper, 500);
