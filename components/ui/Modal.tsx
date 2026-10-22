@@ -13,6 +13,7 @@ interface ModalProps {
 	contentClassName?: string;
 	suppressCloseOverlay?: boolean;
 	hideHeader?: boolean;
+	mobileFullScreen?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({ 
@@ -22,6 +23,7 @@ export const Modal: React.FC<ModalProps> = ({
 	children,
 	contentClassName,
 	hideHeader = false,
+	mobileFullScreen = false,
 	suppressCloseOverlay = false,
 	closeOnClickOutside = true,
 	closeOnEscape = true,
@@ -84,7 +86,7 @@ export const Modal: React.FC<ModalProps> = ({
 	const defaultBackdrop = 'bg-black/60 backdrop-blur-sm';
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+		<div className={`fixed inset-0 z-50 flex items-center justify-center ${mobileFullScreen ? 'max-sm:items-end max-sm:p-0' : 'p-2 sm:p-4'}`}>
 			<div
 				className={`fixed inset-0 ${backdropClassName ? backdropClassName : defaultBackdrop}`}
 				aria-hidden="true"
@@ -97,7 +99,7 @@ export const Modal: React.FC<ModalProps> = ({
 				aria-labelledby={hideHeader ? undefined : titleId}
 				aria-label={hideHeader ? title : undefined}
 				tabIndex={-1}
-				className={`relative w-full max-h-[95vh] overflow-y-auto rounded-2xl bg-white shadow-xl dark:bg-gray-800 sm:max-h-[90vh] ${contentClassName ?? 'max-w-2xl'}`}
+				className={`relative w-full max-h-[95vh] overflow-y-auto rounded-2xl bg-white shadow-xl dark:bg-gray-800 sm:max-h-[90vh] ${mobileFullScreen ? 'max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:pb-[env(safe-area-inset-bottom)]' : ''} ${contentClassName ?? 'max-w-2xl'}`}
 			>
 				{!hideHeader ? (
 					<>

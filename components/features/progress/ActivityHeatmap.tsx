@@ -32,7 +32,7 @@ export const ActivityHeatmap = React.memo(function ActivityHeatmap({ sessions }:
       }).length;
 
       // Nivel de intensidad (0-4)
-      const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count >= 3 ? 3 : 4;
+      const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count === 3 ? 3 : 4;
 
       data.push({ date, count, level });
     }
@@ -102,6 +102,8 @@ export const ActivityHeatmap = React.memo(function ActivityHeatmap({ sessions }:
                 {week.map((day, dayIndex) => (
                   <div
                     key={dayIndex}
+                    role="img"
+                    aria-label={`${day.date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}: ${day.count} ${day.count !== 1 ? t('sessionsPlural') : t('sessionSingular')}`}
                     className={`w-3 h-3 rounded-sm ${getLevelColor(day.level)} transition-all hover:ring-2 hover:ring-blue-500 cursor-pointer`}
                     title={`${day.date.toLocaleDateString(locale)} - ${day.count} ${day.count !== 1 ? t('sessionsPlural') : t('sessionSingular')}`}
                   />

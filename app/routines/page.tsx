@@ -506,6 +506,7 @@ export default function RoutinesPage() {
             suppressCloseOverlay={true}
             closeOnClickOutside={false}
             closeOnEscape={false}
+            mobileFullScreen
           >
             <RoutineForm
               routineId={editingRoutine}

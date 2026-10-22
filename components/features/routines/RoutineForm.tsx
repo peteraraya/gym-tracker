@@ -144,7 +144,7 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
               {routineId ? t("editRoutine") : t("newRoutine")}
             </h2>
             <p className="text-blue-100 text-sm">
-              {currentStep === "basic" ? "Paso 1 de 3: Información" : currentStep === "exercises" ? "Paso 2 de 3: Ejercicios" : "Paso 3 de 3: Revisar"}
+              {t(`steps.${currentStep === "basic" ? "information" : currentStep}`)}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -153,13 +153,13 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
               onClick={handleCancelWithConfirm}
               className="text-white/80 hover:text-white bg-transparent hover:bg-white/10 px-3 py-2 rounded-lg transition-colors"
             >
-              Cancelar
+              {t("cancel")}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-lg transition-colors shrink-0"
-              aria-label="Cerrar"
+              aria-label={t("close")}
             >
               <span className="text-2xl text-white">×</span>
             </button>
@@ -191,10 +191,10 @@ export const RoutineForm: React.FC<RoutineFormProps> = ({
           <div className="flex-1 space-y-8 animate-fadeIn">
             <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-blue-800">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                📝 Información Básica
+                📝 {t("basicInfoTitle")}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Dale un nombre y descripción a tu rutina
+                {t("basicInfoDescription")}
               </p>
             </div>
 

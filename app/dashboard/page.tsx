@@ -305,7 +305,9 @@ export default function DashboardPage() {
                     t("fitnessGoals.general_fitness")}
                 </p>
                 <p className="text-xs text-white/70 capitalize">
-                  {profile.fitnessLevel}
+                  {profile.fitnessLevel
+                    ? t(`fitnessLevels.${profile.fitnessLevel}`)
+                    : ""}
                 </p>
               </div>
             </>

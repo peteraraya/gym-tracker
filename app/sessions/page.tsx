@@ -13,7 +13,7 @@ import { usePagination } from "@/hooks/ui/usePagination";
 import type { WorkoutSession, Routine } from "@/types";
 import * as storageService from "@/lib/infrastructure/storage/storage";
 import { useConfirm } from "@/context/NotificationContext";
-import { useLocale } from "@/context/LocaleContext";
+import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { Calendar, Filter } from "@/components/icons/lucide";
 import { getWeekStart } from '@/lib/shared/utils/dateUtils';
@@ -35,18 +35,18 @@ function getMondayOf(date: Date): Date {
   return getWeekStart(date, 'monday');
 }
 
-function weekLabel(monday: Date): string {
+function weekLabel(monday: Date, locale: string, tS: (key: string) => string): string {
   const today = getMondayOf(new Date());
   const diffMs = today.getTime() - monday.getTime();
   const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000));
-  if (diffWeeks === 0) return "Esta semana";
-  if (diffWeeks === 1) return "Semana pasada";
+  if (diffWeeks === 0) return tS("thisWeekLabel");
+  if (diffWeeks === 1) return tS("lastWeekLabel");
   const end = new Date(monday);
   end.setDate(monday.getDate() + 6);
-  return `${monday.getDate()} – ${end.getDate()} ${end.toLocaleDateString("es-ES", { month: "short" })}`;
+  return `${monday.getDate()} – ${end.getDate()} ${end.toLocaleDateString(locale, { month: "short" })}`;
 }
 
-function groupSessionsByWeek(items: WS[]): Array<{ label: string; sessions: WS[] }> {
+function groupSessionsByWeek(items: WS[], locale: string, tS: (key: string) => string): Array<{ label: string; sessions: WS[] }> {
   const map = new Map<string, { monday: Date; sessions: WS[] }>();
   for (const s of items) {
     const monday = getMondayOf(new Date(s.date));
@@ -56,7 +56,7 @@ function groupSessionsByWeek(items: WS[]): Array<{ label: string; sessions: WS[]
   }
   return Array.from(map.values())
     .sort((a, b) => b.monday.getTime() - a.monday.getTime())
-    .map(({ monday, sessions }) => ({ label: weekLabel(monday), sessions }));
+    .map(({ monday, sessions }) => ({ label: weekLabel(monday, locale, tS), sessions }));
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -126,6 +126,8 @@ function applyFilters(
 }
 
 function SessionDetailContent({ session, routines }: { session: WS; routines: Routine[] }) {
+  const { locale } = useLocale();
+  const tS = useTranslations("sessions");
   const formatDuration = (s?: number) => {
     if (!s) return null;
     const h = Math.floor(s / 3600);
@@ -140,10 +142,10 @@ function SessionDetailContent({ session, routines }: { session: WS; routines: Ro
     <div className="p-4 space-y-4">
       {/* Meta */}
       <div className="flex flex-wrap gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-        <span>{new Date(session.date).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+        <span>{new Date(session.date).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
         {dur && <span>· {dur}</span>}
         {vol > 0 && <span>· {formatVolume(vol)}</span>}
-        {!routine && <span className="text-red-500">· Rutina eliminada</span>}
+        {!routine && <span className="text-red-500">· {tS("deletedRoutineLabel")}</span>}
       </div>
 
       {/* Exercises */}
@@ -153,8 +155,8 @@ function SessionDetailContent({ session, routines }: { session: WS; routines: Ro
           return (
             <div key={i} className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
-                <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">{ex.exerciseName || "Ejercicio"}</p>
-                <span className="text-xs text-zinc-400">{sets} serie{sets !== 1 ? "s" : ""}</span>
+                <p className="font-semibold text-sm text-zinc-800 dark:text-zinc-200">{ex.exerciseName || tS("exercise")}</p>
+                <span className="text-xs text-zinc-400">{tS("setsCount").replace("{count}", String(sets))}</span>
               </div>
               {ex.actualReps && ex.actualReps.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
@@ -162,7 +164,7 @@ function SessionDetailContent({ session, routines }: { session: WS; routines: Ro
                     const w = ex.actualWeight?.[si];
                     return (
                       <span key={si} className="text-xs px-2 py-0.5 bg-white dark:bg-zinc-700 rounded-lg text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600">
-                        {reps} rep{w ? ` × ${w}kg` : ""}
+                        {reps} {tS("repsShort")}{w ? ` × ${w}${tS("weightUnit")}` : ""}
                       </span>
                     );
                   })}
@@ -194,7 +196,7 @@ export default function SessionsPage() {
   } = useGym();
   const { success, error: showError } = useToast();
   const { confirm } = useConfirm();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
   const tS = useCallback((key: string) => t(`sessions.${key}`), [t]);
 
@@ -388,8 +390,8 @@ export default function SessionsPage() {
       <ProtectedRoute>
         <PageLayout>
           <PageHeader
-            title="Historial de Sesiones"
-            subtitle="Revisa y analiza tus entrenamientos anteriores"
+            title={tS("title")}
+            subtitle={tS("subtitle")}
             icon={<Calendar className="w-7 h-7 text-white" />}
             gradient="from-indigo-600 to-violet-600"
           />
@@ -405,8 +407,8 @@ export default function SessionsPage() {
     <ProtectedRoute>
       <PageLayout>
         <PageHeader
-          title="Historial de Sesiones"
-          subtitle="Revisa y analiza tus entrenamientos anteriores"
+          title={tS("title")}
+          subtitle={tS("subtitle")}
           icon={<Calendar className="w-7 h-7 text-white" />}
           gradient="from-indigo-600 to-violet-600"
         >
@@ -463,9 +465,9 @@ export default function SessionsPage() {
           {sessions.length === 0 ? (
             <EmptyState
               icon="📊"
-              title="No hay sesiones registradas"
-              description="Completa tu primera rutina para ver tu historial aquí"
-              actionLabel="Crear primera rutina"
+              title={tS("noSessions")}
+              description={tS("noSessionsDesc")}
+              actionLabel={tS("firstRoutineCta")}
               actionIcon={<Calendar className="w-5 h-5" />}
               onAction={() => router.push("/routines")}
               variant="info"
@@ -479,7 +481,7 @@ export default function SessionsPage() {
                   className="lg:hidden flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                 >
                   <Filter className="w-4 h-4" />
-                  Filtros
+                  {tS("filter")}
                   {(filters.searchTerm || filters.selectedRoutine !== "all" || filters.dateRange !== "all") && (
                     <span className="w-2 h-2 rounded-full bg-indigo-500" />
                   )}
@@ -491,7 +493,7 @@ export default function SessionsPage() {
                     onChange={(e) => setHideDeletedRoutines(e.target.checked)}
                     className="form-checkbox h-4 w-4 text-blue-600 rounded"
                   />
-                  <span>Ocultar eliminadas</span>
+                  <span>{tS("hideDeletedRoutines")}</span>
                 </label>
                 {filteredSessions.length > 1 && (
                   <SessionComparison
@@ -528,7 +530,7 @@ export default function SessionsPage() {
                     <>
                       {/* Timeline agrupado por semana */}
                       <div className="relative">
-                        {groupSessionsByWeek(pagination.currentPageItems).map((group, gi) => (
+                        {groupSessionsByWeek(pagination.currentPageItems, locale, tS).map((group, gi) => (
                           <div key={gi} className="mb-6">
                             {/* Separador de semana */}
                             <div className="flex items-center gap-3 mb-3">
@@ -537,7 +539,7 @@ export default function SessionsPage() {
                               </span>
                               <div className="flex-1 h-px bg-indigo-200 dark:bg-indigo-800/60" />
                               <span className="text-xs text-zinc-400 dark:text-zinc-500 shrink-0">
-                                {group.sessions.length} sesión{group.sessions.length !== 1 ? "es" : ""}
+                                {(group.sessions.length === 1 ? tS("weekSessionCountSingular") : tS("weekSessionCount")).replace("{count}", String(group.sessions.length))}
                               </span>
                             </div>
 
@@ -603,7 +605,7 @@ export default function SessionsPage() {
               <BottomSheet
                 isOpen={isFilterSheetOpen}
                 onClose={() => setIsFilterSheetOpen(false)}
-                title="Filtros"
+                title={tS("filterTitle")}
                 maxHeight="85vh"
               >
                 <div className="p-4">
@@ -624,7 +626,7 @@ export default function SessionsPage() {
                 <BottomSheet
                   isOpen={!!viewingSession}
                   onClose={() => setViewingSession(null)}
-                  title={viewingSession.routineName || routines.find(r => r.id === viewingSession.routineId)?.name || "Detalle"}
+                  title={viewingSession.routineName || routines.find(r => r.id === viewingSession.routineId)?.name || tS("detailsTitle")}
                   maxHeight="90vh"
                 >
                   <SessionDetailContent session={viewingSession} routines={routines} />

@@ -19,7 +19,7 @@ import {
   Trophy,
 } from '@/components/icons/lucide';
 import { useValidSessions } from '@/hooks/useValidSessions';
-import { useTranslations } from '@/context/LocaleContext';
+import { useLocale, useTranslations } from '@/context/LocaleContext';
 import type { WorkoutSession } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -33,19 +33,19 @@ interface SparkPoint {
 
 interface PanelMetrics {
   volumeCurrent: number;
-  volumeChange: number;
+  volumeChange: number | null;
   volumeHistory: SparkPoint[];
 
-  wilksCurrent: number;
-  wilksChange: number;
-  wilksHistory: SparkPoint[];
+  oneRmCurrent: number;
+  oneRmChange: number | null;
+  oneRmHistory: SparkPoint[];
 
   densityCurrent: number;
-  densityChange: number;
+  densityChange: number | null;
   densityHistory: SparkPoint[];
 
   consistencyCurrent: number;
-  consistencyChange: number;
+  consistencyChange: number | null;
   consistencyHistory: SparkPoint[];
 }
 
@@ -85,8 +85,8 @@ function sessionDurationMin(session: WorkoutSession): number {
   return session.totalDuration ? session.totalDuration / 60 : 60;
 }
 
-function pctChange(current: number, previous: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0;
+function pctChange(current: number, previous: number): number | null {
+  if (previous === 0) return null;
   return ((current - previous) / previous) * 100;
 }
 
@@ -95,6 +95,7 @@ function pctChange(current: number, previous: number): number {
 function computeMetrics(
   sessions: WorkoutSession[],
   range: TimeRange,
+  locale: string,
 ): PanelMetrics {
   const now = new Date();
 
@@ -147,11 +148,11 @@ function computeMetrics(
     if (range === 'week') {
       const d = new Date(now);
       d.setDate(d.getDate() - periodsAgo * 7);
-      return `S${d.getDate()}/${d.getMonth() + 1}`;
+      return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(d);
     }
     if (range === 'month') {
       const d = new Date(now.getFullYear(), now.getMonth() - periodsAgo, 1);
-      return d.toLocaleString('es', { month: 'short' });
+      return d.toLocaleString(locale, { month: 'short' });
     }
     return String(now.getFullYear() - periodsAgo);
   };
@@ -161,7 +162,7 @@ function computeMetrics(
     value: Math.round(b.volume),
   }));
 
-  const wilksHistory: SparkPoint[] = buckets.map((b, i) => ({
+  const oneRmHistory: SparkPoint[] = buckets.map((b, i) => ({
     label: bucketLabel(i),
     value: Math.round(b.rm * 10) / 10,
   }));
@@ -187,9 +188,9 @@ function computeMetrics(
     volumeChange: pctChange(current.volume, prev.volume),
     volumeHistory,
 
-    wilksCurrent: current.rm,
-    wilksChange: pctChange(current.rm, prev.rm),
-    wilksHistory,
+    oneRmCurrent: current.rm,
+    oneRmChange: pctChange(current.rm, prev.rm),
+    oneRmHistory,
 
     densityCurrent: currDensity,
     densityChange: pctChange(currDensity, prevDensity),
@@ -204,15 +205,24 @@ function computeMetrics(
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 interface TrendBadgeProps {
-  value: number;
+  value: number | null;
   suffix?: string;
+  stableLabel: string;
+  newLabel: string;
 }
-const TrendBadge = ({ value, suffix = '%' }: TrendBadgeProps) => {
+const TrendBadge = ({ value, suffix = '%', stableLabel, newLabel }: TrendBadgeProps) => {
+  if (value === null) {
+    return (
+      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+        {newLabel}
+      </span>
+    );
+  }
   if (Math.abs(value) < 0.5) {
     return (
       <span className="inline-flex items-center gap-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">
         <Minus className="w-3 h-3" />
-        Estable
+        {stableLabel}
       </span>
     );
   }
@@ -276,11 +286,12 @@ const MiniSparkline = ({ data, color }: MiniSparklineProps) => (
 export const IntegratedProgressPanel: React.FC = () => {
   const [range, setRange] = useState<TimeRange>('month');
   const sessions = useValidSessions();
+  const { locale } = useLocale();
   const t = useTranslations('progress.panel');
 
   const metrics = useMemo(
-    () => computeMetrics(sessions, range),
-    [sessions, range],
+    () => computeMetrics(sessions, range, locale),
+    [sessions, range, locale],
   );
 
   const rangeOptions: { value: TimeRange; label: string }[] = [
@@ -293,7 +304,7 @@ export const IntegratedProgressPanel: React.FC = () => {
     {
       key: 'volume',
       icon: <BarChart3 className="w-5 h-5 text-indigo-500" />,
-      title: t('monthlyVolume'),
+      title: t(range === 'week' ? 'weeklyVolume' : range === 'month' ? 'monthlyVolume' : 'annualVolume'),
       value: metrics.volumeCurrent > 0
         ? `${(metrics.volumeCurrent / 1000).toFixed(1)}t`
         : '—',
@@ -305,18 +316,18 @@ export const IntegratedProgressPanel: React.FC = () => {
       unit: 'kg',
     },
     {
-      key: 'wilks',
+      key: 'oneRm',
       icon: <Trophy className="w-5 h-5 text-amber-500" />,
-      title: t('wilksScore'),
-      value: metrics.wilksCurrent > 0
-        ? metrics.wilksCurrent.toFixed(1)
+      title: t('estimated1RM'),
+      value: metrics.oneRmCurrent > 0
+        ? metrics.oneRmCurrent.toFixed(1)
         : '—',
-      rawValue: metrics.wilksCurrent,
-      change: metrics.wilksChange,
-      history: metrics.wilksHistory,
+      rawValue: metrics.oneRmCurrent,
+      change: metrics.oneRmChange,
+      history: metrics.oneRmHistory,
       color: '#f59e0b',
       href: '/calculators',
-      unit: 'kg 1RM',
+      unit: t('estimated1RMUnit'),
     },
     {
       key: 'density',
@@ -402,7 +413,11 @@ export const IntegratedProgressPanel: React.FC = () => {
                   </p>
                 </div>
                 {card.rawValue > 0 && (
-                  <TrendBadge value={card.change} />
+                  <TrendBadge
+                    value={card.change}
+                    stableLabel={t('trendStableLabel')}
+                    newLabel={t('trendNew')}
+                  />
                 )}
               </div>
 
@@ -433,7 +448,7 @@ export const IntegratedProgressPanel: React.FC = () => {
       </div>
 
       {/* Strength trend banner */}
-      {sessions.length > 0 && (
+      {sessions.length > 0 && metrics.volumeChange !== null && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
           <TrendingUp className="w-4 h-4 text-indigo-500 shrink-0" />
           <p className="text-xs text-indigo-700 dark:text-indigo-300">
