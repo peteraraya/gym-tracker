@@ -10,6 +10,7 @@ import { EditValueModal } from "@/components/shared/EditValueModal";
 import { useToast } from "@/context/NotificationContext";
 import { formatRestTime } from "@/lib/shared/utils/formatTime";
 import { soundManager } from "@/lib/infrastructure/audio/soundSystem";
+import { RestTimer } from "@/components/workout/RestTimer";
 import type { Exercise } from "@/types";
 import type { WeightSuggestion } from "@/lib/shared/utils/weightSuggestions";
 
@@ -40,6 +41,17 @@ interface ExerciseCardProps {
   actualWeights?: number[];
   // Callback para cambiar el tempo del ejercicio
   onTempoChange?: (tempo: string) => void;
+  // Timer de descanso (inline compacto)
+  isResting?: boolean;
+  restTimeLeft?: number;
+  restDuration?: number;
+  restTitle?: string;
+  nextExerciseName?: string;
+  onRestComplete?: () => void;
+  onRestExtend?: (seconds: number) => void;
+  onRestPause?: () => void;
+  onRestSkip?: () => void;
+  smartRestSuggestion?: { seconds: number; reason: string } | null;
 }
 
 /**
@@ -72,6 +84,16 @@ export function ExerciseCard({
   personalRecord,
   actualWeights = [],
   onTempoChange,
+isResting = false,
+  restTimeLeft,
+  restDuration,
+  restTitle,
+  nextExerciseName,
+  onRestComplete,
+  onRestExtend,
+  onRestPause,
+  onRestSkip,
+  smartRestSuggestion,
 }: ExerciseCardProps) {
   const { success } = useToast();
   const totalSets = exercise.sets.length;
@@ -588,6 +610,28 @@ export function ExerciseCard({
             </button>
           </div>
         </div>
+
+        {/* Timer de descanso inline (modo compacto) */}
+        {isResting && restDuration && restTimeLeft !== undefined && (
+          <div className="mt-3" data-testid="inline-rest-timer">
+            <RestTimer
+              compact
+              size="md"
+              duration={restDuration}
+              remaining={restTimeLeft}
+              state={restTimeLeft > 0 ? 'running' : 'completed'}
+              onStateChange={() => {}}
+              label={restTitle || "Descanso"}
+              nextExercise={nextExerciseName}
+              smartSuggestion={smartRestSuggestion}
+              onComplete={onRestComplete}
+              onSkip={onRestSkip}
+              onExtend={onRestExtend}
+              onPause={onRestPause}
+              autoStart={true}
+            />
+          </div>
+        )}
 
         {/* Quick action: Repeat Previous - Más compacto */}
         {lastSetData && onRepeatPrevious && !isSetStarted && (

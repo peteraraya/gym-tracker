@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { NumericInput } from "@/components/ui/NumericInput";
 import { useTranslations } from "@/context/LocaleContext";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
-import { Timer } from "@/components/features/workout/Timer";
 import { motion, AnimatePresence } from "framer-motion";
 import { MinimizedTimer } from "@/components/features/workout/MinimizedTimer";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
@@ -20,9 +19,10 @@ import { WorkoutCompleteSplash } from "@/components/features/workout/WorkoutComp
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PRCelebration } from "@/components/features/workout/PRCelebration";
 import { useWorkoutPageState } from "./hooks/useWorkoutPageState";
+import { RestTimer } from "@/components/workout/RestTimer";
 
 import { getRoutineStats } from '@/lib/application/routines/routineEstimation';
-import { applySmartRestToAllSets } from "./services/restCalculationService";
+import { applySmartRestToAllSets, calculateSmartRestTime } from "./services/restCalculationService";
 import type { Exercise } from "@/types";
 
 const ExerciseInfoPanel = lazy(() =>
@@ -136,10 +136,23 @@ export default function WorkoutPage() {
   }
 
   if (state.timerHandlers.showTimer && !state.timerHandlers.timerMinimized) {
+    const currentEx = state.currentExercise;
+    const nextEx = state.routine?.exercises.find((ex: Exercise, idx: number) =>
+      idx === state.workoutState.currentExerciseIndex + 1 && !state.workoutState.workoutData.skippedExercises?.includes(ex.id)
+    );
+    const isLastSet = currentEx && (state.workoutState.workoutData.completedSets[currentEx.id] || 0) >= currentEx.sets.length - 1;
+    const smartSuggestion = (currentEx && state.useSmartRest && calculateSmartRestTime(currentEx))
+      ? { seconds: calculateSmartRestTime(currentEx) || 30, reason: `Descanso inteligente sugerido para ${currentEx.name}` }
+      : null;
+
     return (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="absolute inset-0 bg-linear-to-br from-blue-600/40 via-purple-600/30 to-indigo-700/25 backdrop-blur-md" />
-        <div className="relative z-10 px-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-zinc-950/80 px-3 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:px-5">
+        <div
+          className="relative z-10 my-auto w-full max-w-md rounded-3xl border border-white/10 bg-zinc-950 p-4 shadow-2xl shadow-black/40 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Temporizador de descanso"
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key="timer"
@@ -147,23 +160,24 @@ export default function WorkoutPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.18 }}
-              className="flex flex-col gap-4 max-w-sm mx-auto"
+              className="w-full"
             >
-              <Timer
+              <RestTimer
                 duration={state.timerHandlers.timerDuration}
-                initialTimeLeft={state.timerHandlers.currentTimeLeft}
-                title={state.timerHandlers.timerTitle}
-                nextExerciseName={state.timerHandlers.nextExerciseName}
+                label={state.timerHandlers.timerTitle}
+                nextExercise={isLastSet && nextEx ? nextEx.name : state.timerHandlers.nextExerciseName}
+                smartSuggestion={smartSuggestion}
                 onComplete={state.handleTimerComplete}
                 onSkip={state.timerHandlers.skipAndAdvance}
+                onExtend={(s) => state.timerHandlers.setCurrentTimeLeft(state.timerHandlers.currentTimeLeft + s)}
+                onPause={() => state.timerHandlers.minimizeTimer(state.timerHandlers.currentTimeLeft)}
                 autoStart={true}
-                showMotivation={true}
-                onMinimize={state.timerHandlers.minimizeTimer}
+                size="xl"
               />
               
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-2xl border border-gray-200 dark:border-gray-700 text-center animate-fade-in-up">
-                <p className="text-sm font-bold text-gray-600 dark:text-gray-400 mb-3">¿Cómo sentiste la serie anterior?</p>
-                <div className="flex gap-2 justify-center">
+              <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/90 p-3 text-center shadow-lg animate-fade-in-up sm:mt-5 sm:p-4">
+                <p className="mb-3 text-xs font-semibold tracking-wide text-zinc-400 sm:text-sm">¿Cómo sentiste la serie anterior?</p>
+                <div className="flex gap-2">
                   <button 
                     onClick={() => {
                       const currentW = Number(state.workoutState.currentWeight) || 0;
@@ -172,7 +186,7 @@ export default function WorkoutPage() {
                       state.success(`💪 Fácil: Peso ajustado a ${newWeight}kg para la siguiente serie`, 3000);
                       state.haptic.success();
                     }}
-                    className="flex-1 py-2 px-1 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold border border-green-200 dark:border-green-800 active:scale-95 transition-transform"
+                    className="min-h-14 flex-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-1 py-2 text-xs font-semibold text-emerald-400 transition-all hover:-translate-y-0.5 hover:border-emerald-400/60 hover:bg-emerald-500/15 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                   >
                     🥱 Fácil<br/>(+2.5kg)
                   </button>
@@ -181,7 +195,7 @@ export default function WorkoutPage() {
                       state.success(`👍 Normal: Mantenemos el peso`, 2000);
                       state.haptic.success();
                     }}
-                    className="flex-1 py-2 px-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg text-xs font-bold border border-blue-200 dark:border-blue-800 active:scale-95 transition-transform"
+                    className="min-h-14 flex-1 rounded-xl border border-zinc-700 bg-zinc-800/80 px-1 py-2 text-xs font-semibold text-zinc-200 transition-all hover:-translate-y-0.5 hover:border-zinc-500 hover:bg-zinc-800 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                   >
                     😐 Normal<br/>(Igual)
                   </button>
@@ -193,7 +207,7 @@ export default function WorkoutPage() {
                       state.success(`🔥 Difícil: Peso ajustado a ${newWeight}kg para evitar fallos`, 3000);
                       state.haptic.success();
                     }}
-                    className="flex-1 py-2 px-1 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-xs font-bold border border-red-200 dark:border-red-800 active:scale-95 transition-transform"
+                    className="min-h-14 flex-1 rounded-xl border border-rose-500/30 bg-rose-500/10 px-1 py-2 text-xs font-semibold text-rose-400 transition-all hover:-translate-y-0.5 hover:border-rose-400/60 hover:bg-rose-500/15 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                   >
                     🥵 Difícil<br/>(-2.5kg)
                   </button>

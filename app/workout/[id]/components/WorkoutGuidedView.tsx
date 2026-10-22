@@ -28,12 +28,14 @@ export function WorkoutGuidedView({
   handleEditReps,
   handleEditWeight,
   handleEditSetType,
+  timerHandlers,
+  handleTimerComplete,
+  smartRestTime,
   handleToggleSetComplete,
   handleAddSet,
   handleDeleteSet,
   handleEditRestTime,
   handleApplySmartRest,
-  smartRestTime,
   useSmartRest,
   handleSelectExercise,
   handleMoveExercise,
@@ -165,6 +167,16 @@ export function WorkoutGuidedView({
           setRoutine(updatedRoutine);
           updateModifiedRoutine(prepareRoutineForSave(updatedRoutine)).catch(() => {});
         }}
+        // Timer de descanso inline
+        isResting={timerHandlers.showTimer && !timerHandlers.timerMinimized}
+        restDuration={timerHandlers.timerDuration}
+        restTitle={timerHandlers.timerTitle}
+        nextExerciseName={timerHandlers.nextExerciseName}
+        onRestComplete={handleTimerComplete}
+        onRestExtend={(s) => timerHandlers.setCurrentTimeLeft(timerHandlers.currentTimeLeft + s)}
+        onRestPause={() => timerHandlers.minimizeTimer(timerHandlers.currentTimeLeft)}
+        onRestSkip={timerHandlers.skipAndAdvance}
+        smartRestSuggestion={smartRestTime ? { seconds: smartRestTime, reason: `Descanso inteligente para ${currentExercise?.name}` } : null}
       />
 
       <div className="mb-4">
