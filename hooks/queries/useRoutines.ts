@@ -2,13 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as storageService from '@/lib/infrastructure/storage/storage';
 import { queryKeys } from '@/lib/infrastructure/react-query/queryKeys';
 import type { Routine } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export function useRoutines() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const routinesQueryKey = queryKeys.routines.listForUser(user?.id ?? null);
   
   // Query for fetching routines
   const query = useQuery({
-    queryKey: queryKeys.routines.lists(),
+    queryKey: routinesQueryKey,
     queryFn: () => storageService.getRoutines(),
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
@@ -30,9 +33,9 @@ export function useRoutines() {
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.routines.lists() });
       
-      const previousRoutines = queryClient.getQueryData(queryKeys.routines.lists());
+      const previousRoutines = queryClient.getQueryData(routinesQueryKey);
       
-      queryClient.setQueryData(queryKeys.routines.lists(), (old: Routine[] | undefined) => {
+      queryClient.setQueryData(routinesQueryKey, (old: Routine[] | undefined) => {
         if (!old) return old;
         return old.map(routine => {
           if (routine.id !== id) return routine;
@@ -53,7 +56,7 @@ export function useRoutines() {
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousRoutines) {
-        queryClient.setQueryData(queryKeys.routines.lists(), context.previousRoutines);
+        queryClient.setQueryData(routinesQueryKey, context.previousRoutines);
       }
     },
     onSettled: () => {

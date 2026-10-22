@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/infrastructure/react-query/queryKeys';
 import * as storageService from '@/lib/infrastructure/storage/storage';
+import { useAuth } from '@/context/AuthContext';
 
 const STALE_TIME = 5 * 60 * 1000;
 
@@ -15,19 +16,21 @@ const STALE_TIME = 5 * 60 * 1000;
  */
 export function PrefetchData() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
 
   useEffect(() => {
     void queryClient.prefetchQuery({
-      queryKey: queryKeys.routines.lists(),
+      queryKey: queryKeys.routines.listForUser(userId),
       queryFn: () => storageService.getRoutines(),
       staleTime: STALE_TIME,
     });
     void queryClient.prefetchQuery({
-      queryKey: queryKeys.sessions.lists(),
+      queryKey: queryKeys.sessions.listForUser(userId),
       queryFn: () => storageService.getSessions(),
       staleTime: STALE_TIME,
     });
-  }, [queryClient]);
+  }, [queryClient, userId]);
 
   return null;
 }

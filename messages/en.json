@@ -143,7 +143,12 @@
     "install": "Install now",
     "later": "Later",
     "installError": "The installer could not be opened. Try again from your browser menu.",
-    "close": "Close"
+    "close": "Close",
+    "offlineStatus": "Offline. You can continue using data saved on this device.",
+    "syncingStatus": "Connection restored: synchronizing saved changes…",
+    "syncCompleteStatus": "Changes synchronized: {count}.",
+    "syncErrorStatus": "Not all changes could be synchronized ({count} pending). They remain on this device; we'll retry.",
+    "dismissOffline": "Dismiss"
   },
   "nav": {
     "home": "Home",
@@ -186,6 +191,17 @@
     "cloudUnavailableDescription": "A cloud operation could not be completed. Check the connection and configuration before continuing.",
     "connectedTitle": "Connected",
     "connectedDescription": "Data is synced with the database."
+  },
+  "offlinePage": {
+    "title": "Offline",
+    "description": "You can access data already saved or loaded on this device. Some connected features will be unavailable.",
+    "availableTitle": "Availability depends on saved data",
+    "workouts": "Continue a workout saved on this device",
+    "routines": "View routines saved or previously loaded",
+    "progress": "View statistics calculated from locally available sessions",
+    "exercises": "View exercise resources saved previously",
+    "retry": "Try again",
+    "footer": "Supported changes are saved locally and synchronization is retried after connectivity returns and you reopen the app."
   },
   "auth": {
     "signIn": "Sign In",

@@ -16,6 +16,104 @@ import logger from '@/lib/shared/logger';
 export type { SetData, RoutineExercise, CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/infrastructure/storage/localStorage';
 import type { CreateRoutineData, UserProfile, ProgressRecommendation, WeeklyPlan, MonthlyPlan, ActiveWorkout } from '@/lib/infrastructure/storage/localStorage';
 
+const PENDING_SYNC_KEY = 'gym_logic_pending_sync_v1';
+
+interface PendingSyncOperation {
+  key: string;
+  entity:
+    | 'routine'
+    | 'session'
+    | 'profile'
+    | 'weeklyPlan'
+    | 'activeWorkout'
+    | 'routineDelete'
+    | 'sessionDelete'
+    | 'activeWorkoutDelete';
+  id: string;
+  ownerId: string;
+  updatedAt: number;
+}
+
+function readPendingOperations(): PendingSyncOperation[] {
+  if (typeof localStorage === 'undefined') return [];
+  const stored = localStorage.getItem(PENDING_SYNC_KEY);
+  if (!stored) return [];
+  const parsed: unknown = JSON.parse(stored);
+  if (!Array.isArray(parsed)) throw new Error('Offline sync queue is malformed');
+  return parsed.filter(
+    (item): item is PendingSyncOperation =>
+      typeof item === 'object' &&
+      item !== null &&
+      typeof item.key === 'string' &&
+      typeof item.id === 'string' &&
+      typeof item.ownerId === 'string' &&
+      typeof item.updatedAt === 'number' &&
+      typeof item.entity === 'string' &&
+      [
+        'routine',
+        'session',
+        'profile',
+        'weeklyPlan',
+        'activeWorkout',
+        'routineDelete',
+        'sessionDelete',
+        'activeWorkoutDelete',
+      ].includes(item.entity),
+  );
+}
+
+function writePendingOperations(operations: PendingSyncOperation[]): void {
+  localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(operations));
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function hasWeeklyPlanAssignments(plan: unknown): boolean {
+  if (!plan || typeof plan !== 'object') return false;
+  return Object.values(plan).some((day) => {
+    if (Array.isArray(day)) return day.length > 0;
+    if (!day || typeof day !== 'object') return false;
+    const routines = (day as { routines?: unknown }).routines;
+    return Array.isArray(routines) && routines.length > 0;
+  });
+}
+
+async function queuePendingOperation(
+  entity: 'routineDelete' | 'sessionDelete' | 'activeWorkout' | 'activeWorkoutDelete',
+  id: string,
+): Promise<void> {
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const ownerId = await dbSvc.getCurrentUserId();
+  if (!ownerId) return;
+  const key = `${entity}:${id}`;
+  const operations = readPendingOperations().filter(
+    (operation) => operation.key !== key &&
+      !(entity === 'routineDelete' && operation.key === `routine:${id}`) &&
+      !(entity === 'sessionDelete' && operation.key === `session:${id}`) &&
+      !(entity === 'activeWorkoutDelete' && operation.key === `activeWorkout:${id}`) &&
+      !(entity === 'activeWorkout' && operation.key === `activeWorkoutDelete:${id}`),
+  );
+  operations.push({ key, entity, id, ownerId, updatedAt: Date.now() });
+  writePendingOperations(operations);
+}
+
+function removePendingOperations(keys: Set<string>): void {
+  writePendingOperations(readPendingOperations().filter((operation) => !keys.has(operation.key)));
+}
+
+function notifySyncStatus(detail: {
+  state: 'syncing' | 'complete' | 'error';
+  pending: number;
+  synced: number;
+  errors: number;
+}): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('gym-logix:sync-status', { detail }));
+  }
+}
+
 // ==================== Strategy Interface ====================
  
 export interface StorageStrategy {
@@ -172,6 +270,14 @@ class StorageRouter {
     this.notifyStatusChange();
   }
 
+  onSyncSuccess(): void {
+    this.onSuccess();
+  }
+
+  onWriteFallback(): void {
+    this.onError();
+  }
+
   private notifyStatusChange(): void {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('gym-logix:storage-status'));
@@ -218,7 +324,7 @@ class StorageRouter {
     return fn(this.localStore);
   }
 
-  /** Supabase mode → Supabase only; localStorage mode → local only. No cross-fallback, throws on error. */
+  /** Supabase-only critical operation. */
   async critical<T>(fn: (s: StorageStrategy) => Promise<T>): Promise<T | null> {
     const strategy = this.isDbEnabled() ? this.supabase : this.localStore;
     try {
@@ -244,6 +350,26 @@ class StorageRouter {
     }
   }
 
+  async read<T>(fn: (s: StorageStrategy) => Promise<T>): Promise<T> {
+    if (!this.isDbEnabled()) return fn(this.localStore);
+    try {
+      const dbSvc = await import('@/lib/infrastructure/supabase/service');
+      const ownerId = await dbSvc.getCurrentUserId();
+      if (!ownerId) return fn(this.localStore);
+
+      const result = await fn(this.supabase);
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onError();
+      logger.warn('Remote read failed; using local data', {
+        operation: 'OFFLINE_READ_FALLBACK',
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return fn(this.localStore);
+    }
+  }
+
 /** Critical with draft saving on Supabase failure.
     * Guarda draft y notifica al router del fallo para que run()
     * pueda activar su fallback correctamente. */
@@ -256,19 +382,86 @@ class StorageRouter {
         logger.info('Database disabled, using localStorage');
         return fn(this.localStore);
       }
+      if (!this.shouldRetry()) {
+        const localResult = await fn(this.localStore);
+        const operation = await this.createPendingOperation(draftKey, draftPayload, localResult);
+        if (operation) this.storePendingOperation(operation);
+        this.notifyStatusChange();
+        return localResult;
+      }
       try {
         const result = await fn(this.supabase);
         this.onSuccess();
         return result;
-      } catch (err: unknown) {
+      } catch {
         this.onError();
-        logger.error('Critical operation failed, saving draft', { draftKey }, err instanceof Error ? err : undefined);
         try {
-          localStorage.setItem(draftKey, JSON.stringify({ ...(draftPayload as object), savedAt: Date.now() }));
-        } catch { /* ignore */ }
-        throw err;
+          const localResult = await fn(this.localStore);
+          const operation = await this.createPendingOperation(draftKey, draftPayload, localResult);
+          if (operation) this.storePendingOperation(operation);
+          logger.warn('Remote write saved locally for later synchronization', { draftKey });
+          this.notifyStatusChange();
+          return localResult;
+        } catch (localError) {
+          logger.error(
+            'Remote and local writes failed',
+            { draftKey },
+            localError instanceof Error ? localError : undefined,
+          );
+          throw new Error(
+            `No se pudo guardar en la nube ni en este dispositivo: ${
+              localError instanceof Error ? localError.message : String(localError)
+            }`,
+          );
+        }
       }
     }
+
+  private async createPendingOperation(
+    draftKey: string,
+    payload: unknown,
+    localResult: unknown,
+  ): Promise<PendingSyncOperation | null> {
+    const supabaseSvc = await import('@/lib/infrastructure/supabase/service');
+    const ownerId = await supabaseSvc.getCurrentUserId();
+    if (!ownerId) return null;
+
+    if (draftKey.startsWith('routine-draft-')) {
+      const resultId =
+        typeof localResult === 'object' && localResult !== null && 'id' in localResult
+          ? String((localResult as { id: unknown }).id)
+          : draftKey.replace('routine-draft-', '');
+      return { key: `routine:${resultId}`, entity: 'routine', id: resultId, ownerId, updatedAt: Date.now() };
+    }
+    if (draftKey.startsWith('session-draft-')) {
+      const sessionId =
+        typeof payload === 'object' && payload !== null && 'id' in payload
+          ? String((payload as { id: unknown }).id)
+          : draftKey.replace('session-draft-', '');
+      return { key: `session:${sessionId}`, entity: 'session', id: sessionId, ownerId, updatedAt: Date.now() };
+    }
+    if (draftKey === 'profile-draft') {
+      return { key: 'profile', entity: 'profile', id: ownerId, ownerId, updatedAt: Date.now() };
+    }
+    if (draftKey === 'weekly-plan-draft') {
+      return { key: 'weekly-plan', entity: 'weeklyPlan', id: ownerId, ownerId, updatedAt: Date.now() };
+    }
+    logger.warn('Unrecognized offline write type; leaving draft for manual recovery', { draftKey });
+    try {
+      localStorage.setItem(draftKey, JSON.stringify({ ...(payload as object), savedAt: Date.now() }));
+    } catch (error) {
+      logger.error('Could not persist fallback draft', { draftKey }, error instanceof Error ? error : undefined);
+      throw error;
+    }
+    return null;
+  }
+
+  private storePendingOperation(operation: PendingSyncOperation): void {
+    const pending = readPendingOperations();
+    const next = pending.filter((item) => item.key !== operation.key);
+    next.push(operation);
+    localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(next));
+  }
 
   /** Dual-write: localStorage first (always), then Supabase best-effort. */
   async dualWrite<T>(fn: (s: LocalStorageStrategy) => Promise<T>): Promise<T> {
@@ -328,7 +521,52 @@ export function getStorageStatus() { return router.status; }
 
 // --- Routines (critical data) ---
 export async function getRoutines(): Promise<Routine[]> {
-  return (await router.critical(s => s.getRoutines())) ?? [];
+  const routines = await router.read(s => s.getRoutines());
+  if (typeof window === 'undefined' || !router.isDbEnabled()) return routines;
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  const localRoutines = await localSvc.getRoutines();
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const ownerId = await dbSvc.getCurrentUserId();
+  const ownerOperations = readPendingOperations().filter((item) => item.ownerId === ownerId);
+  const pendingRoutineIds = new Set(
+    ownerOperations
+      .filter((item) => item.entity === 'routine')
+      .map((item) => item.id),
+  );
+  const deletedRoutineIds = new Set(
+    ownerOperations
+      .filter((item) => item.entity === 'routineDelete')
+      .map((item) => item.id),
+  );
+  const mappings = JSON.parse(
+    localStorage.getItem('gym_logic_remote_routine_ids') || '{}',
+  ) as Record<string, string>;
+  const localIdByRemoteId = new Map(
+    Object.entries(mappings).map(([localId, remoteId]) => [remoteId, localId]),
+  );
+  const mergedRemote = routines.filter((routine) => {
+    const localId = localIdByRemoteId.get(routine.id);
+    return !deletedRoutineIds.has(routine.id) && (!localId || !deletedRoutineIds.has(localId));
+  }).map((routine) => {
+    const localId = localIdByRemoteId.get(routine.id);
+    const localRoutine = localId
+      ? localRoutines.find((item) => item.id === localId)
+      : undefined;
+    if (localRoutine && pendingRoutineIds.has(localRoutine.id)) return localRoutine;
+    return localId ? { ...routine, id: localId } : routine;
+  });
+  const mergedIds = new Set(mergedRemote.map((routine) => routine.id));
+  const mergedRoutines = [
+    ...mergedRemote,
+    ...localRoutines.filter(
+      (routine) =>
+        !mergedIds.has(routine.id) &&
+        !deletedRoutineIds.has(routine.id) &&
+        (pendingRoutineIds.has(routine.id) || !Object.prototype.hasOwnProperty.call(mappings, routine.id)),
+    ),
+  ];
+  if (!router.status.hasError) await localSvc.replaceCachedRoutines(mergedRoutines);
+  return mergedRoutines;
 }
 
 export async function createRoutine(data: CreateRoutineData): Promise<Routine> {
@@ -342,29 +580,132 @@ export async function updateRoutine(id: string, data: CreateRoutineData): Promis
 }
 
 export async function deleteRoutine(id: string): Promise<void> {
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
   if (!router.isDbEnabled()) {
-    const svc = await import('@/lib/infrastructure/storage/localStorage');
-    await svc.deleteSessionsByRoutine(id);
-    await svc.deleteRoutine(id);
+    await localSvc.deleteSessionsByRoutine(id);
+    await localSvc.deleteRoutine(id);
     return;
   }
+  const mappings = JSON.parse(
+    localStorage.getItem('gym_logic_remote_routine_ids') || '{}',
+  ) as Record<string, string>;
+  const sessionsToRemove = (await localSvc.getSessions()).filter(
+    (session) => session.routineId === id,
+  );
   try {
-    const svc = await import('@/lib/infrastructure/supabase/service');
-    if (svc.deleteSessionsByRoutine) await svc.deleteSessionsByRoutine(id);
-    await svc.deleteRoutine(id);
-  } catch (err: unknown) {
-    logger.error('Error al eliminar rutina', { critical: true, routineId: id }, err instanceof Error ? err : undefined);
-    throw new Error('No se pudo eliminar la rutina. Verifica tu conexión a internet e intenta de nuevo.');
+    const dbSvc = await import('@/lib/infrastructure/supabase/service');
+    const remoteId = mappings[id] ?? id;
+    await dbSvc.deleteSessionsByRoutine(remoteId);
+    await dbSvc.deleteRoutine(remoteId);
+    await localSvc.deleteSessionsByRoutine(id);
+    await localSvc.deleteRoutine(id);
+    delete mappings[id];
+    localStorage.setItem('gym_logic_remote_routine_ids', JSON.stringify(mappings));
+    removePendingOperations(
+      new Set([
+        `routine:${id}`,
+        ...sessionsToRemove.map((session) => `session:${session.id}`),
+        `routineDelete:${id}`,
+      ]),
+    );
+  } catch (error) {
+    router.onWriteFallback();
+    await localSvc.deleteSessionsByRoutine(id);
+    await localSvc.deleteRoutine(id);
+    const removeKeys = new Set([
+      `routine:${id}`,
+      ...sessionsToRemove.map((session) => `session:${session.id}`),
+    ]);
+    removePendingOperations(removeKeys);
+    if (isUuid(mappings[id] ?? id)) {
+      await queuePendingOperation('routineDelete', id);
+    }
+    logger.warn(
+      'Routine deleted locally and queued for synchronization',
+      { routineId: id },
+      error instanceof Error ? error : undefined,
+    );
+    notifySyncStatus({
+      state: 'error',
+      pending: readPendingOperations().length,
+      synced: 0,
+      errors: 1,
+    });
   }
 }
 
 // --- Sessions (critical data) ---
 export async function getSessions(): Promise<WorkoutSession[]> {
-  return (await router.critical(s => s.getSessions())) ?? [];
+  const sessions = await router.read(s => s.getSessions());
+  if (typeof window === 'undefined' || !router.isDbEnabled()) return sessions;
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  const localSessions = await localSvc.getSessions();
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const ownerId = await dbSvc.getCurrentUserId();
+  const ownerOperations = readPendingOperations().filter((item) => item.ownerId === ownerId);
+  const pendingSessionIds = new Set(
+    ownerOperations
+      .filter((item) => item.entity === 'session')
+      .map((item) => item.id),
+  );
+  const deletedSessionIds = new Set(
+    ownerOperations
+      .filter((item) => item.entity === 'sessionDelete')
+      .map((item) => item.id),
+  );
+  const deletedRoutineIds = new Set(
+    ownerOperations
+      .filter((item) => item.entity === 'routineDelete')
+      .map((item) => item.id),
+  );
+  const mappings = JSON.parse(
+    localStorage.getItem('gym_logic_remote_routine_ids') || '{}',
+  ) as Record<string, string>;
+  const localIdByRemoteId = new Map(
+    Object.entries(mappings).map(([localId, remoteId]) => [remoteId, localId]),
+  );
+  const merged = new Map(
+    sessions.filter((session) => {
+      const localRoutineId = localIdByRemoteId.get(session.routineId);
+      return (
+        !deletedSessionIds.has(session.id) &&
+        !deletedRoutineIds.has(session.routineId) &&
+        (!localRoutineId || !deletedRoutineIds.has(localRoutineId))
+      );
+    }).map((session) => [
+      session.id,
+      {
+        ...session,
+        routineId: localIdByRemoteId.get(session.routineId) ?? session.routineId,
+      },
+    ]),
+  );
+  for (const session of localSessions) {
+    if (
+      deletedSessionIds.has(session.id) ||
+      deletedRoutineIds.has(session.routineId)
+    ) continue;
+    if (!merged.has(session.id) || pendingSessionIds.has(session.id)) {
+      merged.set(session.id, session);
+    }
+  }
+  const mergedSessions = [...merged.values()].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  if (!router.status.hasError) await localSvc.replaceCachedSessions(mergedSessions);
+  return mergedSessions;
 }
 
 export async function saveSession(session: WorkoutSession): Promise<void> {
-  return router.criticalWithDraft(s => s.saveSession(session), `session-draft-${session.id || Date.now()}`, session);
+  const id = session.id || (typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const sessionWithId = { ...session, id };
+  return router.criticalWithDraft(
+    (strategy) => strategy.saveSession(sessionWithId),
+    `session-draft-${id}`,
+    sessionWithId,
+  );
 }
 
 export async function updateSession(session: WorkoutSession): Promise<void> {
@@ -372,12 +713,46 @@ export async function updateSession(session: WorkoutSession): Promise<void> {
 }
 
 export async function deleteSession(id: string): Promise<void> {
-  return (await router.critical(s => s.deleteSession(id))) ?? undefined;
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  if (!router.isDbEnabled()) return localSvc.deleteSession(id);
+  try {
+    const dbSvc = await import('@/lib/infrastructure/supabase/service');
+    await dbSvc.deleteSession(id);
+    await localSvc.deleteSession(id);
+    removePendingOperations(new Set([`session:${id}`, `sessionDelete:${id}`]));
+  } catch (error) {
+    router.onWriteFallback();
+    await localSvc.deleteSession(id);
+    removePendingOperations(new Set([`session:${id}`]));
+    if (isUuid(id)) {
+      await queuePendingOperation('sessionDelete', id);
+    }
+    logger.warn(
+      'Session deleted locally and queued for synchronization',
+      { sessionId: id },
+      error instanceof Error ? error : undefined,
+    );
+    notifySyncStatus({
+      state: 'error',
+      pending: readPendingOperations().length,
+      synced: 0,
+      errors: 1,
+    });
+  }
 }
 
 // --- Profile ---
 export async function getProfile(): Promise<UserProfile | null> {
-  return (await router.critical(s => s.getProfile())) ?? null;
+  const profile = await router.read(s => s.getProfile());
+  if (
+    router.status.mode === 'supabase' &&
+    !router.status.hasError &&
+    !readPendingOperations().some((operation) => operation.entity === 'profile')
+  ) {
+    const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+    await localSvc.replaceCachedProfile(profile);
+  }
+  return profile;
 }
 
 export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
@@ -389,7 +764,16 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
 
 // --- Weekly Plan ---
 export async function getWeeklyPlan(): Promise<WeeklyPlan | null> {
-  return (await router.critical(s => s.getWeeklyPlan())) ?? null;
+  const plan = await router.read(s => s.getWeeklyPlan());
+  if (
+    router.status.mode === 'supabase' &&
+    !router.status.hasError &&
+    !readPendingOperations().some((operation) => operation.entity === 'weeklyPlan')
+  ) {
+    const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+    await localSvc.replaceCachedWeeklyPlan(plan);
+  }
+  return plan;
 }
 
 export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
@@ -397,13 +781,13 @@ export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
   return router.criticalWithDraft(s => s.saveWeeklyPlan(plan), 'weekly-plan-draft', plan);
 }
 
-// --- Monthly Plan (allows fallback) ---
+// --- Monthly Plan (local-only; Supabase has no monthly plan storage) ---
 export async function getMonthlyPlan(): Promise<MonthlyPlan> {
-  return router.run(s => s.getMonthlyPlan());
+  return router.localStorageOnly(s => s.getMonthlyPlan());
 }
 
 export async function saveMonthlyPlan(plan: MonthlyPlan): Promise<void> {
-  return router.run(s => s.saveMonthlyPlan(plan));
+  return router.localStorageOnly(s => s.saveMonthlyPlan(plan));
 }
 
 // --- Recommendations (allows fallback) ---
@@ -426,6 +810,16 @@ export async function saveLastWeights(w: Record<string, number[]>): Promise<void
 
 // --- Active Workout (dual read/write) ---
 export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
+  if (router.isDbEnabled() && typeof localStorage !== 'undefined') {
+    const dbSvc = await import('@/lib/infrastructure/supabase/service');
+    const ownerId = await dbSvc.getCurrentUserId();
+    const ownerOperations = readPendingOperations().filter((item) => item.ownerId === ownerId);
+    if (ownerOperations.some((item) => item.entity === 'activeWorkoutDelete')) return null;
+    if (ownerOperations.some((item) => item.entity === 'activeWorkout')) {
+      const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+      return localSvc.getActiveWorkout();
+    }
+  }
   return router.dualRead(
     s => s.getActiveWorkout(),
     s => s.getActiveWorkout(),
@@ -433,11 +827,358 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
 }
 
 export async function saveActiveWorkout(payload: ActiveWorkout): Promise<void> {
-  return router.dualWrite(s => s.saveActiveWorkout(payload));
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  await localSvc.saveActiveWorkout(payload);
+  if (!router.isDbEnabled()) return;
+
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const ownerId = await dbSvc.getCurrentUserId();
+  try {
+    await dbSvc.saveActiveWorkout(payload);
+    router.onSyncSuccess();
+    if (ownerId) {
+      removePendingOperations(
+        new Set([`activeWorkout:${ownerId}`, `activeWorkoutDelete:${ownerId}`]),
+      );
+    }
+  } catch (error) {
+    router.onWriteFallback();
+    if (ownerId) await queuePendingOperation('activeWorkout', ownerId);
+    logger.warn(
+      'Active workout saved locally and queued for synchronization',
+      {},
+      error instanceof Error ? error : undefined,
+    );
+    notifySyncStatus({
+      state: 'error',
+      pending: readPendingOperations().filter((operation) => operation.ownerId === ownerId).length,
+      synced: 0,
+      errors: 1,
+    });
+  }
 }
 
 export async function clearActiveWorkout(): Promise<void> {
-  return router.dualWrite(s => s.clearActiveWorkout());
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  await localSvc.clearActiveWorkout();
+  if (!router.isDbEnabled()) return;
+
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const ownerId = await dbSvc.getCurrentUserId();
+  try {
+    await dbSvc.clearActiveWorkout();
+    router.onSyncSuccess();
+    if (ownerId) {
+      removePendingOperations(
+        new Set([`activeWorkout:${ownerId}`, `activeWorkoutDelete:${ownerId}`]),
+      );
+    }
+  } catch (error) {
+    router.onWriteFallback();
+    if (ownerId) await queuePendingOperation('activeWorkoutDelete', ownerId);
+    logger.warn(
+      'Active workout cleared locally and queued for synchronization',
+      {},
+      error instanceof Error ? error : undefined,
+    );
+    notifySyncStatus({
+      state: 'error',
+      pending: readPendingOperations().filter((operation) => operation.ownerId === ownerId).length,
+      synced: 0,
+      errors: 1,
+    });
+  }
+}
+
+export interface PendingSyncResult {
+  synced: number;
+  errors: number;
+  pending: number;
+}
+
+let pendingSyncPromise: Promise<PendingSyncResult> | null = null;
+
+export function syncPendingLocalData(): Promise<PendingSyncResult> {
+  if (pendingSyncPromise) return pendingSyncPromise;
+  pendingSyncPromise = syncPendingLocalDataInternal().finally(() => {
+    pendingSyncPromise = null;
+  });
+  return pendingSyncPromise;
+}
+
+async function syncPendingLocalDataInternal(): Promise<PendingSyncResult> {
+  if (!router.isDbEnabled() || typeof localStorage === 'undefined') {
+    return { synced: 0, errors: 0, pending: 0 };
+  }
+
+  const localSvc = await import('@/lib/infrastructure/storage/localStorage');
+  const dbSvc = await import('@/lib/infrastructure/supabase/service');
+  const ownerId = await dbSvc.getCurrentUserId();
+  if (!ownerId) return { synced: 0, errors: 0, pending: 0 };
+
+  let pending = readPendingOperations();
+  const ownerOperations = pending
+    .filter((operation) => operation.ownerId === ownerId)
+    .sort((a, b) => {
+      const priority = {
+        routine: 0,
+        session: 1,
+        profile: 2,
+        weeklyPlan: 3,
+        activeWorkout: 4,
+        sessionDelete: 5,
+        routineDelete: 6,
+        activeWorkoutDelete: 7,
+      };
+      return priority[a.entity] - priority[b.entity] || a.updatedAt - b.updatedAt;
+    });
+  let synced = 0;
+  let errors = 0;
+  const localRoutines = await localSvc.getRoutines();
+  const routineIds = new Map<string, string>();
+  const storedMappings = JSON.parse(
+    localStorage.getItem('gym_logic_remote_routine_ids') || '{}',
+  ) as Record<string, string>;
+  const needsRoutineLookup = ownerOperations.some(
+    (operation) => operation.entity === 'routine' || operation.entity === 'session',
+  );
+  const remoteRoutines = needsRoutineLookup ? await dbSvc.getRoutines() : [];
+  remoteRoutines.forEach((routine) => routineIds.set(routine.id, routine.id));
+  Object.entries(storedMappings).forEach(([localId, remoteId]) => {
+    routineIds.set(localId, remoteId);
+  });
+
+  if (ownerOperations.length > 0) {
+    notifySyncStatus({ state: 'syncing', pending: ownerOperations.length, synced, errors });
+  }
+
+  const removePending = (operation: PendingSyncOperation) => {
+    pending = pending.filter((item) => item.key !== operation.key);
+    writePendingOperations(pending);
+    synced += 1;
+    notifySyncStatus({
+      state: 'syncing',
+      pending: pending.filter((item) => item.ownerId === ownerId).length,
+      synced,
+      errors,
+    });
+  };
+
+  for (const operation of ownerOperations.filter((item) => item.entity === 'routine')) {
+    try {
+      if (ownerOperations.some((item) => item.entity === 'routineDelete' && item.id === operation.id)) {
+        removePending(operation);
+        continue;
+      }
+      const routine = localRoutines.find((item) => item.id === operation.id);
+      if (!routine) {
+        removePending(operation);
+        continue;
+      }
+
+      const mappedId = storedMappings[routine.id];
+      const byId = remoteRoutines.find(
+        (item) => item.id === routine.id || item.id === mappedId,
+      );
+      const sameName = remoteRoutines.filter(
+        (item) =>
+          item.name.trim().toLocaleLowerCase() === routine.name.trim().toLocaleLowerCase() &&
+          item.exercises.map((exercise) => exercise.name).join('|') ===
+            routine.exercises.map((exercise) => exercise.name).join('|'),
+      );
+      const existing = byId ?? (sameName.length === 1 ? sameName[0] : undefined);
+      const routineData: Parameters<typeof dbSvc.createRoutine>[0] = {
+        name: routine.name,
+        description: routine.description,
+        image: routine.image,
+        exercises: routine.exercises.map((exercise) => ({
+          id: exercise.id,
+          name: exercise.name,
+          sets: exercise.sets,
+          equipment: exercise.equipment,
+          notes: exercise.notes,
+          restBetweenSets: exercise.restBetweenSets,
+          useSmartRest: exercise.useSmartRest,
+          technique: Array.isArray(exercise.technique)
+            ? exercise.technique
+            : exercise.technique
+              ? [exercise.technique]
+              : undefined,
+          recommendedSets:
+            exercise.recommendedSets !== undefined ? String(exercise.recommendedSets) : undefined,
+          recommendedReps:
+            exercise.recommendedReps !== undefined ? String(exercise.recommendedReps) : undefined,
+          restTime: exercise.restTime !== undefined ? String(exercise.restTime) : undefined,
+        })),
+        restBetweenSets: routine.restBetweenSets,
+        restBetweenExercises: routine.restBetweenExercises,
+      };
+      const saved = existing
+        ? await dbSvc.updateRoutine(existing.id, routineData)
+        : await dbSvc.createRoutine(routineData);
+
+      routineIds.set(routine.id, saved.id);
+      storedMappings[routine.id] = saved.id;
+      localStorage.setItem('gym_logic_remote_routine_ids', JSON.stringify(storedMappings));
+      removePending(operation);
+    } catch (error) {
+      errors += 1;
+      logger.error(
+        'Failed to synchronize offline routine',
+        { routineId: operation.id },
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  const sessions = await localSvc.getSessions();
+  for (const operation of ownerOperations.filter((item) => item.entity === 'session')) {
+    try {
+      if (ownerOperations.some((item) => item.entity === 'sessionDelete' && item.id === operation.id)) {
+        removePending(operation);
+        continue;
+      }
+      const session = sessions.find((item) => item.id === operation.id);
+      if (!session) {
+        removePending(operation);
+        continue;
+      }
+      const remoteRoutineId = routineIds.get(session.routineId);
+      if (!remoteRoutineId) {
+        throw new Error(`No remote routine mapping for ${session.routineId}`);
+      }
+
+      const sessionId = session.id;
+      const idIsUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          sessionId,
+        );
+      const remoteSession = {
+        ...session,
+        id: idIsUuid
+          ? sessionId
+          : typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : (() => {
+                throw new Error('This browser cannot generate a secure session ID');
+              })(),
+        routineId: remoteRoutineId,
+      };
+      await dbSvc.saveSession(remoteSession);
+      if (remoteSession.id !== sessionId) {
+        await localSvc.deleteSession(sessionId);
+        await localSvc.saveSession(remoteSession);
+      }
+      removePending(operation);
+    } catch (error) {
+      errors += 1;
+      logger.error(
+        'Failed to synchronize offline session',
+        { sessionId: operation.id },
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  for (const operation of ownerOperations.filter(
+    (item) => item.entity === 'profile' || item.entity === 'weeklyPlan',
+  )) {
+    try {
+      if (operation.entity === 'profile') {
+        await dbSvc.updateProfile(await localSvc.getProfile());
+      } else {
+        const localPlan = await localSvc.getWeeklyPlan();
+        const remotePlan = await dbSvc.getWeeklyPlan();
+        if (!hasWeeklyPlanAssignments(localPlan) && hasWeeklyPlanAssignments(remotePlan)) {
+          await localSvc.replaceCachedWeeklyPlan(remotePlan);
+        } else {
+          await dbSvc.saveWeeklyPlan(localPlan);
+        }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('gym-logix:weekly-plan-synced'));
+        }
+      }
+      removePending(operation);
+    } catch (error) {
+      errors += 1;
+      logger.error(
+        'Failed to synchronize offline user data',
+        { entity: operation.entity },
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  for (const operation of ownerOperations.filter((item) => item.entity === 'activeWorkout')) {
+    try {
+      const activeWorkout = await localSvc.getActiveWorkout();
+      if (activeWorkout) await dbSvc.saveActiveWorkout(activeWorkout);
+      removePending(operation);
+    } catch (error) {
+      errors += 1;
+      logger.error(
+        'Failed to synchronize active workout',
+        {},
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  for (const operation of ownerOperations.filter((item) => item.entity === 'sessionDelete')) {
+    try {
+      await dbSvc.deleteSession(operation.id);
+      removePending(operation);
+    } catch (error) {
+      errors += 1;
+      logger.error(
+        'Failed to synchronize offline session deletion',
+        { sessionId: operation.id },
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  for (const operation of ownerOperations.filter((item) => item.entity === 'activeWorkoutDelete')) {
+    try {
+      await dbSvc.clearActiveWorkout();
+      removePending(operation);
+    } catch (error) {
+      errors += 1;
+      logger.error(
+        'Failed to synchronize active workout deletion',
+        {},
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  for (const operation of ownerOperations.filter((item) => item.entity === 'routineDelete')) {
+    try {
+      const remoteId = storedMappings[operation.id] ?? operation.id;
+      await dbSvc.deleteSessionsByRoutine(remoteId);
+      await dbSvc.deleteRoutine(remoteId);
+      delete storedMappings[operation.id];
+      localStorage.setItem('gym_logic_remote_routine_ids', JSON.stringify(storedMappings));
+      removePending(operation);
+    } catch (error) {
+      errors += 1;
+      logger.error(
+        'Failed to synchronize offline routine deletion',
+        { routineId: operation.id },
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  const remaining = readPendingOperations().filter((item) => item.ownerId === ownerId).length;
+  notifySyncStatus({
+    state: errors > 0 ? 'error' : 'complete',
+    pending: remaining,
+    synced,
+    errors,
+  });
+  if (remaining === 0 && errors === 0) router.onSyncSuccess();
+  return { synced, errors, pending: remaining };
 }
 
 // --- Utilities ---

@@ -16,6 +16,12 @@
 import { createClient } from '@/lib/infrastructure/supabase/client';
 import type { Routine, WorkoutSession } from '@/types';
 
+export async function getCurrentUserId(): Promise<string | null> {
+  const { data, error } = await createClient().auth.getSession();
+  if (error) throw new Error(`Error al leer la sesión: ${error.message}`);
+  return data.session?.user.id ?? null;
+}
+
 // ==================== ROUTINES ====================
 
 export interface SetData {
@@ -632,30 +638,25 @@ export async function getActiveWorkout(): Promise<any | null> {
 /**
  * Guardar o actualizar el entrenamiento activo para el usuario
  */
-export async function saveActiveWorkout(payload: any): Promise<void> {
+export async function saveActiveWorkout(payload: Record<string, unknown>): Promise<void> {
   const supabase = createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
-  try {
-    const { error } = await supabase
-      .from('active_workouts')
-      .upsert({ user_id: user.id, data: payload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  const { error } = await supabase
+    .from('active_workouts')
+    .upsert({ user_id: user.id, data: payload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
 
-    // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
-    if (error) {
-      if (error.code === '42P01' || 
-          error.message.includes('Could not find') ||
-          error.message.includes('does not exist')) {
-        return;
-      }
-      const { logger } = await import('@/lib/shared/logger');
-      logger.warn('Error saving active workout', { module: 'supabase-service', errorMessage: error.message });
+  if (error) {
+    if (
+      error.code === '42P01' ||
+      error.message.includes('Could not find') ||
+      error.message.includes('does not exist')
+    ) {
+      return;
     }
-  } catch (error: any) {
-    const { logger } = await import('@/lib/shared/logger');
-    logger.warn('Failed to save active workout', { module: 'supabase-service', errorMessage: error.message });
+    throw new Error(`Error al guardar entrenamiento activo: ${error.message}`);
   }
 }
 
@@ -668,25 +669,20 @@ export async function clearActiveWorkout(): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
-  try {
-    const { error } = await supabase
-      .from('active_workouts')
-      .delete()
-      .eq('user_id', user.id);
+  const { error } = await supabase
+    .from('active_workouts')
+    .delete()
+    .eq('user_id', user.id);
 
-    // Si la tabla no existe, no es un error crítico - el sistema usará localStorage
-    if (error) {
-      if (error.code === '42P01' || 
-          error.message.includes('Could not find') ||
-          error.message.includes('does not exist')) {
-        return;
-      }
-      const { logger } = await import('@/lib/shared/logger');
-      logger.warn('Error clearing active workout', { module: 'supabase-service', errorMessage: error.message });
+  if (error) {
+    if (
+      error.code === '42P01' ||
+      error.message.includes('Could not find') ||
+      error.message.includes('does not exist')
+    ) {
+      return;
     }
-  } catch (error: any) {
-    const { logger } = await import('@/lib/shared/logger');
-    logger.warn('Failed to clear active workout', { module: 'supabase-service', errorMessage: error.message });
+    throw new Error(`Error al eliminar entrenamiento activo: ${error.message}`);
   }
 }
 
@@ -699,17 +695,50 @@ export async function getWeeklyPlan(): Promise<any> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile, error } = await supabase
+  const { data: legacyProfile, error: legacyError } = await supabase
     .from('profiles')
     .select('weekly_plan')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(`Error al obtener plan semanal: ${error.message}`);
+  if (legacyError) {
+    throw new Error(`Error al obtener plan semanal: ${legacyError.message}`);
   }
 
-  return profile?.weekly_plan || null;
+  const legacyPlan = legacyProfile?.weekly_plan;
+  if (hasWeeklyPlanAssignments(legacyPlan)) return legacyPlan;
+
+  const { data: linkedProfile, error: linkedError } = await supabase
+    .from('profiles')
+    .select('weekly_plan')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (linkedError) {
+    if (legacyProfile && isMissingProfileUserIdColumn(linkedError)) {
+      return legacyPlan ?? null;
+    }
+    throw new Error(`Error al obtener plan semanal: ${linkedError.message}`);
+  }
+
+  const linkedPlan = linkedProfile?.weekly_plan;
+  if (hasWeeklyPlanAssignments(linkedPlan)) return linkedPlan;
+  return legacyProfile ? legacyPlan ?? null : linkedPlan ?? null;
+}
+
+function isMissingProfileUserIdColumn(error: { code?: string; message?: string }): boolean {
+  return error.code === '42703' ||
+    (error.code === 'PGRST204' && error.message?.includes('user_id') === true);
+}
+
+function hasWeeklyPlanAssignments(plan: unknown): boolean {
+  if (!plan || typeof plan !== 'object') return false;
+  return Object.values(plan).some((day) => {
+    if (Array.isArray(day)) return day.length > 0;
+    if (!day || typeof day !== 'object') return false;
+    const routines = (day as { routines?: unknown }).routines;
+    return Array.isArray(routines) && routines.length > 0;
+  });
 }
 
 /**
@@ -721,9 +750,53 @@ export async function saveWeeklyPlan(plan: any): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
+  const { data: legacyProfile, error: legacyError } = await supabase
+    .from('profiles')
+    .select('id, weekly_plan')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (legacyError) {
+    throw new Error(`Error al buscar perfil para el plan semanal: ${legacyError.message}`);
+  }
+
+  let linkedProfile: { id: string; weekly_plan: unknown } | null = null;
+  if (!hasWeeklyPlanAssignments(legacyProfile?.weekly_plan)) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, weekly_plan')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error && !(legacyProfile && isMissingProfileUserIdColumn(error))) {
+      throw new Error(`Error al buscar perfil para el plan semanal: ${error.message}`);
+    }
+    linkedProfile = data;
+  }
+
+  const profile = hasWeeklyPlanAssignments(legacyProfile?.weekly_plan)
+    ? legacyProfile
+    : hasWeeklyPlanAssignments(linkedProfile?.weekly_plan)
+      ? linkedProfile
+      : legacyProfile ?? linkedProfile;
+
+  if (profile) {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ weekly_plan: plan, updated_at: new Date().toISOString() })
+      .eq('id', profile.id);
+
+    if (error) throw new Error(`Error al guardar plan semanal: ${error.message}`);
+    return;
+  }
+
   const { error } = await supabase
     .from('profiles')
-    .upsert({ id: user.id, weekly_plan: plan, updated_at: new Date().toISOString() });
+    .insert({
+      id: user.id,
+      weekly_plan: plan,
+      updated_at: new Date().toISOString(),
+    });
 
   if (error) throw new Error(`Error al guardar plan semanal: ${error.message}`);
 }

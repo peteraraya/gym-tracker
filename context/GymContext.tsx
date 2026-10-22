@@ -130,39 +130,34 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       // DB habilitada pero sin usuario autenticado:
       // fallback silencioso a localStorage para no bloquear la UI
-      logger.warn(
+      logger.info(
         "[GymContext] DB habilitada sin usuario autenticado — usando fallback localStorage"
       );
     }
   }, [user, authLoading, refetchRoutines, refetchSessions]);
 
   useEffect(() => {
+    if (!user || authLoading || process.env.NEXT_PUBLIC_ENABLE_DATABASE !== "true") return;
     let mounted = true;
-    (async () => {
-      if (process.env.NEXT_PUBLIC_ENABLE_DATABASE === "true") {
-        try {
-          const storageStatus = storageService.getStorageStatus();
-          if (storageStatus.mode === "localStorage" && storageStatus.hasError) {
-            const sessionSyncResult =
-              await storageService.syncLocalSessionsToDatabase();
-            if (sessionSyncResult.synced > 0 && mounted) {
-              await refetchSessions();
-            }
-            const routineSyncResult =
-              await storageService.syncLocalRoutinesToDatabase();
-            if (routineSyncResult.synced > 0 && mounted) {
-              await refetchRoutines();
-            }
-          }
-        } catch (e) {
-          logger.warn("[GymContext] Sync check failed:", e);
+    const syncWhenOnline = async () => {
+      if (!navigator.onLine) return;
+      try {
+        const result = await storageService.syncPendingLocalData();
+        if (mounted && result.synced > 0) {
+          await Promise.all([refetchRoutines(), refetchSessions()]);
         }
+      } catch (error) {
+        logger.error("[GymContext] Offline data synchronization failed:", error);
       }
-    })();
+    };
+
+    void syncWhenOnline();
+    window.addEventListener("online", syncWhenOnline);
     return () => {
       mounted = false;
+      window.removeEventListener("online", syncWhenOnline);
     };
-  }, [refetchRoutines, refetchSessions]);
+  }, [user, authLoading, refetchRoutines, refetchSessions]);
 
   const addRoutine = useCallback(
     async (routine: Omit<Routine, "id" | "createdAt" | "updatedAt">) => {

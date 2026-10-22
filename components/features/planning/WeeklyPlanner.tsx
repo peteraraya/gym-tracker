@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, DragEvent, useRef } from "react";
+import React, { useEffect, useState, DragEvent, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   GripVertical,
@@ -8,11 +8,13 @@ import {
   ChevronRight,
 } from "@/components/icons/lucide";
 import { useRoutines } from "@/context/GymContext";
+import { useAuth } from "@/context/AuthContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { useToast, useConfirm } from "@/context/NotificationContext";
 import {
+  getStorageStatus,
   getWeeklyPlan,
   saveWeeklyPlan,
   getMonthlyPlan,
@@ -83,6 +85,8 @@ export default function WeeklyPlanner({
 }) {
   const router = useRouter();
   const { routines, loading: routinesLoading } = useRoutines();
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
   const { startWorkout, activeWorkout } = useWorkout();
   const { confirm } = useConfirm();
   const { info } = useToast();
@@ -92,13 +96,18 @@ export default function WeeklyPlanner({
   const [showFullWeek, setShowFullWeek] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const defaultPlan: Plan = DAYS.reduce(
-    (acc, d) => ({ ...acc, [d]: { routines: [], blocked: false, note: "" } }),
-    {} as Plan,
+  const defaultPlan = useMemo<Plan>(
+    () =>
+      DAYS.reduce(
+        (acc, d) => ({ ...acc, [d]: { routines: [], blocked: false, note: "" } }),
+        {} as Plan,
+      ),
+    [],
   );
   const [plan, setPlan] = useState<Plan>(defaultPlan);
   const [monthlyPlan, setMonthlyPlan] = useState<MonthlyPlan>({});
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
+  const [loadedForUserId, setLoadedForUserId] = useState<string | null>();
   const [selectedDayByRoutine, setSelectedDayByRoutine] = useState<
     Record<string, DayKey | "">
   >({});
@@ -113,7 +122,12 @@ export default function WeeklyPlanner({
 
   useEffect(() => {
     let mounted = true;
+    if (authLoading) return;
+
     const loadPlans = async () => {
+      setIsLoadingPlan(true);
+      setLoadedForUserId(undefined);
+      let loadedSuccessfully = false;
       try {
         // Cargar ambos planes en paralelo
         const [storedWeekly, storedMonthly] = await Promise.all([
@@ -122,6 +136,9 @@ export default function WeeklyPlanner({
         ]);
 
         if (!mounted) return;
+        loadedSuccessfully = true;
+
+        setPlan(defaultPlan);
 
         // Procesar plan semanal
         if (storedWeekly) {
@@ -183,15 +200,23 @@ export default function WeeklyPlanner({
       } catch (e) {
         console.warn("Error loading plans, using local default", e);
       } finally {
-        if (mounted) setIsLoadingPlan(false);
+        if (mounted) {
+          setIsLoadingPlan(false);
+          if (
+            loadedSuccessfully &&
+            (!userId || process.env.NEXT_PUBLIC_ENABLE_DATABASE !== "true" || !getStorageStatus().hasError)
+          ) {
+            setLoadedForUserId(userId);
+          }
+        }
       }
     };
 
-    loadPlans();
+    void loadPlans();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [authLoading, userId, defaultPlan]);
 
   // Escuchar sincronización desde el módulo de planificación
   useEffect(() => {
@@ -233,7 +258,12 @@ export default function WeeklyPlanner({
 
   // Debounce compartido para guardar ambos planes en paralelo
   useEffect(() => {
-    if (isLoadingPlan) return;
+    if (
+      authLoading ||
+      isLoadingPlan ||
+      loadedForUserId !== userId ||
+      (process.env.NEXT_PUBLIC_ENABLE_DATABASE === "true" && (!userId || getStorageStatus().hasError))
+    ) return;
 
     const timeoutId = setTimeout(async () => {
       try {
@@ -247,7 +277,7 @@ export default function WeeklyPlanner({
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [plan, monthlyPlan, isLoadingPlan]);
+  }, [plan, monthlyPlan, isLoadingPlan, authLoading, loadedForUserId, userId]);
 
   const updateIndicators = () => {
     const el = daysRef.current;

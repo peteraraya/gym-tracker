@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "@/context/LocaleContext";
 import { useGym } from "@/context/GymContext";
+import { useAuth } from "@/context/AuthContext";
 import { useWorkout } from "@/context/WorkoutContext";
 import { useToast } from "@/context/NotificationContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
@@ -299,6 +300,7 @@ export default function Home() {
     sessionsError,
     refreshAll,
   } = useGym();
+  const { user, loading: authLoading } = useAuth();
   const { activeWorkout, startWorkout } = useWorkout();
   const { error: showError } = useToast();
   const router = useRouter();
@@ -325,7 +327,18 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => { void loadWeeklyPlan(); }, [loadWeeklyPlan]);
+  useEffect(() => {
+    if (authLoading) return;
+    void loadWeeklyPlan();
+  }, [authLoading, user?.id, loadWeeklyPlan]);
+
+  useEffect(() => {
+    const handleWeeklyPlanSync = () => {
+      void loadWeeklyPlan();
+    };
+    window.addEventListener("gym-logix:weekly-plan-synced", handleWeeklyPlanSync);
+    return () => window.removeEventListener("gym-logix:weekly-plan-synced", handleWeeklyPlanSync);
+  }, [loadWeeklyPlan]);
 
   const todayRoutineIds = useMemo<string[]>(() => weeklyPlan?.[todayKey]?.routines ?? [], [weeklyPlan, todayKey]);
   const hasWeeklySchedule = useMemo(

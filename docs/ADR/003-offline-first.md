@@ -1,44 +1,49 @@
-# ADR-003: Estrategia Offline-First con saveQueue
+# ADR-003: Offline-first and synchronization boundaries
 
-## Estado
+## Status
 
-Aceptado
+Accepted
 
-## Contexto
+## Context
 
-GymLogiX se usa en gimnasios donde la conectividad puede ser intermitente o inexistente. La aplicación debe permitir a los usuarios registrar entrenamientos incluso sin conexión a internet, sincronizando los datos cuando se recupere la conexión.
+GymLogiX is used in gyms with intermittent connectivity. Workout and routine data
+must remain available on the device, while authenticated server data must not be
+stored in a shared Cache API cache.
 
-## Decisión
+## Decision
 
-Implementar una estrategia **offline-first** con los siguientes componentes:
+1. `public/sw.js` precaches the offline page and a small app shell. It uses
+   versioned, bounded caches for static assets, images, and fonts. It never
+   caches API responses or arbitrary authenticated HTML.
+2. The storage facade caches successful routine/session reads locally and uses
+   local copies after a remote read fails. Critical writes fall back to local
+   storage and record an owner-scoped pending operation.
+3. `syncPendingLocalData` retries queued routine, session, profile, weekly plan,
+   active-workout, and supported deletion changes when the authenticated app is
+   open and online. Routine mappings keep locally-created routine IDs usable by
+   local sessions.
+4. Connectivity UI is limited to offline, active sync, and sync failure/success
+   feedback. It does not imply that browser `navigator.onLine` proves the
+   Supabase service is reachable.
+5. Background Sync is only a wake-up hint for an open client; it is not a
+   durable server-independent upload mechanism. Browsers can suspend service
+   workers and do not guarantee timers or sync execution.
 
-1. **saveQueue (`lib/utils/saveQueue.ts`):** Cola de operaciones pendientes que se almacenan en IndexedDB/LocalStorage cuando no hay conexión. Al recuperar la conexión, se ejecuta `flush()` para reenviar todas las operaciones pendientes a Supabase.
+## Consequences and known limits
 
-2. **TanStack Query con `networkMode: 'offlineFirst'`:** Las consultas y mutaciones están configuradas para funcionar sin conexión, usando caché local y reintentos automáticos al recuperar la conectividad.
+- Reads and supported writes can continue using previously cached or locally
+  saved data. First-use data still requires a connection.
+- The local pending queue is scoped by the authenticated owner ID. Pending
+  changes are kept on the device if an upload fails and retried on the next
+  connection/app start.
+- Offline routine, session, and active-workout deletions are queued for the
+  authenticated owner and replayed on the next foreground synchronization.
+  Conflict resolution for concurrent edits is not implemented; the latest
+  locally queued value is uploaded.
+- Rest notifications scheduled with service-worker timers are best effort;
+  mobile operating systems may suspend the worker before a timer fires.
+- The device's local storage is not a substitute for a server backup.
 
-3. **Service Worker (`public/sw.js`):** Intercepta peticiones de red y sirve recursos estáticos desde caché cuando no hay conexión.
+## Date
 
-4. **PWA (Capacitor):** La aplicación se instala como app nativa y puede funcionar completamente offline una vez cargada.
-
-## Consecuencias
-
-### Positivas
-
-- **Experiencia ininterrumpida:** Los usuarios pueden entrenar sin preocuparse por la conexión.
-- **No pérdida de datos:** Las operaciones se encolan y se sincronizan automáticamente.
-- **Mejor percepción de velocidad:** Las lecturas se sirven desde caché local inmediatamente.
-
-### Negativas
-
-- **Complejidad de resolución de conflictos:** Si el mismo dato se modifica offline y online, puede haber conflictos que requieren resolución manual.
-- **Estado inconsistente temporalmente:** La UI puede mostrar datos que aún no se han sincronizado con el servidor.
-
-### Mitigaciones
-
-- `saveQueue` implementa reintentos con backoff exponencial (máximo 3 intentos).
-- Las operaciones críticas (crear sesión, completar serie) se validan al sincronizar.
-- Se muestra indicador visual de estado de conexión (`ConnectionIndicator`).
-
-## Fecha
-
-2026-10-20
+2026-10-22

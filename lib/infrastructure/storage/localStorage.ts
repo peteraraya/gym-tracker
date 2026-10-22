@@ -112,6 +112,10 @@ export async function getRoutines(): Promise<Routine[]> {
     return routines;
 }
 
+export async function replaceCachedRoutines(routines: Routine[]): Promise<void> {
+    saveToStorage(STORAGE_KEYS.ROUTINES, routines);
+}
+
 /**
  * Create a new routine in localStorage
  */
@@ -229,6 +233,10 @@ export async function getSessions(): Promise<WorkoutSession[]> {
     return [...sessions].sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
+export async function replaceCachedSessions(sessions: WorkoutSession[]): Promise<void> {
+    saveToStorage(STORAGE_KEYS.SESSIONS, sessions);
+}
+
 /**
  * Save a workout session to localStorage
  * IMPROVED: Now checks for duplicates and updates instead of creating duplicates
@@ -272,6 +280,14 @@ export async function saveSession(session: WorkoutSession): Promise<void> {
         }
     } catch (e) {
         // ignore marker failures
+    }
+}
+
+export async function deleteSession(id: string): Promise<void> {
+    const sessions = await getSessions();
+    const remaining = sessions.filter(session => session.id !== id);
+    if (remaining.length !== sessions.length) {
+        saveToStorage(STORAGE_KEYS.SESSIONS, remaining);
     }
 }
 
@@ -366,6 +382,10 @@ export async function updateProfile(data: Partial<UserProfile>): Promise<void> {
     };
 
     saveToStorage(STORAGE_KEYS.PROFILE, updatedProfile);
+}
+
+export async function replaceCachedProfile(profile: UserProfile): Promise<void> {
+    saveToStorage(STORAGE_KEYS.PROFILE, profile);
 }
 
 // ==================== RECOMMENDATIONS ====================
@@ -513,6 +533,10 @@ export async function saveWeeklyPlan(plan: WeeklyPlan): Promise<void> {
     } catch (e) {
         throw new Error('Error saving weekly plan locally');
     }
+}
+
+export async function replaceCachedWeeklyPlan(plan: WeeklyPlan): Promise<void> {
+    saveToStorage(STORAGE_KEYS.WEEKLY_PLAN, plan);
 }
 
 /**

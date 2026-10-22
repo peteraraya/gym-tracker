@@ -3,6 +3,8 @@ export const queryKeys = {
   routines: {
     all: ['routines'] as const,
     lists: () => [...queryKeys.routines.all, 'list'] as const,
+    listForUser: (userId: string | null) =>
+      [...queryKeys.routines.lists(), userId ?? 'anonymous'] as const,
     list: (filters: string) => [...queryKeys.routines.lists(), { filters }] as const,
     details: () => [...queryKeys.routines.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.routines.details(), id] as const,
@@ -12,6 +14,8 @@ export const queryKeys = {
   sessions: {
     all: ['sessions'] as const,
     lists: () => [...queryKeys.sessions.all, 'list'] as const,
+    listForUser: (userId: string | null) =>
+      [...queryKeys.sessions.lists(), userId ?? 'anonymous'] as const,
     list: (filters: string) => [...queryKeys.sessions.lists(), { filters }] as const,
     details: () => [...queryKeys.sessions.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.sessions.details(), id] as const,

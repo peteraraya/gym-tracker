@@ -143,7 +143,12 @@
     "install": "Instalar ahora",
     "later": "Más tarde",
     "installError": "No se pudo abrir el instalador. Inténtalo de nuevo desde el menú de tu navegador.",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "offlineStatus": "Sin conexión. Puedes seguir con datos guardados en este dispositivo.",
+    "syncingStatus": "Conexión recuperada: sincronizando cambios guardados…",
+    "syncCompleteStatus": "Cambios sincronizados: {count}.",
+    "syncErrorStatus": "No se pudieron sincronizar todos los cambios ({count} pendientes). Se conservaron en este dispositivo; volveremos a intentarlo.",
+    "dismissOffline": "Cerrar"
   },
   "nav": {
     "home": "Inicio",
@@ -186,6 +191,17 @@
     "cloudUnavailableDescription": "No se pudo completar una operación en la nube. Comprueba la conexión y la configuración antes de continuar.",
     "connectedTitle": "Conectado",
     "connectedDescription": "Los datos se sincronizan con la base de datos."
+  },
+  "offlinePage": {
+    "title": "Sin conexión",
+    "description": "Puedes consultar los datos que ya se guardaron o cargaron en este dispositivo. Algunas funciones conectadas no estarán disponibles.",
+    "availableTitle": "Disponible según los datos guardados",
+    "workouts": "Continuar un entrenamiento guardado en este dispositivo",
+    "routines": "Consultar rutinas guardadas o cargadas previamente",
+    "progress": "Ver estadísticas calculadas con sesiones locales disponibles",
+    "exercises": "Consultar recursos de ejercicios previamente guardados",
+    "retry": "Volver a intentar",
+    "footer": "Los cambios compatibles se guardan localmente y se intentan sincronizar cuando se recupere la conexión y vuelvas a abrir la app."
   },
   "auth": {
     "signIn": "Iniciar Sesión",

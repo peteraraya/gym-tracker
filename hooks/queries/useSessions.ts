@@ -2,13 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as storageService from '@/lib/infrastructure/storage/storage';
 import { queryKeys } from '@/lib/infrastructure/react-query/queryKeys';
 import type { WorkoutSession } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export function useSessions() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const sessionsQueryKey = queryKeys.sessions.listForUser(user?.id ?? null);
   
   // Query for fetching sessions
   const query = useQuery({
-    queryKey: queryKeys.sessions.lists(),
+    queryKey: sessionsQueryKey,
     queryFn: () => storageService.getSessions(),
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
@@ -33,10 +36,10 @@ export function useSessions() {
       await queryClient.cancelQueries({ queryKey: queryKeys.sessions.lists() });
       
       // Snapshot previous value
-      const previousSessions = queryClient.getQueryData(queryKeys.sessions.lists());
+      const previousSessions = queryClient.getQueryData(sessionsQueryKey);
       
       // Optimistically update
-      queryClient.setQueryData(queryKeys.sessions.lists(), (old: WorkoutSession[] | undefined) => {
+      queryClient.setQueryData(sessionsQueryKey, (old: WorkoutSession[] | undefined) => {
         if (!old) return old;
         return old.map(session =>
           session.id === updatedSession.id ? updatedSession : session
@@ -48,7 +51,7 @@ export function useSessions() {
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousSessions) {
-        queryClient.setQueryData(queryKeys.sessions.lists(), context.previousSessions);
+        queryClient.setQueryData(sessionsQueryKey, context.previousSessions);
       }
     },
     onSettled: () => {
