@@ -69,6 +69,16 @@ export async function POST(request: Request) {
 
   try {
     const supabase = await createSupabaseServerClient()
+
+    // Verificar autenticación antes de procesar
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 },
+      )
+    }
+
     const body = await request.json()
 
     const validation = validateApiBody(ApiCreateSessionBodySchema, body)
