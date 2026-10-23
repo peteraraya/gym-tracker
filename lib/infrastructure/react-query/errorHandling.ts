@@ -12,7 +12,7 @@ export function setupQueryErrorHandling(queryClient: QueryClient) {
         // Toast will be shown by individual components if needed
         // Global error handling logs for debugging
       },
-      retry: (failureCount: number, error: any) => {
+      retry: (failureCount: number, error: Error) => {
         // Don't retry on 404 or 401
         if (error?.status === 404 || error?.status === 401) {
           return false;
@@ -30,5 +30,5 @@ export function setupQueryErrorHandling(queryClient: QueryClient) {
         // Global error handling logs for debugging
       },
     },
-  } as any);
+  });
 }

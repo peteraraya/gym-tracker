@@ -73,11 +73,13 @@ export async function POST(request: NextRequest) {
       message: 'Notification sent successfully'
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API] Error sending push notification:', error);
-    
+
+    const err = error as { statusCode?: number; message?: string };
+
     // Si la suscripción expiró o es inválida
-    if (error.statusCode === 410 || error.statusCode === 404) {
+    if (err.statusCode === 410 || err.statusCode === 404) {
       return NextResponse.json(
         { error: 'Subscription expired or invalid', expired: true },
         { status: 410 }
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to send notification', details: error.message },
+      { error: 'Failed to send notification', details: err.message },
       { status: 500 }
     );
   }
@@ -130,8 +132,9 @@ export async function GET(request: NextRequest) {
 
     // Enviar a todos
     const results = await Promise.allSettled(
-      subscriptions.map((sub: any) => 
-        webpush.sendNotification(sub, payload)
+      subscriptions.map((sub: unknown) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        webpush.sendNotification(sub as any, payload)
       )
     );
 

@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { NextIntlClientProvider } from 'next-intl';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { LocaleProvider, useLocale } from '@/context/LocaleContext';
+import { RepositoryProvider } from '@/context/RepositoryContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { EquipmentProvider } from '@/context/EquipmentContext';
 import { GymProvider } from '@/context/GymContext';
@@ -17,6 +18,20 @@ function SyncedIntlProvider({ children }: { children: React.ReactNode }) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       {children}
     </NextIntlClientProvider>
+  );
+}
+
+function AuthenticatedRepositoryProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user } = useAuth();
+
+  return (
+    <RepositoryProvider user={user}>
+      {children}
+    </RepositoryProvider>
   );
 }
 
@@ -35,14 +50,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <SyncedIntlProvider>
         <NotificationProvider>
           <AuthProvider>
-            <EquipmentProvider>
-              <GymProvider>
-                <PrefetchData />
-                <WorkoutProvider>
-                  {children}
-                </WorkoutProvider>
-              </GymProvider>
-            </EquipmentProvider>
+            <AuthenticatedRepositoryProvider>
+              <EquipmentProvider>
+                <GymProvider>
+                  <PrefetchData />
+                  <WorkoutProvider>
+                    {children}
+                  </WorkoutProvider>
+                </GymProvider>
+              </EquipmentProvider>
+            </AuthenticatedRepositoryProvider>
           </AuthProvider>
         </NotificationProvider>
       </SyncedIntlProvider>

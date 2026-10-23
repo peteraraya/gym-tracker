@@ -272,7 +272,7 @@ export function showRestCompleteNotification(exerciseName?: string): void {
   try {
     if (Notification.permission === 'granted') {
       const title = '⏰ Descanso Terminado';
-      const options: NotificationOptions & { vibrate?: number[]; data?: any } = {
+      const options: NotificationOptions & { vibrate?: number[]; data?: Record<string, unknown> } = {
         body: exerciseName
           ? `Es hora de continuar con ${exerciseName}!`
           : '¡Es hora de la siguiente serie!',

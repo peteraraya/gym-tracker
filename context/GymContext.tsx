@@ -14,6 +14,12 @@ import * as storageService from "@/lib/infrastructure/storage/storage";
 import { recommendForSession } from "@/lib/application/workout/progression";
 import { useRoutines as useRoutinesQuery } from "@/hooks/queries/useRoutines";
 import { useSessions as useSessionsQuery } from "@/hooks/queries/useSessions";
+import type {
+  CreateRoutineInput,
+  UpdateRoutineInput,
+  CreateSessionInput,
+  UpdateSessionInput,
+} from "@/lib/domain/repositories";
 import { achievementManager } from "@/lib/domain/achievements/achievementManager"; // ✨ Importar el gestor de logros
 import logger from "@/lib/shared/logger";
 
@@ -161,7 +167,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const addRoutine = useCallback(
     async (routine: Omit<Routine, "id" | "createdAt" | "updatedAt">) => {
-      await createRoutineFn(routine as storageService.CreateRoutineData);
+      await createRoutineFn(routine as unknown as CreateRoutineInput);
     },
     [createRoutineFn],
   );
@@ -173,7 +179,7 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
       const updatedRoutine = {
         ...routine,
         ...updatedData,
-      } as storageService.CreateRoutineData;
+      } as unknown as UpdateRoutineInput;
       await updateRoutineFn(id, updatedRoutine);
     },
     [routinesList, updateRoutineFn],
@@ -246,7 +252,11 @@ export const GymProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updateSession = useCallback(
     async (updatedSession: WorkoutSession) => {
-      await updateSessionFn(updatedSession);
+      await updateSessionFn(updatedSession.id, {
+        notes: updatedSession.notes ?? undefined,
+        totalDuration: updatedSession.totalDuration ?? undefined,
+        totalPausedTime: updatedSession.totalPausedTime ?? undefined,
+      } as UpdateSessionInput);
     },
     [updateSessionFn],
   );

@@ -1,61 +1,69 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as storageService from '@/lib/infrastructure/storage/storage';
 import { queryKeys } from '@/lib/infrastructure/react-query/queryKeys';
 import type { WorkoutSession } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useRepositories } from '@/context/RepositoryContext';
+import type { CreateSessionInput, UpdateSessionInput } from '@/lib/domain/repositories';
 
 export function useSessions() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const sessionsQueryKey = queryKeys.sessions.listForUser(user?.id ?? null);
-  
+  const { sessions: sessionRepository, isDatabaseEnabled } =
+    useRepositories();
+
   // Query for fetching sessions
   const query = useQuery({
     queryKey: sessionsQueryKey,
-    queryFn: () => storageService.getSessions(),
+    enabled: isDatabaseEnabled && Boolean(user),
+    queryFn: async () => {
+      const result = await sessionRepository.getByUserId(user?.id ?? '');
+      return result.sessions;
+    },
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
   });
   
   // Mutation for creating session
   const createMutation = useMutation({
-    mutationFn: (session: Omit<WorkoutSession, 'id'>) =>
-      storageService.saveSession(session as WorkoutSession),
+    mutationFn: (data: CreateSessionInput) =>
+      sessionRepository.create(data),
     onSuccess: () => {
-      // Invalidate sessions and potentially routines (for stats)
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all });
     },
   });
   
   // Mutation for updating session
   const updateMutation = useMutation({
-    mutationFn: (session: WorkoutSession) =>
-      storageService.updateSession(session),
-    onMutate: async (updatedSession) => {
-      // Cancel outgoing refetches
+    mutationFn: ({ id, data }: { id: string; data: UpdateSessionInput }) =>
+      sessionRepository.update(id, data),
+    onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.sessions.lists() });
-      
-      // Snapshot previous value
       const previousSessions = queryClient.getQueryData(sessionsQueryKey);
-      
-      // Optimistically update
       queryClient.setQueryData(sessionsQueryKey, (old: WorkoutSession[] | undefined) => {
         if (!old) return old;
-        return old.map(session =>
-          session.id === updatedSession.id ? updatedSession : session
-        );
+        return old.map((session) => {
+          if (session.id !== id) return session;
+          return {
+            ...session,
+            ...(data.notes !== undefined && { notes: data.notes }),
+            ...(data.totalDuration !== undefined && {
+              totalDuration: data.totalDuration,
+            }),
+            ...(data.totalPausedTime !== undefined && {
+              totalPausedTime: data.totalPausedTime,
+            }),
+          };
+        });
       });
-      
       return { previousSessions };
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       if (context?.previousSessions) {
         queryClient.setQueryData(sessionsQueryKey, context.previousSessions);
       }
     },
     onSettled: () => {
-      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all });
     },
   });
@@ -63,11 +71,33 @@ export function useSessions() {
   // Mutation for deleting session
   const deleteMutation = useMutation({
     mutationFn: (sessionId: string) =>
-      storageService.deleteSession(sessionId),
+      sessionRepository.delete(sessionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all });
     },
   });
+
+  if (!isDatabaseEnabled) {
+    return {
+      sessions: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: () => Promise.resolve(),
+      addSession: async () => {
+        throw new Error('Base de datos deshabilitada');
+      },
+      updateSession: async () => {
+        throw new Error('Base de datos deshabilitada');
+      },
+      deleteSession: async () => {
+        throw new Error('Base de datos deshabilitada');
+      },
+      isAdding: false,
+      isUpdating: false,
+      isDeleting: false,
+    };
+  }
   
   return {
     sessions: query.data ?? [],
@@ -75,11 +105,12 @@ export function useSessions() {
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,
-    
+
     addSession: createMutation.mutateAsync,
-    updateSession: updateMutation.mutateAsync,
+    updateSession: (id: string, data: UpdateSessionInput) =>
+      updateMutation.mutateAsync({ id, data }),
     deleteSession: deleteMutation.mutateAsync,
-    
+
     isAdding: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,

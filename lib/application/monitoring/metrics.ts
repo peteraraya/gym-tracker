@@ -3,6 +3,7 @@
  */
 
 import { measureBundleSize, measureCacheHitRate, measurePageLoadMetrics, getAPIRequestCount } from './monitor';
+import type { QueryClient } from '@tanstack/react-query';
 
 export interface PerformanceReport {
   timestamp: string;
@@ -25,7 +26,7 @@ export interface PerformanceReport {
   };
 }
 
-export async function collectPerformanceMetrics(queryClient?: any): Promise<PerformanceReport> {
+export async function collectPerformanceMetrics(queryClient?: QueryClient): Promise<PerformanceReport> {
   const bundleSize = measureBundleSize();
   const cacheHitRate = queryClient ? measureCacheHitRate(queryClient) : 0;
   const pageLoadMetrics = measurePageLoadMetrics();
