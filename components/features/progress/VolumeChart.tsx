@@ -74,24 +74,25 @@ export const VolumeChart = React.memo(function VolumeChart({ sessions, period }:
               return (
                 <div key={index} className="flex-1 flex flex-col items-center gap-1 group">
                   <div className="relative w-full h-full flex items-end">
+                    {/* Barra de volumen */}
+                    <div
+                      className={`absolute bottom-0 w-full rounded-t-lg transition-all ${
+                        day.volume > 0
+                          ? isToday
+                            ? 'bg-gradient-to-t from-purple-600 to-purple-400 shadow-lg shadow-purple-500/30'
+                            : 'bg-gradient-to-t from-blue-600 to-blue-400 group-hover:from-blue-700 group-hover:to-blue-500'
+                          : 'bg-zinc-200 dark:bg-zinc-800'
+                      }`}
+                      style={{ height: `${Math.max(height, 1)}%` }}
+                    />
+                    {/* Botón invisible para clicks */}
                     <button
                       type="button"
                       aria-label={`${day.date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}: ${day.volume.toLocaleString()} ${tDashboard('units.kg')}, ${day.sessions} ${t('tooltipSessions').toLowerCase()}`}
                       aria-pressed={selectedDay === day.date.getTime()}
                       onClick={() => setSelectedDay(day.date.getTime())}
-                      className="absolute inset-0 flex w-full items-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                    >
-                      <span
-                        className={`w-full rounded-t-lg transition-all ${
-                        day.volume > 0
-                          ? isToday
-                            ? 'bg-linear-to-t from-purple-600 to-purple-400 shadow-lg shadow-purple-500/30'
-                            : 'bg-linear-to-t from-blue-600 to-blue-400 group-hover:from-blue-700 group-hover:to-blue-500'
-                          : 'bg-zinc-200 dark:bg-zinc-800'
-                      }`}
-                        style={{ height: `${Math.max(height, 1)}%` }}
-                      />
-                    </button>
+                      className="absolute inset-0 w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    />
                     {day.volume > 0 && (
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs px-2 py-1 rounded whitespace-nowrap">
